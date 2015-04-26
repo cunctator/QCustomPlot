@@ -331,11 +331,10 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   
   You may also manipulate/correct the range with \ref setRange in a slot connected to this signal.
   This is useful if for example a maximum range span shall not be exceeded, or if the lower/upper
-  range shouldn't go beyond certain values. For example, the following slot would limit the x axis
-  to only positive ranges:
+  range shouldn't go beyond certain values (see \ref QCPRange::bounded). For example, the following
+  slot would limit the x axis to ranges between 0 and 10:
   \code
-  if (newRange.lower < 0)
-    plot->xAxis->setRange(0, newRange.size());
+  customPlot->xAxis->setRange(newRange.bounded(0, 10))
   \endcode
 */
 

@@ -55,6 +55,7 @@ public:
   void normalize();
   void expand(const QCPRange &otherRange);
   QCPRange expanded(const QCPRange &otherRange) const;
+  QCPRange bounded(double lowerBound, double upperBound) const;
   QCPRange sanitizedForLogScale() const;
   QCPRange sanitizedForLinScale() const;
   bool contains(double value) const;

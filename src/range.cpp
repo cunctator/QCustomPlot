@@ -131,6 +131,37 @@ QCPRange QCPRange::expanded(const QCPRange &otherRange) const
 }
 
 /*!
+  Returns this range, possibly modified to not exceed the bounds provided as \a lowerBound and \a
+  upperBound. If possible, the size of the current range is preserved in the process.
+  
+  If the range shall only be bounded at the lower side, you can set \a upperBound to \ref
+  QCPRange::maxRange. If it shall only be bounded at the upper side, set \a lowerBound to -\ref
+  QCPRange::maxRange.
+*/
+QCPRange QCPRange::bounded(double lowerBound, double upperBound) const
+{
+  if (lowerBound > upperBound)
+    qSwap(lowerBound, upperBound);
+  
+  QCPRange result(lower, upper);
+  if (result.lower < lowerBound)
+  {
+    result.lower = lowerBound;
+    result.upper = lowerBound + size();
+    if (result.upper > upperBound || qFuzzyCompare(size(), upperBound-lowerBound))
+      result.upper = upperBound;
+  } else if (result.upper > upperBound)
+  {
+    result.upper = upperBound;
+    result.lower = upperBound - size();
+    if (result.lower < lowerBound || qFuzzyCompare(size(), upperBound-lowerBound))
+      result.lower = lowerBound;
+  }
+  
+  return result;
+}
+
+/*!
   Returns a sanitized version of the range. Sanitized means for logarithmic scales, that
   the range won't span the positive and negative sign domain, i.e. contain zero. Further
   \a lower will always be numerically smaller (or equal) to \a upper.

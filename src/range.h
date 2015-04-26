@@ -91,6 +91,13 @@ Q_DECLARE_TYPEINFO(QCPRange, Q_MOVABLE_TYPE);
 
 /* end documentation of inline functions */
 
+/* qdebug output stream operator, no doc needed */
+inline QDebug operator<< (QDebug d, const QCPRange &range)
+{
+    d.nospace() << "QCPRange(" << range.lower << ", " << range.upper << ")";
+    return d.space();
+}
+
 /*!
   Adds \a value to both boundaries of the range.
 */

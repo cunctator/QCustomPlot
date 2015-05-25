@@ -321,7 +321,10 @@ void QCPLayerable::setVisible(bool on)
   Sets the \a layer of this layerable object. The object will be placed on top of the other objects
   already on \a layer.
   
-  Returns true on success, i.e. if \a layer is a valid layer.
+  If \a layer is 0, this layerable will not be on any layer and thus not appear in the plot (or
+  interact/receive events).
+  
+  Returns true if the layer of this layerable was successfully changed to \a layer.
 */
 bool QCPLayerable::setLayer(QCPLayer *layer)
 {

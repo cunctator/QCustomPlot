@@ -37,7 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupColorMapTest(mCustomPlot);
   //setupBarsTest(mCustomPlot);
   //setupBarsGroupTest(mCustomPlot);
-  setupTestbed(mCustomPlot);
+  setupLargeDataSetDelete(mCustomPlot);
+  //setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -1072,6 +1073,47 @@ void MainWindow::setupBarsGroupTest(QCustomPlot *customPlot)
   qobject_cast<QCPBars*>(customPlot->plottable(customPlot->plottableCount()-1))->moveAbove(qobject_cast<QCPBars*>(customPlot->plottable(customPlot->plottableCount()-2)));
   
   customPlot->rescaleAxes();
+}
+
+void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
+{
+  // create large initial set that would take long to clear as a whole:
+  QElapsedTimer timer;
+  timer.start();
+  for (int n=0; n<50; ++n)
+  {
+    QCPGraph *g = customPlot->addGraph();
+    QPen p(Qt::blue, 0, Qt::SolidLine);
+    g->setSelectedPen(p);
+    QCPDataMap *data = new QCPDataMap;
+    for (int i=0; i<82000; ++i)
+      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+    g->setData(data);
+  }
+  qDebug() << "create" << timer.nsecsElapsed()/1e6 << "ms";
+  customPlot->rescaleAxes();
+  customPlot->replot(QCustomPlot::rpImmediate);
+  
+  // asynchronous remove:
+  timer.start();
+  customPlot->clearPlottablesAsynchronous();
+  qDebug() << "remove" << timer.nsecsElapsed()/1e6 << "ms";
+  
+  customPlot->replot(QCustomPlot::rpImmediate);
+  
+  // create next set right away to see whether asynchronous remove works:
+  for (int n=0; n<10; ++n)
+  {
+    QCPGraph *g = customPlot->addGraph();
+    QPen p(Qt::blue, 0, Qt::SolidLine);
+    g->setSelectedPen(p);
+    QCPDataMap *data = new QCPDataMap;
+    for (int i=0; i<5000; ++i)
+      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+    g->setData(data);
+  }
+  customPlot->rescaleAxes();
+  customPlot->replot(QCustomPlot::rpImmediate);
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)

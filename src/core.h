@@ -120,6 +120,7 @@ public:
   bool removePlottable(QCPAbstractPlottable *plottable);
   bool removePlottable(int index);
   int clearPlottables();
+  int clearPlottablesAsynchronous();
   int plottableCount() const;
   QList<QCPAbstractPlottable*> selectedPlottables() const;
   QCPAbstractPlottable *plottableAt(const QPointF &pos, bool onlySelectable=false) const;
@@ -230,6 +231,7 @@ protected:
   QPoint mMousePressPos;
   QPointer<QCPLayoutElement> mMouseEventElement;
   bool mReplotting;
+  QList<QCPAbstractPlottable*> mAsyncPlottablesToClear;
   
   // reimplemented virtual methods:
   virtual QSize minimumSizeHint() const;
@@ -251,6 +253,7 @@ protected:
   void updateLayerIndices() const;
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
+  Q_SLOT void asyncPlottableClearer();
   
   friend class QCPLegend;
   friend class QCPAxis;

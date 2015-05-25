@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QDir>
+#include <QElapsedTimer>
 
 #include "../../src/qcp.h"
 
@@ -42,6 +43,7 @@ public:
   void setupColorMapTest(QCustomPlot *customPlot);
   void setupBarsTest(QCustomPlot *customPlot);
   void setupBarsGroupTest(QCustomPlot *customPlot);
+  void setupLargeDataSetDelete(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   

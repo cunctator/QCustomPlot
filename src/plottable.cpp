@@ -119,7 +119,7 @@
   appear outside the legend icon border.
 */
 
-/*! \fn QCPRange QCPAbstractPlottable::getKeyRange(bool &foundRange, SignDomain inSignDomain) const = 0
+/*! \fn QCPRange QCPAbstractPlottable::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
   \internal
   
   called by rescaleAxes functions to get the full data key bounds. For logarithmic plots, one can
@@ -136,7 +136,7 @@
   \see rescaleAxes, getValueRange
 */
 
-/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, SignDomain inSignDomain) const = 0
+/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
   \internal
   
   called by rescaleAxes functions to get the full data value bounds. For logarithmic plots, one can
@@ -399,9 +399,9 @@ void QCPAbstractPlottable::rescaleKeyAxis(bool onlyEnlarge) const
   QCPAxis *keyAxis = mKeyAxis.data();
   if (!keyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
   
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (keyAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (keyAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (keyAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getKeyRange(foundRange, signDomain);
@@ -439,9 +439,9 @@ void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge) const
   QCPAxis *valueAxis = mValueAxis.data();
   if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
   
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (valueAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (valueAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getValueRange(foundRange, signDomain);

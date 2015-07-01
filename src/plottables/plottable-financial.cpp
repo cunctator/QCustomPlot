@@ -574,7 +574,7 @@ void QCPFinancial::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCPAbstractPlottable::SignDomain inSignDomain) const
+QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -585,7 +585,7 @@ QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCPAbstractPlottable::SignD
   while (it != mData->constEnd())
   {
     current = it.value().key;
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
     {
       if (current < range.lower || !haveLower)
       {
@@ -610,7 +610,7 @@ QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCPAbstractPlottable::SignD
 }
 
 /* inherits documentation from base class */
-QCPRange QCPFinancial::getValueRange(bool &foundRange, QCPAbstractPlottable::SignDomain inSignDomain) const
+QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -620,7 +620,7 @@ QCPRange QCPFinancial::getValueRange(bool &foundRange, QCPAbstractPlottable::Sig
   while (it != mData->constEnd())
   {
     // high:
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && it.value().high < 0) || (inSignDomain == sdPositive && it.value().high > 0))
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && it.value().high < 0) || (inSignDomain == QCP::sdPositive && it.value().high > 0))
     {
       if (it.value().high < range.lower || !haveLower)
       {
@@ -634,7 +634,7 @@ QCPRange QCPFinancial::getValueRange(bool &foundRange, QCPAbstractPlottable::Sig
       }
     }
     // low:
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && it.value().low < 0) || (inSignDomain == sdPositive && it.value().low > 0))
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && it.value().low < 0) || (inSignDomain == QCP::sdPositive && it.value().low > 0))
     {
       if (it.value().low < range.lower || !haveLower)
       {

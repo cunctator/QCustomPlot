@@ -682,9 +682,9 @@ void QCPGraph::rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const
   QCPAxis *keyAxis = mKeyAxis.data();
   if (!keyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
 
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (keyAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (keyAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (keyAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getKeyRange(foundRange, signDomain, includeErrorBars);
@@ -718,9 +718,9 @@ void QCPGraph::rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const
   QCPAxis *valueAxis = mValueAxis.data();
   if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
 
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (valueAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (valueAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getValueRange(foundRange, signDomain, includeErrorBars);
@@ -2149,7 +2149,7 @@ int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   // just call the specialized version which takes an additional argument whether error bars
   // should also be taken into consideration for range calculation. We set this to true here.
@@ -2157,7 +2157,7 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   // just call the specialized version which takes an additional argument whether error bars
   // should also be taken into consideration for range calculation. We set this to true here.
@@ -2168,9 +2168,9 @@ QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain) cons
   
   Allows to specify whether the error bars should be included in the range calculation.
   
-  \see getKeyRange(bool &foundRange, SignDomain inSignDomain)
+  \see getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain)
 */
-QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const
+QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -2178,7 +2178,7 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool i
   
   double current, currentErrorMinus, currentErrorPlus;
   
-  if (inSignDomain == sdBoth) // range may be anywhere
+  if (inSignDomain == QCP::sdBoth) // range may be anywhere
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())
@@ -2201,7 +2201,7 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool i
       }
       ++it;
     }
-  } else if (inSignDomain == sdNegative) // range may only be in the negative sign domain
+  } else if (inSignDomain == QCP::sdNegative) // range may only be in the negative sign domain
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())
@@ -2237,7 +2237,7 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool i
       }
       ++it;
     }
-  } else if (inSignDomain == sdPositive) // range may only be in the positive sign domain
+  } else if (inSignDomain == QCP::sdPositive) // range may only be in the positive sign domain
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())
@@ -2283,9 +2283,9 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool i
   
   Allows to specify whether the error bars should be included in the range calculation.
   
-  \see getValueRange(bool &foundRange, SignDomain inSignDomain)
+  \see getValueRange(bool &foundRange, QCP::SignDomain inSignDomain)
 */
-QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const
+QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -2293,7 +2293,7 @@ QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain, bool
   
   double current, currentErrorMinus, currentErrorPlus;
   
-  if (inSignDomain == sdBoth) // range may be anywhere
+  if (inSignDomain == QCP::sdBoth) // range may be anywhere
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())
@@ -2316,7 +2316,7 @@ QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain, bool
       }
       ++it;
     }
-  } else if (inSignDomain == sdNegative) // range may only be in the negative sign domain
+  } else if (inSignDomain == QCP::sdNegative) // range may only be in the negative sign domain
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())
@@ -2352,7 +2352,7 @@ QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain, bool
       }
       ++it;
     }
-  } else if (inSignDomain == sdPositive) // range may only be in the positive sign domain
+  } else if (inSignDomain == QCP::sdPositive) // range may only be in the positive sign domain
   {
     QCPDataMap::const_iterator it = mData->constBegin();
     while (it != mData->constEnd())

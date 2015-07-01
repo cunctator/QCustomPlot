@@ -1232,7 +1232,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPCurve::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -1246,7 +1246,7 @@ QCPRange QCPCurve::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
     current = it.value().key;
     if (!qIsNaN(current) && !qIsNaN(it.value().value))
     {
-      if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
       {
         if (current < range.lower || !haveLower)
         {
@@ -1268,7 +1268,7 @@ QCPRange QCPCurve::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPCurve::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -1282,7 +1282,7 @@ QCPRange QCPCurve::getValueRange(bool &foundRange, SignDomain inSignDomain) cons
     current = it.value().value;
     if (!qIsNaN(current) && !qIsNaN(it.value().key))
     {
-      if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
       {
         if (current < range.lower || !haveLower)
         {

@@ -411,13 +411,13 @@ void QCPStatisticalBox::drawOutliers(QCPPainter *painter) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   foundRange = true;
-  if (inSignDomain == sdBoth)
+  if (inSignDomain == QCP::sdBoth)
   {
     return QCPRange(mKey-mWidth*0.5, mKey+mWidth*0.5);
-  } else if (inSignDomain == sdNegative)
+  } else if (inSignDomain == QCP::sdNegative)
   {
     if (mKey+mWidth*0.5 < 0)
       return QCPRange(mKey-mWidth*0.5, mKey+mWidth*0.5);
@@ -428,7 +428,7 @@ QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, SignDomain inSignDomai
       foundRange = false;
       return QCPRange();
     }
-  } else if (inSignDomain == sdPositive)
+  } else if (inSignDomain == QCP::sdPositive)
   {
     if (mKey-mWidth*0.5 > 0)
       return QCPRange(mKey-mWidth*0.5, mKey+mWidth*0.5);
@@ -445,7 +445,7 @@ QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, SignDomain inSignDomai
 }
 
 /* inherits documentation from base class */
-QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QVector<double> values; // values that must be considered (i.e. all outliers and the five box-parameters)
   values.reserve(mOutliers.size() + 5);
@@ -458,9 +458,9 @@ QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, SignDomain inSignDom
   double lower = 0;
   for (int i=0; i<values.size(); ++i)
   {
-    if ((inSignDomain == sdNegative && values.at(i) < 0) ||
-        (inSignDomain == sdPositive && values.at(i) > 0) ||
-        (inSignDomain == sdBoth))
+    if ((inSignDomain == QCP::sdNegative && values.at(i) < 0) ||
+        (inSignDomain == QCP::sdPositive && values.at(i) > 0) ||
+        (inSignDomain == QCP::sdBoth))
     {
       if (values.at(i) > upper || !haveUpper)
       {

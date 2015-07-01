@@ -72,6 +72,18 @@
 namespace QCP
 {
 /*!
+  Represents negative and positive sign domain, e.g. for passing to \ref
+  QCPAbstractPlottable::getKeyRange and \ref QCPAbstractPlottable::getValueRange.
+  
+  This is primarily needed when working with logarithmic axis scales, since only one of the sign
+  domains can be visible at a time.
+*/
+enum SignDomain { sdNegative  ///< The negative sign domain, i.e. numbers smaller than zero
+                  ,sdBoth     ///< Both sign domains, including zero, i.e. all numbers
+                  ,sdPositive ///< The positive sign domain, i.e. numbers greater than zero
+                };
+
+/*!
   Defines the sides of a rectangular entity to which margins can be applied.
   
   \see QCPLayoutElement::setAutoMargins, QCPAxisRect::setAutoMargins

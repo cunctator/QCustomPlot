@@ -98,14 +98,6 @@ signals:
   void selectableChanged(bool selectable);
   
 protected:
-  /*!
-    Represents negative and positive sign domain for passing to \ref getKeyRange and \ref getValueRange.
-  */
-  enum SignDomain { sdNegative  ///< The negative sign domain, i.e. numbers smaller than zero
-                    ,sdBoth     ///< Both sign domains, including zero, i.e. all (rational) numbers
-                    ,sdPositive ///< The positive sign domain, i.e. numbers greater than zero
-                  };
-  
   // property members:
   QString mName;
   bool mAntialiasedFill, mAntialiasedScatters, mAntialiasedErrorBars;
@@ -125,8 +117,8 @@ protected:
   
   // introduced virtual methods:
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const = 0;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   
   // non-virtual methods:
   void coordsToPixels(double key, double value, double &x, double &y) const;

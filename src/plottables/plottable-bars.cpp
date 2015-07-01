@@ -1054,7 +1054,7 @@ void QCPBars::connectBars(QCPBars *lower, QCPBars *upper)
 }
 
 /* inherits documentation from base class */
-QCPRange QCPBars::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   bool haveLower = false;
@@ -1065,7 +1065,7 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
   while (it != mData->constEnd())
   {
     current = it.value().key;
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
     {
       if (current < range.lower || !haveLower)
       {
@@ -1104,7 +1104,7 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPBars::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
   range.lower = mBaseValue;
@@ -1117,7 +1117,7 @@ QCPRange QCPBars::getValueRange(bool &foundRange, SignDomain inSignDomain) const
   while (it != mData->constEnd())
   {
     current = it.value().value + getStackedBaseValue(it.value().key, it.value().value >= 0);
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
     {
       if (current < range.lower || !haveLower)
       {

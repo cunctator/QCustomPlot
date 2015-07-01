@@ -151,8 +151,8 @@ protected:
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

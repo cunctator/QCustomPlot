@@ -133,6 +133,11 @@ void QCPGraphDataContainer::clear()
   mData.clear();
 }
 
+void QCPGraphDataContainer::sort()
+{
+  std::sort(mData.begin(), mData.end(), qcpLessThanKey);
+}
+
 QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findBeginBelowKey(double key) const
 {
   if (isEmpty())

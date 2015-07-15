@@ -63,6 +63,7 @@ public:
   void remove(double fromKey, double toKey);
   void remove(double key);
   void clear();
+  void sort();
   
   QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin(); }
   QCPGraphDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
@@ -70,7 +71,7 @@ public:
   QCPGraphDataContainer::const_iterator findEndAboveKey(double key) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
-
+  
 protected:
   QVector<QCPGraphData> mData;
 };

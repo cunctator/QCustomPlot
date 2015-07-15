@@ -42,37 +42,25 @@
   The stored data is:
   \li \a key: coordinate on the key axis of this data point
   \li \a value: coordinate on the value axis of this data point
-  \li \a keyErrorMinus: negative error in the key dimension (for error bars)
-  \li \a keyErrorPlus: positive error in the key dimension (for error bars)
-  \li \a valueErrorMinus: negative error in the value dimension (for error bars)
-  \li \a valueErrorPlus: positive error in the value dimension (for error bars)
   
   \see QCPDataMap
 */
 
 /*!
-  Constructs a data point with key, value and all errors set to zero.
+  Constructs a data point with key and value set to zero.
 */
 QCPData::QCPData() :
   key(0),
-  value(0),
-  keyErrorPlus(0),
-  keyErrorMinus(0),
-  valueErrorPlus(0),
-  valueErrorMinus(0)
+  value(0)
 {
 }
 
 /*!
-  Constructs a data point with the specified \a key and \a value. All errors are set to zero.
+  Constructs a data point with the specified \a key and \a value.
 */
 QCPData::QCPData(double key, double value) :
   key(key),
-  value(value),
-  keyErrorPlus(0),
-  keyErrorMinus(0),
-  valueErrorPlus(0),
-  valueErrorMinus(0)
+  value(value)
 {
 }
 
@@ -151,15 +139,11 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mData = new QCPDataMap;
   
   setPen(QPen(Qt::blue, 0));
-  setErrorPen(QPen(Qt::black));
   setBrush(Qt::NoBrush);
   setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
   setSelectedBrush(Qt::NoBrush);
   
   setLineStyle(lsLine);
-  setErrorType(etNone);
-  setErrorBarSize(6);
-  setErrorBarSkipSymbol(true);
   setChannelFillGraph(0);
   setAdaptiveSampling(true);
 }
@@ -217,173 +201,6 @@ void QCPGraph::setData(const QVector<double> &key, const QVector<double> &value)
 }
 
 /*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical value error of the data points are set to the values in \a valueError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.valueErrorMinus = valueError[i];
-    newData.valueErrorPlus = valueError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative value error of the data points are set to the values in \a valueErrorMinus, the positive
-  value error to \a valueErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueErrorMinus.size());
-  n = qMin(n, valueErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.valueErrorMinus = valueErrorMinus[i];
-    newData.valueErrorPlus = valueErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical key error of the data points are set to the values in \a keyError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, keyError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyError[i];
-    newData.keyErrorPlus = keyError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative key error of the data points are set to the values in \a keyErrorMinus, the positive
-  key error to \a keyErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, keyErrorMinus.size());
-  n = qMin(n, keyErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyErrorMinus[i];
-    newData.keyErrorPlus = keyErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical key and value errors of the data points are set to the values in \a keyError and \a valueError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueError.size());
-  n = qMin(n, keyError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyError[i];
-    newData.keyErrorPlus = keyError[i];
-    newData.valueErrorMinus = valueError[i];
-    newData.valueErrorPlus = valueError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative key and value errors of the data points are set to the values in \a keyErrorMinus and \a valueErrorMinus. The positive
-  key and value errors are set to the values in \a keyErrorPlus \a valueErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueErrorMinus.size());
-  n = qMin(n, valueErrorPlus.size());
-  n = qMin(n, keyErrorMinus.size());
-  n = qMin(n, keyErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyErrorMinus[i];
-    newData.keyErrorPlus = keyErrorPlus[i];
-    newData.valueErrorMinus = valueErrorMinus[i];
-    newData.valueErrorPlus = valueErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-
-/*!
   Sets how the single data points are connected in the plot. For scatter-only plots, set \a ls to
   \ref lsNone and \ref setScatterStyle to the desired scatter style.
   
@@ -403,52 +220,6 @@ void QCPGraph::setLineStyle(LineStyle ls)
 void QCPGraph::setScatterStyle(const QCPScatterStyle &style)
 {
   mScatterStyle = style;
-}
-
-/*!
-  Sets which kind of error bars (Key Error, Value Error or both) should be drawn on each data
-  point. If you set \a errorType to something other than \ref etNone, make sure to actually pass
-  error data via the specific setData functions along with the data points (e.g. \ref
-  setDataValueError, \ref setDataKeyError, \ref setDataBothError).
-
-  \see ErrorType
-*/
-void QCPGraph::setErrorType(ErrorType errorType)
-{
-  mErrorType = errorType;
-}
-
-/*!
-  Sets the pen with which the error bars will be drawn.
-  \see setErrorBarSize, setErrorType
-*/
-void QCPGraph::setErrorPen(const QPen &pen)
-{
-  mErrorPen = pen;
-}
-
-/*!
-  Sets the width of the handles at both ends of an error bar in pixels.
-*/
-void QCPGraph::setErrorBarSize(double size)
-{
-  mErrorBarSize = size;
-}
-
-/*!
-  If \a enabled is set to true, the error bar will not be drawn as a solid line under the scatter symbol but
-  leave some free space around the symbol.
-  
-  This feature uses the current scatter size (\ref QCPScatterStyle::setSize) to determine the size
-  of the area to leave blank. So when drawing Pixmaps as scatter points (\ref
-  QCPScatterStyle::ssPixmap), the scatter size must be set manually to a value corresponding to the
-  size of the Pixmap, if the error bars should leave gaps to its boundaries.
-  
-  \ref setErrorType, setErrorBarSize, setScatterStyle
-*/
-void QCPGraph::setErrorBarSkipSymbol(bool enabled)
-{
-  mErrorBarSkipSymbol = enabled;
 }
 
 /*!
@@ -653,91 +424,6 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
     return -1;
 }
 
-/*! \overload
-  
-  Allows to define whether error bars are taken into consideration when determining the new axis
-  range.
-  
-  \see rescaleKeyAxis, rescaleValueAxis, QCPAbstractPlottable::rescaleAxes, QCustomPlot::rescaleAxes
-*/
-void QCPGraph::rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const
-{
-  rescaleKeyAxis(onlyEnlarge, includeErrorBars);
-  rescaleValueAxis(onlyEnlarge, includeErrorBars);
-}
-
-/*! \overload
-  
-  Allows to define whether error bars (of kind \ref QCPGraph::etKey) are taken into consideration
-  when determining the new axis range.
-  
-  \see rescaleAxes, QCPAbstractPlottable::rescaleKeyAxis
-*/
-void QCPGraph::rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const
-{
-  // this code is a copy of QCPAbstractPlottable::rescaleKeyAxis with the only change
-  // that getKeyRange is passed the includeErrorBars value.
-  if (mData->isEmpty()) return;
-  
-  QCPAxis *keyAxis = mKeyAxis.data();
-  if (!keyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-
-  QCP::SignDomain signDomain = QCP::sdBoth;
-  if (keyAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (keyAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-  
-  bool foundRange;
-  QCPRange newRange = getKeyRange(foundRange, signDomain, includeErrorBars);
-  
-  if (foundRange)
-  {
-    if (onlyEnlarge)
-    {
-      if (keyAxis->range().lower < newRange.lower)
-        newRange.lower = keyAxis->range().lower;
-      if (keyAxis->range().upper > newRange.upper)
-        newRange.upper = keyAxis->range().upper;
-    }
-    keyAxis->setRange(newRange);
-  }
-}
-
-/*! \overload
-  
-  Allows to define whether error bars (of kind \ref QCPGraph::etValue) are taken into consideration
-  when determining the new axis range.
-  
-  \see rescaleAxes, QCPAbstractPlottable::rescaleValueAxis
-*/
-void QCPGraph::rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const
-{
-  // this code is a copy of QCPAbstractPlottable::rescaleValueAxis with the only change
-  // is that getValueRange is passed the includeErrorBars value.
-  if (mData->isEmpty()) return;
-  
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
-
-  QCP::SignDomain signDomain = QCP::sdBoth;
-  if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (valueAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-  
-  bool foundRange;
-  QCPRange newRange = getValueRange(foundRange, signDomain, includeErrorBars);
-  
-  if (foundRange)
-  {
-    if (onlyEnlarge)
-    {
-      if (valueAxis->range().lower < newRange.lower)
-        newRange.lower = valueAxis->range().lower;
-      if (valueAxis->range().upper > newRange.upper)
-        newRange.upper = valueAxis->range().upper;
-    }
-    valueAxis->setRange(newRange);
-  }
-}
-
 /* inherits documentation from base class */
 void QCPGraph::draw(QCPPainter *painter)
 {
@@ -759,9 +445,7 @@ void QCPGraph::draw(QCPPainter *painter)
   QCPDataMap::const_iterator it;
   for (it = mData->constBegin(); it != mData->constEnd(); ++it)
   {
-    if (QCP::isInvalidData(it.value().key, it.value().value) ||
-        QCP::isInvalidData(it.value().keyErrorPlus, it.value().keyErrorMinus) ||
-        QCP::isInvalidData(it.value().valueErrorPlus, it.value().valueErrorPlus))
+    if (QCP::isInvalidData(it.value().key, it.value().value))
       qDebug() << Q_FUNC_INFO << "Data point at" << it.key() << "invalid." << "Plottable name:" << name();
   }
 #endif
@@ -1181,22 +865,6 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterDat
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  // draw error bars:
-  if (mErrorType != etNone)
-  {
-    applyErrorBarsAntialiasingHint(painter);
-    painter->setPen(mErrorPen);
-    if (keyAxis->orientation() == Qt::Vertical)
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key), scatterData->at(i));
-    } else
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value), scatterData->at(i));
-    }
-  }
-  
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
   mScatterStyle.applyTo(painter, mPen);
@@ -1501,110 +1169,6 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
     }
     if (lineData && scatterData)
       *scatterData = *dataVector;
-  }
-}
-
-/*!  \internal
-  
-  called by the scatter drawing function (\ref drawScatterPlot) to draw the error bars on one data
-  point. \a x and \a y pixel positions of the data point are passed since they are already known in
-  pixel coordinates in the drawing function, so we save some extra coordToPixel transforms here. \a
-  data is therefore only used for the errors, not key and value.
-*/
-void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData &data) const
-{
-  if (qIsNaN(data.value))
-    return;
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  double a, b; // positions of error bar bounds in pixels
-  double barWidthHalf = mErrorBarSize*0.5;
-  double skipSymbolMargin = mScatterStyle.size(); // pixels left blank per side, when mErrorBarSkipSymbol is true
-
-  if (keyAxis->orientation() == Qt::Vertical)
-  {
-    // draw key error vertically and value error horizontally
-    if (mErrorType == etKey || mErrorType == etBoth)
-    {
-      a = keyAxis->coordToPixel(data.key-data.keyErrorMinus);
-      b = keyAxis->coordToPixel(data.key+data.keyErrorPlus);
-      if (keyAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
-        painter->drawLine(QLineF(x, a, x, b));
-      // draw handles:
-      painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
-      painter->drawLine(QLineF(x-barWidthHalf, b, x+barWidthHalf, b));
-    }
-    if (mErrorType == etValue || mErrorType == etBoth)
-    {
-      a = valueAxis->coordToPixel(data.value-data.valueErrorMinus);
-      b = valueAxis->coordToPixel(data.value+data.valueErrorPlus);
-      if (valueAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
-        painter->drawLine(QLineF(a, y, b, y));
-      // draw handles:
-      painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
-      painter->drawLine(QLineF(b, y-barWidthHalf, b, y+barWidthHalf));
-    }
-  } else // mKeyAxis->orientation() is Qt::Horizontal
-  {
-    // draw value error vertically and key error horizontally
-    if (mErrorType == etKey || mErrorType == etBoth)
-    {
-      a = keyAxis->coordToPixel(data.key-data.keyErrorMinus);
-      b = keyAxis->coordToPixel(data.key+data.keyErrorPlus);
-      if (keyAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
-        painter->drawLine(QLineF(a, y, b, y));
-      // draw handles:
-      painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
-      painter->drawLine(QLineF(b, y-barWidthHalf, b, y+barWidthHalf));
-    }
-    if (mErrorType == etValue || mErrorType == etBoth)
-    {
-      a = valueAxis->coordToPixel(data.value-data.valueErrorMinus);
-      b = valueAxis->coordToPixel(data.value+data.valueErrorPlus);
-      if (valueAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
-        painter->drawLine(QLineF(x, a, x, b));
-      // draw handles:
-      painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
-      painter->drawLine(QLineF(x-barWidthHalf, b, x+barWidthHalf, b));
-    }
   }
 }
 
@@ -2151,245 +1715,9 @@ int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
 /* inherits documentation from base class */
 QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  // just call the specialized version which takes an additional argument whether error bars
-  // should also be taken into consideration for range calculation. We set this to true here.
-  return getKeyRange(foundRange, inSignDomain, true);
 }
 
 /* inherits documentation from base class */
 QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  // just call the specialized version which takes an additional argument whether error bars
-  // should also be taken into consideration for range calculation. We set this to true here.
-  return getValueRange(foundRange, inSignDomain, true);
-}
-
-/*! \overload
-  
-  Allows to specify whether the error bars should be included in the range calculation.
-  
-  \see getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain)
-*/
-QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current, currentErrorMinus, currentErrorPlus;
-  
-  if (inSignDomain == QCP::sdBoth) // range may be anywhere
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if (current-currentErrorMinus < range.lower || !haveLower)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if (current+currentErrorPlus > range.upper || !haveUpper)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == QCP::sdNegative) // range may only be in the negative sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus < 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus < 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to geht that point.
-        {
-          if ((current < range.lower || !haveLower) && current < 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current < 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == QCP::sdPositive) // range may only be in the positive sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus > 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus > 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to get that point.
-        {
-          if ((current < range.lower || !haveLower) && current > 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current > 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
-}
-
-/*! \overload
-  
-  Allows to specify whether the error bars should be included in the range calculation.
-  
-  \see getValueRange(bool &foundRange, QCP::SignDomain inSignDomain)
-*/
-QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current, currentErrorMinus, currentErrorPlus;
-  
-  if (inSignDomain == QCP::sdBoth) // range may be anywhere
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if (current-currentErrorMinus < range.lower || !haveLower)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if (current+currentErrorPlus > range.upper || !haveUpper)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == QCP::sdNegative) // range may only be in the negative sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus < 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus < 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to get that point.
-        {
-          if ((current < range.lower || !haveLower) && current < 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current < 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == QCP::sdPositive) // range may only be in the positive sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus > 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus > 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to geht that point.
-        {
-          if ((current < range.lower || !haveLower) && current > 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current > 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
 }

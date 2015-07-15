@@ -43,7 +43,7 @@
   create new ways of displaying data (see "Creating own plottables" below).
   
   All further specifics are in the subclasses, for example:
-  \li A normal graph with possibly a line, scatter points and error bars: \ref QCPGraph
+  \li A normal graph with possibly a line and/or scatter points \ref QCPGraph
   (typically created with \ref QCustomPlot::addGraph)
   \li A parametric curve: \ref QCPCurve
   \li A bar chart: \ref QCPBars

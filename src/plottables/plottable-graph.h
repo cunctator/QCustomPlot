@@ -40,8 +40,6 @@ public:
   QCPData();
   QCPData(double key, double value);
   double key, value;
-  double keyErrorPlus, keyErrorMinus;
-  double valueErrorPlus, valueErrorMinus;
 };
 Q_DECLARE_TYPEINFO(QCPData, Q_MOVABLE_TYPE);
 
@@ -63,10 +61,6 @@ class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
-  Q_PROPERTY(ErrorType errorType READ errorType WRITE setErrorType)
-  Q_PROPERTY(QPen errorPen READ errorPen WRITE setErrorPen)
-  Q_PROPERTY(double errorBarSize READ errorBarSize WRITE setErrorBarSize)
-  Q_PROPERTY(bool errorBarSkipSymbol READ errorBarSkipSymbol WRITE setErrorBarSkipSymbol)
   Q_PROPERTY(QCPGraph* channelFillGraph READ channelFillGraph WRITE setChannelFillGraph)
   Q_PROPERTY(bool adaptiveSampling READ adaptiveSampling WRITE setAdaptiveSampling)
   /// \endcond
@@ -85,15 +79,6 @@ public:
                    ,lsImpulse    ///< each data point is represented by a line parallel to the value axis, which reaches from the data point to the zero-value-line
                  };
   Q_ENUMS(LineStyle)
-  /*!
-    Defines what kind of error bars are drawn for each data point
-  */
-  enum ErrorType { etNone   ///< No error bars are shown
-                   ,etKey   ///< Error bars for the key dimension of the data point are shown
-                   ,etValue ///< Error bars for the value dimension of the data point are shown
-                   ,etBoth  ///< Error bars for both key and value dimensions of the data point are shown
-                 };
-  Q_ENUMS(ErrorType)
   
   explicit QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPGraph();
@@ -102,28 +87,14 @@ public:
   QCPDataMap *data() const { return mData; }
   LineStyle lineStyle() const { return mLineStyle; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
-  ErrorType errorType() const { return mErrorType; }
-  QPen errorPen() const { return mErrorPen; }
-  double errorBarSize() const { return mErrorBarSize; }
-  bool errorBarSkipSymbol() const { return mErrorBarSkipSymbol; }
   QCPGraph *channelFillGraph() const { return mChannelFillGraph.data(); }
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
   // setters:
   void setData(QCPDataMap *data, bool copy=false);
   void setData(const QVector<double> &key, const QVector<double> &value);
-  void setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError);
-  void setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus);
-  void setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueError);
-  void setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus);
-  void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError);
-  void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
-  void setErrorType(ErrorType errorType);
-  void setErrorPen(const QPen &pen);
-  void setErrorBarSize(double size);
-  void setErrorBarSkipSymbol(bool enabled);
   void setChannelFillGraph(QCPGraph *targetGraph);
   void setAdaptiveSampling(bool enabled);
   
@@ -140,22 +111,12 @@ public:
   // reimplemented virtual methods:
   virtual void clearData();
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  using QCPAbstractPlottable::rescaleAxes;
-  using QCPAbstractPlottable::rescaleKeyAxis;
-  using QCPAbstractPlottable::rescaleValueAxis;
-  void rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  void rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  void rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
   
 protected:
   // property members:
   QCPDataMap *mData;
-  QPen mErrorPen;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
-  ErrorType mErrorType;
-  double mErrorBarSize;
-  bool mErrorBarSkipSymbol;
   QPointer<QCPGraph> mChannelFillGraph;
   bool mAdaptiveSampling;
   
@@ -164,8 +125,6 @@ protected:
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
   virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
-  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const; // overloads base class interface
-  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, bool includeErrors) const; // overloads base class interface
   
   // introduced virtual methods:
   virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
@@ -182,7 +141,6 @@ protected:
   void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
   void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
   void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void drawError(QCPPainter *painter, double x, double y, const QCPData &data) const;
   void getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const;
   int countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const;
   void addFillBasePoints(QVector<QPointF> *lineData) const;

@@ -31,25 +31,25 @@
 #include "../layoutelements/layoutelement-axisrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPData
+//////////////////// QCPGraphData
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPData
+/*! \class QCPGraphData
   \brief Holds the data of one single data point for QCPGraph.
   
-  The container for storing multiple data points is \ref QCPDataMap.
+  The container for storing multiple data points is \ref QCPGraphDataContainer.
   
   The stored data is:
   \li \a key: coordinate on the key axis of this data point
   \li \a value: coordinate on the value axis of this data point
   
-  \see QCPDataMap
+  \see QCPGraphDataContainer
 */
 
 /*!
   Constructs a data point with key and value set to zero.
 */
-QCPData::QCPData() :
+QCPGraphData::QCPGraphData() :
   key(0),
   value(0)
 {
@@ -58,10 +58,264 @@ QCPData::QCPData() :
 /*!
   Constructs a data point with the specified \a key and \a value.
 */
-QCPData::QCPData(double key, double value) :
+QCPGraphData::QCPGraphData(double key, double value) :
   key(key),
   value(value)
 {
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPGraphDataContainer
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPGraphDataContainer
+  \brief Container for storing \ref QCPGraphData objects, used by \ref QCPGraph.
+  
+  This is the container in which QCPGraph holds its data in a sorted fashion.
+  \see QCPGraphData, QCPGraph::setData
+*/
+
+/*!
+  Constructs a QCPGraphDataContainer used for QCPGraph
+*/
+QCPGraphDataContainer::QCPGraphDataContainer()
+{
+}
+
+void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
+{
+  //TODO
+}
+
+void QCPGraphDataContainer::add(const QCPGraphData &data)
+{
+  //TODO
+}
+
+void QCPGraphDataContainer::removeBefore(double key)
+{
+  /* old code from QCPGraph:
+  QCPDataMap::iterator it = mDataContainer->begin();
+  while (it != mDataContainer->end() && it.key() < key)
+    it = mDataContainer->erase(it);
+  */
+}
+
+void QCPGraphDataContainer::removeAfter(double key)
+{
+  /* old code from QCPGraph:
+  if (mDataContainer->isEmpty()) return;
+  QCPDataMap::iterator it = mDataContainer->upperBound(key);
+  while (it != mDataContainer->end())
+    it = mDataContainer->erase(it);
+  */
+}
+
+void QCPGraphDataContainer::remove(double fromKey, double toKey)
+{
+  /* old code from QCPGraph:
+  if (fromKey >= toKey || mDataContainer->isEmpty()) return;
+  QCPDataMap::iterator it = mDataContainer->upperBound(fromKey);
+  QCPDataMap::iterator itEnd = mDataContainer->upperBound(toKey);
+  while (it != itEnd)
+    it = mDataContainer->erase(it);
+  */
+}
+
+void QCPGraphDataContainer::remove(double key)
+{
+  // TODO
+}
+
+void QCPGraphDataContainer::clear()
+{
+  mData.clear();
+}
+
+QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findBeginBelowKey(double key) const
+{
+  if (isEmpty())
+    return constEnd();
+  
+  QCPGraphDataContainer::const_iterator it = std::lower_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey);
+  if (it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
+    --it;
+  return it;
+}
+
+QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findEndAboveKey(double key) const
+{
+  if (isEmpty())
+    return constEnd();
+  
+  QCPGraphDataContainer::const_iterator it = std::upper_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey);
+  if (it != constEnd())
+    ++it;
+  return it;
+}
+
+QCPRange QCPGraphDataContainer::keyRange(bool &foundRange, QCP::SignDomain signDomain)
+{
+  if (isEmpty())
+  {
+    foundRange = false;
+    return QCPRange();
+  }
+  QCPRange range;
+  bool haveLower = false;
+  bool haveUpper = false;
+  double current;
+  
+  QCPGraphDataContainer::const_iterator it = constBegin();
+  QCPGraphDataContainer::const_iterator itEnd = constEnd();
+  if (signDomain == QCP::sdBoth) // range may be anywhere, just find first and last non-NaN key (because QCPGraph is sorted by key)
+  {
+    while (it != itEnd) // find first non-nan going up from left
+    {
+      if (!qIsNaN(it->value))
+      {
+        range.lower = it->key;
+        haveLower = true;
+        break;
+      }
+      ++it;
+    }
+    it = itEnd;
+    while (it != constBegin()) // find first non-nan going down from right
+    {
+      --it;
+      if (!qIsNaN(it->value))
+      {
+        range.upper = it->key;
+        haveUpper = true;
+        break;
+      }
+    }
+  } else if (signDomain == QCP::sdNegative) // range may only be in the negative sign domain
+  {
+    while (it != itEnd)
+    {
+      if (!qIsNaN(it->value))
+      {
+        current = it->key;
+        if ((current < range.lower || !haveLower) && current < 0)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if ((current > range.upper || !haveUpper) && current < 0)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      ++it;
+    }
+  } else if (signDomain == QCP::sdPositive) // range may only be in the positive sign domain
+  {
+    while (it != itEnd)
+    {
+      if (!qIsNaN(it->value))
+      {
+        current = it->key;
+        if ((current < range.lower || !haveLower) && current > 0)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if ((current > range.upper || !haveUpper) && current > 0)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      ++it;
+    }
+  }
+  
+  foundRange = haveLower && haveUpper;
+  return range;
+}
+
+QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain signDomain)
+{
+  if (isEmpty())
+  {
+    foundRange = false;
+    return QCPRange();
+  }
+  QCPRange range;
+  bool haveLower = false;
+  bool haveUpper = false;
+  double current;
+  
+  QCPGraphDataContainer::const_iterator it = constBegin();
+  QCPGraphDataContainer::const_iterator itEnd = constEnd();
+  if (signDomain == QCP::sdBoth) // range may be anywhere
+  {
+    while (it != itEnd)
+    {
+      if (!qIsNaN(it->value))
+      {
+        current = it->value;
+        if (current < range.lower || !haveLower)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if (current > range.upper || !haveUpper)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      ++it;
+    }
+  } else if (signDomain == QCP::sdNegative) // range may only be in the negative sign domain
+  {
+    while (it != itEnd)
+    {
+      if (!qIsNaN(it->value))
+      {
+        current = it->value;
+        if ((current < range.lower || !haveLower) && current < 0)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if ((current > range.upper || !haveUpper) && current < 0)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      ++it;
+    }
+  } else if (signDomain == QCP::sdPositive) // range may only be in the positive sign domain
+  {
+    while (it != itEnd)
+    {
+      if (!qIsNaN(it->value))
+      {
+        current = it->value;
+        if ((current < range.lower || !haveLower) && current > 0)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if ((current > range.upper || !haveUpper) && current > 0)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      ++it;
+    }
+  }
+  
+  foundRange = haveLower && haveUpper;
+  return range;
 }
 
 
@@ -136,7 +390,7 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);
   
-  mData = new QCPDataMap;
+  mDataContainer = new QCPGraphDataContainer;
   
   setPen(QPen(Qt::blue, 0));
   setBrush(Qt::NoBrush);
@@ -150,7 +404,7 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 
 QCPGraph::~QCPGraph()
 {
-  delete mData;
+  delete mDataContainer;
 }
 
 /*!
@@ -163,41 +417,33 @@ QCPGraph::~QCPGraph()
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
   returns a pointer to the internal \ref QCPDataMap.
 */
-void QCPGraph::setData(QCPDataMap *data, bool copy)
+void QCPGraph::setData(QCPGraphDataContainer *data, bool copy)
 {
-  if (mData == data)
+  if (mDataContainer == data)
   {
     qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
     return;
   }
   if (copy)
   {
-    *mData = *data;
+    *mDataContainer = *data;
   } else
   {
-    delete mData;
-    mData = data;
+    delete mDataContainer;
+    mDataContainer = data;
   }
 }
 
 /*! \overload
   
-  Replaces the current data with the provided points in \a key and \a value pairs. The provided
+  Replaces the current data with the provided points in \a keys and \a values. The provided
   vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
 */
-void QCPGraph::setData(const QVector<double> &key, const QVector<double> &value)
+void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values)
 {
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    mData->insertMulti(newData.key, newData);
-  }
+  mDataContainer->clear();
+  addData(keys, values);
 }
 
 /*!
@@ -295,9 +541,9 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
   
   \see removeData
 */
-void QCPGraph::addData(const QCPDataMap &dataMap)
+void QCPGraph::addData(const QCPGraphDataContainer &data)
 {
-  mData->unite(dataMap);
+  mDataContainer->add(data);
 }
 
 /*! \overload
@@ -308,9 +554,9 @@ void QCPGraph::addData(const QCPDataMap &dataMap)
   
   \see removeData
 */
-void QCPGraph::addData(const QCPData &data)
+void QCPGraph::addData(const QCPGraphData &data)
 {
-  mData->insertMulti(data.key, data);
+  mDataContainer->add(data);
 }
 
 /*! \overload
@@ -323,10 +569,7 @@ void QCPGraph::addData(const QCPData &data)
 */
 void QCPGraph::addData(double key, double value)
 {
-  QCPData newData;
-  newData.key = key;
-  newData.value = value;
-  mData->insertMulti(newData.key, newData);
+  mDataContainer->add(QCPGraphData(key, value));
 }
 
 /*! \overload
@@ -340,13 +583,8 @@ void QCPGraph::addData(double key, double value)
 void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values)
 {
   int n = qMin(keys.size(), values.size());
-  QCPData newData;
   for (int i=0; i<n; ++i)
-  {
-    newData.key = keys[i];
-    newData.value = values[i];
-    mData->insertMulti(newData.key, newData);
-  }
+    mDataContainer->add(QCPGraphData(keys[i], values[i]));
 }
 
 /*!
@@ -355,9 +593,7 @@ void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &value
 */
 void QCPGraph::removeDataBefore(double key)
 {
-  QCPDataMap::iterator it = mData->begin();
-  while (it != mData->end() && it.key() < key)
-    it = mData->erase(it);
+  mDataContainer->removeBefore(key);
 }
 
 /*!
@@ -366,10 +602,7 @@ void QCPGraph::removeDataBefore(double key)
 */
 void QCPGraph::removeDataAfter(double key)
 {
-  if (mData->isEmpty()) return;
-  QCPDataMap::iterator it = mData->upperBound(key);
-  while (it != mData->end())
-    it = mData->erase(it);
+  mDataContainer->removeAfter(key);
 }
 
 /*!
@@ -381,11 +614,7 @@ void QCPGraph::removeDataAfter(double key)
 */
 void QCPGraph::removeData(double fromKey, double toKey)
 {
-  if (fromKey >= toKey || mData->isEmpty()) return;
-  QCPDataMap::iterator it = mData->upperBound(fromKey);
-  QCPDataMap::iterator itEnd = mData->upperBound(toKey);
-  while (it != itEnd)
-    it = mData->erase(it);
+  mDataContainer->remove(fromKey, toKey);
 }
 
 /*! \overload
@@ -398,7 +627,7 @@ void QCPGraph::removeData(double fromKey, double toKey)
 */
 void QCPGraph::removeData(double key)
 {
-  mData->remove(key);
+  mDataContainer->remove(key);
 }
 
 /*!
@@ -407,14 +636,14 @@ void QCPGraph::removeData(double key)
 */
 void QCPGraph::clearData()
 {
-  mData->clear();
+  mDataContainer->clear();
 }
 
 /* inherits documentation from base class */
 double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if ((onlySelectable && !mSelectable) || mData->isEmpty())
+  if ((onlySelectable && !mSelectable) || mDataContainer->isEmpty())
     return -1;
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
   
@@ -428,25 +657,25 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
 void QCPGraph::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  if (mKeyAxis.data()->range().size() <= 0 || mData->isEmpty()) return;
+  if (mKeyAxis.data()->range().size() <= 0 || mDataContainer->isEmpty()) return;
   if (mLineStyle == lsNone && mScatterStyle.isNone()) return;
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
-  QVector<QCPData> *scatterData = 0;
+  QVector<QCPGraphData> *scatterData = 0;
   if (!mScatterStyle.isNone())
-    scatterData = new QVector<QCPData>;
+    scatterData = new QVector<QCPGraphData>;
   
   // fill vectors with data appropriate to plot style:
   getPlotData(lineData, scatterData);
   
   // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-  QCPDataMap::const_iterator it;
-  for (it = mData->constBegin(); it != mData->constEnd(); ++it)
+  QCPGraphDataContainer::const_iterator it;
+  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
   {
-    if (QCP::isInvalidData(it.value().key, it.value().value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it.key() << "invalid." << "Plottable name:" << name();
+    if (QCP::isInvalidData(it->key, it->value))
+      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
   }
 #endif
 
@@ -523,7 +752,7 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   \see getScatterPlotData, getLinePlotData, getStepLeftPlotData, getStepRightPlotData,
   getStepCenterPlotData, getImpulsePlotData
 */
-void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatterData) const
+void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const
 {
   switch(mLineStyle)
   {
@@ -547,7 +776,7 @@ void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatter
   
   \see drawScatterPlot
 */
-void QCPGraph::getScatterPlotData(QVector<QCPData> *scatterData) const
+void QCPGraph::getScatterPlotData(QVector<QCPGraphData> *scatterData) const
 {
   getPreparedData(0, scatterData);
 }
@@ -563,14 +792,14 @@ void QCPGraph::getScatterPlotData(QVector<QCPData> *scatterData) const
   
   \see drawLinePlot
 */
-void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size());
@@ -604,14 +833,14 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData>
   
   \see drawLinePlot
 */
-void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -657,14 +886,14 @@ void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPD
   
   \see drawLinePlot
 */
-void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -710,14 +939,14 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCP
   
   \see drawLinePlot
 */
-void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -775,14 +1004,14 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QC
   
   \see drawImpulsePlot
 */
-void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->resize(lineData.size()*2); // no need to reserve 2 extra points because impulse plot has no fill
   
@@ -859,7 +1088,7 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
   
   \see drawLinePlot, drawImpulsePlot
 */
-void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const
+void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -991,7 +1220,7 @@ void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) 
   
   This method is used by the various "get(...)PlotData" methods to get the basic working set of data.
 */
-void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *scatterData) const
+void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -999,7 +1228,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
   // get visible data range:
   QCPDataMap::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
   getVisibleDataBounds(lower, upper);
-  if (lower == mData->constEnd() || upper == mData->constEnd())
+  if (lower == mDataContainer->constEnd() || upper == mDataContainer->constEnd())
     return;
   
   // count points in visible range, taking into account that we only need to count to the limit maxCount if using adaptive sampling:
@@ -1009,7 +1238,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
     int keyPixelSpan = qAbs(keyAxis->coordToPixel(lower.key())-keyAxis->coordToPixel(upper.key()));
     maxCount = 2*keyPixelSpan+2;
   }
-  int dataCount = countDataInBounds(lower, upper, maxCount);
+  int dataCount = upper-lower;
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average
   {
@@ -1042,13 +1271,13 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
           if (intervalDataCount >= 2) // last pixel had multiple data points, consolidate them to a cluster
           {
             if (lastIntervalEndKey < currentIntervalStartKey-keyEpsilon) // last point is further away, so first point of this cluster must be at a real data point
-              lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
-            lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
-            lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
+              lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
+            lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
+            lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
             if (it.key() > currentIntervalStartKey+keyEpsilon*2) // new pixel started further away from previous cluster, so make sure the last point of the cluster is at a real data point
-              lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.8, (it-1).value().value));
+              lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.8, (it-1).value().value));
           } else
-            lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
+            lineData->append(QCPGraphData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
           lastIntervalEndKey = (it-1).value().key;
           minValue = it.value().value;
           maxValue = it.value().value;
@@ -1064,11 +1293,11 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
       if (intervalDataCount >= 2) // last pixel had multiple data points, consolidate them to a cluster
       {
         if (lastIntervalEndKey < currentIntervalStartKey-keyEpsilon) // last point wasn't a cluster, so first point of this cluster must be at a real data point
-          lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
-        lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
-        lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
+          lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
+        lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
+        lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
       } else
-        lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
+        lineData->append(QCPGraphData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
     }
     
     if (scatterData)
@@ -1151,7 +1380,7 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
     }
   } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output parameters
   {
-    QVector<QCPData> *dataVector = 0;
+    QVector<QCPGraphData> *dataVector = 0;
     if (lineData)
       dataVector = lineData;
     else if (scatterData)
@@ -1186,48 +1415,11 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
   
   if the graph contains no data, both \a lower and \a upper point to constEnd.
 */
-void QCPGraph::getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const
+void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const
 {
   if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-  if (mData->isEmpty())
-  {
-    lower = mData->constEnd();
-    upper = mData->constEnd();
-    return;
-  }
-  
-  // get visible data range as QMap iterators
-  QCPDataMap::const_iterator lbound = mData->lowerBound(mKeyAxis.data()->range().lower);
-  QCPDataMap::const_iterator ubound = mData->upperBound(mKeyAxis.data()->range().upper);
-  bool lowoutlier = lbound != mData->constBegin(); // indicates whether there exist points below axis range
-  bool highoutlier = ubound != mData->constEnd(); // indicates whether there exist points above axis range
-  
-  lower = (lowoutlier ? lbound-1 : lbound); // data point range that will be actually drawn
-  upper = (highoutlier ? ubound : ubound-1); // data point range that will be actually drawn
-}
-
-/*!  \internal
-  
-  Counts the number of data points between \a lower and \a upper (including them), up to a maximum
-  of \a maxCount.
-  
-  This function is used by \ref getPreparedData to determine whether adaptive sampling shall be
-  used (if enabled via \ref setAdaptiveSampling) or not. This is also why counting of data points
-  only needs to be done until \a maxCount is reached, which should be set to the number of data
-  points at which adaptive sampling sets in.
-*/
-int QCPGraph::countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const
-{
-  if (upper == mData->constEnd() && lower == mData->constEnd())
-    return 0;
-  QCPDataMap::const_iterator it = lower;
-  int count = 1;
-  while (it != upper && count < maxCount)
-  {
-    ++it;
-    ++count;
-  }
-  return count;
+  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
 }
 
 /*! \internal
@@ -1628,7 +1820,7 @@ int QCPGraph::findIndexAboveY(const QVector<QPointF> *data, double y) const
 */
 double QCPGraph::pointDistance(const QPointF &pixelPoint) const
 {
-  if (mData->isEmpty())
+  if (mDataContainer->isEmpty())
     return -1.0;
   if (mLineStyle == lsNone && mScatterStyle.isNone())
     return -1.0;
@@ -1637,7 +1829,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
   if (mLineStyle == lsNone)
   {
     // no line displayed, only calculate distance to scatter points:
-    QVector<QCPData> scatterData;
+    QVector<QCPGraphData> scatterData;
     getScatterPlotData(&scatterData);
     if (scatterData.size() > 0)
     {
@@ -1715,9 +1907,11 @@ int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
 /* inherits documentation from base class */
 QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
+  return mDataContainer->keyRange(foundRange, inSignDomain);
 }
 
 /* inherits documentation from base class */
 QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
+  return mDataContainer->valueRange(foundRange, inSignDomain);
 }

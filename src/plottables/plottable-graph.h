@@ -34,25 +34,48 @@
 class QCPPainter;
 class QCPAxis;
 
-class QCP_LIB_DECL QCPData
+class QCP_LIB_DECL QCPGraphData
 {
 public:
-  QCPData();
-  QCPData(double key, double value);
+  QCPGraphData();
+  QCPGraphData(double key, double value);
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
+inline bool qcpLessThanKey(const QCPGraphData &a, const QCPGraphData &b) { return a.key < b.key; }
 
-/*! \typedef QCPDataMap
-  Container for storing \ref QCPData items in a sorted fashion. The key of the map
-  is the key member of the QCPData instance.
+
+class QCP_LIB_DECL QCPGraphDataContainer
+{
+public:
+  typedef QVector<QCPGraphData>::const_iterator const_iterator;
+  typedef QVector<QCPGraphData>::iterator iterator;
+  QCPGraphDataContainer();
   
-  This is the container in which QCPGraph holds its data.
-  \see QCPData, QCPGraph::setData
-*/
-typedef QMap<double, QCPData> QCPDataMap;
-typedef QMapIterator<double, QCPData> QCPDataMapIterator;
-typedef QMutableMapIterator<double, QCPData> QCPDataMutableMapIterator;
+  QVector<QCPGraphData> &raw() { return mData; }
+  int size() const { return mData.size(); }
+  bool isEmpty() const { return size() == 0; }
+  
+  void add(const QCPGraphDataContainer &data);
+  void add(const QCPGraphData &data); // TODO: overwrite optional parameter (and in QCPGraph)?
+  void removeBefore(double key);
+  void removeAfter(double key);
+  void remove(double fromKey, double toKey);
+  void remove(double key);
+  void clear();
+  
+  QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin(); }
+  QCPGraphDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
+  QCPGraphDataContainer::const_iterator findBeginBelowKey(double key) const;
+  QCPGraphDataContainer::const_iterator findEndAboveKey(double key) const;
+  QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
+  QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
+
+protected:
+  QVector<QCPGraphData> mData;
+};
+Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
+
 
 
 class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
@@ -84,23 +107,23 @@ public:
   virtual ~QCPGraph();
   
   // getters:
-  QCPDataMap *data() const { return mData; }
+  QCPGraphDataContainer *data() const { return mDataContainer; }
   LineStyle lineStyle() const { return mLineStyle; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   QCPGraph *channelFillGraph() const { return mChannelFillGraph.data(); }
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
   // setters:
-  void setData(QCPDataMap *data, bool copy=false);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setData(QCPGraphDataContainer *data, bool copy=false);
+  void setData(const QVector<double> &keys, const QVector<double> &values);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
   void setChannelFillGraph(QCPGraph *targetGraph);
   void setAdaptiveSampling(bool enabled);
   
   // non-property methods:
-  void addData(const QCPDataMap &dataMap);
-  void addData(const QCPData &data);
+  void addData(const QCPGraphDataContainer &data);
+  void addData(const QCPGraphData &data);
   void addData(double key, double value);
   void addData(const QVector<double> &keys, const QVector<double> &values);
   void removeDataBefore(double key);
@@ -114,7 +137,7 @@ public:
   
 protected:
   // property members:
-  QCPDataMap *mData;
+  QCPGraphDataContainer *mDataContainer;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
   QPointer<QCPGraph> mChannelFillGraph;
@@ -128,21 +151,20 @@ protected:
   
   // introduced virtual methods:
   virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const;
+  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const;
   virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   
   // non-virtual methods:
-  void getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *scatterData) const;
-  void getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatterData) const;
-  void getScatterPlotData(QVector<QCPData> *scatterData) const;
-  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const;
-  int countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const;
+  void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const;
+  void getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const;
+  void getScatterPlotData(QVector<QCPGraphData> *scatterData) const;
+  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &lower, QCPGraphDataContainer::const_iterator &upper) const;
   void addFillBasePoints(QVector<QPointF> *lineData) const;
   void removeFillBasePoints(QVector<QPointF> *lineData) const;
   QPointF lowerFillBasePoint(double lowerKey) const;

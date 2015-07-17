@@ -85,12 +85,32 @@ QCPGraphDataContainer::QCPGraphDataContainer()
 
 void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
 {
-  //TODO
+  if (data.isEmpty())
+    return;
+  
+  if (isEmpty() || data.constBegin()->key >= (constEnd()-1)->key) // quickly handle appends
+  {
+    mData.resize(size()+data.size());
+    std::copy(data.constBegin(), data.constEnd(), mData.end()-data.size());
+  } else // handle inserts, maintaining sorted keys
+  {
+    // TODO: if container changed to QList, also handle prepends
+    mData.resize(size()+data.size());
+    std::copy(data.constBegin(), data.constEnd(), mData.end()-data.size());
+    sort(); // rather std::inplace_merge(mData.begin(), mData.end()-data.size(), mData.end(), qcpLessThanKey)?
+  }
 }
 
 void QCPGraphDataContainer::add(const QCPGraphData &data)
 {
-  //TODO
+  if (isEmpty() || data.key >= (constEnd()-1)->key) // quickly handle appends
+  {
+    mData.append(data);
+  } else // handle inserts, maintaining sorted keys
+  {
+    QCPGraphDataContainer::iterator insertionPoint = std::lower_bound(mData.begin(), mData.end(), data, qcpLessThanKey);
+    mData.insert(insertionPoint, data);
+  }
 }
 
 void QCPGraphDataContainer::removeBefore(double key)

@@ -185,13 +185,13 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
 {
   customPlot->addGraph();
 
-  QCPDataMap *dataMap = new QCPDataMap;
+  QCPGraphDataContainer *dataMap = new QCPGraphDataContainer;
   int n = 10e6;
   QTime t;
   t.start();
   for (int i=0; i<n; ++i)
   {
-    dataMap->insert(i, QCPData(i, i));
+    dataMap->insert(i, QCPGraphData(i, i));
   }
   qDebug() << "data" << t.restart();
   customPlot->graph(0)->setData(dataMap, false);

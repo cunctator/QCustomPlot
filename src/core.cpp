@@ -2268,13 +2268,7 @@ void QCustomPlot::asyncPlottableClearer()
       const int batchSize = 20000;
       if (g->data()->size() > batchSize) // more than batchSize points, delete batch by batch in every call of this method
       {
-        int i = 0;
-        QCPDataMap::iterator it = g->data()->begin();
-        while (it != g->data()->end() && i < batchSize)
-        {
-          it = g->data()->erase(it);
-          ++i;
-        }
+        g->data()->raw().resize(g->data()->size()-batchSize);
       } else // less than batchSize points, delete graph as whole
       {
         delete g;

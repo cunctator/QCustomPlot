@@ -115,37 +115,39 @@ void QCPGraphDataContainer::add(const QCPGraphData &data)
 
 void QCPGraphDataContainer::removeBefore(double key)
 {
-  /* old code from QCPGraph:
-  QCPDataMap::iterator it = mDataContainer->begin();
-  while (it != mDataContainer->end() && it.key() < key)
-    it = mDataContainer->erase(it);
-  */
+  QCPGraphDataContainer::iterator it = mData.begin();
+  QCPGraphDataContainer::iterator itEnd = mData.end();
+  while (it != itEnd && it->key < key)
+    it = mData.erase(it);
 }
 
 void QCPGraphDataContainer::removeAfter(double key)
 {
-  /* old code from QCPGraph:
-  if (mDataContainer->isEmpty()) return;
-  QCPDataMap::iterator it = mDataContainer->upperBound(key);
-  while (it != mDataContainer->end())
-    it = mDataContainer->erase(it);
-  */
+  if (isEmpty())
+    return;
+  
+  QCPGraphDataContainer::iterator it = std::upper_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator itEnd = mData.end();
+  while (it != itEnd)
+    it = mData.erase(it);
 }
 
 void QCPGraphDataContainer::remove(double fromKey, double toKey)
 {
-  /* old code from QCPGraph:
-  if (fromKey >= toKey || mDataContainer->isEmpty()) return;
-  QCPDataMap::iterator it = mDataContainer->upperBound(fromKey);
-  QCPDataMap::iterator itEnd = mDataContainer->upperBound(toKey);
+  if (fromKey >= toKey || isEmpty())
+    return;
+  
+  QCPGraphDataContainer::iterator it = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, mData.end(), QCPGraphData(toKey, 0), qcpLessThanKey);
   while (it != itEnd)
-    it = mDataContainer->erase(it);
-  */
+    it = mData.erase(it);
 }
 
 void QCPGraphDataContainer::remove(double key)
 {
-  // TODO
+  QCPGraphDataContainer::iterator it = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
+  if (it != mData.constEnd() && it->key == key)
+    mData.erase(it);
 }
 
 void QCPGraphDataContainer::clear()

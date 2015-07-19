@@ -185,16 +185,16 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
 {
   customPlot->addGraph();
 
-  QCPGraphDataContainer *dataMap = new QCPGraphDataContainer;
+  QCPGraphDataContainer *data = new QCPGraphDataContainer;
   int n = 10e6;
   QTime t;
   t.start();
   for (int i=0; i<n; ++i)
   {
-    dataMap->insert(i, QCPGraphData(i, i));
+    data->add(QCPGraphData(i, i));
   }
   qDebug() << "data" << t.restart();
-  customPlot->graph(0)->setData(dataMap, false);
+  customPlot->graph(0)->setData(data, false);
   qDebug() << "set" << t.restart();
   customPlot->xAxis->setRange(0, 50);
   customPlot->yAxis->setRange(-1, 1);
@@ -315,6 +315,7 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
+  /* TODO: with new error bars plottable
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
   customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   customPlot->yAxis->setNumberFormat("eb");
@@ -338,6 +339,7 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   //customPlot->rescaleAxes();
   customPlot->xAxis->setRange(0, 10);
   customPlot->yAxis->setRange(1, 10);
+  */
 }
 
 void MainWindow::setupSelectTest(QCustomPlot *customPlot)
@@ -1019,9 +1021,9 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPDataMap *data = new QCPDataMap;
+    QCPGraphDataContainer *data = new QCPGraphDataContainer;
     for (int i=0; i<82000; ++i)
-      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);
   }
   qDebug() << "create" << timer.nsecsElapsed()/1e6 << "ms";
@@ -1041,9 +1043,9 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPDataMap *data = new QCPDataMap;
+    QCPGraphDataContainer *data = new QCPGraphDataContainer;
     for (int i=0; i<5000; ++i)
-      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);
   }
   customPlot->rescaleAxes();
@@ -1285,8 +1287,8 @@ void MainWindow::daqPerformanceDataSlot()
 void MainWindow::daqPerformanceReplotSlot()
 {
   double lastX = 0;
-  if (mCustomPlot->graph(0)->data()->end() != mCustomPlot->graph(0)->data()->begin())
-    lastX = (mCustomPlot->graph(0)->data()->end()-1).key();
+  if (!mCustomPlot->graph(0)->data()->isEmpty())
+    lastX = (mCustomPlot->graph(0)->data()->constEnd()-1)->key;
   mCustomPlot->xAxis->setRange(lastX, 10, Qt::AlignRight);
   mCustomPlot->replot();
   

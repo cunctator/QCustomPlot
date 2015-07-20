@@ -56,8 +56,9 @@ public:
   int size() const { return mData.size(); }
   bool isEmpty() const { return size() == 0; }
   
+  void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void add(const QCPGraphDataContainer &data);
-  void add(const QCPGraphData &data); // TODO: overwrite optional parameter (and in QCPGraph)?
+  void add(const QCPGraphData &data);
   void removeBefore(double key);
   void removeAfter(double key);
   void remove(double fromKey, double toKey);

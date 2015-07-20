@@ -83,6 +83,43 @@ QCPGraphDataContainer::QCPGraphDataContainer()
 {
 }
 
+void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  if (n == 0)
+    return;
+  
+  const int oldSize = size();
+  mData.resize(oldSize+n);
+  
+  if (alreadySorted && oldSize > 0 && keys.last() <= constBegin()->key) // prepend if new data is sorted and keys are all smaller than existing ones
+  {
+    std::copy_backward(mData.begin(), mData.end()-n, mData.end());
+    QCPGraphDataContainer::iterator it = mData.begin();
+    for (int i=0; i<n; ++i)
+    {
+      it->key = keys[i];
+      it->value = values[i];
+      ++it;
+    }
+  } else // don't need to prepend, so append and then sort and merge if necessary
+  {
+    QCPGraphDataContainer::iterator it = mData.end()-n;
+    for (int i=0; i<n; ++i)
+    {
+      it->key = keys[i];
+      it->value = values[i];
+      ++it;
+    }
+    if (!alreadySorted) // sort appended subrange if it wasn't already sorted
+      std::sort(mData.end()-n, mData.end(), qcpLessThanKey);
+    if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(mData.begin(), mData.end()-n, mData.end(), qcpLessThanKey);
+  }
+}
+
 void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
 {
   if (data.isEmpty())

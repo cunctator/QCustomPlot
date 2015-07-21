@@ -127,7 +127,7 @@ public:
   void addData(const QCPGraphDataContainer &data);
   void addData(const QCPGraphData &data);
   void addData(double key, double value);
-  void addData(const QVector<double> &keys, const QVector<double> &values);
+  void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void removeDataBefore(double key);
   void removeDataAfter(double key);
   void removeData(double fromKey, double toKey);

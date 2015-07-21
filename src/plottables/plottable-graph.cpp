@@ -153,20 +153,15 @@ void QCPGraphDataContainer::add(const QCPGraphData &data)
 void QCPGraphDataContainer::removeBefore(double key)
 {
   QCPGraphDataContainer::iterator it = mData.begin();
-  QCPGraphDataContainer::iterator itEnd = mData.end();
-  while (it != itEnd && it->key < key)
-    it = mData.erase(it);
+  QCPGraphDataContainer::iterator itEnd = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
+  mData.erase(it, itEnd);
 }
 
 void QCPGraphDataContainer::removeAfter(double key)
 {
-  if (isEmpty())
-    return;
-  
   QCPGraphDataContainer::iterator it = std::upper_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
   QCPGraphDataContainer::iterator itEnd = mData.end();
-  while (it != itEnd)
-    it = mData.erase(it);
+  mData.erase(it, itEnd);
 }
 
 void QCPGraphDataContainer::remove(double fromKey, double toKey)
@@ -176,8 +171,7 @@ void QCPGraphDataContainer::remove(double fromKey, double toKey)
   
   QCPGraphDataContainer::iterator it = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
   QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, mData.end(), QCPGraphData(toKey, 0), qcpLessThanKey);
-  while (it != itEnd)
-    it = mData.erase(it);
+  mData.erase(it, itEnd);
 }
 
 void QCPGraphDataContainer::remove(double key)
@@ -644,11 +638,9 @@ void QCPGraph::addData(double key, double value)
   
   \see removeData
 */
-void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values)
+void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  int n = qMin(keys.size(), values.size());
-  for (int i=0; i<n; ++i)
-    mDataContainer->add(QCPGraphData(keys[i], values[i]));
+  mDataContainer->add(keys, values, alreadySorted);
 }
 
 /*!

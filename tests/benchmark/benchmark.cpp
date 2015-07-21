@@ -296,7 +296,7 @@ void Benchmark::QCPGraph_AddDataAtEndSorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, true);
   }
 }
 
@@ -316,7 +316,7 @@ void Benchmark::QCPGraph_AddDataAtBeginSorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, true);
   }
 }
 
@@ -336,7 +336,7 @@ void Benchmark::QCPGraph_AddDataMixedSorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, true);
   }
 }
 
@@ -356,7 +356,7 @@ void Benchmark::QCPGraph_AddDataAtEndUnsorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, false);
   }
 }
 
@@ -376,7 +376,7 @@ void Benchmark::QCPGraph_AddDataAtBeginUnsorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, false);
   }
 }
 
@@ -396,7 +396,7 @@ void Benchmark::QCPGraph_AddDataMixedUnsorted()
   graph->setData(x1, y1);
   QBENCHMARK_ONCE
   {
-    graph->addData(x2, y2);
+    graph->addData(x2, y2, false);
   }
 }
 

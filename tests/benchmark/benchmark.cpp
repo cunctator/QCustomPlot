@@ -16,7 +16,13 @@ private slots:
   void QCPGraph_RemoveDataBetween();
   void QCPGraph_RemoveDataAfter();
   void QCPGraph_RemoveDataBefore();
-  void QCPGraph_AddData();
+  void QCPGraph_AddDataAtEndSorted();
+  void QCPGraph_AddDataAtBeginSorted();
+  void QCPGraph_AddDataMixedSorted();
+  void QCPGraph_AddDataAtEndUnsorted();
+  void QCPGraph_AddDataAtBeginUnsorted();
+  void QCPGraph_AddDataMixedUnsorted();
+  void QCPGraph_AddDataSingle();
 
   void QCPAxis_TickLabels();
   void QCPAxis_TickLabelsCached();
@@ -236,7 +242,7 @@ void Benchmark::QCPGraph_RemoveDataBefore()
   }
 }
 
-void Benchmark::QCPGraph_AddData()
+void Benchmark::QCPGraph_AddDataAtEndSorted()
 {
   QCPGraph *graph = mPlot->addGraph();
   int n = 500000;
@@ -253,6 +259,147 @@ void Benchmark::QCPGraph_AddData()
   QBENCHMARK_ONCE
   {
     graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataAtBeginSorted()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n), x2(n), y2(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = (i+n)/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+    x2[i] = i/(double)n;
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  QBENCHMARK_ONCE
+  {
+    graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataMixedSorted()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n), x2(n), y2(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+    x2[i] = (i+0.5)/(double)(3*n);
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  QBENCHMARK_ONCE
+  {
+    graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataAtEndUnsorted()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n), x2(n), y2(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+    x2[i] = (i+n+0.1*(qrand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  QBENCHMARK_ONCE
+  {
+    graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataAtBeginUnsorted()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n), x2(n), y2(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = (i+n)/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+    x2[i] = (i-0.1*(qrand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  QBENCHMARK_ONCE
+  {
+    graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataMixedUnsorted()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n), x2(n), y2(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+    x2[i] = (i+0.1*(qrand()%500))/(double)(3*n); // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  QBENCHMARK_ONCE
+  {
+    graph->addData(x2, y2);
+  }
+}
+
+void Benchmark::QCPGraph_AddDataSingle()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+  }
+  // prepare random data that can be used by qbenchmark-loops:
+  int n2 = 50000;
+  QVector<double> x2(n2), y2(n2);
+  for (int i=0; i<n2; ++i)
+  {
+    x2[i] = qrand()%n+0.5; // randomly in range of existing data, that's why mod n
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  int c = 0;
+  QBENCHMARK
+  {
+    for (int i=0; i<10; ++i)
+    {
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      graph->addData(x2[c], y2[c]); ++c;
+      if (c > n2-20)
+        c = 0;
+    }
   }
 }
 

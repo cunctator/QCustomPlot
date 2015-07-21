@@ -79,7 +79,6 @@ protected:
 Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
 
 
-
 class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
 {
   Q_OBJECT

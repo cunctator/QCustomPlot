@@ -125,16 +125,19 @@ void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
   if (data.isEmpty())
     return;
   
-  if (isEmpty() || data.constBegin()->key >= (constEnd()-1)->key) // quickly handle appends
+  const int n = data.size();
+  const int oldSize = size();
+  mData.resize(oldSize+n);
+  
+  if (oldSize > 0 && (data.constEnd()-1)->key <= constBegin()->key) // prepend if new data keys are all smaller than existing ones
   {
-    mData.resize(size()+data.size());
-    std::copy(data.constBegin(), data.constEnd(), mData.end()-data.size());
-  } else // handle inserts, maintaining sorted keys
+    std::copy_backward(mData.begin(), mData.end()-n, mData.end());
+    std::copy(data.constBegin(), data.constEnd(), mData.begin());
+  } else // don't need to prepend, so append and merge if necessary
   {
-    // TODO: if container changed to QList, also handle prepends
-    mData.resize(size()+data.size());
-    std::copy(data.constBegin(), data.constEnd(), mData.end()-data.size());
-    sort(); // rather std::inplace_merge(mData.begin(), mData.end()-data.size(), mData.end(), qcpLessThanKey)?
+    std::copy(data.constBegin(), data.constEnd(), mData.end()-n);
+    if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(mData.begin(), mData.end()-n, mData.end(), qcpLessThanKey);
   }
 }
 

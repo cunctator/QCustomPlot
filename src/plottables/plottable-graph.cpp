@@ -501,10 +501,10 @@ void QCPGraph::setData(QCPGraphDataContainer *data, bool copy)
   vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
 */
-void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values)
+void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   mDataContainer->clear();
-  addData(keys, values);
+  addData(keys, values, alreadySorted);
 }
 
 /*!

@@ -116,7 +116,7 @@ public:
   
   // setters:
   void setData(QCPGraphDataContainer *data, bool copy=false);
-  void setData(const QVector<double> &keys, const QVector<double> &values);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
   void setChannelFillGraph(QCPGraph *targetGraph);

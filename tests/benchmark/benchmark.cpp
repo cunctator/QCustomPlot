@@ -22,7 +22,9 @@ private slots:
   void QCPGraph_AddDataAtEndUnsorted();
   void QCPGraph_AddDataAtBeginUnsorted();
   void QCPGraph_AddDataMixedUnsorted();
-  void QCPGraph_AddDataSingle();
+  void QCPGraph_AddDataSingleAtEnd();
+  void QCPGraph_AddDataSingleAtBegin();
+  void QCPGraph_AddDataSingleRandom();
 
   void QCPAxis_TickLabels();
   void QCPAxis_TickLabelsCached();
@@ -398,7 +400,89 @@ void Benchmark::QCPGraph_AddDataMixedUnsorted()
   }
 }
 
-void Benchmark::QCPGraph_AddDataSingle()
+void Benchmark::QCPGraph_AddDataSingleAtEnd()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+  }
+  // prepare random data that can be used by qbenchmark-loops:
+  int n2 = 50000;
+  QVector<double> x2(n2), y2(n2);
+  for (int i=0; i<n2; ++i)
+  {
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  int c = 0;
+  double key = x1.last()+0.1;
+  QBENCHMARK
+  {
+    for (int i=0; i<10; ++i)
+    {
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      graph->addData(key, y2[c]); ++c; key += 0.1;
+      if (c > n2-20)
+        c = 0;
+    }
+  }
+}
+
+void Benchmark::QCPGraph_AddDataSingleAtBegin()
+{
+  QCPGraph *graph = mPlot->addGraph();
+  int n = 500000;
+  QVector<double> x1(n), y1(n);
+  for (int i=0; i<n; ++i)
+  {
+    x1[i] = i/(double)n;
+    y1[i] = qSin(x1[i]*10*M_PI);
+  }
+  // prepare random data that can be used by qbenchmark-loops:
+  int n2 = 50000;
+  QVector<double> x2(n2), y2(n2);
+  for (int i=0; i<n2; ++i)
+  {
+    y2[i] = qSin(x2[i]*10*M_PI);
+  }
+
+  graph->setData(x1, y1);
+  int c = 0;
+  double key = x1.first()-0.1;
+  QBENCHMARK
+  {
+    for (int i=0; i<10; ++i)
+    {
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      graph->addData(key, y2[c]); ++c; key -= 0.1;
+      if (c > n2-20)
+        c = 0;
+    }
+  }
+}
+
+void Benchmark::QCPGraph_AddDataSingleRandom()
 {
   QCPGraph *graph = mPlot->addGraph();
   int n = 500000;

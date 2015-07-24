@@ -763,7 +763,8 @@ void QCPGraph::draw(QCPPainter *painter)
 #endif
 
   // draw fill of graph:
-  drawFill(painter, lineData);
+  if (mLineStyle != lsNone)
+    drawFill(painter, lineData);
   
   // draw line:
   if (mLineStyle == lsImpulse)
@@ -1679,6 +1680,8 @@ int QCPGraph::countDataInBounds(const QCPDataMap::const_iterator &lower, const Q
 void QCPGraph::addFillBasePoints(QVector<QPointF> *lineData) const
 {
   if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
+  if (!lineData) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
+  if (lineData->isEmpty()) return;
   
   // append points that close the polygon fill at the key axis:
   if (mKeyAxis.data()->orientation() == Qt::Vertical)
@@ -1700,6 +1703,9 @@ void QCPGraph::addFillBasePoints(QVector<QPointF> *lineData) const
 */
 void QCPGraph::removeFillBasePoints(QVector<QPointF> *lineData) const
 {
+  if (!lineData) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
+  if (lineData->isEmpty()) return;
+  
   lineData->remove(lineData->size()-2, 2);
 }
 

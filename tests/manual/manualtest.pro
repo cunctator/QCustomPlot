@@ -19,7 +19,7 @@ PRE_TARGETDEPS += qcplib
 SOURCES += main.cpp\
 mainwindow.cpp
 HEADERS  += mainwindow.h \
-../../src/*.h
+../../src/qcp.h
 FORMS    += mainwindow.ui
 OTHER_FILES += \
 ../../changelog.txt

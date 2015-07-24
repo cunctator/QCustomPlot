@@ -184,7 +184,7 @@ void Benchmark::QCPGraph_ManyOffScreenLines()
 void Benchmark::QCPGraph_RemoveDataBetween()
 {
   // we time and report this benchmark ourselves because it must be re-setup
-  // before every removeData iteration, and a single iteration is not enough to
+  // before every iteration, and a single iteration is not enough to
   // provide sufficient precision
 
   QCPGraph *graph = mPlot->addGraph();
@@ -209,7 +209,7 @@ void Benchmark::QCPGraph_RemoveDataBetween()
     graph->removeData(0.5, 1.5); // 50% of total data in center
     
     elapsed += timer.nsecsElapsed();
-    done = elapsed > 0.5e6 && iterations > 3; // have 500us worth of removeData and done some iterationsa
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
   }
   QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
@@ -217,7 +217,7 @@ void Benchmark::QCPGraph_RemoveDataBetween()
 void Benchmark::QCPGraph_RemoveDataAfter()
 {
   // we time and report this benchmark ourselves because it must be re-setup
-  // before every removeData iteration, and a single iteration is not enough to
+  // before every iteration, and a single iteration is not enough to
   // provide sufficient precision
 
   QCPGraph *graph = mPlot->addGraph();
@@ -242,7 +242,7 @@ void Benchmark::QCPGraph_RemoveDataAfter()
     graph->removeDataAfter(1.0); // last 50% of total data
     
     elapsed += timer.nsecsElapsed();
-    done = elapsed > 0.5e6 && iterations > 3; // have 500us worth of removeData and done some iterationsa
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
   }
   QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
@@ -250,7 +250,7 @@ void Benchmark::QCPGraph_RemoveDataAfter()
 void Benchmark::QCPGraph_RemoveDataBefore()
 {
   // we time and report this benchmark ourselves because it must be re-setup
-  // before every removeData iteration, and a single iteration is not enough to
+  // before every iteration, and a single iteration is not enough to
   // provide sufficient precision
   
   QCPGraph *graph = mPlot->addGraph();
@@ -275,7 +275,7 @@ void Benchmark::QCPGraph_RemoveDataBefore()
     graph->removeDataBefore(1.0); // first 50% of total data
     
     elapsed += timer.nsecsElapsed();
-    done = elapsed > 0.5e6 && iterations > 3; // have 500us worth of removeData and done some iterations
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
   }
   QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
@@ -402,6 +402,10 @@ void Benchmark::QCPGraph_AddDataMixedUnsorted()
 
 void Benchmark::QCPGraph_AddDataSingleAtEnd()
 {
+  // we time and report this benchmark ourselves because it must be re-setup
+  // before every iteration, and a single iteration is not enough to
+  // provide sufficient precision
+
   QCPGraph *graph = mPlot->addGraph();
   int n = 500000;
   QVector<double> x1(n), y1(n);
@@ -412,37 +416,41 @@ void Benchmark::QCPGraph_AddDataSingleAtEnd()
   }
   // prepare random data that can be used by qbenchmark-loops:
   int n2 = 50000;
-  QVector<double> x2(n2), y2(n2);
+  QVector<double> y2(n2);
   for (int i=0; i<n2; ++i)
   {
-    y2[i] = qSin(x2[i]*10*M_PI);
+    y2[i] = qSin(i/(double)n*10*M_PI);
   }
-
+  
   graph->setData(x1, y1);
   int c = 0;
   double key = x1.last()+0.1;
-  QBENCHMARK
+  QElapsedTimer timer;
+  bool done = false;
+  qint64 elapsed = 0;
+  int iterations = 0;
+  while (!done)
   {
-    for (int i=0; i<10; ++i)
-    {
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      graph->addData(key, y2[c]); ++c; key += 0.1;
-      if (c > n2-20)
-        c = 0;
-    }
+    ++iterations;
+    timer.restart();
+    
+    graph->addData(key, y2[c]);
+    
+    elapsed += timer.nsecsElapsed();
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
+    ++c; key += 0.1;
+    if (c > n2-20)
+      c = 0;
   }
+  QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
 
 void Benchmark::QCPGraph_AddDataSingleAtBegin()
 {
+  // we time and report this benchmark ourselves because it must be re-setup
+  // before every iteration, and a single iteration is not enough to
+  // provide sufficient precision
+
   QCPGraph *graph = mPlot->addGraph();
   int n = 500000;
   QVector<double> x1(n), y1(n);
@@ -453,37 +461,42 @@ void Benchmark::QCPGraph_AddDataSingleAtBegin()
   }
   // prepare random data that can be used by qbenchmark-loops:
   int n2 = 50000;
-  QVector<double> x2(n2), y2(n2);
+  QVector<double> y2(n2);
   for (int i=0; i<n2; ++i)
   {
-    y2[i] = qSin(x2[i]*10*M_PI);
+    y2[i] = qSin(i/(double)n*10*M_PI);
   }
-
+  
   graph->setData(x1, y1);
   int c = 0;
   double key = x1.first()-0.1;
-  QBENCHMARK
+  QElapsedTimer timer;
+  bool done = false;
+  qint64 elapsed = 0;
+  int iterations = 0;
+  while (!done)
   {
-    for (int i=0; i<10; ++i)
-    {
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      graph->addData(key, y2[c]); ++c; key -= 0.1;
-      if (c > n2-20)
-        c = 0;
-    }
+    ++iterations;
+    timer.restart();
+    
+    graph->addData(key, y2[c]);
+    
+    elapsed += timer.nsecsElapsed();
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
+    ++c;
+    key -= 0.1;
+    if (c > n2-20)
+      c = 0;
   }
+  QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
 
 void Benchmark::QCPGraph_AddDataSingleRandom()
 {
+  // we time and report this benchmark ourselves because it must be re-setup
+  // before every iteration, and a single iteration is not enough to
+  // provide sufficient precision
+  
   QCPGraph *graph = mPlot->addGraph();
   int n = 500000;
   QVector<double> x1(n), y1(n);
@@ -497,30 +510,30 @@ void Benchmark::QCPGraph_AddDataSingleRandom()
   QVector<double> x2(n2), y2(n2);
   for (int i=0; i<n2; ++i)
   {
-    x2[i] = qrand()%n+0.5; // randomly in range of existing data, that's why mod n
+    x2[i] = (qrand()%n+0.5)/(double)n; // randomly in range of existing data, that's why mod n
     y2[i] = qSin(x2[i]*10*M_PI);
   }
 
   graph->setData(x1, y1);
   int c = 0;
-  QBENCHMARK
+  QElapsedTimer timer;
+  bool done = false;
+  qint64 elapsed = 0;
+  int iterations = 0;
+  while (!done)
   {
-    for (int i=0; i<10; ++i)
-    {
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      graph->addData(x2[c], y2[c]); ++c;
-      if (c > n2-20)
-        c = 0;
-    }
+    ++iterations;
+    timer.restart();
+    
+    graph->addData(x2[c], y2[c]);
+    
+    elapsed += timer.nsecsElapsed();
+    done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
+    ++c;
+    if (c > n2-20)
+      c = 0;
   }
+  QTest::setBenchmarkResult(elapsed/1e6/(double)iterations, QTest::WalltimeMilliseconds);
 }
 
 void Benchmark::QCPAxis_TickLabels()

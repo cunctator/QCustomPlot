@@ -52,8 +52,7 @@ public:
   typedef QVector<QCPGraphData>::iterator iterator;
   QCPGraphDataContainer();
   
-  QVector<QCPGraphData> &raw() { return mData; }
-  int size() const { return mData.size(); }
+  int size() const { return mData.size()-mPreallocSize; }
   bool isEmpty() const { return size() == 0; }
   
   void setData(const QCPGraphDataContainer &data);
@@ -68,8 +67,10 @@ public:
   void clear();
   void sort();
   
-  QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin(); }
+  QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
   QCPGraphDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
+  QCPGraphDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
+  QCPGraphDataContainer::iterator end() { return mData.end(); }
   QCPGraphDataContainer::const_iterator findBeginBelowKey(double key) const;
   QCPGraphDataContainer::const_iterator findEndAboveKey(double key) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
@@ -77,6 +78,10 @@ public:
   
 protected:
   QVector<QCPGraphData> mData;
+  int mPreallocSize;
+  int mPreallocIteration;
+  
+  void preallocateGrow(int minimumPreallocSize);
 };
 Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
 

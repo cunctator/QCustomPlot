@@ -1030,14 +1030,13 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediate);
   
-  // asynchronous remove:
   timer.start();
-  customPlot->clearPlottablesAsynchronous();
+  customPlot->clearPlottables();
   qDebug() << "remove" << timer.nsecsElapsed()/1e6 << "ms";
   
   customPlot->replot(QCustomPlot::rpImmediate);
   
-  // create next set right away to see whether asynchronous remove works:
+  // create next set right away:
   for (int n=0; n<10; ++n)
   {
     QCPGraph *g = customPlot->addGraph();

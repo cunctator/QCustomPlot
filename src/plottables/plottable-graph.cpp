@@ -79,20 +79,26 @@ QCPGraphData::QCPGraphData(double key, double value) :
 /*!
   Constructs a QCPGraphDataContainer used for QCPGraph
 */
-QCPGraphDataContainer::QCPGraphDataContainer()
+QCPGraphDataContainer::QCPGraphDataContainer() :
+  mPreallocSize(0),
+  mPreallocIteration(0)
 {
 }
 
 void QCPGraphDataContainer::setData(const QCPGraphDataContainer &data)
 {
   mData = data.mData;
+  mPreallocSize = 0;
+  mPreallocIteration = 0;
 }
 
 void QCPGraphDataContainer::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   int n = qMin(keys.size(), values.size());
   mData.resize(n);
-  QCPGraphDataContainer::iterator it = mData.begin();
+  mPreallocSize = 0;
+  mPreallocIteration = 0;
+  QCPGraphDataContainer::iterator it = begin();
   for (int i=0; i<n; ++i)
   {
     it->key = keys[i];
@@ -112,12 +118,13 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
     return;
   
   const int oldSize = size();
-  mData.resize(oldSize+n);
   
   if (alreadySorted && oldSize > 0 && keys.last() <= constBegin()->key) // prepend if new data is sorted and keys are all smaller than existing ones
   {
-    std::copy_backward(mData.begin(), mData.end()-n, mData.end());
-    QCPGraphDataContainer::iterator it = mData.begin();
+    if (mPreallocSize < n)
+      preallocateGrow(n);
+    mPreallocSize -= n;
+    QCPGraphDataContainer::iterator it = begin();
     for (int i=0; i<n; ++i)
     {
       it->key = keys[i];
@@ -126,7 +133,8 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
     }
   } else // don't need to prepend, so append and then sort and merge if necessary
   {
-    QCPGraphDataContainer::iterator it = mData.end()-n;
+    mData.resize(oldSize+n);
+    QCPGraphDataContainer::iterator it = end()-n;
     for (int i=0; i<n; ++i)
     {
       it->key = keys[i];
@@ -134,9 +142,9 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
       ++it;
     }
     if (!alreadySorted) // sort appended subrange if it wasn't already sorted
-      std::sort(mData.end()-n, mData.end(), qcpLessThanKey);
+      std::sort(end()-n, end(), qcpLessThanKey);
     if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(mData.begin(), mData.end()-n, mData.end(), qcpLessThanKey);
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey);
   }
 }
 
@@ -147,17 +155,19 @@ void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
   
   const int n = data.size();
   const int oldSize = size();
-  mData.resize(oldSize+n);
   
   if (oldSize > 0 && (data.constEnd()-1)->key <= constBegin()->key) // prepend if new data keys are all smaller than existing ones
   {
-    std::copy_backward(mData.begin(), mData.end()-n, mData.end());
-    std::copy(data.constBegin(), data.constEnd(), mData.begin());
+    if (mPreallocSize < n)
+      preallocateGrow(n);
+    mPreallocSize -= n;
+    std::copy(data.constBegin(), data.constEnd(), begin());
   } else // don't need to prepend, so append and merge if necessary
   {
-    std::copy(data.constBegin(), data.constEnd(), mData.end()-n);
+    mData.resize(oldSize+n);
+    std::copy(data.constBegin(), data.constEnd(), end()-n);
     if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(mData.begin(), mData.end()-n, mData.end(), qcpLessThanKey);
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey);
   }
 }
 
@@ -166,24 +176,30 @@ void QCPGraphDataContainer::add(const QCPGraphData &data)
   if (isEmpty() || data.key >= (constEnd()-1)->key) // quickly handle appends
   {
     mData.append(data);
+  } else if (data.key < (constEnd()-1)->key)  // quickly handle prepends using preallocated space
+  {
+    if (mPreallocSize < 1)
+      preallocateGrow(1);
+    --mPreallocSize;
+    *begin() = data;
   } else // handle inserts, maintaining sorted keys
   {
-    QCPGraphDataContainer::iterator insertionPoint = std::lower_bound(mData.begin(), mData.end(), data, qcpLessThanKey);
+    QCPGraphDataContainer::iterator insertionPoint = std::lower_bound(begin(), end(), data, qcpLessThanKey);
     mData.insert(insertionPoint, data);
   }
 }
 
 void QCPGraphDataContainer::removeBefore(double key)
 {
-  QCPGraphDataContainer::iterator it = mData.begin();
-  QCPGraphDataContainer::iterator itEnd = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator it = begin();
+  QCPGraphDataContainer::iterator itEnd = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   mData.erase(it, itEnd);
 }
 
 void QCPGraphDataContainer::removeAfter(double key)
 {
-  QCPGraphDataContainer::iterator it = std::upper_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
-  QCPGraphDataContainer::iterator itEnd = mData.end();
+  QCPGraphDataContainer::iterator it = std::upper_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator itEnd = end();
   mData.erase(it, itEnd);
 }
 
@@ -192,15 +208,15 @@ void QCPGraphDataContainer::remove(double fromKey, double toKey)
   if (fromKey >= toKey || isEmpty())
     return;
   
-  QCPGraphDataContainer::iterator it = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
-  QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, mData.end(), QCPGraphData(toKey, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
+  QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, end(), QCPGraphData(toKey, 0), qcpLessThanKey);
   mData.erase(it, itEnd);
 }
 
 void QCPGraphDataContainer::remove(double key)
 {
-  QCPGraphDataContainer::iterator it = std::lower_bound(mData.begin(), mData.end(), QCPGraphData(key, 0), qcpLessThanKey);
-  if (it != mData.constEnd() && it->key == key)
+  QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
+  if (it != end() && it->key == key)
     mData.erase(it);
 }
 
@@ -211,7 +227,7 @@ void QCPGraphDataContainer::clear()
 
 void QCPGraphDataContainer::sort()
 {
-  std::sort(mData.begin(), mData.end(), qcpLessThanKey);
+  std::sort(begin(), end(), qcpLessThanKey);
 }
 
 QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findBeginBelowKey(double key) const
@@ -397,6 +413,33 @@ QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain sig
   
   foundRange = haveLower && haveUpper;
   return range;
+}
+
+void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
+{
+  if (minimumPreallocSize <= mPreallocSize)
+    return;
+  
+  int newPreallocSize = minimumPreallocSize-mPreallocSize;
+  switch (mPreallocIteration)
+  {
+    case 0: newPreallocSize += 4; break;
+    case 1: newPreallocSize += 12; break;
+    case 2: newPreallocSize += 32-12; break;
+    case 3: newPreallocSize += 64-12; break;
+    case 4: newPreallocSize += 128-12; break;
+    case 5: newPreallocSize += 256-12; break;
+    case 6: newPreallocSize += 512-12; break;
+    case 7: newPreallocSize += 1024-12; break;
+    case 8: newPreallocSize += 2048-12; break;
+    default: newPreallocSize += 2048; break;
+  }
+  ++mPreallocIteration;
+  
+  int sizeDifference = newPreallocSize-mPreallocSize;
+  mData.resize(mData.size()+sizeDifference);
+  std::copy(mData.begin()+mPreallocSize, mData.end()-sizeDifference, mData.begin()+newPreallocSize);
+  mPreallocSize = newPreallocSize;
 }
 
 

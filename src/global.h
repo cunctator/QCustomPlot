@@ -43,7 +43,6 @@
 #include <QStack>
 #include <QCache>
 #include <QMargins>
-#include <QTimer>
 #include <qmath.h>
 #include <limits>
 #include <algorithm>

@@ -56,6 +56,8 @@ public:
   int size() const { return mData.size(); }
   bool isEmpty() const { return size() == 0; }
   
+  void setData(const QCPGraphDataContainer &data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void add(const QCPGraphDataContainer &data);
   void add(const QCPGraphData &data);
@@ -115,7 +117,7 @@ public:
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
   // setters:
-  void setData(QCPGraphDataContainer *data, bool copy=false);
+  void setData(const QCPGraphDataContainer &data);
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);

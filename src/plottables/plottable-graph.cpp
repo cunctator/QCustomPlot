@@ -83,6 +83,26 @@ QCPGraphDataContainer::QCPGraphDataContainer()
 {
 }
 
+void QCPGraphDataContainer::setData(const QCPGraphDataContainer &data)
+{
+  mData = data.mData;
+}
+
+void QCPGraphDataContainer::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  int n = qMin(keys.size(), values.size());
+  mData.resize(n);
+  QCPGraphDataContainer::iterator it = mData.begin();
+  for (int i=0; i<n; ++i)
+  {
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+  }
+  if (!alreadySorted)
+    sort();
+}
+
 void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   if (keys.size() != values.size())
@@ -478,21 +498,9 @@ QCPGraph::~QCPGraph()
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
   returns a pointer to the internal \ref QCPDataMap.
 */
-void QCPGraph::setData(QCPGraphDataContainer *data, bool copy)
+void QCPGraph::setData(const QCPGraphDataContainer &data)
 {
-  if (mDataContainer == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mDataContainer = *data;
-  } else
-  {
-    delete mDataContainer;
-    mDataContainer = data;
-  }
+  mDataContainer->setData(data);
 }
 
 /*! \overload

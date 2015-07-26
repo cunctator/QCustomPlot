@@ -110,7 +110,7 @@ public:
   virtual ~QCPGraph();
   
   // getters:
-  QCPGraphDataContainer *data() const { return mDataContainer; }
+  QSharedPointer<QCPGraphDataContainer> data() const { return mDataContainer; }
   LineStyle lineStyle() const { return mLineStyle; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   QCPGraph *channelFillGraph() const { return mChannelFillGraph.data(); }
@@ -118,6 +118,7 @@ public:
   
   // setters:
   void setData(const QCPGraphDataContainer &data);
+  void setData(QSharedPointer<QCPGraphDataContainer> data);
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
@@ -140,7 +141,7 @@ public:
   
 protected:
   // property members:
-  QCPGraphDataContainer *mDataContainer;
+  QSharedPointer<QCPGraphDataContainer> mDataContainer;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
   QPointer<QCPGraph> mChannelFillGraph;

@@ -466,13 +466,12 @@ QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain sig
   To directly create a graph inside a plot, you can also use the simpler QCustomPlot::addGraph function.
 */
 QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis)
+  QCPAbstractPlottable(keyAxis, valueAxis),
+  mDataContainer(new QCPGraphDataContainer)
 {
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);
-  
-  mDataContainer = new QCPGraphDataContainer;
-  
+
   setPen(QPen(Qt::blue, 0));
   setBrush(Qt::NoBrush);
   setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
@@ -485,7 +484,6 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 
 QCPGraph::~QCPGraph()
 {
-  delete mDataContainer;
 }
 
 /*!
@@ -503,6 +501,11 @@ void QCPGraph::setData(const QCPGraphDataContainer &data)
   mDataContainer->setData(data);
 }
 
+void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
+{
+  mDataContainer = data;
+}
+
 /*! \overload
   
   Replaces the current data with the provided points in \a keys and \a values. The provided
@@ -511,8 +514,7 @@ void QCPGraph::setData(const QCPGraphDataContainer &data)
 */
 void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer->clear();
-  addData(keys, values, alreadySorted);
+  mDataContainer->setData(keys, values, alreadySorted);
 }
 
 /*!

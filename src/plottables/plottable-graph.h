@@ -52,8 +52,11 @@ public:
   typedef QVector<QCPGraphData>::iterator iterator;
   QCPGraphDataContainer();
   
+  void setAutoSqueeze(bool enabled);
+  
   int size() const { return mData.size()-mPreallocSize; }
   bool isEmpty() const { return size() == 0; }
+  bool autoSqueeze() const { return mAutoSqueeze; }
   
   void setData(const QCPGraphDataContainer &data);
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
@@ -66,6 +69,7 @@ public:
   void remove(double key);
   void clear();
   void sort();
+  void squeeze(bool preAllocation=true, bool postAllocation=true);
   
   QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
   QCPGraphDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
@@ -77,11 +81,14 @@ public:
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   
 protected:
+  bool mAutoSqueeze;
+  
   QVector<QCPGraphData> mData;
   int mPreallocSize;
   int mPreallocIteration;
   
   void preallocateGrow(int minimumPreallocSize);
+  void performAutoSqueeze();
 };
 Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
 

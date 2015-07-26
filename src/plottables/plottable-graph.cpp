@@ -80,9 +80,20 @@ QCPGraphData::QCPGraphData(double key, double value) :
   Constructs a QCPGraphDataContainer used for QCPGraph
 */
 QCPGraphDataContainer::QCPGraphDataContainer() :
+  mAutoSqueeze(true),
   mPreallocSize(0),
   mPreallocIteration(0)
 {
+}
+
+void QCPGraphDataContainer::setAutoSqueeze(bool enabled)
+{
+  if (mAutoSqueeze != enabled)
+  {
+    mAutoSqueeze = enabled;
+    if (mAutoSqueeze)
+      performAutoSqueeze();
+  }
 }
 
 void QCPGraphDataContainer::setData(const QCPGraphDataContainer &data)
@@ -194,6 +205,8 @@ void QCPGraphDataContainer::removeBefore(double key)
   QCPGraphDataContainer::iterator it = begin();
   QCPGraphDataContainer::iterator itEnd = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   mData.erase(it, itEnd);
+  if (mAutoSqueeze)
+    performAutoSqueeze();
 }
 
 void QCPGraphDataContainer::removeAfter(double key)
@@ -201,6 +214,8 @@ void QCPGraphDataContainer::removeAfter(double key)
   QCPGraphDataContainer::iterator it = std::upper_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   QCPGraphDataContainer::iterator itEnd = end();
   mData.erase(it, itEnd);
+  if (mAutoSqueeze)
+    performAutoSqueeze();
 }
 
 void QCPGraphDataContainer::remove(double fromKey, double toKey)
@@ -211,6 +226,8 @@ void QCPGraphDataContainer::remove(double fromKey, double toKey)
   QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
   QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, end(), QCPGraphData(toKey, 0), qcpLessThanKey);
   mData.erase(it, itEnd);
+  if (mAutoSqueeze)
+    performAutoSqueeze();
 }
 
 void QCPGraphDataContainer::remove(double key)
@@ -218,16 +235,33 @@ void QCPGraphDataContainer::remove(double key)
   QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   if (it != end() && it->key == key)
     mData.erase(it);
+  if (mAutoSqueeze)
+    performAutoSqueeze();
 }
 
 void QCPGraphDataContainer::clear()
 {
   mData.clear();
+  mPreallocIteration = 0;
+  mPreallocSize = 0;
 }
 
 void QCPGraphDataContainer::sort()
 {
   std::sort(begin(), end(), qcpLessThanKey);
+}
+
+void QCPGraphDataContainer::squeeze(bool preAllocation, bool postAllocation)
+{
+  if (preAllocation)
+  {
+    std::copy(begin(), end(), mData.begin());
+    mData.resize(size());
+    mPreallocSize = 0;
+    mPreallocIteration = 0;
+  }
+  if (postAllocation)
+    mData.squeeze();
 }
 
 QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findBeginBelowKey(double key) const
@@ -420,7 +454,7 @@ void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
   if (minimumPreallocSize <= mPreallocSize)
     return;
   
-  int newPreallocSize = minimumPreallocSize-mPreallocSize;
+  int newPreallocSize = minimumPreallocSize;
   switch (mPreallocIteration)
   {
     case 0: newPreallocSize += 4; break;
@@ -438,8 +472,29 @@ void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
   
   int sizeDifference = newPreallocSize-mPreallocSize;
   mData.resize(mData.size()+sizeDifference);
-  std::copy(mData.begin()+mPreallocSize, mData.end()-sizeDifference, mData.begin()+newPreallocSize);
+  std::copy_backward(mData.begin()+mPreallocSize, mData.end()-sizeDifference, mData.end());
   mPreallocSize = newPreallocSize;
+}
+
+void QCPGraphDataContainer::performAutoSqueeze()
+{
+  const int totalAlloc = mData.capacity();
+  const int postAllocSize = totalAlloc-mData.size();
+  const int usedSize = size();
+  bool shrinkPostAllocation = false;
+  bool shrinkPreAllocation = false;
+  if (totalAlloc > 1000 && totalAlloc < 650000) // below 10 MiB raw data be generous with preallocated memory, below 1k points don't even bother
+  {
+    shrinkPostAllocation = postAllocSize > usedSize*5;
+    shrinkPreAllocation = mPreallocSize > usedSize*5;
+  } else // if allocation is larger, shrink earlier with respect to total used size
+  {
+    shrinkPostAllocation = postAllocSize*2 > usedSize;
+    shrinkPreAllocation = mPreallocSize*2 > usedSize;
+  }
+  
+  if (shrinkPreAllocation || shrinkPostAllocation)
+    squeeze(shrinkPreAllocation, shrinkPostAllocation);
 }
 
 

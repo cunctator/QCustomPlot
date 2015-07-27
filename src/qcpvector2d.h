@@ -48,6 +48,7 @@ public:
   QPoint toPoint() const { return QPoint(mX, mY); }
   QPointF toPointF() const { return QPointF(mX, mY); }
   
+  bool isNull() const { return qIsNull(mX) && qIsNull(mY); }
   void normalize();
   QCPVector2D normalized() const;
   QCPVector2D perpendicular() const { return QCPVector2D(-mY, mX); }

@@ -56,7 +56,8 @@ layoutelements/layoutelement-axisrect.h \
     layoutelements/layoutelement-legend.h \
     layoutelements/layoutelement-plottitle.h \
     layoutelements/layoutelement-colorscale.h \
-    colorgradient.h
+    colorgradient.h \
+    qcpvector2d.h
 
 SOURCES += \
 painter.cpp \
@@ -87,7 +88,8 @@ layoutelements/layoutelement-axisrect.cpp \
     layoutelements/layoutelement-legend.cpp \
     layoutelements/layoutelement-plottitle.cpp \
     layoutelements/layoutelement-colorscale.cpp \
-    colorgradient.cpp
+    colorgradient.cpp \
+    qcpvector2d.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

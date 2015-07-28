@@ -223,7 +223,7 @@ td.fieldname {
   white-space: nowrap;
 }
 td.fieldname > em {
-  font-family: "Droid Sans Mono";
+  font-family: monospace;
   font-style: normal;
   font-size: 0.85em;
 }
@@ -483,7 +483,7 @@ dl.el {
 .fragment {
   background-color: #F5F5F5;
   border: 1px solid #CCCCCC;
-  font-family: monospace,fixed;
+  font-family: monospace;
   font-size: 9pt;
   line-height: 125%;
   margin: 4px 8px 4px 2px;

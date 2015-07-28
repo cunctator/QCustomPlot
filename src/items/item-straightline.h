@@ -65,8 +65,7 @@ protected:
   virtual void draw(QCPPainter *painter);
   
   // non-virtual methods:
-  double distToStraightLine(const QVector2D &point1, const QVector2D &vec, const QVector2D &point) const;
-  QLineF getRectClippedStraightLine(const QVector2D &point1, const QVector2D &vec, const QRect &rect) const;
+  QLineF getRectClippedStraightLine(const QCPVector2D &point1, const QCPVector2D &vec, const QRect &rect) const;
   QPen mainPen() const;
 };
 

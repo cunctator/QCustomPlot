@@ -116,14 +116,14 @@ double QCPItemLine::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return qSqrt(distSqrToLine(start->pixelPoint(), end->pixelPoint(), pos));
+  return qSqrt(QCPVector2D(pos).distanceSquaredToLine(start->pixelPoint(), end->pixelPoint()));
 }
 
 /* inherits documentation from base class */
 void QCPItemLine::draw(QCPPainter *painter)
 {
-  QVector2D startVec(start->pixelPoint());
-  QVector2D endVec(end->pixelPoint());
+  QCPVector2D startVec(start->pixelPoint());
+  QCPVector2D endVec(end->pixelPoint());
   if (startVec.toPoint() == endVec.toPoint())
     return;
   // get visible segment of straight line inside clipRect:
@@ -150,19 +150,19 @@ void QCPItemLine::draw(QCPPainter *painter)
   
   This is a helper function for \ref draw.
 */
-QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &end, const QRect &rect) const
+QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const
 {
   bool containsStart = rect.contains(start.x(), start.y());
   bool containsEnd = rect.contains(end.x(), end.y());
   if (containsStart && containsEnd)
     return QLineF(start.toPointF(), end.toPointF());
   
-  QVector2D base = start;
-  QVector2D vec = end-start;
+  QCPVector2D base = start;
+  QCPVector2D vec = end-start;
   double bx, by;
   double gamma, mu;
   QLineF result;
-  QList<QVector2D> pointVectors;
+  QList<QCPVector2D> pointVectors;
 
   if (!qFuzzyIsNull(vec.y())) // line is not horizontal
   {
@@ -174,7 +174,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.x()-bx + mu*vec.x();
       if (gamma >= 0 && gamma <= rect.width())
-        pointVectors.append(QVector2D(bx+gamma, by));
+        pointVectors.append(QCPVector2D(bx+gamma, by));
     }
     // check bottom of rect:
     bx = rect.left();
@@ -184,7 +184,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.x()-bx + mu*vec.x();
       if (gamma >= 0 && gamma <= rect.width())
-        pointVectors.append(QVector2D(bx+gamma, by));
+        pointVectors.append(QCPVector2D(bx+gamma, by));
     }
   }
   if (!qFuzzyIsNull(vec.x())) // line is not vertical
@@ -197,7 +197,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.y()-by + mu*vec.y();
       if (gamma >= 0 && gamma <= rect.height())
-        pointVectors.append(QVector2D(bx, by+gamma));
+        pointVectors.append(QCPVector2D(bx, by+gamma));
     }
     // check right of rect:
     bx = rect.right();
@@ -207,7 +207,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.y()-by + mu*vec.y();
       if (gamma >= 0 && gamma <= rect.height())
-        pointVectors.append(QVector2D(bx, by+gamma));
+        pointVectors.append(QCPVector2D(bx, by+gamma));
     }
   }
   
@@ -224,7 +224,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
   {
     // line probably goes through corner of rect, and we got two points there. single out the point pair with greatest distance:
     double distSqrMax = 0;
-    QVector2D pv1, pv2;
+    QCPVector2D pv1, pv2;
     for (int i=0; i<pointVectors.size()-1; ++i)
     {
       for (int k=i+1; k<pointVectors.size(); ++k)

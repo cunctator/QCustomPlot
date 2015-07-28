@@ -828,7 +828,7 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataMa
     {
       double keyPixel = keyAxis->coordToPixel(it.value().key);
       // calculate distance to backbone:
-      double currentDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)), pos);
+      double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it.value().high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(it.value().low)));
       if (currentDistSqr < minDistSqr)
         minDistSqr = currentDistSqr;
     }
@@ -838,7 +838,7 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataMa
     {
       double keyPixel = keyAxis->coordToPixel(it.value().key);
       // calculate distance to backbone:
-      double currentDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(it.value().low), keyPixel), pos);
+      double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it.value().high), keyPixel), QCPVector2D(valueAxis->coordToPixel(it.value().low), keyPixel));
       if (currentDistSqr < minDistSqr)
         minDistSqr = currentDistSqr;
     }
@@ -877,8 +877,8 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
       {
         // calculate distance to high/low lines:
         double keyPixel = keyAxis->coordToPixel(it.value().key);
-        double highLineDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(qMax(it.value().open, it.value().close))), pos);
-        double lowLineDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)), QPointF(keyPixel, valueAxis->coordToPixel(qMin(it.value().open, it.value().close))), pos);
+        double highLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it.value().high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(qMax(it.value().open, it.value().close))));
+        double lowLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it.value().low)), QCPVector2D(keyPixel, valueAxis->coordToPixel(qMin(it.value().open, it.value().close))));
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
@@ -901,8 +901,8 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
       {
         // calculate distance to high/low lines:
         double keyPixel = keyAxis->coordToPixel(it.value().key);
-        double highLineDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(qMax(it.value().open, it.value().close)), keyPixel), pos);
-        double lowLineDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().low), keyPixel), QPointF(valueAxis->coordToPixel(qMin(it.value().open, it.value().close)), keyPixel), pos);
+        double highLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it.value().high), keyPixel), QCPVector2D(valueAxis->coordToPixel(qMax(it.value().open, it.value().close)), keyPixel));
+        double lowLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it.value().low), keyPixel), QCPVector2D(valueAxis->coordToPixel(qMin(it.value().open, it.value().close)), keyPixel));
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)

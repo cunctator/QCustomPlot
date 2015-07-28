@@ -692,37 +692,6 @@ void QCPAbstractPlottable::applyErrorBarsAntialiasingHint(QCPPainter *painter) c
   applyAntialiasingHint(painter, mAntialiasedErrorBars, QCP::aeErrorBars);
 }
 
-/*! \internal
-
-  Finds the shortest squared distance of \a point to the line segment defined by \a start and \a
-  end.
-  
-  This function may be used to help with the implementation of the \ref selectTest function for
-  specific plottables.
-  
-  \note This function is identical to QCPAbstractItem::distSqrToLine
-*/
-double QCPAbstractPlottable::distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const
-{
-  QVector2D a(start);
-  QVector2D b(end);
-  QVector2D p(point);
-  QVector2D v(b-a);
-  
-  double vLengthSqr = v.lengthSquared();
-  if (!qFuzzyIsNull(vLengthSqr))
-  {
-    double mu = QVector2D::dotProduct(p-a, v)/vLengthSqr;
-    if (mu < 0)
-      return (a-p).lengthSquared();
-    else if (mu > 1)
-      return (b-p).lengthSquared();
-    else
-      return ((a + mu*v)-p).lengthSquared();
-  } else
-    return (a-p).lengthSquared();
-}
-
 /* inherits documentation from base class */
 void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
 {

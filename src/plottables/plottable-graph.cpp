@@ -2076,7 +2076,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
       double minDistSqr = std::numeric_limits<double>::max();
       for (int i=0; i<scatterData.size(); ++i)
       {
-        double currentDistSqr = QVector2D(coordsToPixels(scatterData.at(i).key, scatterData.at(i).value)-pixelPoint).lengthSquared();
+        double currentDistSqr = QCPVector2D(coordsToPixels(scatterData.at(i).key, scatterData.at(i).value)-pixelPoint).lengthSquared();
         if (currentDistSqr < minDistSqr)
           minDistSqr = currentDistSqr;
       }
@@ -2094,18 +2094,20 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
       if (mLineStyle == lsImpulse)
       {
         // impulse plot differs from other line styles in that the lineData points are only pairwise connected:
+        QCPVector2D p(pixelPoint);
         for (int i=0; i<lineData.size()-1; i+=2) // iterate pairs
         {
-          double currentDistSqr = distSqrToLine(lineData.at(i), lineData.at(i+1), pixelPoint);
+          double currentDistSqr = p.distanceSquaredToLine(lineData.at(i), lineData.at(i+1));
           if (currentDistSqr < minDistSqr)
             minDistSqr = currentDistSqr;
         }
       } else
       {
         // all other line plots (line and step) connect points directly:
+        QCPVector2D p(pixelPoint);
         for (int i=0; i<lineData.size()-1; ++i)
         {
-          double currentDistSqr = distSqrToLine(lineData.at(i), lineData.at(i+1), pixelPoint);
+          double currentDistSqr = p.distanceSquaredToLine(lineData.at(i), lineData.at(i+1));
           if (currentDistSqr < minDistSqr)
             minDistSqr = currentDistSqr;
         }
@@ -2113,7 +2115,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
       return qSqrt(minDistSqr);
     } else if (lineData.size() > 0) // only single data point, calculate distance to that point
     {
-      return QVector2D(lineData.at(0)-pixelPoint).length();
+      return QCPVector2D(lineData.at(0)-pixelPoint).length();
     } else // no data available in view to calculate distance to
       return -1.0;
   }

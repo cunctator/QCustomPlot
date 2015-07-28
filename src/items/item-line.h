@@ -73,7 +73,7 @@ protected:
   virtual void draw(QCPPainter *painter);
   
   // non-virtual methods:
-  QLineF getRectClippedLine(const QVector2D &start, const QVector2D &end, const QRect &rect) const;
+  QLineF getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const;
   QPen mainPen() const;
 };
 

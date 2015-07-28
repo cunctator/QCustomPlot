@@ -2553,11 +2553,11 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
   bool antialiasingBackup = painter->antialiasing();
   painter->setAntialiasing(true); // always want endings to be antialiased, even if base and ticks themselves aren't
   painter->setBrush(QBrush(basePen.color()));
-  QVector2D baseLineVector(baseLine.dx(), baseLine.dy());
+  QCPVector2D baseLineVector(baseLine.dx(), baseLine.dy());
   if (lowerEnding.style() != QCPLineEnding::esNone)
-    lowerEnding.draw(painter, QVector2D(baseLine.p1())-baseLineVector.normalized()*lowerEnding.realLength()*(lowerEnding.inverted()?-1:1), -baseLineVector);
+    lowerEnding.draw(painter, QCPVector2D(baseLine.p1())-baseLineVector.normalized()*lowerEnding.realLength()*(lowerEnding.inverted()?-1:1), -baseLineVector);
   if (upperEnding.style() != QCPLineEnding::esNone)
-    upperEnding.draw(painter, QVector2D(baseLine.p2())+baseLineVector.normalized()*upperEnding.realLength()*(upperEnding.inverted()?-1:1), baseLineVector);
+    upperEnding.draw(painter, QCPVector2D(baseLine.p2())+baseLineVector.normalized()*upperEnding.realLength()*(upperEnding.inverted()?-1:1), baseLineVector);
   painter->setAntialiasing(antialiasingBackup);
   
   // tick labels:

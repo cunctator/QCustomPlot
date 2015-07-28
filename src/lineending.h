@@ -27,6 +27,7 @@
 #define QCP_LINEENDING_H
 
 #include "global.h"
+#include "qcpvector2d.h"
 
 class QCPPainter;
 
@@ -76,8 +77,8 @@ public:
   // non-property methods:
   double boundingDistance() const;
   double realLength() const;
-  void draw(QCPPainter *painter, const QVector2D &pos, const QVector2D &dir) const;
-  void draw(QCPPainter *painter, const QVector2D &pos, double angle) const;
+  void draw(QCPPainter *painter, const QCPVector2D &pos, const QCPVector2D &dir) const;
+  void draw(QCPPainter *painter, const QCPVector2D &pos, double angle) const;
   
 protected:
   // property members:

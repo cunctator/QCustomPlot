@@ -124,7 +124,7 @@ void QCPItemLine::draw(QCPPainter *painter)
 {
   QCPVector2D startVec(start->pixelPoint());
   QCPVector2D endVec(end->pixelPoint());
-  if (startVec.toPoint() == endVec.toPoint())
+  if (qFuzzyIsNull((startVec-endVec).lengthSquared()))
     return;
   // get visible segment of straight line inside clipRect:
   double clipPad = qMax(mHead.boundingDistance(), mTail.boundingDistance());

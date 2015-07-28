@@ -27,6 +27,7 @@
 #define QCP_PLOTTABLE_H
 
 #include "global.h"
+#include "qcpvector2d.h"
 #include "range.h"
 #include "layer.h"
 #include "axis.h"
@@ -137,7 +138,6 @@ protected:
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
   void applyErrorBarsAntialiasingHint(QCPPainter *painter) const;
-  double distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const;
 
 private:
   Q_DISABLE_COPY(QCPAbstractPlottable)

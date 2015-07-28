@@ -223,21 +223,21 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
     case tsPlus:
     {
       if (clipRect().intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
-        return qSqrt(qMin(distSqrToLine(center+QPointF(-w, 0), center+QPointF(w, 0), pos),
-                          distSqrToLine(center+QPointF(0, -w), center+QPointF(0, w), pos)));
+        return qSqrt(qMin(QCPVector2D(pos).distanceSquaredToLine(center+QPointF(-w, 0), center+QPointF(w, 0)),
+                          QCPVector2D(pos).distanceSquaredToLine(center+QPointF(0, -w), center+QPointF(0, w))));
       break;
     }
     case tsCrosshair:
     {
-      return qSqrt(qMin(distSqrToLine(QPointF(clip.left(), center.y()), QPointF(clip.right(), center.y()), pos),
-                        distSqrToLine(QPointF(center.x(), clip.top()), QPointF(center.x(), clip.bottom()), pos)));
+      return qSqrt(qMin(QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(clip.left(), center.y()), QCPVector2D(clip.right(), center.y())),
+                        QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(center.x(), clip.top()), QCPVector2D(center.x(), clip.bottom()))));
     }
     case tsCircle:
     {
       if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
       {
         // distance to border:
-        double centerDist = QVector2D(center-pos).length();
+        double centerDist = QCPVector2D(center-pos).length();
         double circleLine = w;
         double result = qAbs(centerDist-circleLine);
         // filled ellipse, allow click inside to count as hit:

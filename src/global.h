@@ -40,7 +40,6 @@
 #include <QMultiMap>
 #include <QFlags>
 #include <QDebug>
-#include <QVector2D>
 #include <QStack>
 #include <QCache>
 #include <QMargins>

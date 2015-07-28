@@ -136,10 +136,11 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   cubicPath.cubicTo(startDirVec, endDirVec, endVec);
   
   QPolygonF polygon = cubicPath.toSubpathPolygons().first();
+  QCPVector2D p(pos);
   double minDistSqr = std::numeric_limits<double>::max();
   for (int i=1; i<polygon.size(); ++i)
   {
-    double distSqr = distSqrToLine(polygon.at(i-1), polygon.at(i), pos);
+    double distSqr = p.distanceSquaredToLine(polygon.at(i-1), polygon.at(i));
     if (distSqr < minDistSqr)
       minDistSqr = distSqr;
   }
@@ -149,15 +150,15 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
 /* inherits documentation from base class */
 void QCPItemCurve::draw(QCPPainter *painter)
 {
-  QPointF startVec(start->pixelPoint());
-  QPointF startDirVec(startDir->pixelPoint());
-  QPointF endDirVec(endDir->pixelPoint());
-  QPointF endVec(end->pixelPoint());
-  if (QVector2D(endVec-startVec).length() > 1e10f) // too large curves cause crash
+  QCPVector2D startVec(start->pixelPoint());
+  QCPVector2D startDirVec(startDir->pixelPoint());
+  QCPVector2D endDirVec(endDir->pixelPoint());
+  QCPVector2D endVec(end->pixelPoint());
+  if ((endVec-startVec).length() > 1e10) // too large curves cause crash
     return;
 
-  QPainterPath cubicPath(startVec);
-  cubicPath.cubicTo(startDirVec, endDirVec, endVec);
+  QPainterPath cubicPath(startVec.toPointF());
+  cubicPath.cubicTo(startDirVec.toPointF(), endDirVec.toPointF(), endVec.toPointF());
 
   // paint visible segment, if existent:
   QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
@@ -170,9 +171,9 @@ void QCPItemCurve::draw(QCPPainter *painter)
     painter->drawPath(cubicPath);
     painter->setBrush(Qt::SolidPattern);
     if (mTail.style() != QCPLineEnding::esNone)
-      mTail.draw(painter, QVector2D(startVec), M_PI-cubicPath.angleAtPercent(0)/180.0*M_PI);
+      mTail.draw(painter, startVec, M_PI-cubicPath.angleAtPercent(0)/180.0*M_PI);
     if (mHead.style() != QCPLineEnding::esNone)
-      mHead.draw(painter, QVector2D(endVec), -cubicPath.angleAtPercent(1)/180.0*M_PI);
+      mHead.draw(painter, endVec, -cubicPath.angleAtPercent(1)/180.0*M_PI);
   }
 }
 

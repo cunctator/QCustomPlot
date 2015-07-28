@@ -27,6 +27,7 @@
 #define QCP_AXIS_H
 
 #include "global.h"
+#include "qcpvector2d.h"
 #include "range.h"
 #include "layer.h"
 #include "layout.h"

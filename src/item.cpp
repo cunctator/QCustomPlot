@@ -897,10 +897,10 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
   
   \subsection items-selection The selectTest function
   
-  Your implementation of the \ref selectTest function may use the helpers \ref distSqrToLine and
-  \ref rectSelectTest. With these, the implementation of the selection test becomes significantly
-  simpler for most items. See the documentation of \ref selectTest for what the function parameters
-  mean and what the function should return.
+  Your implementation of the \ref selectTest function may use the helpers \ref
+  QCPVector2D::distanceSquaredToLine and \ref rectSelectTest. With these, the implementation of the
+  selection test becomes significantly simpler for most items. See the documentation of \ref
+  selectTest for what the function parameters mean and what the function should return.
   
   \subsection anchors Providing anchors
   
@@ -1152,39 +1152,6 @@ void QCPAbstractItem::applyDefaultAntialiasingHint(QCPPainter *painter) const
 
 /*! \internal
 
-  Finds the shortest squared distance of \a point to the line segment defined by \a start and \a
-  end.
-  
-  This function may be used to help with the implementation of the \ref selectTest function for
-  specific items.
-  
-  \note This function is identical to QCPAbstractPlottable::distSqrToLine
-  
-  \see rectSelectTest
-*/
-double QCPAbstractItem::distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const
-{
-  QVector2D a(start);
-  QVector2D b(end);
-  QVector2D p(point);
-  QVector2D v(b-a);
-  
-  double vLengthSqr = v.lengthSquared();
-  if (!qFuzzyIsNull(vLengthSqr))
-  {
-    double mu = QVector2D::dotProduct(p-a, v)/vLengthSqr;
-    if (mu < 0)
-      return (a-p).lengthSquared();
-    else if (mu > 1)
-      return (b-p).lengthSquared();
-    else
-      return ((a + mu*v)-p).lengthSquared();
-  } else
-    return (a-p).lengthSquared();
-}
-
-/*! \internal
-
   A convenience function which returns the selectTest value for a specified \a rect and a specified
   click position \a pos. \a filledRect defines whether a click inside the rect should also be
   considered a hit or whether only the rect border is sensitive to hits.
@@ -1195,8 +1162,6 @@ double QCPAbstractItem::distSqrToLine(const QPointF &start, const QPointF &end, 
   For example, if your item consists of four rects, call this function four times, once for each
   rect, in your \ref selectTest reimplementation. Finally, return the minimum of all four returned
   values.
-  
-  \see distSqrToLine
 */
 double QCPAbstractItem::rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const
 {
@@ -1209,7 +1174,7 @@ double QCPAbstractItem::rectSelectTest(const QRectF &rect, const QPointF &pos, b
   double minDistSqr = std::numeric_limits<double>::max();
   for (int i=0; i<lines.size(); ++i)
   {
-    double distSqr = distSqrToLine(lines.at(i).p1(), lines.at(i).p2(), pos);
+    double distSqr = QCPVector2D(pos).distanceSquaredToLine(lines.at(i).p1(), lines.at(i).p2());
     if (distSqr < minDistSqr)
       minDistSqr = distSqr;
   }

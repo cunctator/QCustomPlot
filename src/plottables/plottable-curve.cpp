@@ -1224,7 +1224,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
   if (mData->size() == 1)
   {
     QPointF dataPoint = coordsToPixels(mData->constBegin().key(), mData->constBegin().value().value);
-    return QVector2D(dataPoint-pixelPoint).length();
+    return QCPVector2D(dataPoint-pixelPoint).length();
   }
   
   // calculate minimum distance to line segments:
@@ -1233,7 +1233,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
   double minDistSqr = std::numeric_limits<double>::max();
   for (int i=0; i<lineData->size()-1; ++i)
   {
-    double currentDistSqr = distSqrToLine(lineData->at(i), lineData->at(i+1), pixelPoint);
+    double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lineData->at(i), lineData->at(i+1));
     if (currentDistSqr < minDistSqr)
       minDistSqr = currentDistSqr;
   }

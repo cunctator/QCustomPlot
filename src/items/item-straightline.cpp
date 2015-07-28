@@ -88,14 +88,14 @@ double QCPItemStraightLine::selectTest(const QPointF &pos, bool onlySelectable, 
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return distToStraightLine(QVector2D(point1->pixelPoint()), QVector2D(point2->pixelPoint()-point1->pixelPoint()), QVector2D(pos));
+  return QCPVector2D(pos).distanceToStraightLine(point1->pixelPoint(), point2->pixelPoint()-point1->pixelPoint());
 }
 
 /* inherits documentation from base class */
 void QCPItemStraightLine::draw(QCPPainter *painter)
 {
-  QVector2D start(point1->pixelPoint());
-  QVector2D end(point2->pixelPoint());
+  QCPVector2D start(point1->pixelPoint());
+  QCPVector2D end(point2->pixelPoint());
   // get visible segment of straight line inside clipRect:
   double clipPad = mainPen().widthF();
   QLineF line = getRectClippedStraightLine(start, end-start, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));
@@ -109,24 +109,12 @@ void QCPItemStraightLine::draw(QCPPainter *painter)
 
 /*! \internal
 
-  finds the shortest distance of \a point to the straight line defined by the base point \a
-  base and the direction vector \a vec.
-  
-  This is a helper function for \ref selectTest.
-*/
-double QCPItemStraightLine::distToStraightLine(const QVector2D &base, const QVector2D &vec, const QVector2D &point) const
-{
-  return qAbs((base.y()-point.y())*vec.x()-(base.x()-point.x())*vec.y())/vec.length();
-}
-
-/*! \internal
-
   Returns the section of the straight line defined by \a base and direction vector \a
   vec, that is visible in the specified \a rect.
   
   This is a helper function for \ref draw.
 */
-QLineF QCPItemStraightLine::getRectClippedStraightLine(const QVector2D &base, const QVector2D &vec, const QRect &rect) const
+QLineF QCPItemStraightLine::getRectClippedStraightLine(const QCPVector2D &base, const QCPVector2D &vec, const QRect &rect) const
 {
   double bx, by;
   double gamma;
@@ -151,31 +139,31 @@ QLineF QCPItemStraightLine::getRectClippedStraightLine(const QVector2D &base, co
       result.setLine(rect.left(), by+gamma, rect.right(), by+gamma); // no need to check right because we know line is horizontal
   } else // line is skewed
   {
-    QList<QVector2D> pointVectors;
+    QList<QCPVector2D> pointVectors;
     // check top of rect:
     bx = rect.left();
     by = rect.top();
     gamma = base.x()-bx + (by-base.y())*vec.x()/vec.y();
     if (gamma >= 0 && gamma <= rect.width())
-      pointVectors.append(QVector2D(bx+gamma, by));
+      pointVectors.append(QCPVector2D(bx+gamma, by));
     // check bottom of rect:
     bx = rect.left();
     by = rect.bottom();
     gamma = base.x()-bx + (by-base.y())*vec.x()/vec.y();
     if (gamma >= 0 && gamma <= rect.width())
-      pointVectors.append(QVector2D(bx+gamma, by));
+      pointVectors.append(QCPVector2D(bx+gamma, by));
     // check left of rect:
     bx = rect.left();
     by = rect.top();
     gamma = base.y()-by + (bx-base.x())*vec.y()/vec.x();
     if (gamma >= 0 && gamma <= rect.height())
-      pointVectors.append(QVector2D(bx, by+gamma));
+      pointVectors.append(QCPVector2D(bx, by+gamma));
     // check right of rect:
     bx = rect.right();
     by = rect.top();
     gamma = base.y()-by + (bx-base.x())*vec.y()/vec.x();
     if (gamma >= 0 && gamma <= rect.height())
-      pointVectors.append(QVector2D(bx, by+gamma));
+      pointVectors.append(QCPVector2D(bx, by+gamma));
     
     // evaluate points:
     if (pointVectors.size() == 2)
@@ -185,7 +173,7 @@ QLineF QCPItemStraightLine::getRectClippedStraightLine(const QVector2D &base, co
     {
       // line probably goes through corner of rect, and we got two points there. single out the point pair with greatest distance:
       double distSqrMax = 0;
-      QVector2D pv1, pv2;
+      QCPVector2D pv1, pv2;
       for (int i=0; i<pointVectors.size()-1; ++i)
       {
         for (int k=i+1; k<pointVectors.size(); ++k)

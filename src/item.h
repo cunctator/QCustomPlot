@@ -27,6 +27,7 @@
 #define QCP_ITEM_H
 
 #include "global.h"
+#include "qcpvector2d.h"
 #include "layer.h"
 #include "axis.h"
 
@@ -200,7 +201,6 @@ protected:
   virtual QPointF anchorPixelPoint(int anchorId) const;
   
   // non-virtual methods:
-  double distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const;
   double rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const;
   QCPItemPosition *createPosition(const QString &name);
   QCPItemAnchor *createAnchor(const QString &name, int anchorId);

@@ -36,7 +36,6 @@ MainWindow::~MainWindow()
 void MainWindow::snippetQCPColorGradient()
 {
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   
   //! [qcpcolorgradient-setgradient]
   colorMap->setGradient(QCPColorGradient::gpHot);
@@ -66,7 +65,6 @@ void MainWindow::snippetQCPColorMap()
 {
   //! [qcpcolormap-creation-1]
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   //! [qcpcolormap-creation-1]
 
   //! [qcpcolormap-creation-2]
@@ -88,7 +86,6 @@ void MainWindow::snippetQCPCurve()
   
   //! [qcpcurve-creation-1]
   QCPCurve *newCurve = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(newCurve);
   //! [qcpcurve-creation-1]
   
   //! [qcpcurve-creation-2]
@@ -181,8 +178,6 @@ void MainWindow::snippetQCPBarsGroup()
 {
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars1);
-  customPlot->addPlottable(bars2);
   
   //! [qcpbarsgroup-creation]
   QCPBarsGroup *group = new QCPBarsGroup(customPlot);
@@ -200,20 +195,15 @@ void MainWindow::snippetQCPBars()
   //! [qcpbars-creation-1]
   
   //! [qcpbars-creation-2]
-  customPlot->addPlottable(newBars);
-  //! [qcpbars-creation-2]
-  
-  //! [qcpbars-creation-3]
   newBars->setName("Country population");
   newBars->setData(xData, yData);
-  //! [qcpbars-creation-3]
+  //! [qcpbars-creation-2]
 }
 
 void MainWindow::snippetQCPStatisticalBox()
 {
   //! [qcpstatisticalbox-creation-1]
   QCPStatisticalBox *newBox = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(newBox);
   //! [qcpstatisticalbox-creation-1]
   
   //! [qcpstatisticalbox-creation-2]
@@ -226,7 +216,6 @@ void MainWindow::snippetQCPStatisticalBox()
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(myBars);
   // now we can modify properties of myBars:
   myBars->setName("Bars Series 1");
   QVector<double> keyData;

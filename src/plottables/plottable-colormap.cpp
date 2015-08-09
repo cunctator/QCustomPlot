@@ -467,11 +467,13 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   
   Like all data representing objects in QCustomPlot, the QCPColorMap is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
-  (QCustomPlot::plottable, QCustomPlot::addPlottable, QCustomPlot::removePlottable, etc.)
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
   
-  Usually, you first create an instance and add it to the customPlot:
+  Usually, you first create an instance:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolormap-creation-1
-  and then modify the properties of the newly created color map, e.g.:
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolormap-creation-2
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
@@ -521,8 +523,9 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
 /*!
   Constructs a color map with the specified \a keyAxis and \a valueAxis.
   
-  The constructed QCPColorMap can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the color map.
+  The created QCPColorMap is automatically registered with the QCustomPlot instance inferred from
+  \a keyAxis. This QCustomPlot instance takes ownership of the QCPColorMap, so do not delete it
+  manually but use QCustomPlot::removePlottable() instead.
 */
 QCPColorMap::QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),

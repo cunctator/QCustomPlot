@@ -760,13 +760,10 @@ void MainWindow::setupParametricCurveDemo(QCustomPlot *customPlot)
 {
   demoName = "Parametric Curves Demo";
   
-  // create empty curve objects and add them to customPlot:
+  // create empty curve objects:
   QCPCurve *fermatSpiral1 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
   QCPCurve *fermatSpiral2 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
   QCPCurve *deltoidRadial = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(fermatSpiral1);
-  customPlot->addPlottable(fermatSpiral2);
-  customPlot->addPlottable(deltoidRadial);
   // generate the curve data points:
   int pointCount = 500;
   QVector<double> x1(pointCount), y1(pointCount);
@@ -811,9 +808,6 @@ void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
   QCPBars *regen = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *nuclear = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *fossil = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(regen);
-  customPlot->addPlottable(nuclear);
-  customPlot->addPlottable(fossil);
   // set names and colors:
   QPen pen;
   pen.setWidthF(1.2);
@@ -889,9 +883,6 @@ void MainWindow::setupStatisticalDemo(QCustomPlot *customPlot)
   QCPStatisticalBox *sample1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   QCPStatisticalBox *sample2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   QCPStatisticalBox *sample3 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(sample1);
-  customPlot->addPlottable(sample2);
-  customPlot->addPlottable(sample3);
   QBrush boxBrush(QColor(60, 60, 255, 100));
   boxBrush.setStyle(Qt::Dense6Pattern); // make it look oldschool
   sample1->setBrush(boxBrush);
@@ -1137,14 +1128,12 @@ void MainWindow::setupStyledDemo(QCustomPlot *customPlot)
   graph2->setChannelFillGraph(graph1);
   
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars1);
   bars1->setWidth(9/(double)x3.size());
   bars1->setData(x3, y3);
   bars1->setPen(Qt::NoPen);
   bars1->setBrush(QColor(10, 140, 70, 160));
   
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars2);
   bars2->setWidth(9/(double)x4.size());
   bars2->setData(x4, y4);
   bars2->setPen(Qt::NoPen);
@@ -1279,7 +1268,6 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   graph2->setPen(QPen(QColor("#FFA100"), 1.5));
   
   QCPBars *bars1 = new QCPBars(subRectRight->axis(QCPAxis::atBottom), subRectRight->axis(QCPAxis::atRight));
-  customPlot->addPlottable(bars1);
   bars1->setWidth(3/(double)x3.size());
   bars1->setData(x3, y3);
   bars1->setPen(QPen(Qt::black));
@@ -1310,7 +1298,6 @@ void MainWindow::setupColorMapDemo(QCustomPlot *customPlot)
 
   // set up the QCPColorMap:
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   int nx = 200;
   int ny = 200;
   colorMap->data()->setSize(nx, ny); // we want the color map to have nx * ny data points
@@ -1377,7 +1364,6 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   
   // create candlestick chart:
   QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(candlesticks);
   QCPFinancialDataMap data1 = QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime);
   candlesticks->setName("Candlestick");
   candlesticks->setChartStyle(QCPFinancial::csCandlestick);
@@ -1391,7 +1377,6 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   
   // create ohlc chart:
   QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(ohlc);
   QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(time, value2, binSize/3.0, startTime); // divide binSize by 3 just to make the ohlc bars a bit denser
   ohlc->setName("OHLC");
   ohlc->setChartStyle(QCPFinancial::csOhlc);
@@ -1410,6 +1395,7 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   volumeAxisRect->setAutoMargins(QCP::msLeft|QCP::msRight|QCP::msBottom);
   volumeAxisRect->setMargins(QMargins(0, 0, 0, 0));
   // create two bar plottables, for positive (green) and negative (red) volume bars:
+  customPlot->setAutoAddPlottableToLegend(false);
   QCPBars *volumePos = new QCPBars(volumeAxisRect->axis(QCPAxis::atBottom), volumeAxisRect->axis(QCPAxis::atLeft));
   QCPBars *volumeNeg = new QCPBars(volumeAxisRect->axis(QCPAxis::atBottom), volumeAxisRect->axis(QCPAxis::atLeft));
   for (int i=0; i<n/5; ++i)
@@ -1417,9 +1403,6 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
     int v = qrand()%20000+qrand()%20000+qrand()%20000-10000*3;
     (v < 0 ? volumeNeg : volumePos)->addData(startTime+3600*5.0*i, qAbs(v)); // add data to either volumeNeg or volumePos, depending on sign of v
   }
-  customPlot->setAutoAddPlottableToLegend(false);
-  customPlot->addPlottable(volumePos);
-  customPlot->addPlottable(volumeNeg);
   volumePos->setWidth(3600*4);
   volumePos->setPen(Qt::NoPen);
   volumePos->setBrush(QColor(100, 180, 110));

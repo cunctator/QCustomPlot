@@ -127,8 +127,9 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   the same orientation. If either of these restrictions is violated, a corresponding message is
   printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed QCPFinancial can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the financial chart.
+  The created QCPFinancial is automatically registered with the QCustomPlot instance inferred from \a
+  keyAxis. This QCustomPlot instance takes ownership of the QCPFinancial, so do not delete it manually
+  but use QCustomPlot::removePlottable() instead.
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),

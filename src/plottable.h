@@ -85,13 +85,13 @@ public:
   // introduced virtual methods:
   virtual void clearData() = 0;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
-  virtual bool addToLegend();
-  virtual bool removeFromLegend() const;
   
   // non-property methods:
   void rescaleAxes(bool onlyEnlarge=false) const;
   void rescaleKeyAxis(bool onlyEnlarge=false) const;
   void rescaleValueAxis(bool onlyEnlarge=false) const;
+  bool addToLegend();
+  bool removeFromLegend() const;
   
 signals:
   void selectionChanged(bool selected);

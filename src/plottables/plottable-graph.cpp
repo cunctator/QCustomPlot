@@ -136,14 +136,18 @@ QCPData::QCPData(double key, double value) :
   the same orientation. If either of these restrictions is violated, a corresponding message is
   printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed QCPGraph can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the graph.
+  The created QCPGraph is automatically registered with the QCustomPlot instance inferred from \a
+  keyAxis. This QCustomPlot instance takes ownership of the QCPGraph, so do not delete it manually
+  but use QCustomPlot::removePlottable() instead.
   
   To directly create a graph inside a plot, you can also use the simpler QCustomPlot::addGraph function.
 */
 QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis)
 {
+  // special handling for QCPGraphs to maintain the simple graph interface:
+  mParentPlot->registerGraph(this);
+  
   mData = new QCPDataMap;
   
   setPen(QPen(Qt::blue, 0));

@@ -93,12 +93,15 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   The appearance of the curve is determined by the pen and the brush (\ref setPen, \ref setBrush).
   \section usage Usage
   
-  Like all data representing objects in QCustomPlot, the QCPCurve is a plottable (QCPAbstractPlottable). So
-  the plottable-interface of QCustomPlot applies (QCustomPlot::plottable, QCustomPlot::addPlottable, QCustomPlot::removePlottable, etc.)
+  Like all data representing objects in QCustomPlot, the QCPCurve is a plottable
+  (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
   
-  Usually, you first create an instance and add it to the customPlot:
+  Usually, you first create an instance:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcurve-creation-1
-  and then modify the properties of the newly created plottable, e.g.:
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcurve-creation-2
 */
 
@@ -108,8 +111,9 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   the same orientation. If either of these restrictions is violated, a corresponding message is
   printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed QCPCurve can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the graph.
+  The created QCPCurve is automatically registered with the QCustomPlot instance inferred from \a
+  keyAxis. This QCustomPlot instance takes ownership of the QCPCurve, so do not delete it manually
+  but use QCustomPlot::removePlottable() instead.
 */
 QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis)

@@ -116,7 +116,6 @@ public:
   // plottable interface:
   QCPAbstractPlottable *plottable(int index);
   QCPAbstractPlottable *plottable();
-  bool addPlottable(QCPAbstractPlottable *plottable);
   bool removePlottable(QCPAbstractPlottable *plottable);
   bool removePlottable(int index);
   int clearPlottables();
@@ -250,6 +249,8 @@ protected:
   virtual void legendRemoved(QCPLegend *legend);
   
   // non-virtual methods:
+  bool registerPlottable(QCPAbstractPlottable *plottable);
+  bool registerGraph(QCPGraph *graph);
   void updateLayerIndices() const;
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
@@ -259,6 +260,8 @@ protected:
   friend class QCPAxis;
   friend class QCPLayer;
   friend class QCPAxisRect;
+  friend class QCPAbstractPlottable;
+  friend class QCPGraph;
 };
 
 #endif // QCP_CORE_H

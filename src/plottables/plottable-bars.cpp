@@ -435,14 +435,14 @@ QCPBarData::QCPBarData(double key, double value) :
   
   Like all data representing objects in QCustomPlot, the QCPBars is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
-  (QCustomPlot::plottable, QCustomPlot::addPlottable, QCustomPlot::removePlottable, etc.)
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
   
   Usually, you first create an instance:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-creation-1
-  add it to the customPlot with QCustomPlot::addPlottable:
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-creation-2
-  and then modify the properties of the newly created plottable, e.g.:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-creation-3
 */
 
 /* start of documentation of inline functions */
@@ -469,8 +469,9 @@ QCPBarData::QCPBarData(double key, double value) :
   the same orientation. If either of these restrictions is violated, a corresponding message is
   printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed QCPBars can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the bar chart.
+  The created QCPBars is automatically registered with the QCustomPlot instance inferred from \a
+  keyAxis. This QCustomPlot instance takes ownership of the QCPBars, so do not delete it manually
+  but use QCustomPlot::removePlottable() instead.
 */
 QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),

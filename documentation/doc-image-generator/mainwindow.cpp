@@ -526,7 +526,6 @@ void MainWindow::genQCPCurve()
     y1 << qSin(t*2);
   }
   QCPCurve *curve = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(curve);
   curve->setData(x1, y1);
   
   customPlot->xAxis->setRange(-5, 5);
@@ -558,8 +557,6 @@ void MainWindow::genQCPBars()
   
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars1);
-  customPlot->addPlottable(bars2);
   bars1->setData(x1, y1);
   bars2->setData(x1, y2);
   bars2->moveAbove(bars1);
@@ -595,9 +592,6 @@ void MainWindow::genQCPStatisticalBox()
   QCPStatisticalBox *box1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   QCPStatisticalBox *box2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   QCPStatisticalBox *box3 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(box1);
-  customPlot->addPlottable(box2);
-  customPlot->addPlottable(box3);
   box1->setData(-1, -1.2, -0.35, 0.1, 0.4, 1.1);
   box2->setData(0, -1.4, -0.7, -0.1, 0.34, 0.9);
   box3->setData(1, -0.6, -0.2, 0.15, 0.6, 1.2);
@@ -632,7 +626,6 @@ void MainWindow::genQCPColorMap()
   customPlot->yAxis->setAutoTickCount(6);
   
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   int nx = 200;
   int ny = 100;
   colorMap->data()->setSize(nx, ny);
@@ -693,7 +686,6 @@ void MainWindow::genQCPFinancial()
   
   // create candlestick chart:
   QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(candlesticks);
   QCPFinancialDataMap data1 = QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime);
   candlesticks->setChartStyle(QCPFinancial::csCandlestick);
   candlesticks->setData(&data1, true);
@@ -706,7 +698,6 @@ void MainWindow::genQCPFinancial()
 
   // create ohlc chart:
   QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(ohlc);
   QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(time, value2, binSize, startTime);
   ohlc->setChartStyle(QCPFinancial::csOhlc);
   ohlc->setData(&data2, true);
@@ -775,7 +766,6 @@ void MainWindow::genQCPColorGradient()
     QString gradientName(presetEnum.key(i));
     
     QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-    customPlot->addPlottable(colorMap);
     int nx = 400;
     int ny = 400;
     colorMap->data()->setSize(nx, ny);
@@ -825,21 +815,18 @@ void MainWindow::genQCPBarsGroup()
   
   QCPBarsGroup *group1 = new QCPBarsGroup(customPlot);
   QCPBars *bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay1);
   bars->setBrush(QColor(0, 0, 255, 50));
   bars->setPen(QColor(0, 0, 255));
   bars->setWidth(0.15);
   bars->setBarsGroup(group1);
   bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay2);
   bars->setBrush(QColor(180, 00, 120, 50));
   bars->setPen(QColor(180, 00, 120));
   bars->setWidth(0.15);
   bars->setBarsGroup(group1);
   bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay3);
   bars->setBrush(QColor(255, 154, 0, 50));
   bars->setPen(QColor(255, 154, 0));
@@ -987,8 +974,6 @@ void MainWindow::genQCPColorGradient_LevelCount()
 
   QCPColorMap *map1 = new QCPColorMap(r1->axis(QCPAxis::atBottom), r1->axis(QCPAxis::atLeft));
   QCPColorMap *map2 = new QCPColorMap(r2->axis(QCPAxis::atBottom), r2->axis(QCPAxis::atLeft));
-  customPlot->addPlottable(map1);
-  customPlot->addPlottable(map2);
   int nx = 400;
   int ny = 400;
   map1->data()->setSize(nx, ny);
@@ -1070,8 +1055,6 @@ void MainWindow::genQCPColorGradient_Periodic()
 
   QCPColorMap *map1 = new QCPColorMap(r1->axis(QCPAxis::atBottom), r1->axis(QCPAxis::atLeft));
   QCPColorMap *map2 = new QCPColorMap(r2->axis(QCPAxis::atBottom), r2->axis(QCPAxis::atLeft));
-  customPlot->addPlottable(map1);
-  customPlot->addPlottable(map2);
   int nx = 400;
   int ny = 400;
   map1->data()->setSize(nx, ny);

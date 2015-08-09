@@ -30,7 +30,6 @@ void TestQCPGraph::specializedGraphInterface()
   QCOMPARE(mPlot->graphCount(), 2);
   
   QCPGraph *graph3 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
-  mPlot->addPlottable(graph3);
   QCOMPARE(mPlot->plottableCount(), 3);
   QCOMPARE(mPlot->graphCount(), 3);
   

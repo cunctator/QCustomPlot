@@ -5,7 +5,6 @@ void TestColorMap::init()
 {
   mPlot = new QCustomPlot(0);
   mColorMap = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
-  mPlot->addPlottable(mColorMap);
 }
 
 void TestColorMap::QCPColorScale_rescaleDataRange()
@@ -14,9 +13,7 @@ void TestColorMap::QCPColorScale_rescaleDataRange()
   mPlot->plotLayout()->addElement(0, 1, scale);
   
   QCPColorMap *map1 = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
-  mPlot->addPlottable(map1);
   QCPColorMap *map2 = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
-  mPlot->addPlottable(map2);
   map1->setColorScale(scale);
   map2->setColorScale(scale);
   map1->data()->setSize(2, 2);

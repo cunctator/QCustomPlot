@@ -69,10 +69,15 @@
   
   \section usage Usage
   
-  Like all data representing objects in QCustomPlot, the QCPStatisticalBox is a plottable.
-  Usually, you first create an instance and add it to the customPlot:
+  Like all data representing objects in QCustomPlot, the QCPStatisticalBox is a plottable
+  (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
+  
+  Usually, you first create an instance:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpstatisticalbox-creation-1
-  and then modify the properties of the newly created plottable, e.g.:
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpstatisticalbox-creation-2
 */
 
@@ -82,8 +87,9 @@
   not have the same orientation. If either of these restrictions is violated, a corresponding
   message is printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed statistical box can be added to the plot with QCustomPlot::addPlottable,
-  QCustomPlot then takes ownership of the statistical box.
+  The created QCPStatisticalBox is automatically registered with the QCustomPlot instance inferred
+  from \a keyAxis. This QCustomPlot instance takes ownership of the QCPStatisticalBox, so do not
+  delete it manually but use QCustomPlot::removePlottable() instead.
 */
 QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),

@@ -201,6 +201,8 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
   if (keyAxis->orientation() == valueAxis->orientation())
     qDebug() << Q_FUNC_INFO << "keyAxis and valueAxis must be orthogonal to each other.";
+  
+  mParentPlot->registerPlottable(this);
 }
 
 /*!
@@ -467,12 +469,13 @@ void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge) const
 /*!
   Adds this plottable to the legend of the parent QCustomPlot (QCustomPlot::legend).
     
-  Normally, a QCPPlottableLegendItem is created and inserted into the legend. If the plottable
-  needs a more specialized representation in the legend, this function will take this into account
-  and instead create the specialized subclass of QCPAbstractLegendItem.
-    
-  Returns true on success, i.e. when the legend exists and a legend item associated with this plottable isn't already in
-  the legend.
+  Creates a QCPPlottableLegendItem which is inserted into the legend. Returns true on success, i.e.
+  when the legend exists and a legend item associated with this plottable isn't already in the
+  legend.
+
+  If the plottable needs a more specialized representation in the legend, you can create a
+  corresponding subclass of QCPAbstractLegendItem and add it to the legend manually instead of
+  calling this method.
     
   \see removeFromLegend, QCPLegend::addItem
 */
@@ -491,11 +494,13 @@ bool QCPAbstractPlottable::addToLegend()
 
 /*!
   Removes the plottable from the legend of the parent QCustomPlot. This means the
-  QCPAbstractLegendItem (usually a QCPPlottableLegendItem) that is associated with this plottable
-  is removed.
+  QCPPlottableLegendItem that is associated with this plottable is removed.
     
   Returns true on success, i.e. if the legend exists and a legend item associated with this
   plottable was found and removed.
+  
+  Note that if this plottable uses a more specialized subclass of QCPAbstractLegendItem, you have
+  to remove it from the legend manually instead of calling this method.
     
   \see addToLegend, QCPLegend::removeItem
 */

@@ -528,7 +528,7 @@ void QCustomPlot::setNotAntialiasedElement(QCP::AntialiasedElement notAntialiase
   If set to true, adding a plottable (e.g. a graph) to the QCustomPlot automatically also adds the
   plottable to the legend (QCustomPlot::legend).
   
-  \see addPlottable, addGraph, QCPLegend::addItem
+  \see addGraph, QCPLegend::addItem
 */
 void QCustomPlot::setAutoAddPlottableToLegend(bool on)
 {
@@ -783,7 +783,7 @@ void QCustomPlot::setBackgroundScaledMode(Qt::AspectRatioMode mode)
   There is an overloaded version of this function with no parameter which returns the last added
   plottable, see QCustomPlot::plottable()
   
-  \see plottableCount, addPlottable
+  \see plottableCount
 */
 QCPAbstractPlottable *QCustomPlot::plottable(int index)
 {
@@ -799,10 +799,10 @@ QCPAbstractPlottable *QCustomPlot::plottable(int index)
 
 /*! \overload
   
-  Returns the last plottable that was added with \ref addPlottable. If there are no plottables in
-  the plot, returns 0.
+  Returns the last plottable that was added to the plot. If there are no plottables in the plot,
+  returns 0.
   
-  \see plottableCount, addPlottable
+  \see plottableCount
 */
 QCPAbstractPlottable *QCustomPlot::plottable()
 {
@@ -814,46 +814,11 @@ QCPAbstractPlottable *QCustomPlot::plottable()
 }
 
 /*!
-  Adds the specified plottable to the plot and, if \ref setAutoAddPlottableToLegend is enabled, to
-  the legend (QCustomPlot::legend). QCustomPlot takes ownership of the plottable.
-  
-  Returns true on success, i.e. when \a plottable isn't already in the plot and the parent plot of
-  \a plottable is this QCustomPlot (the latter is controlled by what axes were passed in the
-  plottable's constructor).
-  
-  \see plottable, plottableCount, removePlottable, clearPlottables
-*/
-bool QCustomPlot::addPlottable(QCPAbstractPlottable *plottable)
-{
-  if (mPlottables.contains(plottable))
-  {
-    qDebug() << Q_FUNC_INFO << "plottable already added to this QCustomPlot:" << reinterpret_cast<quintptr>(plottable);
-    return false;
-  }
-  if (plottable->parentPlot() != this)
-  {
-    qDebug() << Q_FUNC_INFO << "plottable not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(plottable);
-    return false;
-  }
-  
-  mPlottables.append(plottable);
-  // possibly add plottable to legend:
-  if (mAutoAddPlottableToLegend)
-    plottable->addToLegend();
-  // special handling for QCPGraphs to maintain the simple graph interface:
-  if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
-    mGraphs.append(graph);
-  if (!plottable->layer()) // usually the layer is already set in the constructor of the plottable (via QCPLayerable constructor)
-    plottable->setLayer(currentLayer());
-  return true;
-}
-
-/*!
   Removes the specified plottable from the plot and, if necessary, from the legend (QCustomPlot::legend).
   
   Returns true on success.
   
-  \see addPlottable, clearPlottables
+  \see clearPlottables
 */
 bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
 {
@@ -939,7 +904,7 @@ int QCustomPlot::clearPlottablesAsynchronous()
 /*!
   Returns the number of currently existing plottables in the plot
   
-  \see plottable, addPlottable
+  \see plottable
 */
 int QCustomPlot::plottableCount() const
 {
@@ -1001,8 +966,6 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySele
 
 /*!
   Returns whether this QCustomPlot instance contains the \a plottable.
-  
-  \see addPlottable
 */
 bool QCustomPlot::hasPlottable(QCPAbstractPlottable *plottable) const
 {
@@ -1073,15 +1036,8 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
   }
   
   QCPGraph *newGraph = new QCPGraph(keyAxis, valueAxis);
-  if (addPlottable(newGraph))
-  {
-    newGraph->setName(QLatin1String("Graph ")+QString::number(mGraphs.size()));
-    return newGraph;
-  } else
-  {
-    delete newGraph;
-    return 0;
-  }
+  newGraph->setName(QLatin1String("Graph ")+QString::number(mGraphs.size()));
+  return newGraph;
 }
 
 /*!
@@ -2380,6 +2336,65 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 {
   if (this->legend == legend)
     this->legend = 0;
+}
+
+/*! \internal
+  
+  Registers the specified plottable with this QCustomPlot and, if \ref setAutoAddPlottableToLegend
+  is enabled, adds it to the legend (QCustomPlot::legend). QCustomPlot takes ownership of the
+  plottable.
+  
+  Returns true on success, i.e. when \a plottable isn't already in this plot and the parent plot of
+  \a plottable is this QCustomPlot.
+  
+  This method is called automatically in the QCPAbstractPlottable base class constructor.
+*/
+bool QCustomPlot::registerPlottable(QCPAbstractPlottable *plottable)
+{
+  if (mPlottables.contains(plottable))
+  {
+    qDebug() << Q_FUNC_INFO << "plottable already added to this QCustomPlot:" << reinterpret_cast<quintptr>(plottable);
+    return false;
+  }
+  if (plottable->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "plottable not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(plottable);
+    return false;
+  }
+  
+  mPlottables.append(plottable);
+  // possibly add plottable to legend:
+  if (mAutoAddPlottableToLegend)
+    plottable->addToLegend();
+  if (!plottable->layer()) // usually the layer is already set in the constructor of the plottable (via QCPLayerable constructor)
+    plottable->setLayer(currentLayer());
+  return true;
+}
+
+/*! \internal
+  
+  In order to maintain the simplified graph interface of QCustomPlot, this method is called by the
+  QCPGraph constructor to register itself with this QCustomPlot's internal graph list. Returns true
+  on success, i.e. if \a graph is valid and wasn't already registered with this QCustomPlot.
+  
+  This graph specific registration happens in addition to the call to \ref registerPlottable by the
+  QCPAbstractPlottable base class.
+*/
+bool QCustomPlot::registerGraph(QCPGraph *graph)
+{
+  if (!graph)
+  {
+    qDebug() << Q_FUNC_INFO << "passed graph is zero";
+    return false;
+  }
+  if (mGraphs.contains(graph))
+  {
+    qDebug() << Q_FUNC_INFO << "graph already registered with this QCustomPlot";
+    return false;
+  }
+  
+  mGraphs.append(graph);
+  return true;
 }
 
 /*! \internal

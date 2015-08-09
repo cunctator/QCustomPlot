@@ -80,6 +80,7 @@ protected:
   QPixmap mPixmap;
   QPixmap mScaledPixmap;
   bool mScaled;
+  bool mScaledPixmapInvalidated;
   Qt::AspectRatioMode mAspectRatioMode;
   Qt::TransformationMode mTransformationMode;
   QPen mPen, mSelectedPen;

@@ -60,7 +60,8 @@ QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
   right(createAnchor(QLatin1String("right"), aiRight)),
   bottom(createAnchor(QLatin1String("bottom"), aiBottom)),
   bottomLeft(createAnchor(QLatin1String("bottomLeft"), aiBottomLeft)),
-  left(createAnchor(QLatin1String("left"), aiLeft))
+  left(createAnchor(QLatin1String("left"), aiLeft)),
+  mScaledPixmapInvalidated(true)
 {
   topLeft->setCoords(0, 1);
   bottomRight->setCoords(1, 0);
@@ -80,6 +81,7 @@ QCPItemPixmap::~QCPItemPixmap()
 void QCPItemPixmap::setPixmap(const QPixmap &pixmap)
 {
   mPixmap = pixmap;
+  mScaledPixmapInvalidated = true;
   if (mPixmap.isNull())
     qDebug() << Q_FUNC_INFO << "pixmap is null";
 }
@@ -93,7 +95,7 @@ void QCPItemPixmap::setScaled(bool scaled, Qt::AspectRatioMode aspectRatioMode, 
   mScaled = scaled;
   mAspectRatioMode = aspectRatioMode;
   mTransformationMode = transformationMode;
-  updateScaledPixmap();
+  mScaledPixmapInvalidated = true;
 }
 
 /*!
@@ -197,7 +199,7 @@ void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz, bool flip
   {
     if (finalRect.isNull())
       finalRect = getFinalRect(&flipHorz, &flipVert);
-    if (finalRect.size() != mScaledPixmap.size())
+    if (mScaledPixmapInvalidated || finalRect.size() != mScaledPixmap.size())
     {
       mScaledPixmap = mPixmap.scaled(finalRect.size(), mAspectRatioMode, mTransformationMode);
       if (flipHorz || flipVert)
@@ -205,6 +207,7 @@ void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz, bool flip
     }
   } else if (!mScaledPixmap.isNull())
     mScaledPixmap = QPixmap();
+  mScaledPixmapInvalidated = false;
 }
 
 /*! \internal

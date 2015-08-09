@@ -108,6 +108,20 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   however, the normal selected pen/brush (\ref setSelectedPen, \ref setSelectedBrush) is used,
   irrespective of whether the chart is single- or two-colored.
   
+  \section usage Usage
+  
+  Like all data representing objects in QCustomPlot, the QCPFinancial is a plottable
+  (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
+  
+  Usually, you first create an instance:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-1
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-2
+  Here we have used the static helper method \ref timeSeriesToOhlc, to turn a time-price data
+  series into a 24-hour binned open-high-low-close data series as QCPFinancial uses.
 */
 
 /* start of documentation of inline functions */

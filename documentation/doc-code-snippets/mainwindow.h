@@ -31,6 +31,7 @@ public slots:
   void snippetQCPBarsGroup();
   void snippetQCPBars();
   void snippetQCPStatisticalBox();
+  void snippetQCPFinancial();
   
   // website code methods:
   void websiteBasicPlottingBars();

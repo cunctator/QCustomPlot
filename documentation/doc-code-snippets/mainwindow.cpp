@@ -213,6 +213,21 @@ void MainWindow::snippetQCPStatisticalBox()
   //! [qcpstatisticalbox-creation-2]
 }
 
+void MainWindow::snippetQCPFinancial()
+{
+  QVector<double> time, price;
+  //! [qcpfinancial-creation-1]
+  QCPFinancial *newFinancial = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpfinancial-creation-1]
+  
+  //! [qcpfinancial-creation-2]
+  newFinancial->setName("Stock prices");
+  QCPFinancialDataMap data = QCPFinancial::timeSeriesToOhlc(time, price, 3600*24);
+  newFinancial->setData(&data, true);
+  newFinancial->setChartStyle(QCPFinancial::csCandlestick);
+  //! [qcpfinancial-creation-2]
+}
+
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);

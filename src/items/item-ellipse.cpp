@@ -43,7 +43,8 @@
 /*!
   Creates an ellipse item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemEllipse::QCPItemEllipse(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),

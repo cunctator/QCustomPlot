@@ -936,7 +936,6 @@ void MainWindow::setupSimpleItemDemo(QCustomPlot *customPlot)
   
   // add the text label at the top:
   QCPItemText *textLabel = new QCPItemText(customPlot);
-  customPlot->addItem(textLabel);
   textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignHCenter);
   textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
   textLabel->position->setCoords(0.5, 0); // place position at center/top of axis rect
@@ -946,7 +945,6 @@ void MainWindow::setupSimpleItemDemo(QCustomPlot *customPlot)
   
   // add the arrow:
   QCPItemLine *arrow = new QCPItemLine(customPlot);
-  customPlot->addItem(arrow);
   arrow->start->setParentAnchor(textLabel->bottom);
   arrow->end->setCoords(4, 1.6); // point to (4, 1.6) in x-y-plot coordinates
   arrow->setHead(QCPLineEnding::esSpikeArrow);
@@ -979,14 +977,12 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add the bracket at the top:
   QCPItemBracket *bracket = new QCPItemBracket(customPlot);
-  customPlot->addItem(bracket);
   bracket->left->setCoords(-8, 1.1);
   bracket->right->setCoords(8, 1.1);
   bracket->setLength(13);
   
   // add the text label at the top:
   QCPItemText *wavePacketText = new QCPItemText(customPlot);
-  customPlot->addItem(wavePacketText);
   wavePacketText->position->setParentAnchor(bracket->center);
   wavePacketText->position->setCoords(0, -10); // move 10 pixels to the top from bracket center anchor
   wavePacketText->setPositionAlignment(Qt::AlignBottom|Qt::AlignHCenter);
@@ -995,7 +991,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add the phase tracer (red circle) which sticks to the graph data (and gets updated in bracketDataSlot by timer event):
   QCPItemTracer *phaseTracer = new QCPItemTracer(customPlot);
-  customPlot->addItem(phaseTracer);
   itemDemoPhaseTracer = phaseTracer; // so we can access it later in the bracketDataSlot for animation
   phaseTracer->setGraph(graph);
   phaseTracer->setGraphKey((M_PI*1.5-phase)/k);
@@ -1007,7 +1002,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add label for phase tracer:
   QCPItemText *phaseTracerText = new QCPItemText(customPlot);
-  customPlot->addItem(phaseTracerText);
   phaseTracerText->position->setType(QCPItemPosition::ptAxisRectRatio);
   phaseTracerText->setPositionAlignment(Qt::AlignRight|Qt::AlignBottom);
   phaseTracerText->position->setCoords(1.0, 0.95); // lower right corner of axis rect
@@ -1018,7 +1012,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add arrow pointing at phase tracer, coming from label:
   QCPItemCurve *phaseTracerArrow = new QCPItemCurve(customPlot);
-  customPlot->addItem(phaseTracerArrow);
   phaseTracerArrow->start->setParentAnchor(phaseTracerText->left);
   phaseTracerArrow->startDir->setParentAnchor(phaseTracerArrow->start);
   phaseTracerArrow->startDir->setCoords(-40, 0); // direction 30 pixels to the left of parent anchor (tracerArrow->start)
@@ -1031,7 +1024,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add the group velocity tracer (green circle):
   QCPItemTracer *groupTracer = new QCPItemTracer(customPlot);
-  customPlot->addItem(groupTracer);
   groupTracer->setGraph(graph);
   groupTracer->setGraphKey(5.5);
   groupTracer->setInterpolating(true);
@@ -1042,7 +1034,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add label for group tracer:
   QCPItemText *groupTracerText = new QCPItemText(customPlot);
-  customPlot->addItem(groupTracerText);
   groupTracerText->position->setType(QCPItemPosition::ptAxisRectRatio);
   groupTracerText->setPositionAlignment(Qt::AlignRight|Qt::AlignTop);
   groupTracerText->position->setCoords(1.0, 0.20); // lower right corner of axis rect
@@ -1053,7 +1044,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add arrow pointing at group tracer, coming from label:
   QCPItemCurve *groupTracerArrow = new QCPItemCurve(customPlot);
-  customPlot->addItem(groupTracerArrow);
   groupTracerArrow->start->setParentAnchor(groupTracerText->left);
   groupTracerArrow->startDir->setParentAnchor(groupTracerArrow->start);
   groupTracerArrow->startDir->setCoords(-40, 0); // direction 30 pixels to the left of parent anchor (tracerArrow->start)
@@ -1065,7 +1055,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add dispersion arrow:
   QCPItemCurve *arrow = new QCPItemCurve(customPlot);
-  customPlot->addItem(arrow);
   arrow->start->setCoords(1, -1.1);
   arrow->startDir->setCoords(-1, -1.3);
   arrow->endDir->setCoords(-5, -0.3);
@@ -1074,7 +1063,6 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   
   // add the dispersion arrow label:
   QCPItemText *dispersionText = new QCPItemText(customPlot);
-  customPlot->addItem(dispersionText);
   dispersionText->position->setCoords(-6, -0.9);
   dispersionText->setRotation(40);
   dispersionText->setText("Dispersion with\nvp < vg");

@@ -94,7 +94,6 @@ void TestQCPAxisRect::axisRemovalConsequencesToItems()
 {
   // test consequences to items when their axes are removed:
   QCPItemLine *item = new QCPItemLine(mPlot);
-  mPlot->addItem(item);
   mPlot->replot();
 
   QVERIFY(mPlot->axisRect()->removeAxis(mPlot->xAxis));
@@ -160,7 +159,6 @@ void TestQCPAxisRect::axisRectRemovalConsequencesToItems()
 {
   // test consequences to items when their axes are removed:
   QCPItemLine *item = new QCPItemLine(mPlot);
-  mPlot->addItem(item);
   item->setClipAxisRect(mPlot->axisRect());
   item->setClipToAxisRect(true);
   item->start->setAxisRect(mPlot->axisRect());

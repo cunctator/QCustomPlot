@@ -1116,7 +1116,7 @@ QList<QCPGraph*> QCustomPlot::selectedGraphs() const
   There is an overloaded version of this function with no parameter which returns the last added
   item, see QCustomPlot::item()
   
-  \see itemCount, addItem
+  \see itemCount
 */
 QCPAbstractItem *QCustomPlot::item(int index) const
 {
@@ -1132,10 +1132,10 @@ QCPAbstractItem *QCustomPlot::item(int index) const
 
 /*! \overload
   
-  Returns the last item, that was added with \ref addItem. If there are no items in the plot,
+  Returns the last item that was added to this plot. If there are no items in the plot,
   returns 0.
   
-  \see itemCount, addItem
+  \see itemCount
 */
 QCPAbstractItem *QCustomPlot::item() const
 {
@@ -1147,32 +1147,11 @@ QCPAbstractItem *QCustomPlot::item() const
 }
 
 /*!
-  Adds the specified item to the plot. QCustomPlot takes ownership of the item.
-  
-  Returns true on success, i.e. when \a item wasn't already in the plot and the parent plot of \a
-  item is this QCustomPlot.
-  
-  \see item, itemCount, removeItem, clearItems
-*/
-bool QCustomPlot::addItem(QCPAbstractItem *item)
-{
-  if (!mItems.contains(item) && item->parentPlot() == this)
-  {
-    mItems.append(item);
-    return true;
-  } else
-  {
-    qDebug() << Q_FUNC_INFO << "item either already in list or not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(item);
-    return false;
-  }
-}
-
-/*!
   Removes the specified item from the plot.
   
   Returns true on success.
   
-  \see addItem, clearItems
+  \see clearItems
 */
 bool QCustomPlot::removeItem(QCPAbstractItem *item)
 {
@@ -1221,7 +1200,7 @@ int QCustomPlot::clearItems()
 /*!
   Returns the number of currently existing items in the plot
   
-  \see item, addItem
+  \see item
 */
 int QCustomPlot::itemCount() const
 {
@@ -1283,7 +1262,7 @@ QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) co
 /*!
   Returns whether this QCustomPlot contains the \a item.
   
-  \see addItem
+  \see item
 */
 bool QCustomPlot::hasItem(QCPAbstractItem *item) const
 {
@@ -2394,6 +2373,35 @@ bool QCustomPlot::registerGraph(QCPGraph *graph)
   }
   
   mGraphs.append(graph);
+  return true;
+}
+
+
+/*! \internal
+
+  Registers the specified item with this QCustomPlot. QCustomPlot takes ownership of the item.
+  
+  Returns true on success, i.e. when \a item wasn't already in the plot and the parent plot of \a
+  item is this QCustomPlot.
+  
+  This method is called automatically in the QCPAbstractItem base class constructor.
+*/
+bool QCustomPlot::registerItem(QCPAbstractItem *item)
+{
+  if (mItems.contains(item))
+  {
+    qDebug() << Q_FUNC_INFO << "item already added to this QCustomPlot:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+  if (item->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "item not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+  
+  mItems.append(item);
+  if (!item->layer()) // usually the layer is already set in the constructor of the item (via QCPLayerable constructor)
+    item->setLayer(currentLayer());
   return true;
 }
 

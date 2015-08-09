@@ -138,7 +138,6 @@ public:
   // item interface:
   QCPAbstractItem *item(int index) const;
   QCPAbstractItem *item() const;
-  bool addItem(QCPAbstractItem* item);
   bool removeItem(QCPAbstractItem *item);
   bool removeItem(int index);
   int clearItems();
@@ -251,6 +250,7 @@ protected:
   // non-virtual methods:
   bool registerPlottable(QCPAbstractPlottable *plottable);
   bool registerGraph(QCPGraph *graph);
+  bool registerItem(QCPAbstractItem* item);
   void updateLayerIndices() const;
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
@@ -262,6 +262,7 @@ protected:
   friend class QCPAxisRect;
   friend class QCPAbstractPlottable;
   friend class QCPGraph;
+  friend class QCPAbstractItem;
 };
 
 #endif // QCP_CORE_H

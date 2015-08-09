@@ -98,7 +98,6 @@ void MainWindow::snippetQCPItemLine()
 {
   //! [qcpitemline-creation-1]
   QCPItemLine *line = new QCPItemLine(customPlot);
-  customPlot->addItem(line);
   //! [qcpitemline-creation-1]
   
   //! [qcpitemline-creation-2]

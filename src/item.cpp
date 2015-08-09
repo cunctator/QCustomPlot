@@ -968,6 +968,8 @@ QCPAbstractItem::QCPAbstractItem(QCustomPlot *parentPlot) :
   mSelectable(true),
   mSelected(false)
 {
+  parentPlot->registerItem(this);
+  
   QList<QCPAxisRect*> rects = parentPlot->axisRects();
   if (rects.size() > 0)
   {

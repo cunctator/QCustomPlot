@@ -433,7 +433,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   
   A color map has three dimensions to represent a data point: The \a key dimension, the \a value
   dimension and the \a data dimension. As with other plottables such as graphs, \a key and \a value
-  correspond to two orthogonal axes on the QCustomPlot surface that you specify in the QColorMap
+  correspond to two orthogonal axes on the QCustomPlot surface that you specify in the QCPColorMap
   constructor. The \a data dimension however is encoded as the color of the point at (\a key, \a
   value).
 

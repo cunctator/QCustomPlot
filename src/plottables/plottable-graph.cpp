@@ -86,8 +86,8 @@ QCPData::QCPData(double key, double value) :
 
   \image html QCPGraph.png
   
-  Usually QCustomPlot creates graphs internally via QCustomPlot::addGraph and the resulting
-  instance is accessed via QCustomPlot::graph.
+  Usually you create new graphs by calling QCustomPlot::addGraph. The resulting instance can be
+  accessed via QCustomPlot::graph.
 
   To plot data, assign it with the \ref setData or \ref addData functions. Alternatively, you can
   also access and modify the graph's data via the \ref data method, which returns a pointer to the

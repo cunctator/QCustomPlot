@@ -626,7 +626,7 @@ void QCPBars::moveBelow(QCPBars *bars)
   plottable.
   
   Inserting into and removing from existing bar stacking is handled gracefully. If \a bars already
-  has a bars object below itself, this bars object is inserted between the two. If this bars object
+  has a bars object above itself, this bars object is inserted between the two. If this bars object
   is already between two other bars, the two other bars will be stacked on top of each other after
   the operation.
   

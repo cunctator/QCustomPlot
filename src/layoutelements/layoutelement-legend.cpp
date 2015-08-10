@@ -728,7 +728,7 @@ bool QCPLegend::addItem(QCPAbstractLegendItem *item)
 }
 
 /*!
-  Removes the item with index \a index from the legend.
+  Removes the item with the specified \a index from the legend and deletes it.
 
   Returns true, if successful.
   
@@ -747,7 +747,7 @@ bool QCPLegend::removeItem(int index)
 
 /*! \overload
   
-  Removes \a item from the legend.
+  Removes \a item from the legend and deletes it.
 
   Returns true, if successful.
   

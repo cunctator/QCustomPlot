@@ -814,7 +814,8 @@ QCPAbstractPlottable *QCustomPlot::plottable()
 }
 
 /*!
-  Removes the specified plottable from the plot and, if necessary, from the legend (QCustomPlot::legend).
+  Removes the specified plottable from the plot and deletes it. If necessary, the corresponding
+  legend item is also removed from the default legend (QCustomPlot::legend).
   
   Returns true on success.
   
@@ -841,7 +842,7 @@ bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
 
 /*! \overload
   
-  Removes the plottable by its \a index.
+  Removes and deletes the plottable by its \a index.
 */
 bool QCustomPlot::removePlottable(int index)
 {
@@ -855,7 +856,8 @@ bool QCustomPlot::removePlottable(int index)
 }
 
 /*!
-  Removes all plottables from the plot (and the QCustomPlot::legend, if necessary).
+  Removes all plottables from the plot and deletes them. Corresponding legend items are also
+  removed from the default legend (QCustomPlot::legend).
   
   Returns the number of plottables removed.
   
@@ -1041,9 +1043,10 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
 }
 
 /*!
-  Removes the specified \a graph from the plot and, if necessary, from the QCustomPlot::legend. If
-  any other graphs in the plot have a channel fill set towards the removed graph, the channel fill
-  property of those graphs is reset to zero (no channel fill).
+  Removes the specified \a graph from the plot and deletes it. If necessary, the corresponding
+  legend item is also removed from the default legend (QCustomPlot::legend). If any other graphs in
+  the plot have a channel fill set towards the removed graph, the channel fill property of those
+  graphs is reset to zero (no channel fill).
   
   Returns true on success.
   
@@ -1056,7 +1059,7 @@ bool QCustomPlot::removeGraph(QCPGraph *graph)
 
 /*! \overload
   
-  Removes the graph by its \a index.
+  Removes and deletes the graph by its \a index.
 */
 bool QCustomPlot::removeGraph(int index)
 {
@@ -1067,7 +1070,8 @@ bool QCustomPlot::removeGraph(int index)
 }
 
 /*!
-  Removes all graphs from the plot (and the QCustomPlot::legend, if necessary).
+  Removes all graphs from the plot and deletes them. Corresponding legend items are also removed
+  from the default legend (QCustomPlot::legend).
 
   Returns the number of graphs removed.
   
@@ -1147,7 +1151,7 @@ QCPAbstractItem *QCustomPlot::item() const
 }
 
 /*!
-  Removes the specified item from the plot.
+  Removes the specified item from the plot and deletes it.
   
   Returns true on success.
   
@@ -1169,7 +1173,7 @@ bool QCustomPlot::removeItem(QCPAbstractItem *item)
 
 /*! \overload
   
-  Removes the item by its \a index.
+  Removes and deletes the item by its \a index.
 */
 bool QCustomPlot::removeItem(int index)
 {
@@ -1183,7 +1187,7 @@ bool QCustomPlot::removeItem(int index)
 }
 
 /*!
-  Removes all items from the plot.
+  Removes all items from the plot and deletes them.
   
   Returns the number of items removed.
   

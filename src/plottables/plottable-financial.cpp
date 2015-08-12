@@ -147,7 +147,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
-  mData(0),
+  mData(new QCPFinancialDataMap),
   mChartStyle(csOhlc),
   mWidth(0.5),
   mTwoColored(false),
@@ -156,44 +156,27 @@ QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPenPositive(QPen(QColor(10, 40, 180))),
   mPenNegative(QPen(QColor(180, 40, 10)))
 {
-  mData = new QCPFinancialDataMap;
-  
   setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
   setSelectedBrush(QBrush(QColor(80, 80, 255)));
 }
 
 QCPFinancial::~QCPFinancial()
 {
-  delete mData;
 }
 
 /*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the plottable
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-  
-  Alternatively, you can also access and modify the plottable's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPFinancialDataMap.
-  
+  TODO
   \see timeSeriesToOhlc
 */
-void QCPFinancial::setData(QCPFinancialDataMap *data, bool copy)
+
+void QCPFinancial::setData(const QCPFinancialDataMap &data)
 {
-  if (mData == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mData = *data;
-  } else
-  {
-    delete mData;
-    mData = data;
-  }
+  *mData = data;
+}
+
+void QCPFinancial::setData(QSharedPointer<QCPFinancialDataMap> data)
+{
+  mData = data;
 }
 
 /*! \overload
@@ -462,7 +445,7 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
 
 /*!
   A convenience function that converts time series data (\a value against \a time) to OHLC binned
-  data points. The return value can then be passed on to \ref setData.
+  data points. The return value can then be passed on to \ref setData(const QCPFinancialDataMap&).
   
   The size of the bins can be controlled with \a timeBinSize in the same units as \a time is given.
   For example, if the unit of \a time is seconds and single OHLC/Candlesticks should span an hour

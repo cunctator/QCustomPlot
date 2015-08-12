@@ -82,7 +82,7 @@ public:
   virtual ~QCPFinancial();
   
   // getters:
-  QCPFinancialDataMap *data() const { return mData; }
+  QSharedPointer<QCPFinancialDataMap> data() const { return mData; }
   ChartStyle chartStyle() const { return mChartStyle; }
   double width() const { return mWidth; }
   bool twoColored() const { return mTwoColored; }
@@ -93,7 +93,8 @@ public:
   
   
   // setters:
-  void setData(QCPFinancialDataMap *data, bool copy=false);
+  void setData(const QCPFinancialDataMap &data);
+  void setData(QSharedPointer<QCPFinancialDataMap> data);
   void setData(const QVector<double> &key, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close);
   void setChartStyle(ChartStyle style);
   void setWidth(double width);
@@ -122,7 +123,7 @@ public:
   
 protected:
   // property members:
-  QCPFinancialDataMap *mData;
+  QSharedPointer<QCPFinancialDataMap> mData;
   ChartStyle mChartStyle;
   double mWidth;
   bool mTwoColored;

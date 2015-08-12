@@ -664,9 +664,8 @@ void MainWindow::genQCPFinancial()
   
   // create candlestick chart:
   QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  QCPFinancialDataMap data1 = QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime);
   candlesticks->setChartStyle(QCPFinancial::csCandlestick);
-  candlesticks->setData(&data1, true);
+  candlesticks->setData(QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime));
   candlesticks->setWidth(binSize*0.9);
   candlesticks->setTwoColored(true);
   candlesticks->setBrushPositive(QColor(245, 245, 245));
@@ -676,9 +675,8 @@ void MainWindow::genQCPFinancial()
 
   // create ohlc chart:
   QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(time, value2, binSize, startTime);
   ohlc->setChartStyle(QCPFinancial::csOhlc);
-  ohlc->setData(&data2, true);
+  ohlc->setData(QCPFinancial::timeSeriesToOhlc(time, value2, binSize, startTime));
   ohlc->setWidth(binSize*0.75);
   ohlc->setTwoColored(true);
 

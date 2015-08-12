@@ -76,12 +76,13 @@ public:
   virtual ~QCPCurve();
   
   // getters:
-  QCPCurveDataMap *data() const { return mData; }
+  QSharedPointer<QCPCurveDataMap> data() const { return mData; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
-  void setData(QCPCurveDataMap *data, bool copy=false);
+  void setData(const QCPCurveDataMap &data);
+  void setData(QSharedPointer<QCPCurveDataMap> data);
   void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value);
   void setData(const QVector<double> &key, const QVector<double> &value);
   void setScatterStyle(const QCPScatterStyle &style);
@@ -104,7 +105,7 @@ public:
   
 protected:
   // property members:
-  QCPCurveDataMap *mData;
+  QSharedPointer<QCPCurveDataMap> mData;
   QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   

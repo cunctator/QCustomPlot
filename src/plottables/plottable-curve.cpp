@@ -116,9 +116,10 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis)
+  QCPAbstractPlottable(keyAxis, valueAxis),
+  mData(new QCPCurveDataMap)
 {
-  mData = new QCPCurveDataMap;
+  // modify inherited properties from abstract plottable:
   mPen.setColor(Qt::blue);
   mPen.setStyle(Qt::SolidLine);
   mBrush.setColor(Qt::blue);
@@ -134,31 +135,16 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 
 QCPCurve::~QCPCurve()
 {
-  delete mData;
 }
 
-/*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the plottable
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-*/
-void QCPCurve::setData(QCPCurveDataMap *data, bool copy)
+void QCPCurve::setData(const QCPCurveDataMap &data)
 {
-  if (mData == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mData = *data;
-  } else
-  {
-    delete mData;
-    mData = data;
-  }
+  *mData = data;
+}
+
+void QCPCurve::setData(QSharedPointer<QCPCurveDataMap> data)
+{
+  mData = data;
 }
 
 /*! \overload

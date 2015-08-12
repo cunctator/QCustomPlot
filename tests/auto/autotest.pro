@@ -11,6 +11,7 @@ HEADERS += ../../qcustomplot.h \
     test-qcpgraph/test-qcpgraph.h \
     test-qcpcurve/test-qcpcurve.h \
     test-qcpbars/test-qcpbars.h \
+    test-qcpfinancial/test-qcpfinancial.h \
     test-qcplayout/test-qcplayout.h \
     test-qcpaxisrect/test-qcpaxisrect.h \
     test-colormap/test-colormap.h
@@ -21,6 +22,7 @@ SOURCES += ../../qcustomplot.cpp \
     test-qcpgraph/test-qcpgraph.cpp \
     test-qcpcurve/test-qcpcurve.cpp \
     test-qcpbars/test-qcpbars.cpp \
+    test-qcpfinancial/test-qcpfinancial.cpp \
     test-qcplayout/test-qcplayout.cpp \
     test-qcpaxisrect/test-qcpaxisrect.cpp \
     test-colormap/test-colormap.cpp

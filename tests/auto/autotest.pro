@@ -9,6 +9,7 @@ INCLUDEPATH = .
 HEADERS += ../../qcustomplot.h \
     test-qcustomplot/test-qcustomplot.h\
     test-qcpgraph/test-qcpgraph.h \
+    test-qcpcurve/test-qcpcurve.h \
     test-qcpbars/test-qcpbars.h \
     test-qcplayout/test-qcplayout.h \
     test-qcpaxisrect/test-qcpaxisrect.h \
@@ -18,6 +19,7 @@ SOURCES += ../../qcustomplot.cpp \
            autotest.cpp \
     test-qcustomplot/test-qcustomplot.cpp\
     test-qcpgraph/test-qcpgraph.cpp \
+    test-qcpcurve/test-qcpcurve.cpp \
     test-qcpbars/test-qcpbars.cpp \
     test-qcplayout/test-qcplayout.cpp \
     test-qcpaxisrect/test-qcpaxisrect.cpp \

@@ -497,7 +497,6 @@ QCPBars::~QCPBars()
   setBarsGroup(0);
   if (mBarBelow || mBarAbove)
     connectBars(mBarBelow.data(), mBarAbove.data()); // take this bar out of any stacking
-  delete mData;
 }
 
 /*!
@@ -558,28 +557,14 @@ void QCPBars::setBaseValue(double baseValue)
   mBaseValue = baseValue;
 }
 
-/*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the plottable
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-*/
-void QCPBars::setData(QCPBarDataMap *data, bool copy)
+void QCPBars::setData(const QCPBarDataMap &data)
 {
-  if (mData == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mData = *data;
-  } else
-  {
-    delete mData;
-    mData = data;
-  }
+  *mData = data;
+}
+
+void QCPBars::setData(QSharedPointer<QCPBarDataMap> data)
+{
+  mData = data;
 }
 
 /*! \overload
@@ -704,6 +689,7 @@ void QCPBars::addData(double key, double value)
 */
 void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values)
 {
+  QCPBarDataMap *dataMap = mData.data();
   int n = keys.size();
   n = qMin(n, values.size());
   QCPBarData newData;
@@ -711,7 +697,7 @@ void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values
   {
     newData.key = keys[i];
     newData.value = values[i];
-    mData->insertMulti(newData.key, newData);
+    dataMap->insertMulti(newData.key, newData);
   }
 }
 
@@ -721,9 +707,10 @@ void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values
 */
 void QCPBars::removeDataBefore(double key)
 {
-  QCPBarDataMap::iterator it = mData->begin();
-  while (it != mData->end() && it.key() < key)
-    it = mData->erase(it);
+  QCPBarDataMap *dataMap = mData.data();
+  QCPBarDataMap::iterator it = dataMap->begin();
+  while (it != dataMap->end() && it.key() < key)
+    it = dataMap->erase(it);
 }
 
 /*!
@@ -732,10 +719,11 @@ void QCPBars::removeDataBefore(double key)
 */
 void QCPBars::removeDataAfter(double key)
 {
-  if (mData->isEmpty()) return;
-  QCPBarDataMap::iterator it = mData->upperBound(key);
-  while (it != mData->end())
-    it = mData->erase(it);
+  QCPBarDataMap *dataMap = mData.data();
+  if (dataMap->isEmpty()) return;
+  QCPBarDataMap::iterator it = dataMap->upperBound(key);
+  while (it != dataMap->end())
+    it = dataMap->erase(it);
 }
 
 /*!
@@ -747,11 +735,12 @@ void QCPBars::removeDataAfter(double key)
 */
 void QCPBars::removeData(double fromKey, double toKey)
 {
-  if (fromKey >= toKey || mData->isEmpty()) return;
-  QCPBarDataMap::iterator it = mData->upperBound(fromKey);
-  QCPBarDataMap::iterator itEnd = mData->upperBound(toKey);
+  QCPBarDataMap *dataMap = mData.data();
+  if (fromKey >= toKey || dataMap->isEmpty()) return;
+  QCPBarDataMap::iterator it = dataMap->upperBound(fromKey);
+  QCPBarDataMap::iterator itEnd = dataMap->upperBound(toKey);
   while (it != itEnd)
-    it = mData->erase(it);
+    it = dataMap->erase(it);
 }
 
 /*! \overload

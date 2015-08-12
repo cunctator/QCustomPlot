@@ -151,14 +151,15 @@ public:
   double baseValue() const { return mBaseValue; }
   QCPBars *barBelow() const { return mBarBelow.data(); }
   QCPBars *barAbove() const { return mBarAbove.data(); }
-  QCPBarDataMap *data() const { return mData; }
+  QSharedPointer<QCPBarDataMap> data() const { return mData; }
   
   // setters:
   void setWidth(double width);
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
-  void setData(QCPBarDataMap *data, bool copy=false);
+  void setData(const QCPBarDataMap &data);
+  void setData(QSharedPointer<QCPBarDataMap> data);
   void setData(const QVector<double> &key, const QVector<double> &value);
   
   // non-property methods:
@@ -179,7 +180,7 @@ public:
   
 protected:
   // property members:
-  QCPBarDataMap *mData;
+  QSharedPointer<QCPBarDataMap> mData;
   double mWidth;
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;

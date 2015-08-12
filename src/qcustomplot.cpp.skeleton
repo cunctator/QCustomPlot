@@ -29,10 +29,10 @@
 //amalgamation: add qcpvector2d.cpp
 //amalgamation: add painter.cpp
 //amalgamation: add layer.cpp
-//amalgamation: add range.cpp
+//amalgamation: add axis/range.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
-//amalgamation: add axis.cpp
+//amalgamation: add axis/axis.cpp
 //amalgamation: add plottable.cpp
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp

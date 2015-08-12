@@ -26,12 +26,12 @@
 #ifndef QCP_AXIS_H
 #define QCP_AXIS_H
 
-#include "global.h"
-#include "qcpvector2d.h"
+#include "../global.h"
 #include "range.h"
-#include "layer.h"
-#include "layout.h"
-#include "lineending.h"
+#include "../qcpvector2d.h"
+#include "../layer.h"
+#include "../layout.h"
+#include "../lineending.h"
 
 class QCPPainter;
 class QCustomPlot;

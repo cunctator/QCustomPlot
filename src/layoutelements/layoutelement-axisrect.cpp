@@ -30,7 +30,7 @@
 #include "../plottable.h"
 #include "../plottables/plottable-graph.h"
 #include "../item.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

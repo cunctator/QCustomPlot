@@ -27,7 +27,7 @@
 
 #include "painter.h"
 #include "core.h"
-#include "axis.h"
+#include "axis/axis.h"
 #include "layoutelements/layoutelement-axisrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

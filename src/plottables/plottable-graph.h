@@ -27,7 +27,7 @@
 #define QCP_PLOTTABLE_GRAPH_H
 
 #include "../global.h"
-#include "../range.h"
+#include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
 

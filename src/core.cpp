@@ -29,7 +29,7 @@
 
 #include "painter.h"
 #include "layer.h"
-#include "axis.h"
+#include "axis/axis.h"
 #include "layoutelements/layoutelement-axisrect.h"
 #include "layoutelements/layoutelement-legend.h"
 #include "layoutelements/layoutelement-plottitle.h"

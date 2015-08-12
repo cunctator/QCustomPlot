@@ -27,7 +27,7 @@
 #define QCP_LAYOUTELEMENT_COLORSCALE_H
 
 #include "../global.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 #include "../layout.h"
 #include "../colorgradient.h"
 #include "../layoutelements/layoutelement-axisrect.h"

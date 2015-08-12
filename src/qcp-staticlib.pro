@@ -30,8 +30,8 @@ HEADERS += \
 global.h \
 painter.h \
 layer.h \
-range.h \
-axis.h \
+axis/range.h \
+axis/axis.h \
 plottable.h \
 item.h \
 lineending.h \
@@ -62,8 +62,8 @@ layoutelements/layoutelement-axisrect.h \
 SOURCES += \
 painter.cpp \
 layer.cpp \
-range.cpp \
-axis.cpp \
+axis/range.cpp \
+axis/axis.cpp \
 plottable.cpp \
 item.cpp \
 lineending.cpp \

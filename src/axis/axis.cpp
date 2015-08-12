@@ -25,12 +25,12 @@
 
 #include "axis.h"
 
-#include "painter.h"
-#include "core.h"
-#include "plottable.h"
-#include "plottables/plottable-graph.h"
-#include "item.h"
-#include "layoutelements/layoutelement-axisrect.h"
+#include "../painter.h"
+#include "../core.h"
+#include "../plottable.h"
+#include "../plottables/plottable-graph.h"
+#include "../item.h"
+#include "../layoutelements/layoutelement-axisrect.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

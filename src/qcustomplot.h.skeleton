@@ -33,10 +33,10 @@
 //amalgamation: add qcpvector2d.h
 //amalgamation: add painter.h
 //amalgamation: add layer.h
-//amalgamation: add range.h
+//amalgamation: add axis/range.h
 //amalgamation: add layout.h
 //amalgamation: add lineending.h
-//amalgamation: add axis.h
+//amalgamation: add axis/axis.h
 //amalgamation: add plottable.h
 //amalgamation: add item.h
 //amalgamation: add core.h

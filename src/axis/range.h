@@ -26,7 +26,7 @@
 #ifndef QCP_RANGE_H
 #define QCP_RANGE_H
 
-#include "global.h"
+#include "../global.h"
 
 class QCP_LIB_DECL QCPRange
 {

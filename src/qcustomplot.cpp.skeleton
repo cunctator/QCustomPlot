@@ -32,6 +32,7 @@
 //amalgamation: add axis/range.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
+//amalgamation: add axis/axisticker.cpp
 //amalgamation: add axis/axis.cpp
 //amalgamation: add plottable.cpp
 //amalgamation: add item.cpp

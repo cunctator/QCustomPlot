@@ -33,6 +33,7 @@
 #include "layout.h"
 #include "axis/range.h"
 #include "axis/axis.h"
+#include "axis/axisticker.h"
 #include "plottable.h"
 #include "item.h"
 #include "lineending.h"

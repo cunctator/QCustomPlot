@@ -32,6 +32,7 @@ painter.h \
 layer.h \
 axis/range.h \
 axis/axis.h \
+axis/axisticker.h \
 plottable.h \
 item.h \
 lineending.h \
@@ -64,6 +65,7 @@ painter.cpp \
 layer.cpp \
 axis/range.cpp \
 axis/axis.cpp \
+axis/axisticker.cpp \
 plottable.cpp \
 item.cpp \
 lineending.cpp \

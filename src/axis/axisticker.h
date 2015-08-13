@@ -23,44 +23,41 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCUSTOMPLOT_H
-#define QCUSTOMPLOT_H
+#ifndef QCPAXISTICKER_H
+#define QCPAXISTICKER_H
 
-//amalgamation: place header includes
+#include "../global.h"
+#include "range.h"
 
-//amalgamation: place forward declarations
-//amalgamation: add global.h
-//amalgamation: add qcpvector2d.h
-//amalgamation: add painter.h
-//amalgamation: add layer.h
-//amalgamation: add axis/range.h
-//amalgamation: add layout.h
-//amalgamation: add lineending.h
-//amalgamation: add axis/axisticker.h
-//amalgamation: add axis/axis.h
-//amalgamation: add plottable.h
-//amalgamation: add item.h
-//amalgamation: add core.h
-//amalgamation: add colorgradient.h
-//amalgamation: add layoutelements/layoutelement-axisrect.h
-//amalgamation: add layoutelements/layoutelement-legend.h
-//amalgamation: add layoutelements/layoutelement-plottitle.h
-//amalgamation: add layoutelements/layoutelement-colorscale.h
-//amalgamation: add plottables/plottable-graph.h
-//amalgamation: add plottables/plottable-curve.h
-//amalgamation: add plottables/plottable-bars.h
-//amalgamation: add plottables/plottable-statisticalbox.h
-//amalgamation: add plottables/plottable-colormap.h
-//amalgamation: add plottables/plottable-financial.h
-//amalgamation: add items/item-straightline.h
-//amalgamation: add items/item-line.h
-//amalgamation: add items/item-curve.h
-//amalgamation: add items/item-rect.h
-//amalgamation: add items/item-text.h
-//amalgamation: add items/item-ellipse.h
-//amalgamation: add items/item-pixmap.h
-//amalgamation: add items/item-tracer.h
-//amalgamation: add items/item-bracket.h
+class QCPAxisTicker
+{
+public:
+  QCPAxisTicker();
+  virtual ~QCPAxisTicker();
+  
+  // getters:
+  int tickCount() const { return mTickCount; }
+  
+  // setters:
+  void setTickCount(int count);
+  
+  // introduced virtual methods:
+  virtual void generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> &tickLabels);
+  
+protected:
+  // property members:
+  int mTickCount;
+  
+  // introduced virtual methods:
+  virtual double getTickStep(const QCPRange &range);
+  virtual int getSubTickCount(double tickStep);
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
+  virtual QVector<double> createSubTickVector(int subTickCount, const QVector<double> &ticks);
+  virtual QVector<QString> createLabelVector(const QVector<double> &ticks, const QLocale &locale, QChar formatChar, int precision);
+  
+  // non-virtual methods:
+  void trimTicks(const QCPRange &range, QVector<double> &ticks, bool keepOneOutlier) const;
+};
 
-#endif // QCUSTOMPLOT_H
-
+#endif // QCPAXISTICKER_H

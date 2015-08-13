@@ -41,6 +41,7 @@ class QCPAxisPainterPrivate;
 class QCPAbstractPlottable;
 class QCPGraph;
 class QCPAbstractItem;
+class QCPAxisTicker;
 
 class QCP_LIB_DECL QCPGrid :public QCPLayerable
 {
@@ -102,29 +103,20 @@ class QCP_LIB_DECL QCPAxis : public QCPLayerable
   Q_PROPERTY(double scaleLogBase READ scaleLogBase WRITE setScaleLogBase)
   Q_PROPERTY(QCPRange range READ range WRITE setRange NOTIFY rangeChanged)
   Q_PROPERTY(bool rangeReversed READ rangeReversed WRITE setRangeReversed)
-  Q_PROPERTY(bool autoTicks READ autoTicks WRITE setAutoTicks)
-  Q_PROPERTY(int autoTickCount READ autoTickCount WRITE setAutoTickCount)
-  Q_PROPERTY(bool autoTickLabels READ autoTickLabels WRITE setAutoTickLabels)
-  Q_PROPERTY(bool autoTickStep READ autoTickStep WRITE setAutoTickStep)
-  Q_PROPERTY(bool autoSubTicks READ autoSubTicks WRITE setAutoSubTicks)
   Q_PROPERTY(bool ticks READ ticks WRITE setTicks)
   Q_PROPERTY(bool tickLabels READ tickLabels WRITE setTickLabels)
   Q_PROPERTY(int tickLabelPadding READ tickLabelPadding WRITE setTickLabelPadding)
-  Q_PROPERTY(LabelType tickLabelType READ tickLabelType WRITE setTickLabelType)
   Q_PROPERTY(QFont tickLabelFont READ tickLabelFont WRITE setTickLabelFont)
   Q_PROPERTY(QColor tickLabelColor READ tickLabelColor WRITE setTickLabelColor)
   Q_PROPERTY(double tickLabelRotation READ tickLabelRotation WRITE setTickLabelRotation)
   Q_PROPERTY(LabelSide tickLabelSide READ tickLabelSide WRITE setTickLabelSide)
-  Q_PROPERTY(QString dateTimeFormat READ dateTimeFormat WRITE setDateTimeFormat)
-  Q_PROPERTY(Qt::TimeSpec dateTimeSpec READ dateTimeSpec WRITE setDateTimeSpec)
   Q_PROPERTY(QString numberFormat READ numberFormat WRITE setNumberFormat)
   Q_PROPERTY(int numberPrecision READ numberPrecision WRITE setNumberPrecision)
-  Q_PROPERTY(double tickStep READ tickStep WRITE setTickStep)
-  Q_PROPERTY(QVector<double> tickVector READ tickVector WRITE setTickVector)
-  Q_PROPERTY(QVector<QString> tickVectorLabels READ tickVectorLabels WRITE setTickVectorLabels)
+  Q_PROPERTY(QVector<double> tickVector READ tickVector)
+  Q_PROPERTY(QVector<QString> tickVectorLabels READ tickVectorLabels)
   Q_PROPERTY(int tickLengthIn READ tickLengthIn WRITE setTickLengthIn)
   Q_PROPERTY(int tickLengthOut READ tickLengthOut WRITE setTickLengthOut)
-  Q_PROPERTY(int subTickCount READ subTickCount WRITE setSubTickCount)
+  Q_PROPERTY(bool subTicks READ subTicks WRITE setSubTicks)
   Q_PROPERTY(int subTickLengthIn READ subTickLengthIn WRITE setSubTickLengthIn)
   Q_PROPERTY(int subTickLengthOut READ subTickLengthOut WRITE setSubTickLengthOut)
   Q_PROPERTY(QPen basePen READ basePen WRITE setBasePen)
@@ -161,16 +153,6 @@ public:
                 };
   Q_FLAGS(AxisType AxisTypes)
   Q_DECLARE_FLAGS(AxisTypes, AxisType)
-  /*!
-    When automatic tick label generation is enabled (\ref setAutoTickLabels), defines how the
-    coordinate of the tick is interpreted, i.e. translated into a string.
-    
-    \see setTickLabelType
-  */
-  enum LabelType { ltNumber    ///< Tick coordinate is regarded as normal number and will be displayed as such. (see \ref setNumberFormat)
-                   ,ltDateTime ///< Tick coordinate is regarded as a date/time (seconds since 1970-01-01T00:00:00 UTC) and will be displayed and formatted as such. (for details, see \ref setDateTimeFormat)
-                 };
-  Q_ENUMS(LabelType)
   /*!
     Defines on which side of the axis the tick labels (numbers) shall appear.
     
@@ -210,29 +192,21 @@ public:
   double scaleLogBase() const { return mScaleLogBase; }
   const QCPRange range() const { return mRange; }
   bool rangeReversed() const { return mRangeReversed; }
-  bool autoTicks() const { return mAutoTicks; }
-  int autoTickCount() const { return mAutoTickCount; }
-  bool autoTickLabels() const { return mAutoTickLabels; }
-  bool autoTickStep() const { return mAutoTickStep; }
-  bool autoSubTicks() const { return mAutoSubTicks; }
+  QSharedPointer<QCPAxisTicker> ticker() const { return mTicker; }
   bool ticks() const { return mTicks; }
   bool tickLabels() const { return mTickLabels; }
   int tickLabelPadding() const;
-  LabelType tickLabelType() const { return mTickLabelType; }
   QFont tickLabelFont() const { return mTickLabelFont; }
   QColor tickLabelColor() const { return mTickLabelColor; }
   double tickLabelRotation() const;
   LabelSide tickLabelSide() const;
-  QString dateTimeFormat() const { return mDateTimeFormat; }
-  Qt::TimeSpec dateTimeSpec() const { return mDateTimeSpec; }
   QString numberFormat() const;
   int numberPrecision() const { return mNumberPrecision; }
-  double tickStep() const { return mTickStep; }
-  QVector<double> tickVector() const { return mTickVector; }
-  QVector<QString> tickVectorLabels() const { return mTickVectorLabels; }
+  QVector<double> tickVector() const { return mTickVector; } // TODO: document readonly
+  QVector<QString> tickVectorLabels() const { return mTickVectorLabels; } // TODO: document readonly
   int tickLengthIn() const;
   int tickLengthOut() const;
-  int subTickCount() const { return mSubTickCount; }
+  bool subTicks() const { return mSubTicks; }
   int subTickLengthIn() const;
   int subTickLengthOut() const;
   QPen basePen() const { return mBasePen; }
@@ -266,30 +240,20 @@ public:
   void setRangeLower(double lower);
   void setRangeUpper(double upper);
   void setRangeReversed(bool reversed);
-  void setAutoTicks(bool on);
-  void setAutoTickCount(int approximateCount);
-  void setAutoTickLabels(bool on);
-  void setAutoTickStep(bool on);
-  void setAutoSubTicks(bool on);
+  void setTicker(QSharedPointer<QCPAxisTicker> ticker);
   void setTicks(bool show);
   void setTickLabels(bool show);
   void setTickLabelPadding(int padding);
-  void setTickLabelType(LabelType type);
   void setTickLabelFont(const QFont &font);
   void setTickLabelColor(const QColor &color);
   void setTickLabelRotation(double degrees);
   void setTickLabelSide(LabelSide side);
-  void setDateTimeFormat(const QString &format);
-  void setDateTimeSpec(const Qt::TimeSpec &timeSpec);
   void setNumberFormat(const QString &formatCode);
   void setNumberPrecision(int precision);
-  void setTickStep(double step);
-  void setTickVector(const QVector<double> &vec);
-  void setTickVectorLabels(const QVector<QString> &vec);
   void setTickLength(int inside, int outside=0);
   void setTickLengthIn(int inside);
   void setTickLengthOut(int outside);
-  void setSubTickCount(int count);
+  void setSubTicks(bool show);
   void setSubTickLength(int inside, int outside=0);
   void setSubTickLengthIn(int inside);
   void setSubTickLengthOut(int outside);
@@ -335,7 +299,6 @@ public:
   static AxisType opposite(AxisType type);
   
 signals:
-  void ticksRequest();
   void rangeChanged(const QCPRange &newRange);
   void rangeChanged(const QCPRange &newRange, const QCPRange &oldRange);
   void scaleTypeChanged(QCPAxis::ScaleType scaleType);
@@ -362,20 +325,15 @@ protected:
   //int mTickLabelPadding; // in QCPAxisPainter
   bool mTickLabels, mAutoTickLabels;
   //double mTickLabelRotation; // in QCPAxisPainter
-  LabelType mTickLabelType;
   QFont mTickLabelFont, mSelectedTickLabelFont;
   QColor mTickLabelColor, mSelectedTickLabelColor;
-  QString mDateTimeFormat;
-  Qt::TimeSpec mDateTimeSpec;
   int mNumberPrecision;
   QLatin1Char mNumberFormatChar;
   bool mNumberBeautifulPowers;
   //bool mNumberMultiplyCross; // QCPAxisPainter
   // ticks and subticks:
   bool mTicks;
-  double mTickStep;
-  int mSubTickCount, mAutoTickCount;
-  bool mAutoTicks, mAutoTickStep, mAutoSubTicks;
+  bool mSubTicks;
   //int mTickLengthIn, mTickLengthOut, mSubTickLengthIn, mSubTickLengthOut; // QCPAxisPainter
   QPen mTickPen, mSelectedTickPen;
   QPen mSubTickPen, mSelectedSubTickPen;
@@ -388,7 +346,7 @@ protected:
   // non-property members:
   QCPGrid *mGrid;
   QCPAxisPainterPrivate *mAxisPainter;
-  int mLowestVisibleTick, mHighestVisibleTick;
+  QSharedPointer<QCPAxisTicker> mTicker;
   QVector<double> mTickVector;
   QVector<QString> mTickVectorLabels;
   QVector<double> mSubTickVector;
@@ -396,9 +354,6 @@ protected:
   int mCachedMargin;
   
   // introduced virtual methods:
-  virtual void setupTickVectors();
-  virtual void generateAutoTicks();
-  virtual int calculateAutoSubTickCount(double tickStep) const;
   virtual int calculateMargin();
   
   // reimplemented virtual methods:
@@ -410,7 +365,7 @@ protected:
   virtual void deselectEvent(bool *selectionStateChanged);
   
   // non-virtual methods:
-  void visibleTickBounds(int &lowIndex, int &highIndex) const;
+  void setupTickVectors();
   double baseLog(double value) const;
   double basePow(double value) const;
   QPen getBasePen() const;

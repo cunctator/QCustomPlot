@@ -242,7 +242,7 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   customPlot->graph(3)->rescaleAxes(true);
   // setup look of bottom tick labels:
   customPlot->xAxis->setTickLabelRotation(30);
-  customPlot->xAxis->setAutoTickCount(9);
+  customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->xAxis->setNumberFormat("ebc");
   customPlot->xAxis->setNumberPrecision(1);
   customPlot->xAxis->moveRange(-10);
@@ -378,9 +378,7 @@ void MainWindow::setupScatterPixmapDemo(QCustomPlot *customPlot)
   customPlot->plotLayout()->insertRow(0);
   customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Regenerative Energies"));
   // set a fixed tick-step to one tick per year value:
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
-  customPlot->xAxis->setSubTickCount(3);
+  //TODO: date ticker for xAxis
   // other axis configurations:
   customPlot->xAxis->setLabel("Year");
   customPlot->yAxis->setLabel("Installed Gigawatts of\nphotovoltaic in the European Union");
@@ -390,8 +388,8 @@ void MainWindow::setupScatterPixmapDemo(QCustomPlot *customPlot)
   customPlot->yAxis2->setTickLabels(false);
   customPlot->xAxis2->setTicks(false);
   customPlot->yAxis2->setTicks(false);
-  customPlot->xAxis2->setSubTickCount(0);
-  customPlot->yAxis2->setSubTickCount(0);
+  customPlot->xAxis2->setSubTicks(false);
+  customPlot->yAxis2->setSubTicks(false);
   customPlot->xAxis->setRange(2004.5, 2010.5);
   customPlot->yAxis->setRange(0, 30);
   // setup legend:
@@ -430,20 +428,12 @@ void MainWindow::setupDateDemo(QCustomPlot *customPlot)
     customPlot->graph()->setData(time, value);
   }
   // configure bottom axis to show date and time instead of number:
-  customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-  customPlot->xAxis->setDateTimeFormat("MMMM\nyyyy");
+  // TODO: xAxis date ticker
+  //customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+  //customPlot->xAxis->setDateTimeFormat("MMMM\nyyyy");
   // set a more compact font size for bottom and left axis tick labels:
   customPlot->xAxis->setTickLabelFont(QFont(QFont().family(), 8));
   customPlot->yAxis->setTickLabelFont(QFont(QFont().family(), 8));
-  // set a fixed tick-step to one tick per month:
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(2628000); // one month in seconds
-  customPlot->xAxis->setSubTickCount(3);
-  // apply manual tick and tick label for left axis:
-  customPlot->yAxis->setAutoTicks(false);
-  customPlot->yAxis->setAutoTickLabels(false);
-  customPlot->yAxis->setTickVector(QVector<double>() << 5 << 55);
-  customPlot->yAxis->setTickVectorLabels(QVector<QString>() << "Not so\nhigh" << "Very\nhigh");
   // set axis labels:
   customPlot->xAxis->setLabel("Date");
   customPlot->yAxis->setLabel("Random wobbly lines value");
@@ -605,14 +595,7 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   customPlot->xAxis2->setRange(0, 3.0*M_PI);
   customPlot->yAxis2->setRange(-70, 35);
   // set pi ticks on top axis:
-  QVector<double> piTicks;
-  QVector<QString> piLabels;
-  piTicks << 0  << 0.5*M_PI << M_PI << 1.5*M_PI << 2*M_PI << 2.5*M_PI << 3*M_PI;
-  piLabels << "0" << QString::fromUtf8("½π") << QString::fromUtf8("π") << QString::fromUtf8("1½π") << QString::fromUtf8("2π") << QString::fromUtf8("2½π") << QString::fromUtf8("3π");
-  customPlot->xAxis2->setAutoTicks(false);
-  customPlot->xAxis2->setAutoTickLabels(false);
-  customPlot->xAxis2->setTickVector(piTicks);
-  customPlot->xAxis2->setTickVectorLabels(piLabels);
+  // TODO: xAxis2 pi ticker
   // add title layout element:
   customPlot->plotLayout()->insertRow(0);
   customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Way too many graphs in one plot"));
@@ -691,7 +674,7 @@ void MainWindow::setupLogarithmicDemo(QCustomPlot *customPlot)
   customPlot->yAxis->setScaleLogBase(100);
   customPlot->yAxis->setNumberFormat("eb"); // e = exponential, b = beautiful decimal powers
   customPlot->yAxis->setNumberPrecision(0); // makes sure "1*10^4" is displayed only as "10^4"
-  customPlot->yAxis->setSubTickCount(10);
+  // TODO: yAxis log ticker
   customPlot->xAxis->setRange(0, 19.9);
   customPlot->yAxis->setRange(1e-2, 1e10);
   // make range draggable and zoomable:
@@ -741,10 +724,7 @@ void MainWindow::setupRealtimeDataDemo(QCustomPlot *customPlot)
   customPlot->graph(3)->setLineStyle(QCPGraph::lsNone);
   customPlot->graph(3)->setScatterStyle(QCPScatterStyle::ssDisc);
   
-  customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-  customPlot->xAxis->setDateTimeFormat("hh:mm:ss");
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(2);
+  // TODO: xAxis date ticker hh:mm:ss
   customPlot->axisRect()->setupFullAxesBox();
   
   // make left and bottom axes transfer their ranges to right and top axes:
@@ -832,12 +812,9 @@ void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
   QVector<QString> labels;
   ticks << 1 << 2 << 3 << 4 << 5 << 6 << 7;
   labels << "USA" << "Japan" << "Germany" << "France" << "UK" << "Italy" << "Canada";
-  customPlot->xAxis->setAutoTicks(false);
-  customPlot->xAxis->setAutoTickLabels(false);
-  customPlot->xAxis->setTickVector(ticks);
-  customPlot->xAxis->setTickVectorLabels(labels);
+  // TODO: text ticker
   customPlot->xAxis->setTickLabelRotation(60);
-  customPlot->xAxis->setSubTickCount(0);
+  customPlot->xAxis->setSubTicks(false);
   customPlot->xAxis->setTickLength(0, 4);
   customPlot->xAxis->grid()->setVisible(true);
   customPlot->xAxis->setRange(0, 8);
@@ -913,13 +890,11 @@ void MainWindow::setupStatisticalDemo(QCustomPlot *customPlot)
   sample3->setMaximum(2.9);
   
   // prepare manual x axis labels:
-  customPlot->xAxis->setSubTickCount(0);
+  customPlot->xAxis->setSubTicks(false);
   customPlot->xAxis->setTickLength(0, 4);
   customPlot->xAxis->setTickLabelRotation(20);
-  customPlot->xAxis->setAutoTicks(false);
-  customPlot->xAxis->setAutoTickLabels(false);
-  customPlot->xAxis->setTickVector(QVector<double>() << 1 << 2 << 3);
-  customPlot->xAxis->setTickVectorLabels(QVector<QString>() << "Sample 1" << "Sample 2" << "Control Group");
+  // TODO: xAxis text ticker
+  //customPlot->xAxis->setTickVectorLabels(QVector<QString>() << "Sample 1" << "Sample 2" << "Control Group");
   
   // prepare axes:
   customPlot->yAxis->setLabel(QString::fromUtf8("O₂ Absorption [mg]"));
@@ -1195,9 +1170,9 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   // setup axes in sub layout axis rects:
   subRectLeft->addAxes(QCPAxis::atBottom | QCPAxis::atLeft);
   subRectRight->addAxes(QCPAxis::atBottom | QCPAxis::atRight);
-  subRectLeft->axis(QCPAxis::atLeft)->setAutoTickCount(2);
-  subRectRight->axis(QCPAxis::atRight)->setAutoTickCount(2);
-  subRectRight->axis(QCPAxis::atBottom)->setAutoTickCount(2);
+  subRectLeft->axis(QCPAxis::atLeft)->ticker()->setTickCount(2);
+  subRectRight->axis(QCPAxis::atRight)->ticker()->setTickCount(2);
+  subRectRight->axis(QCPAxis::atBottom)->ticker()->setTickCount(2);
   subRectLeft->axis(QCPAxis::atBottom)->grid()->setVisible(true);
   // synchronize the left and right margins of the top and bottom axis rects:
   QCPMarginGroup *marginGroup = new QCPMarginGroup(customPlot);
@@ -1262,9 +1237,8 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   bars1->setAntialiased(false);
   bars1->setAntialiasedFill(false);
   bars1->setBrush(QColor("#705BE8"));
-  bars1->keyAxis()->setAutoTicks(false);
-  bars1->keyAxis()->setTickVector(x3);
-  bars1->keyAxis()->setSubTickCount(0);
+  bars1->keyAxis()->setSubTicks(false);
+  // TODO: bars->keyAxis() int ticker
   
   // rescale axes according to graph's data:
   mainGraph1->rescaleAxes();
@@ -1400,18 +1374,12 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), volumeAxisRect->axis(QCPAxis::atBottom), SLOT(setRange(QCPRange)));
   connect(volumeAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis, SLOT(setRange(QCPRange)));
   // configure axes of both main and bottom axis rect:
-  volumeAxisRect->axis(QCPAxis::atBottom)->setAutoTickStep(false);
-  volumeAxisRect->axis(QCPAxis::atBottom)->setTickStep(3600*24*4); // 4 day tickstep
-  volumeAxisRect->axis(QCPAxis::atBottom)->setTickLabelType(QCPAxis::ltDateTime);
-  volumeAxisRect->axis(QCPAxis::atBottom)->setDateTimeSpec(Qt::UTC);
-  volumeAxisRect->axis(QCPAxis::atBottom)->setDateTimeFormat("dd. MMM");
-  volumeAxisRect->axis(QCPAxis::atBottom)->setTickLabelRotation(15);
-  volumeAxisRect->axis(QCPAxis::atLeft)->setAutoTickCount(3);
+  // TODO: volumeAxisRect->axis(QCPAxis::atBottom) date ticker (workday) format dd. MMM spec Qt::UTC
+  volumeAxisRect->axis(QCPAxis::atLeft)->ticker()->setTickCount(3);
   customPlot->xAxis->setBasePen(Qt::NoPen);
   customPlot->xAxis->setTickLabels(false);
   customPlot->xAxis->setTicks(false); // only want vertical grid in main axis rect, so hide xAxis backbone, ticks, and labels
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(3600*24*4); // 4 day tickstep
+  // TODO: share xAxis ticker with ticker created above
   customPlot->rescaleAxes();
   customPlot->xAxis->scaleRange(1.025, customPlot->xAxis->range().center());
   customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());

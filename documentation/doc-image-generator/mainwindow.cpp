@@ -544,8 +544,7 @@ void MainWindow::genQCPBars()
   bars2->setPen(QPen(QColor(200, 50, 50)));
   bars2->setBrush(QColor(255, 50, 50, 25));
   
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
+  //TODO: xAxis int ticker
   customPlot->xAxis->setRange(-3, 3);
   customPlot->yAxis->setRange(-1, 2);
   
@@ -600,8 +599,8 @@ void MainWindow::genQCPColorMap()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
   
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
   int nx = 200;
@@ -640,8 +639,8 @@ void MainWindow::genQCPFinancial()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
 
   // generate two sets of random walk data (one for candlestick and one for ohlc chart):
   int n = 500;
@@ -704,7 +703,7 @@ void MainWindow::genQCPColorScale()
   colorScaleV->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   colorScaleV->setDataScaleType(QCPAxis::stLogarithmic);
   colorScaleV->setDataRange(QCPRange(1, 1000));
-  colorScaleV->axis()->setSubTickCount(9);
+  // TODO: colorScaleV->axis() log ticker
   colorScaleV->axis()->setNumberFormat("eb");
   colorScaleV->axis()->setNumberPrecision(0);
   
@@ -756,8 +755,7 @@ void MainWindow::genQCPColorGradient()
     QCPColorScale *colorScale = new QCPColorScale(customPlot);
     customPlot->plotLayout()->addElement(0, 1, colorScale);
     colorMap->setColorScale(colorScale);
-    colorScale->axis()->setAutoTickStep(false);
-    colorScale->axis()->setTickStep(1);
+    // TODO: colorScale->axis() int ticker
     QCPMarginGroup *group = new QCPMarginGroup(customPlot);
     colorScale->setMarginGroup(QCP::msTop|QCP::msBottom, group);
     customPlot->axisRect()->setMarginGroup(QCP::msTop|QCP::msBottom, group);
@@ -810,8 +808,7 @@ void MainWindow::genQCPBarsGroup()
 
   customPlot->xAxis->setRange(0.1, 4.9);
   customPlot->yAxis->setRange(0, 0.7);
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
+  // TODO: xAxis int ticker
   //! [qcpbarsgroup-example]
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
 }
@@ -871,8 +868,7 @@ void MainWindow::genQCPColorMap_TightBoundary()
     axis->grid()->setLayer("axes");
     axis->grid()->setZeroLinePen(Qt::NoPen);
     axis->setLayer("axes");
-    axis->setAutoTickStep(false);
-    axis->setTickStep(2);
+    //TODO: axis int ticker step 2
   }
   customPlot->plotLayout()->setMargins(QMargins(0, 5, 0, 0));
   customPlot->plotLayout()->addElement(0, 1, ar2);
@@ -1041,8 +1037,8 @@ void MainWindow::genQCPColorGradient_Periodic()
   r2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale1->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
-  scale1->axis()->setAutoTickCount(3);
-  scale2->axis()->setAutoTickCount(3);
+  scale1->axis()->ticker()->setTickCount(3);
+  scale2->axis()->ticker()->setTickCount(3);
   map1->setDataRange(QCPRange(-0.2, 0.2));
   map2->setDataRange(QCPRange(-0.2, 0.2));
   customPlot->rescaleAxes();

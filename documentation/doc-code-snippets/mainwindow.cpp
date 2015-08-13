@@ -50,9 +50,9 @@ void MainWindow::snippetQCPColorScale()
   colorScale->setLabel("Some Label Text");
   //! [qcpcolorscale-creation]
   
-  //! [qcpcolorscale-autotickcount]
-  colorScale->axis()->setAutoTickCount(3);
-  //! [qcpcolorscale-autotickcount]
+  //! [qcpcolorscale-tickcount]
+  colorScale->axis()->ticker()->setTickCount(3);
+  //! [qcpcolorscale-tickcount]
   
   //! [qcpcolorscale-margingroup]
   QCPMarginGroup *group = new QCPMarginGroup(customPlot);

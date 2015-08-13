@@ -55,7 +55,7 @@
   To have finer control over the number display and axis behaviour, you can directly access the
   \ref axis. See the documentation of QCPAxis for details about configuring axes. For example, if
   you want to change the number of automatically generated ticks, call
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorscale-autotickcount
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorscale-tickcount
   
   Placing a color scale next to the main axis rect works like with any other layout element:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorscale-creation

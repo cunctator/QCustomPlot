@@ -67,8 +67,6 @@ public slots:
   void daqPerformanceReplotSlot();
   void colorMapMouseMove(QMouseEvent *event);
   
-  void integerTickStepCase_xRangeChanged(QCPRange newRange);
-  void integerTickStepCase_yRangeChanged(QCPRange newRange);
   void testbedMouseClick(QMouseEvent *event);
   void mouseWheel(QWheelEvent *event);
   

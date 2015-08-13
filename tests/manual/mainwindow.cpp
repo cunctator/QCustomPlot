@@ -37,8 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupColorMapTest(mCustomPlot);
   //setupBarsTest(mCustomPlot);
   //setupBarsGroupTest(mCustomPlot);
-  setupLargeDataSetDelete(mCustomPlot);
-  //setupTestbed(mCustomPlot);
+  //setupLargeDataSetDelete(mCustomPlot);
+  setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -50,8 +50,8 @@ void MainWindow::setupItemAnchorTest(QCustomPlot *customPlot)
 {
   customPlot->xAxis->setRange(-3, 3);
   customPlot->yAxis->setRange(-3, 3);
-  customPlot->xAxis->setAutoTickCount(5);
-  customPlot->yAxis->setAutoTickCount(5);
+  customPlot->xAxis->ticker()->setTickCount(5);
+  customPlot->yAxis->ticker()->setTickCount(5);
  
   QCPItemPixmap *pixmapItem = new QCPItemPixmap(customPlot);
   pixmapItem->setPixmap(QPixmap("./gnu.png"));
@@ -316,7 +316,7 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
-  customPlot->yAxis->setSubTickCount(8);
+  // TODO: log ticker yAxis
   customPlot->yAxis->grid()->setSubGridVisible(true);
   int n = 11;
   QVector<double> x(n), y(n), yerr(n), xerr(n);
@@ -424,12 +424,13 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
 void MainWindow::setupDateTest(QCustomPlot *customPlot)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
-  customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTickerTime));
+  customPlot->xAxis->setRange(QDateTime(QDate(2015, 1, 1)).toTime_t(), QDateTime(QDate(2020, 1, 1)).toTime_t());
   QCPGraph *g = customPlot->addGraph();
-  g->addData(QDateTime(QDate(350,5,21), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 1);
-  g->addData(QDateTime(QDate(650,5,21), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 2);
-  g->addData(QDateTime(QDate(740,5,21), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 4);
-  g->addData(QDateTime(QDate(1000,5,21), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 8);
+  g->addData(QDateTime(QDate(2015,1,1), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 1);
+  g->addData(QDateTime(QDate(2015,6,1), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 2);
+  g->addData(QDateTime(QDate(2015,6,12), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 4);
+  g->addData(QDateTime(QDate(2017,12,15), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 8);
   g->rescaleAxes();
 #endif
 }
@@ -664,7 +665,7 @@ void MainWindow::setupMultiAxisRectInteractions(QCustomPlot *customPlot)
   inset->setMinimumSize(170, 120);
   inset->setupFullAxesBox(true);
   foreach (QCPAxis *ax, inset->axes())
-    ax->setAutoTickCount(3);
+    ax->ticker()->setTickCount(3);
   r3->insetLayout()->addElement(inset, Qt::AlignRight|Qt::AlignTop);
   
   connect(mCustomPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(setupMultiAxisRectInteractionsMouseMove(QMouseEvent*)));
@@ -1214,10 +1215,7 @@ void MainWindow::setupTestbed(QCustomPlot *customPlot)
 
 void MainWindow::setupIntegerTickStepCase(QCustomPlot *customPlot)
 {
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->yAxis->setAutoTickStep(false);
-  connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(integerTickStepCase_xRangeChanged(QCPRange)));
-  connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(integerTickStepCase_yRangeChanged(QCPRange)));
+  // TODO: integer ticker for xAxis and yAxis
 }
 
 void MainWindow::tracerTestMouseMove(QMouseEvent *event)
@@ -1333,42 +1331,6 @@ void MainWindow::colorMapMouseMove(QMouseEvent *event)
     
     mCustomPlot->replot();
   }
-}
-
-void MainWindow::integerTickStepCase_xRangeChanged(QCPRange newRange)
-{
-  // Generate tick positions according to linear scaling:
-  double mTickStep = newRange.size()/(double)(5+1e-10); // mAutoTickCount ticks on average, the small addition is to prevent jitter on exact integers
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(mTickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = mTickStep/magnitudeFactor;
-  if (tickStepMantissa < 5)
-  {
-    // round digit after decimal point to 0.5
-    mTickStep = (int)(tickStepMantissa*2)/2.0*magnitudeFactor;
-  } else
-  {
-    // round to first digit in multiples of 2
-    mTickStep = (int)((tickStepMantissa/10.0)*5)/5.0*10*magnitudeFactor;
-  }
-  mCustomPlot->xAxis->setTickStep(qCeil(mTickStep));
-}
-
-void MainWindow::integerTickStepCase_yRangeChanged(QCPRange newRange)
-{
-  // Generate tick positions according to linear scaling:
-  double mTickStep = newRange.size()/(double)(5+1e-10); // mAutoTickCount ticks on average, the small addition is to prevent jitter on exact integers
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(mTickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = mTickStep/magnitudeFactor;
-  if (tickStepMantissa < 5)
-  {
-    // round digit after decimal point to 0.5
-    mTickStep = (int)(tickStepMantissa*2)/2.0*magnitudeFactor;
-  } else
-  {
-    // round to first digit in multiples of 2
-    mTickStep = (int)((tickStepMantissa/10.0)*5)/5.0*10*magnitudeFactor;
-  }
-  mCustomPlot->yAxis->setTickStep(qCeil(mTickStep));
 }
 
 void MainWindow::testbedMouseClick(QMouseEvent *event)

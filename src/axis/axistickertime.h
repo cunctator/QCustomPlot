@@ -54,7 +54,7 @@ protected:
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
   
   // non-virtual methods:
-  void double pickClosestStep(double target, const QVector<double> &potentialSteps) const;
+  double pickClosestStep(double target, const QVector<double> &potentialSteps) const;
 };
 
 #endif // QCP_AXISTICKERTIME_H

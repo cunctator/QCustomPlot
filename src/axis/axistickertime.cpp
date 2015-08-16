@@ -68,9 +68,7 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
-  
-  
-  if (result < 3) // ideal tick step is below 3 seconds -> use normal tickstep algorithm
+  if (result < 1) // ideal tick step is below 1 second -> use normal tickstep algorithm in units of seconds
   {
     double magnitudeFactor = qPow(10.0, qFloor(qLn(result)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
     double tickStepMantissa = result/magnitudeFactor;
@@ -78,22 +76,24 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
       result = (int)(tickStepMantissa*2)/2.0*magnitudeFactor; // round digit after decimal point to 0.5
     else
       result = (int)(tickStepMantissa/2.0)*2.0*magnitudeFactor; // round to first digit in multiples of 2
-  } else if (result < 3600)
+  } else if (result < 31557600) // below a year
   {
-    // pick the closest step in allowed steps:
-    QVector<double> potentialSteps = QVector<double>() << 5 << 10 << 15 << 30 << 60 << 5*60 << 10*60 << 15*60 << 30*60 << 60*60;
-    QVector<double>::const_iterator it = std::lower_bound(potentialSteps.constBegin(), potentialSteps.constEnd(), result);
-    if (it == potentialSteps.constEnd())
-      result = *(--it);
-    else if (it == potentialSteps.constBegin())
-      result = *it;
+    result = pickClosestStep(result, QVector<double>()
+                             << 1 << 2.5 << 5 << 10 << 15 << 30 << 60 << 2*60 << 5*60 << 10*60 << 15*60 << 30*60 << 60*60 // second, minute, hour range
+                             << 3600 << 3600*2 << 3600*3 << 3600*6 << 3600*12 << 3600*24 // hour to day range
+                             << 86400 << 86400*2 << 86400*5 << 86400*7 << 86400*14 << 86400*30.4375 << 86400*30.4375*2 << 86400*30.4375*3 << 86400*30.4375*6 << 86400*30.4375*12); // day, week, month range (avg. days per month includes leap years)
+  } else // more than a year, go back to normal tickstep algorithm but in units of years
+  {
+    double resultYears = result/(86400*30.4375*12);
+    double magnitudeFactor = qPow(10.0, qFloor(qLn(resultYears)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
+    double tickStepMantissa = resultYears/magnitudeFactor;
+    if (tickStepMantissa < 5)
+      resultYears = (int)(tickStepMantissa*2)/2.0*magnitudeFactor; // round digit after decimal point to 0.5
     else
-      result = result-*(--it) < *it-result ? *(--it) : *it;
+      resultYears = (int)(tickStepMantissa/2.0)*2.0*magnitudeFactor; // round to first digit in multiples of 2
+    result = resultYears*(86400*30.4375*12);
   }
-  
-  
-  
-      return result;
+  return result;
 }
 
 int QCPAxisTickerTime::getSubTickCount(double tickStep)
@@ -178,9 +178,9 @@ double QCPAxisTickerTime::pickClosestStep(double target, const QVector<double> &
     return potentialSteps.first();
   QVector<double>::const_iterator it = std::lower_bound(potentialSteps.constBegin(), potentialSteps.constEnd(), target);
   if (it == potentialSteps.constEnd())
-    return *(--it);
+    return *(it-1);
   else if (it == potentialSteps.constBegin())
     return *it;
   else
-    return target-*(--it) < *it-target ? *(--it) : *it;
+    return target-*(it-1) < *it-target ? *(it-1) : *it;
 }

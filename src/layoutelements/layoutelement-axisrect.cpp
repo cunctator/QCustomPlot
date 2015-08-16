@@ -398,6 +398,7 @@ bool QCPAxisRect::removeAxis(QCPAxis *axis)
   \li number format (\ref QCPAxis::setNumberFormat)
   \li number precision (\ref QCPAxis::setNumberPrecision)
   \li tick count of ticker (\ref QCPAxisTicker::setTickCount)
+  \li tick origin of ticker (\ref QCPAxisTicker::setTickOrigin)
   
   Tick labels (\ref QCPAxis::setTickLabels) of the right and top axes are set to false.
 
@@ -442,6 +443,7 @@ void QCPAxisRect::setupFullAxesBox(bool connectRanges)
   xAxis2->setNumberFormat(xAxis->numberFormat());
   xAxis2->setNumberPrecision(xAxis->numberPrecision());
   xAxis2->ticker()->setTickCount(xAxis->ticker()->tickCount());
+  xAxis2->ticker()->setTickOrigin(xAxis->ticker()->tickOrigin());
   
   yAxis2->setRange(yAxis->range());
   yAxis2->setRangeReversed(yAxis->rangeReversed());
@@ -451,6 +453,7 @@ void QCPAxisRect::setupFullAxesBox(bool connectRanges)
   yAxis2->setNumberFormat(yAxis->numberFormat());
   yAxis2->setNumberPrecision(yAxis->numberPrecision());
   yAxis2->ticker()->setTickCount(yAxis->ticker()->tickCount());
+  yAxis2->ticker()->setTickOrigin(yAxis->ticker()->tickOrigin());
   
   if (connectRanges)
   {

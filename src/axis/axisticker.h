@@ -37,9 +37,11 @@ public:
   
   // getters:
   int tickCount() const { return mTickCount; }
+  double tickOrigin() const { return mTickOrigin; }
   
   // setters:
   void setTickCount(int count);
+  void setTickOrigin(double origin);
   
   // introduced virtual methods:
   virtual void generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> &tickLabels);
@@ -47,6 +49,7 @@ public:
 protected:
   // property members:
   int mTickCount;
+  double mTickOrigin;
   
   // introduced virtual methods:
   virtual double getTickStep(const QCPRange &range);

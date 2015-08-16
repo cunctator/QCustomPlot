@@ -35,7 +35,8 @@
 */
 
 QCPAxisTicker::QCPAxisTicker() :
-  mTickCount(6)
+  mTickCount(6),
+  mTickOrigin(0)
 {
 }
 
@@ -50,6 +51,11 @@ void QCPAxisTicker::setTickCount(int count)
     mTickCount = count;
   else
     qDebug() << Q_FUNC_INFO << "tick count must be greater than zero:" << count;
+}
+
+void QCPAxisTicker::setTickOrigin(double origin)
+{
+  mTickOrigin = origin;
 }
 
 void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> &tickLabels)
@@ -184,13 +190,13 @@ QVector<double> QCPAxisTicker::createTickVector(double tickStep, const QCPRange 
 {
   QVector<double> result;
   // Generate tick positions according to tickStep:
-  qint64 firstStep = floor(range.lower/tickStep); // do not use qFloor here, or we'll lose 64 bit precision
-  qint64 lastStep = ceil(range.upper/tickStep); // do not use qCeil here, or we'll lose 64 bit precision
+  qint64 firstStep = floor((range.lower-mTickOrigin)/tickStep); // do not use qFloor here, or we'll lose 64 bit precision
+  qint64 lastStep = ceil((range.upper-mTickOrigin)/tickStep); // do not use qCeil here, or we'll lose 64 bit precision
   int tickcount = lastStep-firstStep+1;
   if (tickcount < 0) tickcount = 0;
   result.resize(tickcount);
   for (int i=0; i<tickcount; ++i)
-    result[i] = (firstStep+i)*tickStep;
+    result[i] = mTickOrigin + (firstStep+i)*tickStep;
   return result;
 }
 

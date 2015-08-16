@@ -50,6 +50,20 @@ void QCPAxisTickerTime::setDateTimeSpec(Qt::TimeSpec spec)
   mDateTimeSpec = spec;
 }
 
+void QCPAxisTickerTime::setTickOrigin(double origin)
+{
+  QCPAxisTicker::setTickOrigin(origin);
+}
+
+void QCPAxisTickerTime::setTickOrigin(const QDateTime &origin)
+{
+#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+  setTickOrigin(origin.toTime_t());
+#else
+  setTickOrigin(origin.toMSecsSinceEpoch()/1000.0);
+#endif
+}
+
 double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers

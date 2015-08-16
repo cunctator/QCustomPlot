@@ -40,6 +40,8 @@ public:
   // setters:
   void setDateTimeFormat(const QString &format);
   void setDateTimeSpec(Qt::TimeSpec spec);
+  void setTickOrigin(double origin); // hides base class method but calls baseclass implementation ("using" throws off IDEs and doxygen)
+  void setTickOrigin(const QDateTime &origin);
   
 protected:
   // property members:

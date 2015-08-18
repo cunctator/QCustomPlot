@@ -204,7 +204,7 @@ void QCPGraphDataContainer::removeBefore(double key)
 {
   QCPGraphDataContainer::iterator it = begin();
   QCPGraphDataContainer::iterator itEnd = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
-  mData.erase(it, itEnd);
+  mPreallocSize += itEnd-it; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
@@ -213,7 +213,7 @@ void QCPGraphDataContainer::removeAfter(double key)
 {
   QCPGraphDataContainer::iterator it = std::upper_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   QCPGraphDataContainer::iterator itEnd = end();
-  mData.erase(it, itEnd);
+  mData.erase(it, itEnd); // typically adds it to the postallocated block
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
@@ -234,7 +234,12 @@ void QCPGraphDataContainer::remove(double key)
 {
   QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
   if (it != end() && it->key == key)
-    mData.erase(it);
+  {
+    if (it == begin())
+      ++mPreallocSize; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
+    else
+      mData.erase(it);
+  }
   if (mAutoSqueeze)
     performAutoSqueeze();
 }

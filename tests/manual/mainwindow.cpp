@@ -1267,20 +1267,55 @@ void MainWindow::setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event)
 
 void MainWindow::daqPerformanceDataSlot()
 {
-  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
+  static qint64 start = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
+  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000 - start;
   static qint64 lastMillisecond = currentMillisecond;
   static int ptsInThisMillisecond = 0;
-  if (ptsInThisMillisecond < 10)
-  {
-    ptsInThisMillisecond++;
-    double x = currentMillisecond/1000.0;
-    double y = qSin(x*10)*qCos(x/2.0);
-    mCustomPlot->graph(0)->addData(x+qSin(ptsInThisMillisecond*100)*0.001,y+qSin(ptsInThisMillisecond*10)*0.001);
-  }
   if (lastMillisecond != currentMillisecond)
   {
     ptsInThisMillisecond = 0;
     lastMillisecond = currentMillisecond;
+  }
+  static int dir = 1;
+  static bool grow = true;
+  if (mCustomPlot->graph()->data()->size() > 100000)
+    grow = false;
+  
+  if (rand()%100000 < 100)
+  {
+    if (grow)
+    {
+      if (rand()%1000 < 280)
+        dir = -1;
+      else
+        dir = 1;
+    } else
+    {
+      if (rand()%1000 < 450)
+        dir = -1;
+      else
+        dir = 1;
+    }
+  }
+  if (dir == 1)
+  {
+    if (ptsInThisMillisecond < 100)
+    {
+      ptsInThisMillisecond++;
+      double x = currentMillisecond/1000.0 + ptsInThisMillisecond/1e6;
+      double y = qSin(x*10)*qCos(x/2.0);
+      mCustomPlot->graph(0)->addData(x,y+qSin(ptsInThisMillisecond*10)*0.001);
+      mCustomPlot->graph(0)->addData(-x,y+qSin(ptsInThisMillisecond*10)*0.001);
+    }
+  } else
+  {
+    if (rand()%10 < 1)
+      mCustomPlot->graph(0)->removeDataBefore(mCustomPlot->graph(0)->data()->constBegin()->key+0.00000001);
+    else
+      mCustomPlot->graph(0)->removeData((mCustomPlot->graph(0)->data()->constEnd()-1)->key);
+    //mCustomPlot->graph(0)->data()->squeeze();
+    if (mCustomPlot->graph(0)->data()->isEmpty())
+      qApp->quit();
   }
 }
 
@@ -1289,7 +1324,13 @@ void MainWindow::daqPerformanceReplotSlot()
   double lastX = 0;
   if (!mCustomPlot->graph(0)->data()->isEmpty())
     lastX = (mCustomPlot->graph(0)->data()->constEnd()-1)->key;
-  mCustomPlot->xAxis->setRange(lastX, 10, Qt::AlignRight);
+  static bool hasRescaled = false;
+  if (!hasRescaled)
+  {
+    mCustomPlot->rescaleAxes();
+    hasRescaled = true;
+  }
+  //mCustomPlot->xAxis->setRange(lastX, 10, Qt::AlignRight);
   mCustomPlot->replot();
   
   int dataPoints = mCustomPlot->graph(0)->data()->size();
@@ -1297,6 +1338,14 @@ void MainWindow::daqPerformanceReplotSlot()
   qint64 now = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
   static qint64 lastT = now;
   static QString dataPointFrequency("0 Hz");
+  /*
+  if (rand() < RAND_MAX*0.05)
+  {
+    mCustomPlot->graph(0)->removeData(mCustomPlot->graph(0)->data()->constBegin()->key/2, (mCustomPlot->graph(0)->data()->constEnd()-1)->key/2.0);
+    mCustomPlot->graph(0)->addData(0, std::numeric_limits<double>::quiet_NaN());
+    //mCustomPlot->graph(0)->data()->squeeze();
+  }
+  */
   if (now-lastT > 1000)
   {
     dataPointFrequency = QString::number((dataPoints-lastDataPoints)/(double)(now-lastT)*1000.0)+" Hz";

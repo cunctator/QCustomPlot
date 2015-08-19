@@ -66,10 +66,10 @@ QCPGraphData::QCPGraphData(double key, double value) :
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPGraphDataContainer
+//////////////////// QCPDataContainer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPGraphDataContainer
+/*! \class QCPDataContainer
   \brief Container for storing \ref QCPGraphData objects, used by \ref QCPGraph.
   
   This is the container in which QCPGraph holds its data in a sorted fashion.
@@ -77,16 +77,18 @@ QCPGraphData::QCPGraphData(double key, double value) :
 */
 
 /*!
-  Constructs a QCPGraphDataContainer used for QCPGraph
+  Constructs a QCPDataContainer used for QCPGraph
 */
-QCPGraphDataContainer::QCPGraphDataContainer() :
+template <class DataType>
+QCPDataContainer<DataType>::QCPDataContainer() :
   mAutoSqueeze(true),
   mPreallocSize(0),
   mPreallocIteration(0)
 {
 }
 
-void QCPGraphDataContainer::setAutoSqueeze(bool enabled)
+template <class DataType>
+void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
 {
   if (mAutoSqueeze != enabled)
   {
@@ -96,20 +98,22 @@ void QCPGraphDataContainer::setAutoSqueeze(bool enabled)
   }
 }
 
-void QCPGraphDataContainer::setData(const QCPGraphDataContainer &data)
+template <class DataType>
+void QCPDataContainer<DataType>::setData(const QCPDataContainer<DataType> &data)
 {
   mData = data.mData;
   mPreallocSize = 0;
   mPreallocIteration = 0;
 }
 
-void QCPGraphDataContainer::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+template <class DataType>
+void QCPDataContainer<DataType>::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   int n = qMin(keys.size(), values.size());
   mData.resize(n);
   mPreallocSize = 0;
   mPreallocIteration = 0;
-  QCPGraphDataContainer::iterator it = begin();
+  QCPDataContainer<DataType>::iterator it = begin();
   for (int i=0; i<n; ++i)
   {
     it->key = keys[i];
@@ -120,7 +124,8 @@ void QCPGraphDataContainer::setData(const QVector<double> &keys, const QVector<d
     sort();
 }
 
-void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+template <class DataType>
+void QCPDataContainer<DataType>::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   if (keys.size() != values.size())
     qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
@@ -135,7 +140,7 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
     if (mPreallocSize < n)
       preallocateGrow(n);
     mPreallocSize -= n;
-    QCPGraphDataContainer::iterator it = begin();
+    QCPDataContainer<DataType>::iterator it = begin();
     for (int i=0; i<n; ++i)
     {
       it->key = keys[i];
@@ -145,7 +150,7 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
   } else // don't need to prepend, so append and then sort and merge if necessary
   {
     mData.resize(oldSize+n);
-    QCPGraphDataContainer::iterator it = end()-n;
+    QCPDataContainer<DataType>::iterator it = end()-n;
     for (int i=0; i<n; ++i)
     {
       it->key = keys[i];
@@ -153,13 +158,14 @@ void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<doubl
       ++it;
     }
     if (!alreadySorted) // sort appended subrange if it wasn't already sorted
-      std::sort(end()-n, end(), qcpLessThanKey);
-    if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey);
+      std::sort(end()-n, end(), qcpLessThanKey<DataType>);
+    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
   }
 }
 
-void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
+template <class DataType>
+void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
 {
   if (data.isEmpty())
     return;
@@ -177,12 +183,13 @@ void QCPGraphDataContainer::add(const QCPGraphDataContainer &data)
   {
     mData.resize(oldSize+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
-    if (oldSize > 0 && !qcpLessThanKey(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey);
+    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
   }
 }
 
-void QCPGraphDataContainer::add(const QCPGraphData &data)
+template <class DataType>
+void QCPDataContainer<DataType>::add(const DataType &data)
 {
   if (isEmpty() || data.key >= (constEnd()-1)->key) // quickly handle appends
   {
@@ -195,44 +202,48 @@ void QCPGraphDataContainer::add(const QCPGraphData &data)
     *begin() = data;
   } else // handle inserts, maintaining sorted keys
   {
-    QCPGraphDataContainer::iterator insertionPoint = std::lower_bound(begin(), end(), data, qcpLessThanKey);
+    QCPDataContainer<DataType>::iterator insertionPoint = std::lower_bound(begin(), end(), data, qcpLessThanKey<DataType>);
     mData.insert(insertionPoint, data);
   }
 }
 
-void QCPGraphDataContainer::removeBefore(double key)
+template <class DataType>
+void QCPDataContainer<DataType>::removeBefore(double key)
 {
-  QCPGraphDataContainer::iterator it = begin();
-  QCPGraphDataContainer::iterator itEnd = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPDataContainer<DataType>::iterator it = begin();
+  QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey<DataType>);
   mPreallocSize += itEnd-it; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
 
-void QCPGraphDataContainer::removeAfter(double key)
+template <class DataType>
+void QCPDataContainer<DataType>::removeAfter(double key)
 {
-  QCPGraphDataContainer::iterator it = std::upper_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
-  QCPGraphDataContainer::iterator itEnd = end();
+  QCPDataContainer<DataType>::iterator it = std::upper_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = end();
   mData.erase(it, itEnd); // typically adds it to the postallocated block
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
 
-void QCPGraphDataContainer::remove(double fromKey, double toKey)
+template <class DataType>
+void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
 {
   if (fromKey >= toKey || isEmpty())
     return;
   
-  QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(fromKey, 0), qcpLessThanKey);
-  QCPGraphDataContainer::iterator itEnd = std::upper_bound(it, end(), QCPGraphData(toKey, 0), qcpLessThanKey);
+  QCPDataContainer<DataType>::iterator it = std::lower_bound(begin(), end(), QCPGraphData(fromKey, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = std::upper_bound(it, end(), QCPGraphData(toKey, 0), qcpLessThanKey<DataType>);
   mData.erase(it, itEnd);
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
 
-void QCPGraphDataContainer::remove(double key)
+template <class DataType>
+void QCPDataContainer<DataType>::remove(double key)
 {
-  QCPGraphDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPDataContainer::iterator it = std::lower_bound(begin(), end(), QCPGraphData(key, 0), qcpLessThanKey<DataType>);
   if (it != end() && it->key == key)
   {
     if (it == begin())
@@ -244,19 +255,22 @@ void QCPGraphDataContainer::remove(double key)
     performAutoSqueeze();
 }
 
-void QCPGraphDataContainer::clear()
+template <class DataType>
+void QCPDataContainer<DataType>::clear()
 {
   mData.clear();
   mPreallocIteration = 0;
   mPreallocSize = 0;
 }
 
-void QCPGraphDataContainer::sort()
+template <class DataType>
+void QCPDataContainer<DataType>::sort()
 {
-  std::sort(begin(), end(), qcpLessThanKey);
+  std::sort(begin(), end(), qcpLessThanKey<DataType>);
 }
 
-void QCPGraphDataContainer::squeeze(bool preAllocation, bool postAllocation)
+template <class DataType>
+void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation)
 {
   if (preAllocation)
   {
@@ -269,29 +283,32 @@ void QCPGraphDataContainer::squeeze(bool preAllocation, bool postAllocation)
     mData.squeeze();
 }
 
-QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findBeginBelowKey(double key) const
+template <class DataType>
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBeginBelowKey(double key) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPGraphDataContainer::const_iterator it = std::lower_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey<DataType>);
   if (it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
     --it;
   return it;
 }
 
-QCPGraphDataContainer::const_iterator QCPGraphDataContainer::findEndAboveKey(double key) const
+template <class DataType>
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEndAboveKey(double key) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPGraphDataContainer::const_iterator it = std::upper_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey);
+  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), QCPGraphData(key, 0), qcpLessThanKey<DataType>);
   if (it != constEnd())
     ++it;
   return it;
 }
 
-QCPRange QCPGraphDataContainer::keyRange(bool &foundRange, QCP::SignDomain signDomain)
+template <class DataType>
+QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain signDomain)
 {
   if (isEmpty())
   {
@@ -303,8 +320,8 @@ QCPRange QCPGraphDataContainer::keyRange(bool &foundRange, QCP::SignDomain signD
   bool haveUpper = false;
   double current;
   
-  QCPGraphDataContainer::const_iterator it = constBegin();
-  QCPGraphDataContainer::const_iterator itEnd = constEnd();
+  QCPDataContainer<DataType>::const_iterator it = constBegin();
+  QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
   if (signDomain == QCP::sdBoth) // range may be anywhere, just find first and last non-NaN key (because QCPGraph is sorted by key)
   {
     while (it != itEnd) // find first non-nan going up from left
@@ -374,7 +391,8 @@ QCPRange QCPGraphDataContainer::keyRange(bool &foundRange, QCP::SignDomain signD
   return range;
 }
 
-QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain signDomain)
+template <class DataType>
+QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomain signDomain)
 {
   if (isEmpty())
   {
@@ -386,8 +404,8 @@ QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain sig
   bool haveUpper = false;
   double current;
   
-  QCPGraphDataContainer::const_iterator it = constBegin();
-  QCPGraphDataContainer::const_iterator itEnd = constEnd();
+  QCPDataContainer<DataType>::const_iterator it = constBegin();
+  QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
   if (signDomain == QCP::sdBoth) // range may be anywhere
   {
     while (it != itEnd)
@@ -454,7 +472,8 @@ QCPRange QCPGraphDataContainer::valueRange(bool &foundRange, QCP::SignDomain sig
   return range;
 }
 
-void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
+template <class DataType>
+void QCPDataContainer<DataType>::preallocateGrow(int minimumPreallocSize)
 {
   if (minimumPreallocSize <= mPreallocSize)
     return;
@@ -469,7 +488,8 @@ void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
   mPreallocSize = newPreallocSize;
 }
 
-void QCPGraphDataContainer::performAutoSqueeze()
+template <class DataType>
+void QCPDataContainer<DataType>::performAutoSqueeze()
 {
   const int totalAlloc = mData.capacity();
   const int postAllocSize = totalAlloc-mData.size();
@@ -490,6 +510,11 @@ void QCPGraphDataContainer::performAutoSqueeze()
     squeeze(shrinkPreAllocation, shrinkPostAllocation);
 }
 
+/* 
+   QCPDataContainer template instantiation for QCPGraphData, so implementation doesn't need to be
+   put into the header file
+*/
+template class QCPDataContainer<QCPGraphData>;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPGraph

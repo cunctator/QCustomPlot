@@ -42,15 +42,17 @@ public:
   double key, value;
 };
 Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
-inline bool qcpLessThanKey(const QCPGraphData &a, const QCPGraphData &b) { return a.key < b.key; }
 
+template <class DataType>
+inline bool qcpLessThanKey(const DataType &a, const DataType &b) { return a.key < b.key; }
 
-class QCP_LIB_DECL QCPGraphDataContainer
+template <class DataType>
+class QCP_LIB_DECL QCPDataContainer
 {
 public:
-  typedef QVector<QCPGraphData>::const_iterator const_iterator;
-  typedef QVector<QCPGraphData>::iterator iterator;
-  QCPGraphDataContainer();
+  typedef typename QVector<DataType>::const_iterator const_iterator;
+  typedef typename QVector<DataType>::iterator iterator;
+  QCPDataContainer();
   
   void setAutoSqueeze(bool enabled);
   
@@ -58,11 +60,11 @@ public:
   bool isEmpty() const { return size() == 0; }
   bool autoSqueeze() const { return mAutoSqueeze; }
   
-  void setData(const QCPGraphDataContainer &data);
+  void setData(const QCPDataContainer<DataType> &data);
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
-  void add(const QCPGraphDataContainer &data);
-  void add(const QCPGraphData &data);
+  void add(const QCPDataContainer<DataType> &data);
+  void add(const DataType &data);
   void removeBefore(double key);
   void removeAfter(double key);
   void remove(double fromKey, double toKey);
@@ -71,25 +73,27 @@ public:
   void sort();
   void squeeze(bool preAllocation=true, bool postAllocation=true);
   
-  QCPGraphDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
-  QCPGraphDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
-  QCPGraphDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
-  QCPGraphDataContainer::iterator end() { return mData.end(); }
-  QCPGraphDataContainer::const_iterator findBeginBelowKey(double key) const;
-  QCPGraphDataContainer::const_iterator findEndAboveKey(double key) const;
+  QCPDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
+  QCPDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
+  QCPDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
+  QCPDataContainer::iterator end() { return mData.end(); }
+  QCPDataContainer::const_iterator findBeginBelowKey(double key) const;
+  QCPDataContainer::const_iterator findEndAboveKey(double key) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   
 protected:
   bool mAutoSqueeze;
   
-  QVector<QCPGraphData> mData;
+  QVector<DataType> mData;
   int mPreallocSize;
   int mPreallocIteration;
   
   void preallocateGrow(int minimumPreallocSize);
   void performAutoSqueeze();
 };
+
+typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
 
 

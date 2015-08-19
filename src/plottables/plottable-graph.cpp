@@ -455,19 +455,7 @@ void QCPGraphDataContainer::preallocateGrow(int minimumPreallocSize)
     return;
   
   int newPreallocSize = minimumPreallocSize;
-  switch (mPreallocIteration)
-  {
-    case 0: newPreallocSize += 4; break;
-    case 1: newPreallocSize += 12; break;
-    case 2: newPreallocSize += 32-12; break;
-    case 3: newPreallocSize += 64-12; break;
-    case 4: newPreallocSize += 128-12; break;
-    case 5: newPreallocSize += 256-12; break;
-    case 6: newPreallocSize += 512-12; break;
-    case 7: newPreallocSize += 1024-12; break;
-    case 8: newPreallocSize += 2048-12; break;
-    default: newPreallocSize += 2048; break;
-  }
+  newPreallocSize += (1u<<qBound(4, mPreallocIteration+4, 15)) - 12; // do 4 up to 32768-12 preallocation, doubling in each intermediate iteration
   ++mPreallocIteration;
   
   int sizeDifference = newPreallocSize-mPreallocSize;
@@ -483,14 +471,14 @@ void QCPGraphDataContainer::performAutoSqueeze()
   const int usedSize = size();
   bool shrinkPostAllocation = false;
   bool shrinkPreAllocation = false;
-  if (totalAlloc > 1000 && totalAlloc < 650000) // below 10 MiB raw data be generous with preallocated memory, below 1k points don't even bother
+  if (totalAlloc > 650000) // if allocation is larger, shrink earlier with respect to total used size
+  {
+    shrinkPostAllocation = postAllocSize > usedSize*1.5; // QVector grow strategy is 2^n for static data. Watch out not to oscillate!
+    shrinkPreAllocation = mPreallocSize*10 > usedSize;
+  } else if (totalAlloc > 1000) // below 10 MiB raw data be generous with preallocated memory, below 1k points don't even bother
   {
     shrinkPostAllocation = postAllocSize > usedSize*5;
-    shrinkPreAllocation = mPreallocSize > usedSize*5;
-  } else // if allocation is larger, shrink earlier with respect to total used size
-  {
-    shrinkPostAllocation = postAllocSize*2 > usedSize;
-    shrinkPreAllocation = mPreallocSize*2 > usedSize;
+    shrinkPreAllocation = mPreallocSize > usedSize*1.5; // preallocation can grow into postallocation, so can be smaller
   }
   
   if (shrinkPreAllocation || shrinkPostAllocation)

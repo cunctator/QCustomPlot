@@ -187,7 +187,7 @@ void QCPGraphDataContainer::add(const QCPGraphData &data)
   if (isEmpty() || data.key >= (constEnd()-1)->key) // quickly handle appends
   {
     mData.append(data);
-  } else if (data.key < (constEnd()-1)->key)  // quickly handle prepends using preallocated space
+  } else if (data.key < constBegin()->key)  // quickly handle prepends using preallocated space
   {
     if (mPreallocSize < 1)
       preallocateGrow(1);

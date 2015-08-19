@@ -185,7 +185,7 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
 {
   customPlot->addGraph();
 
-  QCPGraphDataContainer *data = new QCPGraphDataContainer;
+  QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
   int n = 10e6;
   QTime t;
   t.start();
@@ -194,11 +194,12 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
     data->add(QCPGraphData(i, i));
   }
   qDebug() << "data" << t.restart();
-  customPlot->graph(0)->setData(data, false);
+  customPlot->graph(0)->setData(data);
   qDebug() << "set" << t.restart();
   customPlot->xAxis->setRange(0, 50);
   customPlot->yAxis->setRange(-1, 1);
   t.restart();
+  customPlot->rescaleAxes();
   customPlot->replot();
   qDebug() << "replot" << t.restart();
   //customPlot->rescaleAxes();
@@ -1021,7 +1022,7 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPGraphDataContainer *data = new QCPGraphDataContainer;
+    QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<82000; ++i)
       data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);
@@ -1042,7 +1043,7 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPGraphDataContainer *data = new QCPGraphDataContainer;
+    QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<5000; ++i)
       data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);

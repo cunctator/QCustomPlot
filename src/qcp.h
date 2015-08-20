@@ -41,6 +41,7 @@
 #include "axis/axistickerpi.h"
 #include "axis/axistickerlog.h"
 #include "plottable.h"
+#include "datacontainer.h"
 #include "item.h"
 #include "lineending.h"
 #include "core.h"

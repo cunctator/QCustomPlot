@@ -30,6 +30,7 @@
 #include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -42,56 +43,6 @@ public:
   double key, value;
 };
 Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
-
-template <class DataType>
-inline bool qcpLessThanKey(const DataType &a, const DataType &b) { return a.key < b.key; }
-
-template <class DataType>
-class QCP_LIB_DECL QCPDataContainer
-{
-public:
-  typedef typename QVector<DataType>::const_iterator const_iterator;
-  typedef typename QVector<DataType>::iterator iterator;
-  QCPDataContainer();
-  
-  void setAutoSqueeze(bool enabled);
-  
-  int size() const { return mData.size()-mPreallocSize; }
-  bool isEmpty() const { return size() == 0; }
-  bool autoSqueeze() const { return mAutoSqueeze; }
-  
-  void set(const QCPDataContainer<DataType> &data);
-  void set(const QVector<DataType> &data, bool alreadySorted=false);
-  void add(const QCPDataContainer<DataType> &data);
-  void add(const QVector<DataType> &data, bool alreadySorted=false);
-  void add(const DataType &data);
-  void removeBefore(double key);
-  void removeAfter(double key);
-  void remove(double fromKey, double toKey);
-  void remove(double key);
-  void clear();
-  void sort();
-  void squeeze(bool preAllocation=true, bool postAllocation=true);
-  
-  QCPDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
-  QCPDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
-  QCPDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
-  QCPDataContainer::iterator end() { return mData.end(); }
-  QCPDataContainer::const_iterator findBeginBelowKey(double key) const;
-  QCPDataContainer::const_iterator findEndAboveKey(double key) const;
-  QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
-  QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
-  
-protected:
-  bool mAutoSqueeze;
-  
-  QVector<DataType> mData;
-  int mPreallocSize;
-  int mPreallocIteration;
-  
-  void preallocateGrow(int minimumPreallocSize);
-  void performAutoSqueeze();
-};
 
 
 class QCP_LIB_DECL QCPGraphDataContainer : public QCPDataContainer<QCPGraphData>

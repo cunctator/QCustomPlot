@@ -60,10 +60,10 @@ public:
   bool isEmpty() const { return size() == 0; }
   bool autoSqueeze() const { return mAutoSqueeze; }
   
-  void setData(const QCPDataContainer<DataType> &data);
-  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
-  void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void set(const QCPDataContainer<DataType> &data);
+  void set(const QVector<DataType> &data, bool alreadySorted=false);
   void add(const QCPDataContainer<DataType> &data);
+  void add(const QVector<DataType> &data, bool alreadySorted=false);
   void add(const DataType &data);
   void removeBefore(double key);
   void removeAfter(double key);
@@ -93,8 +93,21 @@ protected:
   void performAutoSqueeze();
 };
 
-typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
-Q_DECLARE_TYPEINFO(QCPGraphDataContainer, Q_MOVABLE_TYPE);
+
+class QCP_LIB_DECL QCPGraphDataContainer : public QCPDataContainer<QCPGraphData>
+{
+public:
+  QCPGraphDataContainer();
+  // overrides which just call base class methods ("using" keyword would be better but breaks QtCreator autocomplete...hmm [QTCREATORBUG-14941]):
+  inline void set(const QCPDataContainer<QCPGraphData> &data) { QCPDataContainer<QCPGraphData>::set(data); }
+  inline void set(const QVector<QCPGraphData> &data, bool alreadySorted=false) { QCPDataContainer<QCPGraphData>::set(data, alreadySorted); }
+  inline void add(const QCPDataContainer<QCPGraphData> &data) { QCPDataContainer<QCPGraphData>::set(data); }
+  inline void add(const QVector<QCPGraphData> &data, bool alreadySorted=false) { QCPDataContainer<QCPGraphData>::add(data, alreadySorted); }
+  inline void add(const QCPGraphData &data) { QCPDataContainer<QCPGraphData>::add(data); }
+  // overloads which take explicit vectors:
+  void set(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+};
 
 
 class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable

@@ -99,69 +99,19 @@ void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
 }
 
 template <class DataType>
-void QCPDataContainer<DataType>::setData(const QCPDataContainer<DataType> &data)
+void QCPDataContainer<DataType>::set(const QCPDataContainer<DataType> &data)
 {
-  mData = data.mData;
-  mPreallocSize = 0;
-  mPreallocIteration = 0;
+  set(data.mData, true);
 }
 
 template <class DataType>
-void QCPDataContainer<DataType>::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+void QCPDataContainer<DataType>::set(const QVector<DataType> &data, bool alreadySorted)
 {
-  int n = qMin(keys.size(), values.size());
-  mData.resize(n);
+  mData = data;
   mPreallocSize = 0;
   mPreallocIteration = 0;
-  QCPDataContainer<DataType>::iterator it = begin();
-  for (int i=0; i<n; ++i)
-  {
-    it->key = keys[i];
-    it->value = values[i];
-    ++it;
-  }
   if (!alreadySorted)
     sort();
-}
-
-template <class DataType>
-void QCPDataContainer<DataType>::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
-{
-  if (keys.size() != values.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
-  const int n = qMin(keys.size(), values.size());
-  if (n == 0)
-    return;
-  
-  const int oldSize = size();
-  
-  if (alreadySorted && oldSize > 0 && keys.last() <= constBegin()->key) // prepend if new data is sorted and keys are all smaller than existing ones
-  {
-    if (mPreallocSize < n)
-      preallocateGrow(n);
-    mPreallocSize -= n;
-    QCPDataContainer<DataType>::iterator it = begin();
-    for (int i=0; i<n; ++i)
-    {
-      it->key = keys[i];
-      it->value = values[i];
-      ++it;
-    }
-  } else // don't need to prepend, so append and then sort and merge if necessary
-  {
-    mData.resize(oldSize+n);
-    QCPDataContainer<DataType>::iterator it = end()-n;
-    for (int i=0; i<n; ++i)
-    {
-      it->key = keys[i];
-      it->value = values[i];
-      ++it;
-    }
-    if (!alreadySorted) // sort appended subrange if it wasn't already sorted
-      std::sort(end()-n, end(), qcpLessThanKey<DataType>);
-    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
-  }
 }
 
 template <class DataType>
@@ -183,6 +133,37 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
   {
     mData.resize(oldSize+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
+    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
+  }
+}
+
+template <class DataType>
+void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool alreadySorted)
+{
+  if (data.isEmpty())
+    return;
+  if (isEmpty())
+  {
+    set(data, alreadySorted);
+    return;
+  }
+  
+  const int n = data.size();
+  const int oldSize = size();
+  
+  if (alreadySorted && oldSize > 0 && (data.constEnd()-1)->key <= constBegin()->key) // prepend if new data is sorted and keys are all smaller than existing ones
+  {
+    if (mPreallocSize < n)
+      preallocateGrow(n);
+    mPreallocSize -= n;
+    std::copy(data.constBegin(), data.constEnd(), begin());
+  } else // don't need to prepend, so append and then sort and merge if necessary
+  {
+    mData.resize(oldSize+n);
+    std::copy(data.constBegin(), data.constEnd(), end()-n);
+    if (!alreadySorted) // sort appended subrange if it wasn't already sorted
+      std::sort(end()-n, end(), qcpLessThanKey<DataType>);
     if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
       std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
   }
@@ -614,7 +595,7 @@ QCPGraph::~QCPGraph()
 */
 void QCPGraph::setData(const QCPGraphDataContainer &data)
 {
-  mDataContainer->setData(data);
+  mDataContainer->set(data);
 }
 
 void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
@@ -630,7 +611,7 @@ void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
 */
 void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer->setData(keys, values, alreadySorted);
+  mDataContainer->set(keys, values, alreadySorted);
 }
 
 /*!
@@ -2097,4 +2078,40 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) c
 QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   return mDataContainer->valueRange(foundRange, inSignDomain);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPGraphDataContainer
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPGraphDataContainer
+  \brief
+
+
+*/
+
+
+QCPGraphDataContainer::QCPGraphDataContainer()
+{
+}
+
+void QCPGraphDataContainer::set(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  clear();
+  add(keys, values, alreadySorted);
+}
+
+void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPGraphData> tempData(n);
+  for (int i=0; i<n; ++i)
+  {
+    tempData[i].key = keys[i];
+    tempData[i].value = values[i];
+  }
+  add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }

@@ -40,6 +40,10 @@ class QCP_LIB_DECL QCPGraphData
 public:
   QCPGraphData();
   QCPGraphData(double key, double value);
+  
+  inline double sortKey() const { return key; }
+  inline static QCPGraphData fromSortKey(double sortKey) { return QCPGraphData(sortKey, 0); }
+  
   double key, value;
 };
 Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
@@ -48,7 +52,6 @@ Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
 class QCP_LIB_DECL QCPGraphDataContainer : public QCPDataContainer<QCPGraphData>
 {
 public:
-  QCPGraphDataContainer();
   // overrides which just call base class methods ("using" keyword would be better but breaks QtCreator autocomplete...hmm [QTCREATORBUG-14941]):
   inline void set(const QCPDataContainer<QCPGraphData> &data) { QCPDataContainer<QCPGraphData>::set(data); }
   inline void set(const QVector<QCPGraphData> &data, bool alreadySorted=false) { QCPDataContainer<QCPGraphData>::set(data, alreadySorted); }

@@ -92,8 +92,8 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
   {
     mData.resize(oldSize+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
-    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
+    if (oldSize > 0 && !qcpLessThanSortKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanSortKey<DataType>);
   }
 }
 
@@ -122,9 +122,9 @@ void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool already
     mData.resize(oldSize+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
     if (!alreadySorted) // sort appended subrange if it wasn't already sorted
-      std::sort(end()-n, end(), qcpLessThanKey<DataType>);
-    if (oldSize > 0 && !qcpLessThanKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
-      std::inplace_merge(begin(), end()-n, end(), qcpLessThanKey<DataType>);
+      std::sort(end()-n, end(), qcpLessThanSortKey<DataType>);
+    if (oldSize > 0 && !qcpLessThanSortKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
+      std::inplace_merge(begin(), end()-n, end(), qcpLessThanSortKey<DataType>);
   }
 }
 
@@ -142,7 +142,7 @@ void QCPDataContainer<DataType>::add(const DataType &data)
     *begin() = data;
   } else // handle inserts, maintaining sorted keys
   {
-    QCPDataContainer<DataType>::iterator insertionPoint = std::lower_bound(begin(), end(), data, qcpLessThanKey<DataType>);
+    QCPDataContainer<DataType>::iterator insertionPoint = std::lower_bound(begin(), end(), data, qcpLessThanSortKey<DataType>);
     mData.insert(insertionPoint, data);
   }
 }
@@ -151,7 +151,7 @@ template <class DataType>
 void QCPDataContainer<DataType>::removeBefore(double key)
 {
   QCPDataContainer<DataType>::iterator it = begin();
-  QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), DataType(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
   mPreallocSize += itEnd-it; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
   if (mAutoSqueeze)
     performAutoSqueeze();
@@ -160,7 +160,7 @@ void QCPDataContainer<DataType>::removeBefore(double key)
 template <class DataType>
 void QCPDataContainer<DataType>::removeAfter(double key)
 {
-  QCPDataContainer<DataType>::iterator it = std::upper_bound(begin(), end(), DataType(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::iterator it = std::upper_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
   QCPDataContainer<DataType>::iterator itEnd = end();
   mData.erase(it, itEnd); // typically adds it to the postallocated block
   if (mAutoSqueeze)
@@ -173,8 +173,8 @@ void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
   if (fromKey >= toKey || isEmpty())
     return;
   
-  QCPDataContainer<DataType>::iterator it = std::lower_bound(begin(), end(), DataType(fromKey, 0), qcpLessThanKey<DataType>);
-  QCPDataContainer<DataType>::iterator itEnd = std::upper_bound(it, end(), DataType(toKey, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(fromKey), qcpLessThanSortKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = std::upper_bound(it, end(), DataType::fromSortKey(toKey), qcpLessThanSortKey<DataType>);
   mData.erase(it, itEnd);
   if (mAutoSqueeze)
     performAutoSqueeze();
@@ -183,7 +183,7 @@ void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
 template <class DataType>
 void QCPDataContainer<DataType>::remove(double key)
 {
-  QCPDataContainer::iterator it = std::lower_bound(begin(), end(), DataType(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
   if (it != end() && it->key == key)
   {
     if (it == begin())
@@ -206,7 +206,7 @@ void QCPDataContainer<DataType>::clear()
 template <class DataType>
 void QCPDataContainer<DataType>::sort()
 {
-  std::sort(begin(), end(), qcpLessThanKey<DataType>);
+  std::sort(begin(), end(), qcpLessThanSortKey<DataType>);
 }
 
 template <class DataType>
@@ -229,7 +229,7 @@ typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
   if (it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
     --it;
   return it;
@@ -241,7 +241,7 @@ typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType(key, 0), qcpLessThanKey<DataType>);
+  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
   if (it != constEnd())
     ++it;
   return it;

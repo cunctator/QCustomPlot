@@ -1659,11 +1659,6 @@ QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain)
 
 */
 
-
-QCPGraphDataContainer::QCPGraphDataContainer()
-{
-}
-
 void QCPGraphDataContainer::set(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   clear();

@@ -29,7 +29,7 @@
 #include "global.h"
 
 template <class DataType>
-inline bool qcpLessThanKey(const DataType &a, const DataType &b) { return a.key < b.key; }
+inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
 
 template <class DataType>
 class QCP_LIB_DECL QCPDataContainer

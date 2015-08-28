@@ -262,36 +262,59 @@ QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain 
   
   QCPDataContainer<DataType>::const_iterator it = constBegin();
   QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
-  if (signDomain == QCP::sdBoth) // range may be anywhere, just find first and last non-NaN key (because QCPGraph is sorted by key)
+  if (signDomain == QCP::sdBoth) // range may be anywhere
   {
-    while (it != itEnd) // find first non-nan going up from left
+    if (DataType::sortKeyIsMainKey()) // if DataType is sorted by main key (e.g. QCPGraph, but not QCPCurve), use faster algorithm by finding just first and last key with non-NaN value
     {
-      if (!qIsNaN(it->value))
+      while (it != itEnd) // find first non-nan going up from left
       {
-        range.lower = it->key;
-        haveLower = true;
-        break;
+        if (!qIsNaN(it->mainValue()))
+        {
+          range.lower = it->mainKey();
+          haveLower = true;
+          break;
+        }
+        ++it;
       }
-      ++it;
-    }
-    it = itEnd;
-    while (it != constBegin()) // find first non-nan going down from right
-    {
-      --it;
-      if (!qIsNaN(it->value))
+      it = itEnd;
+      while (it != constBegin()) // find first non-nan going down from right
       {
-        range.upper = it->key;
-        haveUpper = true;
-        break;
+        --it;
+        if (!qIsNaN(it->mainValue()))
+        {
+          range.upper = it->mainKey();
+          haveUpper = true;
+          break;
+        }
+      }
+    } else // DataType is not sorted by main key, go through all data points and accordingly expand range
+    {
+      while (it != itEnd)
+      {
+        if (!qIsNaN(it->mainValue()))
+        {
+          current = it->mainKey();
+          if (current < range.lower || !haveLower)
+          {
+            range.lower = current;
+            haveLower = true;
+          }
+          if (current > range.upper || !haveUpper)
+          {
+            range.upper = current;
+            haveUpper = true;
+          }
+        }
+        ++it;
       }
     }
   } else if (signDomain == QCP::sdNegative) // range may only be in the negative sign domain
   {
     while (it != itEnd)
     {
-      if (!qIsNaN(it->value))
+      if (!qIsNaN(it->mainValue()))
       {
-        current = it->key;
+        current = it->mainKey();
         if ((current < range.lower || !haveLower) && current < 0)
         {
           range.lower = current;
@@ -309,9 +332,9 @@ QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain 
   {
     while (it != itEnd)
     {
-      if (!qIsNaN(it->value))
+      if (!qIsNaN(it->mainValue()))
       {
-        current = it->key;
+        current = it->mainKey();
         if ((current < range.lower || !haveLower) && current > 0)
         {
           range.lower = current;
@@ -342,7 +365,7 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   QCPRange range;
   bool haveLower = false;
   bool haveUpper = false;
-  double current;
+  QCPRange current;
   
   QCPDataContainer<DataType>::const_iterator it = constBegin();
   QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
@@ -350,19 +373,16 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   {
     while (it != itEnd)
     {
-      if (!qIsNaN(it->value))
+      current = it->valueRange();
+      if ((current.lower < range.lower || !haveLower) && !qIsNaN(current.lower))
       {
-        current = it->value;
-        if (current < range.lower || !haveLower)
-        {
-          range.lower = current;
-          haveLower = true;
-        }
-        if (current > range.upper || !haveUpper)
-        {
-          range.upper = current;
-          haveUpper = true;
-        }
+        range.lower = current.lower;
+        haveLower = true;
+      }
+      if ((current.upper > range.upper || !haveUpper) && !qIsNaN(current.upper))
+      {
+        range.upper = current.upper;
+        haveUpper = true;
       }
       ++it;
     }
@@ -370,19 +390,16 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   {
     while (it != itEnd)
     {
-      if (!qIsNaN(it->value))
+      current = it->valueRange();
+      if ((current.lower < range.lower || !haveLower) && current.lower < 0 && !qIsNaN(current.lower))
       {
-        current = it->value;
-        if ((current < range.lower || !haveLower) && current < 0)
-        {
-          range.lower = current;
-          haveLower = true;
-        }
-        if ((current > range.upper || !haveUpper) && current < 0)
-        {
-          range.upper = current;
-          haveUpper = true;
-        }
+        range.lower = current.lower;
+        haveLower = true;
+      }
+      if ((current.upper > range.upper || !haveUpper) && current.upper < 0 && !qIsNaN(current.upper))
+      {
+        range.upper = current.upper;
+        haveUpper = true;
       }
       ++it;
     }
@@ -390,19 +407,16 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   {
     while (it != itEnd)
     {
-      if (!qIsNaN(it->value))
+      current = it->valueRange();
+      if ((current.lower < range.lower || !haveLower) && current.lower > 0 && !qIsNaN(current.lower))
       {
-        current = it->value;
-        if ((current < range.lower || !haveLower) && current > 0)
-        {
-          range.lower = current;
-          haveLower = true;
-        }
-        if ((current > range.upper || !haveUpper) && current > 0)
-        {
-          range.upper = current;
-          haveUpper = true;
-        }
+        range.lower = current.lower;
+        haveLower = true;
+      }
+      if ((current.upper > range.upper || !haveUpper) && current.upper > 0 && !qIsNaN(current.upper))
+      {
+        range.upper = current.upper;
+        haveUpper = true;
       }
       ++it;
     }

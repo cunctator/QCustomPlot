@@ -27,6 +27,7 @@
 #define QCP_DATACONTAINER_H
 
 #include "global.h"
+#include "axis/range.h"
 
 template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }

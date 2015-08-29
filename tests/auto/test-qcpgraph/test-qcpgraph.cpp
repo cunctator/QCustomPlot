@@ -67,56 +67,53 @@ void TestQCPGraph::dataManipulation()
   mGraph->setData(x, y);
   QCOMPARE(mGraph->data()->size(), 4);
   // data should be sorted by x:
-  QCOMPARE((mGraph->data()->begin()+0).value().value, 0.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().value, 1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().value, 2.0);
-  QCOMPARE((mGraph->data()->begin()+3).value().value, 3.0);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -2.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, -1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().key, 1.0);
-  QCOMPARE((mGraph->data()->begin()+3).value().key, 2.0);
-  // map key should be identical to data key:
-  for (int i=0; i<4; ++i)
-    QCOMPARE((mGraph->data()->begin()+i).key(), (mGraph->data()->begin()+i).value().key);
+  QCOMPARE((mGraph->data()->constBegin()+0)->value, 0.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->value, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->value, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+3)->value, 3.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, -1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->key, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+3)->key, 2.0);
   
   // data removal:
   mGraph->removeDataBefore(0);
   QCOMPARE(mGraph->data()->size(), 2);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, 1.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, 2.0);
+  QCOMPARE((mGraph->data()->begin()+0)->key, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, 2.0);
   
   mGraph->setData(x, y);
   mGraph->removeDataAfter(0);
   QCOMPARE(mGraph->data()->size(), 2);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -2.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, -1.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, -1.0);
   
   mGraph->setData(x, y);
   mGraph->removeData(-1.1, -0.9);
   QCOMPARE(mGraph->data()->size(), 3);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -2.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, 1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().key, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->key, 2.0);
   
   mGraph->setData(x, y);
   mGraph->removeData(-2.1, -1.9);
   QCOMPARE(mGraph->data()->size(), 3);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -1.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, 1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().key, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -1.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->key, 2.0);
   
   mGraph->setData(x, y);
   mGraph->removeData(1.9, 2.1);
   QCOMPARE(mGraph->data()->size(), 3);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -2.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, -1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().key, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, -1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->key, 1.0);
   
   mGraph->setData(x, y);
   mGraph->removeData(-1.1, 1.1);
   QCOMPARE(mGraph->data()->size(), 2);
-  QCOMPARE((mGraph->data()->begin()+0).value().key, -2.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().key, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->key, 2.0);
   
   mGraph->setData(x, y);
   mGraph->clearData();
@@ -127,28 +124,28 @@ void TestQCPGraph::dataManipulation()
   QCOMPARE(mGraph->data()->size(), 1);
   mGraph->addData(4, 5);
   QCOMPARE(mGraph->data()->size(), 2);
-  QCOMPARE((mGraph->data()->begin()+0).value().value, 5.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().value, 6.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->value, 5.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->value, 6.0);
   
   mGraph->setData(x, y);
   mGraph->addData(3, 4);
   QCOMPARE(mGraph->data()->size(), 5);
-  QCOMPARE((mGraph->data()->begin()+0).value().value, 0.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().value, 1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().value, 2.0);
-  QCOMPARE((mGraph->data()->begin()+3).value().value, 3.0);
-  QCOMPARE((mGraph->data()->begin()+4).value().value, 4.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->value, 0.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->value, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->value, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+3)->value, 3.0);
+  QCOMPARE((mGraph->data()->constBegin()+4)->value, 4.0);
   
   mGraph->setData(x, y);
   mGraph->addData(QVector<double>() << 3 << 4 << 5, QVector<double>() << 4 << 5 << 6);
   QCOMPARE(mGraph->data()->size(), 7);
-  QCOMPARE((mGraph->data()->begin()+0).value().value, 0.0);
-  QCOMPARE((mGraph->data()->begin()+1).value().value, 1.0);
-  QCOMPARE((mGraph->data()->begin()+2).value().value, 2.0);
-  QCOMPARE((mGraph->data()->begin()+3).value().value, 3.0);
-  QCOMPARE((mGraph->data()->begin()+4).value().value, 4.0);
-  QCOMPARE((mGraph->data()->begin()+5).value().value, 5.0);
-  QCOMPARE((mGraph->data()->begin()+6).value().value, 6.0);
+  QCOMPARE((mGraph->data()->constBegin()+0)->value, 0.0);
+  QCOMPARE((mGraph->data()->constBegin()+1)->value, 1.0);
+  QCOMPARE((mGraph->data()->constBegin()+2)->value, 2.0);
+  QCOMPARE((mGraph->data()->constBegin()+3)->value, 3.0);
+  QCOMPARE((mGraph->data()->constBegin()+4)->value, 4.0);
+  QCOMPARE((mGraph->data()->constBegin()+5)->value, 5.0);
+  QCOMPARE((mGraph->data()->constBegin()+6)->value, 6.0);
 }
 
 void TestQCPGraph::channelFill()

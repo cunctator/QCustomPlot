@@ -79,7 +79,7 @@ QCPGraphData::QCPGraphData(double key, double value) :
 
   To plot data, assign it with the \ref setData or \ref addData functions. Alternatively, you can
   also access and modify the graph's data via the \ref data method, which returns a pointer to the
-  internal \ref QCPDataMap.
+  internal \ref QCPGraphDataContainer.
   
   Graphs are used to display single-valued data. Single-valued means that there should only be one
   data point per unique key coordinate. In other words, the graph can't have \a loops. If you do
@@ -109,11 +109,11 @@ QCPGraphData::QCPGraphData(double key, double value) :
 
 /* start of documentation of inline functions */
 
-/*! \fn QCPDataMap *QCPGraph::data() const
+/*! \fn QSharedPointer<QCPGraphDataContainer> QCPGraph::data() const
   
-  Returns a pointer to the internal data storage of type \ref QCPDataMap. You may use it to
-  directly manipulate the data, which may be more convenient and faster than using the regular \ref
-  setData or \ref addData methods, in certain situations.
+  Returns a shared pointer to the internal data storage of type \ref QCPGraphDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods, in certain situations.
 */
 
 /* end of documentation of inline functions */
@@ -159,7 +159,7 @@ QCPGraph::~QCPGraph()
   significantly faster than copying for large datasets.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
+  returns a pointer to the internal \ref QCPGraphDataContainer.
 */
 void QCPGraph::setData(const QCPGraphDataContainer &data)
 {
@@ -270,10 +270,10 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
 }
 
 /*!
-  Adds the provided data points in \a dataMap to the current data.
+  Adds the provided data points in \a data to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
+  returns a pointer to the internal \ref QCPGraphDataContainer.
   
   \see removeData
 */
@@ -286,7 +286,7 @@ void QCPGraph::addData(const QCPGraphDataContainer &data)
   Adds the provided single data point in \a data to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
+  returns a pointer to the internal \ref QCPGraphDataContainer.
   
   \see removeData
 */
@@ -299,7 +299,7 @@ void QCPGraph::addData(const QCPGraphData &data)
   Adds the provided single data point as \a key and \a value pair to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
+  returns a pointer to the internal \ref QCPGraphDataContainer.
   
   \see removeData
 */
@@ -312,7 +312,7 @@ void QCPGraph::addData(double key, double value)
   Adds the provided data points as \a key and \a value pairs to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
+  returns a pointer to the internal \ref QCPGraphDataContainer.
   
   \see removeData
 */

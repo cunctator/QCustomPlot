@@ -1202,73 +1202,13 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
 /* inherits documentation from base class */
 QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current;
-  
-  QCPCurveDataContainer::const_iterator it = mDataContainer->constBegin();
-  while (it != mDataContainer->constEnd())
-  {
-    current = it->key;
-    if (!qIsNaN(current) && !qIsNaN(it->value))
-    {
-      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
-      {
-        if (current < range.lower || !haveLower)
-        {
-          range.lower = current;
-          haveLower = true;
-        }
-        if (current > range.upper || !haveUpper)
-        {
-          range.upper = current;
-          haveUpper = true;
-        }
-      }
-    }
-    ++it;
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
+  return mDataContainer->keyRange(foundRange, inSignDomain);
 }
 
 /* inherits documentation from base class */
 QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current;
-  
-  QCPCurveDataContainer::const_iterator it = mDataContainer->constBegin();
-  while (it != mDataContainer->constEnd())
-  {
-    current = it->value;
-    if (!qIsNaN(current) && !qIsNaN(it->key))
-    {
-      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
-      {
-        if (current < range.lower || !haveLower)
-        {
-          range.lower = current;
-          haveLower = true;
-        }
-        if (current > range.upper || !haveUpper)
-        {
-          range.upper = current;
-          haveUpper = true;
-        }
-      }
-    }
-    ++it;
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
+  return mDataContainer->valueRange(foundRange, inSignDomain);
 }
 
 

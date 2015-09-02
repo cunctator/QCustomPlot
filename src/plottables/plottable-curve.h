@@ -30,6 +30,7 @@
 #include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -39,21 +40,38 @@ class QCP_LIB_DECL QCPCurveData
 public:
   QCPCurveData();
   QCPCurveData(double t, double key, double value);
+  
+  inline double sortKey() const { return t; }
+  inline static QCPCurveData fromSortKey(double sortKey) { return QCPCurveData(sortKey, 0, 0); }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  inline static bool sortKeyIsMainKey() { return false; }
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  
+  
   double t, key, value;
 };
 Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
 
-/*! \typedef QCPCurveDataMap
-  Container for storing \ref QCPCurveData items in a sorted fashion. The key of the map
-  is the t member of the QCPCurveData instance.
-  
-  This is the container in which QCPCurve holds its data.
-  \see QCPCurveData, QCPCurve::setData
-*/
 
-typedef QMap<double, QCPCurveData> QCPCurveDataMap;
-typedef QMapIterator<double, QCPCurveData> QCPCurveDataMapIterator;
-typedef QMutableMapIterator<double, QCPCurveData> QCPCurveDataMutableMapIterator;
+class QCP_LIB_DECL QCPCurveDataContainer : public QCPDataContainer<QCPCurveData>
+{
+public:
+  // overrides which just call base class methods ("using" keyword would be better but breaks QtCreator autocomplete...hmm [QTCREATORBUG-14941]):
+  inline void set(const QCPDataContainer<QCPCurveData> &data) { QCPDataContainer<QCPCurveData>::set(data); }
+  inline void set(const QVector<QCPCurveData> &data, bool alreadySorted=false) { QCPDataContainer<QCPCurveData>::set(data, alreadySorted); }
+  inline void add(const QCPDataContainer<QCPCurveData> &data) { QCPDataContainer<QCPCurveData>::set(data); }
+  inline void add(const QVector<QCPCurveData> &data, bool alreadySorted=false) { QCPDataContainer<QCPCurveData>::add(data, alreadySorted); }
+  inline void add(const QCPCurveData &data) { QCPDataContainer<QCPCurveData>::add(data); }
+  // overloads which take explicit vectors:
+  void set(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
+  void set(const QVector<double> &key, const QVector<double> &value);
+  void add(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
+  void add(const QVector<double> &key, const QVector<double> &value);
+  void add(double key, double value);
+};
 
 
 class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
@@ -76,24 +94,24 @@ public:
   virtual ~QCPCurve();
   
   // getters:
-  QSharedPointer<QCPCurveDataMap> data() const { return mData; }
+  QSharedPointer<QCPCurveDataContainer> data() const { return mDataContainer; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
-  void setData(const QCPCurveDataMap &data);
-  void setData(QSharedPointer<QCPCurveDataMap> data);
-  void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value);
+  void setData(const QCPCurveDataContainer &data);
+  void setData(QSharedPointer<QCPCurveDataContainer> data);
+  void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
   void setData(const QVector<double> &key, const QVector<double> &value);
   void setScatterStyle(const QCPScatterStyle &style);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
-  void addData(const QCPCurveDataMap &dataMap);
+  void addData(const QCPCurveDataContainer &data);
   void addData(const QCPCurveData &data);
   void addData(double t, double key, double value);
   void addData(double key, double value);
-  void addData(const QVector<double> &ts, const QVector<double> &keys, const QVector<double> &values);
+  void addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
   void removeDataBefore(double t);
   void removeDataAfter(double t);
   void removeData(double fromt, double tot);
@@ -105,7 +123,7 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPCurveDataMap> mData;
+  QSharedPointer<QCPCurveDataContainer> mDataContainer;
   QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   

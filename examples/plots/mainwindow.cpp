@@ -205,8 +205,8 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   customPlot->graph(3)->setPen(QPen(Qt::blue));
   customPlot->graph(3)->setLineStyle(QCPGraph::lsNone);
   customPlot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 4));
-  customPlot->graph(3)->setErrorType(QCPGraph::etValue);
-  customPlot->graph(3)->setErrorPen(QPen(QColor(180,180,180)));
+  //customPlot->graph(3)->setErrorType(QCPGraph::etValue); // TODO: error bar plottable
+  //customPlot->graph(3)->setErrorPen(QPen(QColor(180,180,180))); // TODO: error bar plottable
   customPlot->graph(3)->setName("Measurement");
 
   // generate ideal sinc curve data and some randomly perturbed data for scatter plot:
@@ -237,7 +237,7 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   customPlot->graph(0)->setData(x0, yConfUpper);
   customPlot->graph(1)->setData(x0, yConfLower);
   customPlot->graph(2)->setData(x0, y0);
-  customPlot->graph(3)->setDataValueError(x1, y1, y1err);
+  //customPlot->graph(3)->setDataValueError(x1, y1, y1err); // TODO: error bar plottable
   customPlot->graph(2)->rescaleAxes();
   customPlot->graph(3)->rescaleAxes(true);
   // setup look of bottom tick labels:
@@ -530,7 +530,7 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   customPlot->graph(1)->setBrush(QBrush(QPixmap("./balboa.jpg"))); // same fill as we used for graph 0
   customPlot->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
   customPlot->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red, Qt::white, 7));
-  customPlot->graph(1)->setErrorType(QCPGraph::etValue);
+  //customPlot->graph(1)->setErrorType(QCPGraph::etValue); // TODO: error bar plottable
   customPlot->graph(1)->setName("Bottom maxwell function");
   
   // setup for graph 2: key axis top, value axis right
@@ -586,7 +586,7 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   
   // pass data points to graphs:
   customPlot->graph(0)->setData(x0, y0);
-  customPlot->graph(1)->setDataValueError(x1, y1, y1err);
+  //customPlot->graph(1)->setDataValueError(x1, y1, y1err); // TODO: error bar plottable
   customPlot->graph(2)->setData(x2, y2);
   customPlot->graph(3)->setData(x3, y3);
   customPlot->graph(4)->setData(x4, y4);
@@ -631,7 +631,7 @@ void MainWindow::setupLogarithmicDemo(QCustomPlot *customPlot)
   customPlot->addGraph();
   customPlot->graph(1)->setPen(QPen(Qt::red));
   customPlot->graph(1)->setBrush(QBrush(QColor(255, 0, 0, 20)));
-  customPlot->graph(1)->setErrorType(QCPGraph::etBoth);
+  //customPlot->graph(1)->setErrorType(QCPGraph::etBoth); // TODO: error bar plottable
   customPlot->graph(1)->setName("-sin(x)exp(x)");
   
   customPlot->addGraph();
@@ -1418,7 +1418,7 @@ void MainWindow::realtimeDataSlot()
     ui->statusBar->showMessage(
           QString("%1 FPS, Total Data points: %2")
           .arg(frameCount/(key-lastFpsKey), 0, 'f', 0)
-          .arg(ui->customPlot->graph(0)->data()->count()+ui->customPlot->graph(1)->data()->count())
+          .arg(ui->customPlot->graph(0)->data()->size()+ui->customPlot->graph(1)->data()->size())
           , 0);
     lastFpsKey = key;
     frameCount = 0;
@@ -1455,7 +1455,7 @@ void MainWindow::bracketDataSlot()
     ui->statusBar->showMessage(
           QString("%1 FPS, Total Data points: %2")
           .arg(frameCount/(key-lastFpsKey), 0, 'f', 0)
-          .arg(ui->customPlot->graph(0)->data()->count())
+          .arg(ui->customPlot->graph(0)->data()->size())
           , 0);
     lastFpsKey = key;
     frameCount = 0;

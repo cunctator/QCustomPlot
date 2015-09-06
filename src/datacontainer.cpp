@@ -32,6 +32,7 @@
 /*! \class QCPDataContainer
   \brief 
   
+  TODO
 */
 
 /*!
@@ -57,6 +58,9 @@ void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
   }
 }
 
+/*!
+  Replaces the current data with the provided \a data.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::set(const QCPDataContainer<DataType> &data)
 {
@@ -97,6 +101,13 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
   }
 }
 
+/*!
+  Adds the provided data points in \a data to the current data.
+  
+  TODO: alreadySorted doc
+  
+  \see remove
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool alreadySorted)
 {
@@ -128,6 +139,12 @@ void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool already
   }
 }
 
+/*! \overload
+  
+  Adds the provided single data point to the current data.
+  
+  \see remove
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::add(const DataType &data)
 {
@@ -147,6 +164,11 @@ void QCPDataContainer<DataType>::add(const DataType &data)
   }
 }
 
+/*!
+  Removes all data points with keys smaller than \a key.
+  
+  \see add, clear
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::removeBefore(double key)
 {
@@ -157,6 +179,11 @@ void QCPDataContainer<DataType>::removeBefore(double key)
     performAutoSqueeze();
 }
 
+/*!
+  Removes all data points with keys greater than \a key.
+
+  \see add, clear
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::removeAfter(double key)
 {
@@ -167,6 +194,13 @@ void QCPDataContainer<DataType>::removeAfter(double key)
     performAutoSqueeze();
 }
 
+/*!
+  Removes all data points with keys between \a fromKey and \a toKey. if \a fromKey is greater or
+  equal to \a toKey, the function does nothing. To remove a single data point with known key, use
+  \ref remove(double key).
+  
+  \see add, clear
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
 {
@@ -180,6 +214,14 @@ void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
     performAutoSqueeze();
 }
 
+/*! \overload
+  
+  Removes a single data point at \a key. If the position is not known with absolute precision,
+  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval around
+  the suspected position, depeding on the precision with which the key is known.
+
+  \see add, clear
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::remove(double key)
 {
@@ -195,6 +237,11 @@ void QCPDataContainer<DataType>::remove(double key)
     performAutoSqueeze();
 }
 
+/*!
+  Removes all data points.
+  
+  \see remove, removeAfter, removeBefore
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::clear()
 {

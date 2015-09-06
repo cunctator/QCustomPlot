@@ -105,7 +105,7 @@ void TestQCPBars::dataManipulation()
   QCOMPARE((mBars->data()->begin()+1).value().key, 2.0);
   
   mBars->setData(x, y);
-  mBars->clearData();
+  mBars->data()->clear();
   QCOMPARE(mBars->data()->size(), 0);
   
   // add single data points:

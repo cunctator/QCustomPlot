@@ -80,7 +80,7 @@ void TestQCPCurve::dataManipulation()
   QCOMPARE((mCurve->data()->begin()+1).value().t, 2.0);
   
   mCurve->setData(t, x, y);
-  mCurve->clearData();
+  mCurve->data()->clear();
   QCOMPARE(mCurve->data()->size(), 0);
   
   // add single data points:

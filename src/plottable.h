@@ -83,7 +83,6 @@ public:
   Q_SLOT void setSelected(bool selected);
 
   // introduced virtual methods:
-  virtual void clearData() = 0;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
   
   // non-property methods:

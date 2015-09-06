@@ -91,7 +91,7 @@ void TestQCPFinancial::dataManipulation()
   QCOMPARE((mFinancial->data()->begin()+1).value().key, 2.0);
   
   mFinancial->setData(key, open, high, low, close);
-  mFinancial->clearData();
+  mFinancial->data()->clear();
   QCOMPARE(mFinancial->data()->size(), 0);
   
   // add single data points:

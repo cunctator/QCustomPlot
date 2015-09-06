@@ -87,7 +87,6 @@ public:
   void setOutlierStyle(const QCPScatterStyle &style);
   
   // non-property methods:
-  virtual void clearData();
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:

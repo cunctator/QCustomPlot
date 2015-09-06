@@ -55,7 +55,6 @@
   
   To create an own plottable, you implement a subclass of QCPAbstractPlottable. These are the pure
   virtual functions, you must implement:
-  \li \ref clearData
   \li \ref selectTest
   \li \ref draw
   \li \ref drawLegendIcon
@@ -104,10 +103,6 @@
 */
 
 /* start of documentation of pure virtual functions */
-
-/*! \fn void QCPAbstractPlottable::clearData() = 0
-  Clears all data in the plottable.
-*/
 
 /*! \fn void QCPAbstractPlottable::drawLegendIcon(QCPPainter *painter, const QRect &rect) const = 0
   \internal

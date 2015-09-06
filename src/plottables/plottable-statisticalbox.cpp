@@ -269,18 +269,6 @@ void QCPStatisticalBox::setOutlierStyle(const QCPScatterStyle &style)
 }
 
 /* inherits documentation from base class */
-void QCPStatisticalBox::clearData()
-{
-  setOutliers(QVector<double>());
-  setKey(0);
-  setMinimum(0);
-  setLowerQuartile(0);
-  setMedian(0);
-  setUpperQuartile(0);
-  setMaximum(0);
-}
-
-/* inherits documentation from base class */
 double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)

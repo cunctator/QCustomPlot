@@ -116,7 +116,7 @@ void TestQCPGraph::dataManipulation()
   QCOMPARE((mGraph->data()->constBegin()+1)->key, 2.0);
   
   mGraph->setData(x, y);
-  mGraph->clearData();
+  mGraph->data()->clear();
   QCOMPARE(mGraph->data()->size(), 0);
   
   // add single data points:
@@ -162,7 +162,7 @@ void TestQCPGraph::channelFill()
   otherGraph->setData(QVector<double>()<<-2<<-1.5<<-1<<-0.5, QVector<double>()<<1<<1.2<<1.3<<1.4);
   mPlot->replot();
   
-  mGraph->clearData();
+  mGraph->data->clear();
   mPlot->replot();
   
   mPlot->removeGraph(otherGraph);

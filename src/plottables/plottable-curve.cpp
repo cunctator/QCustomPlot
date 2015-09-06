@@ -262,7 +262,7 @@ void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, con
 
 /*!
   Removes all data points with curve parameter t smaller than \a t.
-  \see addData, clearData
+  \see addData
 */
 void QCPCurve::removeDataBefore(double t)
 {
@@ -271,7 +271,7 @@ void QCPCurve::removeDataBefore(double t)
 
 /*!
   Removes all data points with curve parameter t greater than \a t.
-  \see addData, clearData
+  \see addData
 */
 void QCPCurve::removeDataAfter(double t)
 {
@@ -283,7 +283,7 @@ void QCPCurve::removeDataAfter(double t)
   greater or equal to \a tot, the function does nothing. To remove a single data point with known
   t, use \ref removeData(double t).
   
-  \see addData, clearData
+  \see addData
 */
 void QCPCurve::removeData(double fromt, double tot)
 {
@@ -297,20 +297,11 @@ void QCPCurve::removeData(double fromt, double tot)
   interval around the suspected position, depeding on the precision with which the curve parameter
   is known.
   
-  \see addData, clearData
+  \see addData
 */
 void QCPCurve::removeData(double t)
 {
   mDataContainer->remove(t);
-}
-
-/*!
-  Removes all data points.
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPCurve::clearData()
-{
-  mDataContainer->clear();
 }
 
 /* inherits documentation from base class */

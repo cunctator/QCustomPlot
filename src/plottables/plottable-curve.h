@@ -118,7 +118,6 @@ public:
   void removeData(double t);
   
   // reimplemented virtual methods:
-  virtual void clearData();
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:

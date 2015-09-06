@@ -355,7 +355,7 @@ void QCPFinancial::addData(const QVector<double> &key, const QVector<double> &op
 /*!
   Removes all data points with keys smaller than \a key.
   
-  \see addData, clearData
+  \see addData
 */
 void QCPFinancial::removeDataBefore(double key)
 {
@@ -367,7 +367,7 @@ void QCPFinancial::removeDataBefore(double key)
 /*!
   Removes all data points with keys greater than \a key.
   
-  \see addData, clearData
+  \see addData
 */
 void QCPFinancial::removeDataAfter(double key)
 {
@@ -382,7 +382,7 @@ void QCPFinancial::removeDataAfter(double key)
   equal to \a toKey, the function does nothing. To remove a single data point with known key, use
   \ref removeData(double key).
   
-  \see addData, clearData
+  \see addData
 */
 void QCPFinancial::removeData(double fromKey, double toKey)
 {
@@ -399,21 +399,11 @@ void QCPFinancial::removeData(double fromKey, double toKey)
   consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval
   around the suspected position, depeding on the precision with which the key is known.
 
-  \see addData, clearData
+  \see addData
 */
 void QCPFinancial::removeData(double key)
 {
   mData->remove(key);
-}
-
-/*!
-  Removes all data points.
-  
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPFinancial::clearData()
-{
-  mData->clear();
 }
 
 /* inherits documentation from base class */

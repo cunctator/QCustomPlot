@@ -323,7 +323,7 @@ void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &value
 
 /*!
   Removes all data points with keys smaller than \a key.
-  \see addData, clearData
+  \see addData
 */
 void QCPGraph::removeDataBefore(double key)
 {
@@ -332,7 +332,7 @@ void QCPGraph::removeDataBefore(double key)
 
 /*!
   Removes all data points with keys greater than \a key.
-  \see addData, clearData
+  \see addData
 */
 void QCPGraph::removeDataAfter(double key)
 {
@@ -344,7 +344,7 @@ void QCPGraph::removeDataAfter(double key)
   if \a fromKey is greater or equal to \a toKey, the function does nothing. To remove
   a single data point with known key, use \ref removeData(double key).
   
-  \see addData, clearData
+  \see addData
 */
 void QCPGraph::removeData(double fromKey, double toKey)
 {
@@ -357,20 +357,11 @@ void QCPGraph::removeData(double fromKey, double toKey)
   consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval around
   the suspected position, depeding on the precision with which the key is known.
 
-  \see addData, clearData
+  \see addData
 */
 void QCPGraph::removeData(double key)
 {
   mDataContainer->remove(key);
-}
-
-/*!
-  Removes all data points.
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPGraph::clearData()
-{
-  mDataContainer->clear();
 }
 
 /* inherits documentation from base class */

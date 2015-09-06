@@ -749,15 +749,6 @@ void QCPColorMap::updateLegendIcon(Qt::TransformationMode transformMode, const Q
   }
 }
 
-/*!
-  Clears the colormap data by calling \ref QCPColorMapData::clear() on the internal data. This also
-  resizes the map to 0x0 cells.
-*/
-void QCPColorMap::clearData()
-{
-  mMapData->clear();
-}
-
 /* inherits documentation from base class */
 double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {

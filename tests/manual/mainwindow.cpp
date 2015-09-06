@@ -530,7 +530,7 @@ void MainWindow::setupLayoutTest(QCustomPlot *customPlot)
   d1->insert(1, QCPCurveData(1, 3, 2));
   d1->insert(2, QCPCurveData(2, 6, 4));
   
-  c->clearData();
+  c->data()->clear();
   c->setData(d1, false);
   
   QCPCurveDataMap *d2 = new QCPCurveDataMap;
@@ -538,7 +538,7 @@ void MainWindow::setupLayoutTest(QCustomPlot *customPlot)
   d2->insert(2, QCPCurveData(2, 31, 22));
   d2->insert(4, QCPCurveData(4, 61, 42));
   
-  c->clearData();
+  c->data->clear();
   c->setData(d2, false);
   
   customPlot->replot();

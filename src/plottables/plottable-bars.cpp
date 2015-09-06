@@ -703,7 +703,7 @@ void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values
 
 /*!
   Removes all data points with key smaller than \a key.
-  \see addData, clearData
+  \see addData
 */
 void QCPBars::removeDataBefore(double key)
 {
@@ -715,7 +715,7 @@ void QCPBars::removeDataBefore(double key)
 
 /*!
   Removes all data points with key greater than \a key.
-  \see addData, clearData
+  \see addData
 */
 void QCPBars::removeDataAfter(double key)
 {
@@ -731,7 +731,7 @@ void QCPBars::removeDataAfter(double key)
   greater or equal to \a toKey, the function does nothing. To remove a single data point with known
   key, use \ref removeData(double key).
   
-  \see addData, clearData
+  \see addData
 */
 void QCPBars::removeData(double fromKey, double toKey)
 {
@@ -749,20 +749,11 @@ void QCPBars::removeData(double fromKey, double toKey)
   consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval
   around the suspected position, depeding on the precision with which the key is known.
   
-  \see addData, clearData
+  \see addData
 */
 void QCPBars::removeData(double key)
 {
   mData->remove(key);
-}
-
-/*!
-  Removes all data points.
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPBars::clearData()
-{
-  mData->clear();
 }
 
 /* inherits documentation from base class */

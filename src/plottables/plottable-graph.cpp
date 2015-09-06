@@ -151,21 +151,6 @@ QCPGraph::~QCPGraph()
 {
 }
 
-/*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the graph
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-*/
-void QCPGraph::setData(const QCPGraphDataContainer &data)
-{
-  mDataContainer->set(data);
-}
-
 void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
 {
   mDataContainer = data;
@@ -179,7 +164,8 @@ void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
 */
 void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer->set(keys, values, alreadySorted);
+  mDataContainer->clear();
+  addData(keys, values, alreadySorted);
 }
 
 /*!
@@ -269,99 +255,24 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
   mAdaptiveSampling = enabled;
 }
 
-/*!
-  Adds the provided data points in \a data to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-  
-  \see removeData
-*/
-void QCPGraph::addData(const QCPGraphDataContainer &data)
-{
-  mDataContainer->add(data);
-}
-
-/*! \overload
-  Adds the provided single data point in \a data to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-  
-  \see removeData
-*/
-void QCPGraph::addData(const QCPGraphData &data)
-{
-  mDataContainer->add(data);
-}
-
-/*! \overload
-  Adds the provided single data point as \a key and \a value pair to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-  
-  \see removeData
-*/
-void QCPGraph::addData(double key, double value)
-{
-  mDataContainer->add(QCPGraphData(key, value));
-}
-
 /*! \overload
   Adds the provided data points as \a key and \a value pairs to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
   returns a pointer to the internal \ref QCPGraphDataContainer.
-  
-  \see removeData
 */
 void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer->add(keys, values, alreadySorted);
-}
-
-/*!
-  Removes all data points with keys smaller than \a key.
-  \see addData
-*/
-void QCPGraph::removeDataBefore(double key)
-{
-  mDataContainer->removeBefore(key);
-}
-
-/*!
-  Removes all data points with keys greater than \a key.
-  \see addData
-*/
-void QCPGraph::removeDataAfter(double key)
-{
-  mDataContainer->removeAfter(key);
-}
-
-/*!
-  Removes all data points with keys between \a fromKey and \a toKey.
-  if \a fromKey is greater or equal to \a toKey, the function does nothing. To remove
-  a single data point with known key, use \ref removeData(double key).
-  
-  \see addData
-*/
-void QCPGraph::removeData(double fromKey, double toKey)
-{
-  mDataContainer->remove(fromKey, toKey);
-}
-
-/*! \overload
-  
-  Removes a single data point at \a key. If the position is not known with absolute precision,
-  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval around
-  the suspected position, depeding on the precision with which the key is known.
-
-  \see addData
-*/
-void QCPGraph::removeData(double key)
-{
-  mDataContainer->remove(key);
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPGraphData> tempData(n);
+  for (int i=0; i<n; ++i)
+  {
+    tempData[i].key = keys[i];
+    tempData[i].value = values[i];
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /* inherits documentation from base class */
@@ -1637,35 +1548,4 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) c
 QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   return mDataContainer->valueRange(foundRange, inSignDomain);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPGraphDataContainer
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*! \class QCPGraphDataContainer
-  \brief
-
-
-*/
-
-void QCPGraphDataContainer::set(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
-{
-  clear();
-  add(keys, values, alreadySorted);
-}
-
-void QCPGraphDataContainer::add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
-{
-  if (keys.size() != values.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
-  const int n = qMin(keys.size(), values.size());
-  QVector<QCPGraphData> tempData(n);
-  for (int i=0; i<n; ++i)
-  {
-    tempData[i].key = keys[i];
-    tempData[i].value = values[i];
-  }
-  add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }

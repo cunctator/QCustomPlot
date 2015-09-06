@@ -56,20 +56,7 @@ public:
 Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
 
 
-class QCP_LIB_DECL QCPGraphDataContainer : public QCPDataContainer<QCPGraphData>
-{
-public:
-  // overrides which just call base class methods ("using" keyword would be better but breaks QtCreator autocomplete...hmm [QTCREATORBUG-14941]):
-  inline void set(const QCPDataContainer<QCPGraphData> &data) { QCPDataContainer<QCPGraphData>::set(data); }
-  inline void set(const QVector<QCPGraphData> &data, bool alreadySorted=false) { QCPDataContainer<QCPGraphData>::set(data, alreadySorted); }
-  inline void add(const QCPDataContainer<QCPGraphData> &data) { QCPDataContainer<QCPGraphData>::set(data); }
-  inline void add(const QVector<QCPGraphData> &data, bool alreadySorted=false) { QCPDataContainer<QCPGraphData>::add(data, alreadySorted); }
-  inline void add(const QCPGraphData &data) { QCPDataContainer<QCPGraphData>::add(data); }
-  // overloads which take explicit vectors:
-  void set(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
-  void add(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
-};
-
+typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 
 class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
 {
@@ -107,7 +94,6 @@ public:
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
   // setters:
-  void setData(const QCPGraphDataContainer &data);
   void setData(QSharedPointer<QCPGraphDataContainer> data);
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
@@ -116,14 +102,7 @@ public:
   void setAdaptiveSampling(bool enabled);
   
   // non-property methods:
-  void addData(const QCPGraphDataContainer &data);
-  void addData(const QCPGraphData &data);
-  void addData(double key, double value);
   void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
-  void removeDataBefore(double key);
-  void removeDataAfter(double key);
-  void removeData(double fromKey, double toKey);
-  void removeData(double key);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;

@@ -206,7 +206,7 @@ void Benchmark::QCPGraph_RemoveDataBetween()
     graph->setData(x1, y1);
     timer.restart();
     
-    graph->removeData(0.5, 1.5); // 50% of total data in center
+    graph->data()->remove(0.5, 1.5); // 50% of total data in center
     
     elapsed += timer.nsecsElapsed();
     done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
@@ -239,7 +239,7 @@ void Benchmark::QCPGraph_RemoveDataAfter()
     graph->setData(x1, y1);
     timer.restart();
     
-    graph->removeDataAfter(1.0); // last 50% of total data
+    graph->data()->removeAfter(1.0); // last 50% of total data
     
     elapsed += timer.nsecsElapsed();
     done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations
@@ -272,7 +272,7 @@ void Benchmark::QCPGraph_RemoveDataBefore()
     graph->setData(x1, y1);
     timer.restart();
     
-    graph->removeDataBefore(1.0); // first 50% of total data
+    graph->data()->removeBefore(1.0); // first 50% of total data
     
     elapsed += timer.nsecsElapsed();
     done = elapsed > 25e3 && iterations > 3; // have 25us worth of removeData and done some iterations

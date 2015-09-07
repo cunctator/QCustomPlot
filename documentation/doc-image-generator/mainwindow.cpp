@@ -559,7 +559,7 @@ void MainWindow::genQCPGraph()
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
   
-  QVector<double> x1, y1, x2, y2, err2;
+  QVector<double> x1, y1, x2, y2, y3;
   for (int i=0; i<100; ++i)
   {
     x1 << i/99.0*10;
@@ -570,20 +570,26 @@ void MainWindow::genQCPGraph()
   }
   x2 << 1 << 2 << 3 << 4 << 5 << 6 << 7 << 8 << 9;
   y2 << 1 << 1.1 << 1.5 << 1.6 << 1.4 << 1.35 << 1.3 << 1.2 << 1.15;
-  err2 << 0.25 << 0.3 << 0.34 << 0.35 << 0.3 << 0.15 << 0.17 << 0.23 << 0.24;
+  foreach (double y, y2)
+    y3 << y + 0.6;
   
   customPlot->addGraph();
   customPlot->graph()->setData(x1, y1);
   customPlot->graph()->setBrush(QColor(255, 50, 50, 25));
   
   customPlot->addGraph();
-  customPlot->graph()->setDataValueError(x2, y2, err2);
-  customPlot->graph()->setErrorType(QCPGraph::etValue);
-  customPlot->graph()->setLineStyle(QCPGraph::lsNone);
+  customPlot->graph()->setData(x2, y2);
+  customPlot->graph()->setPen(QPen(QColor(100, 100, 100), 1, Qt::SolidLine));
   customPlot->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, QColor(0, 0, 0, 25), 6));
   
+  customPlot->addGraph();
+  customPlot->graph()->setData(x2, y3);
+  customPlot->graph()->setLineStyle(QCPGraph::lsStepCenter);
+  customPlot->graph()->setPen(QPen(QColor(100, 100, 100), 1, Qt::SolidLine));
+  customPlot->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, Qt::black, QColor(0, 0, 0, 25), 6));
+  
   customPlot->xAxis->setRange(-1, 11);
-  customPlot->yAxis->setRange(-0.5, 2.1);
+  customPlot->yAxis->setRange(-0.5, 2.4);
   
   customPlot->savePng(dir.filePath("QCPGraph.png"), 450, 200);
 }

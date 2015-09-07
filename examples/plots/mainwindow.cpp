@@ -414,16 +414,16 @@ void MainWindow::setupDateDemo(QCustomPlot *customPlot)
     customPlot->graph()->setPen(QPen(color.lighter(200)));
     customPlot->graph()->setBrush(QBrush(color));
     // generate random walk data:
-    QVector<double> time(250), value(250);
+    QVector<QCPGraphData> timeData(250);
     for (int i=0; i<250; ++i)
     {
-      time[i] = now + 24*3600*i;
+      timeData[i].key = now + 24*3600*i;
       if (i == 0)
-        value[i] = (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
+        timeData[i].value = (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
       else
-        value[i] = qFabs(value[i-1])*(1+0.02/4.0*(4-gi)) + (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
+        timeData[i].value = qFabs(timeData[i-1].value)*(1+0.02/4.0*(4-gi)) + (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
     }
-    customPlot->graph()->setData(time, value);
+    customPlot->graph()->data()->set(timeData);
   }
   // configure bottom axis to show date instead of number:
   QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
@@ -648,29 +648,28 @@ void MainWindow::setupLogarithmicDemo(QCustomPlot *customPlot)
   customPlot->graph(3)->setLineStyle(QCPGraph::lsStepCenter);
   customPlot->graph(3)->setName("x!");
   
-  QVector<double> x0(200), y0(200);
-  QVector<double> x1(200), y1(200);
-  QVector<double> x2(200), y2(200);
-  QVector<double> x3(21), y3(21);
-  for (int i=0; i<200; ++i)
+  const int dataCount = 200;
+  const int dataFactorialCount = 21;
+  QVector<QCPGraphData> dataLinear(dataCount), dataMinusSinExp(dataCount), dataPlusSinExp(dataCount), dataFactorial(dataFactorialCount);
+  for (int i=0; i<dataCount; ++i)
   {
-    x0[i] = i/10.0;
-    y0[i] = x0[i];
-    x1[i] = i/10.0;
-    y1[i] = -qSin(x1[i])*qExp(x1[i]);
-    x2[i] = i/10.0;
-    y2[i] = qSin(x2[i])*qExp(x2[i]);
+    dataLinear[i].key = i/10.0;
+    dataLinear[i].value = dataLinear[i].key;
+    dataMinusSinExp[i].key = i/10.0;
+    dataMinusSinExp[i].value = -qSin(dataMinusSinExp[i].key)*qExp(dataMinusSinExp[i].key);
+    dataPlusSinExp[i].key = i/10.0;
+    dataPlusSinExp[i].value = qSin(dataPlusSinExp[i].key)*qExp(dataPlusSinExp[i].key);
   }
-  for (int i=0; i<21; ++i)
+  for (int i=0; i<dataFactorialCount; ++i)
   {
-    x3[i] = i;
-    y3[i] = 1;
-    for (int k=1; k<=i; ++k) y3[i] *= k; // factorial
+    dataFactorial[i].key = i;
+    dataFactorial[i].value = 1.0;
+    for (int k=1; k<=i; ++k) dataFactorial[i].value *= k; // factorial
   }
-  customPlot->graph(0)->setData(x0, y0);
-  customPlot->graph(1)->setData(x1, y1);
-  customPlot->graph(2)->setData(x2, y2);
-  customPlot->graph(3)->setData(x3, y3);
+  customPlot->graph(0)->data()->set(dataLinear);
+  customPlot->graph(1)->data()->set(dataMinusSinExp);
+  customPlot->graph(2)->data()->set(dataPlusSinExp);
+  customPlot->graph(3)->data()->set(dataFactorial);
 
   customPlot->yAxis->grid()->setSubGridVisible(true);
   customPlot->xAxis->grid()->setSubGridVisible(true);
@@ -739,25 +738,20 @@ void MainWindow::setupParametricCurveDemo(QCustomPlot *customPlot)
   QCPCurve *fermatSpiral2 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
   QCPCurve *deltoidRadial = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
   // generate the curve data points:
-  int pointCount = 500;
-  QVector<double> x1(pointCount), y1(pointCount);
-  QVector<double> x2(pointCount), y2(pointCount);
-  QVector<double> x3(pointCount), y3(pointCount);
+  const int pointCount = 500;
+  QVector<QCPCurveData> dataSpiral1(pointCount), dataSpiral2(pointCount), dataDeltoid(pointCount);
   for (int i=0; i<pointCount; ++i)
   {
-    double phi = (i/(double)(pointCount-1))*8*M_PI;
-    x1[i] = qSqrt(phi)*qCos(phi);
-    y1[i] = qSqrt(phi)*qSin(phi);
-    x2[i] = -x1[i];
-    y2[i] = -y1[i];
-    double t = i/(double)(pointCount-1)*2*M_PI;
-    x3[i] = 2*qCos(2*t)+qCos(1*t)+2*qSin(t);
-    y3[i] = 2*qSin(2*t)-qSin(1*t);
+    double phi = i/(double)(pointCount-1)*8*M_PI;
+    double theta = i/(double)(pointCount-1)*2*M_PI;
+    dataSpiral1[i] = QCPCurveData(i, qSqrt(phi)*qCos(phi), qSqrt(phi)*qSin(phi));
+    dataSpiral2[i] = QCPCurveData(i, -dataSpiral1.last().key, -dataSpiral1.last().value);
+    dataDeltoid[i] = QCPCurveData(i, 2*qCos(2*theta)+qCos(1*theta)+2*qSin(theta), 2*qSin(2*theta)-qSin(1*theta));
   }
-  // pass the data to the curves:
-  fermatSpiral1->setData(x1, y1);
-  fermatSpiral2->setData(x2, y2);
-  deltoidRadial->setData(x3, y3);
+  // pass the data to the curves; we know t (i in loop above) is ascending, so set alreadySorted=true (saves an extra internal sort):
+  fermatSpiral1->data()->set(dataSpiral1, true);
+  fermatSpiral2->data()->set(dataSpiral2, true);
+  deltoidRadial->data()->set(dataDeltoid, true);
   // color the curves:
   fermatSpiral1->setPen(QPen(Qt::blue));
   fermatSpiral1->setBrush(QBrush(QColor(0, 0, 255, 20)));
@@ -1180,65 +1174,63 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   }
   
   // prepare data:
-  QVector<double> x1a(20), y1a(20);
-  QVector<double> x1b(50), y1b(50);
-  QVector<double> x2(100), y2(100);
+  QVector<QCPGraphData> dataCos(20), dataGauss(50), dataRandom(100);
   QVector<double> x3, y3;
   qsrand(3);
-  for (int i=0; i<x1a.size(); ++i)
+  for (int i=0; i<dataCos.size(); ++i)
   {
-    x1a[i] = i/(double)(x1a.size()-1)*10-5.0;
-    y1a[i] = qCos(x1a[i]);
+    dataCos[i].key = i/(double)(dataCos.size()-1)*10-5.0;
+    dataCos[i].value = qCos(dataCos[i].key);
   }
-  for (int i=0; i<x1b.size(); ++i)
+  for (int i=0; i<dataGauss.size(); ++i)
   {
-    x1b[i] = i/(double)x1b.size()*10-5.0;
-    y1b[i] = qExp(-x1b[i]*x1b[i]*0.2)*1000;
+    dataGauss[i].key = i/(double)dataGauss.size()*10-5.0;
+    dataGauss[i].value = qExp(-dataGauss[i].key*dataGauss[i].key*0.2)*1000;
   }
-  for (int i=0; i<x2.size(); ++i)
+  for (int i=0; i<dataRandom.size(); ++i)
   {
-    x2[i] = i/(double)x2.size()*10;
-    y2[i] = qrand()/(double)RAND_MAX-0.5+y2[qAbs(i-1)];
+    dataRandom[i].key = i/(double)dataRandom.size()*10;
+    dataRandom[i].value = qrand()/(double)RAND_MAX-0.5+dataRandom[qMax(0, i-1)].value;
   }
   x3 << 1 << 2 << 3 << 4;
   y3 << 2 << 2.5 << 4 << 1.5;
   
   // create and configure plottables:
-  QCPGraph *mainGraph1 = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft));
-  mainGraph1->setData(x1a, y1a);
-  mainGraph1->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black), QBrush(Qt::white), 6));
-  mainGraph1->setPen(QPen(QColor(120, 120, 120), 2));
-  QCPGraph *mainGraph2 = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft, 1));
-  mainGraph2->setData(x1b, y1b);
-  mainGraph2->setPen(QPen(QColor("#8070B8"), 2));
-  mainGraph2->setBrush(QColor(110, 170, 110, 30));
-  mainGraph1->setChannelFillGraph(mainGraph2);
-  mainGraph1->setBrush(QColor(255, 161, 0, 50));
+  QCPGraph *mainGraphCos = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft));
+  mainGraphCos->data()->set(dataCos);
+  mainGraphCos->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black), QBrush(Qt::white), 6));
+  mainGraphCos->setPen(QPen(QColor(120, 120, 120), 2));
+  QCPGraph *mainGraphGauss = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft, 1));
+  mainGraphGauss->data()->set(dataGauss);
+  mainGraphGauss->setPen(QPen(QColor("#8070B8"), 2));
+  mainGraphGauss->setBrush(QColor(110, 170, 110, 30));
+  mainGraphCos->setChannelFillGraph(mainGraphGauss);
+  mainGraphCos->setBrush(QColor(255, 161, 0, 50));
   
-  QCPGraph *graph2 = customPlot->addGraph(subRectLeft->axis(QCPAxis::atBottom), subRectLeft->axis(QCPAxis::atLeft));
-  graph2->setData(x2, y2);
-  graph2->setLineStyle(QCPGraph::lsImpulse);
-  graph2->setPen(QPen(QColor("#FFA100"), 1.5));
+  QCPGraph *subGraphRandom = customPlot->addGraph(subRectLeft->axis(QCPAxis::atBottom), subRectLeft->axis(QCPAxis::atLeft));
+  subGraphRandom->data()->set(dataRandom);
+  subGraphRandom->setLineStyle(QCPGraph::lsImpulse);
+  subGraphRandom->setPen(QPen(QColor("#FFA100"), 1.5));
   
-  QCPBars *bars1 = new QCPBars(subRectRight->axis(QCPAxis::atBottom), subRectRight->axis(QCPAxis::atRight));
-  bars1->setWidth(3/(double)x3.size());
-  bars1->setData(x3, y3);
-  bars1->setPen(QPen(Qt::black));
-  bars1->setAntialiased(false);
-  bars1->setAntialiasedFill(false);
-  bars1->setBrush(QColor("#705BE8"));
-  bars1->keyAxis()->setSubTicks(false);
-  // setup a ticker for bars1 key axis that only gives integer ticks:
+  QCPBars *subBars = new QCPBars(subRectRight->axis(QCPAxis::atBottom), subRectRight->axis(QCPAxis::atRight));
+  subBars->setWidth(3/(double)x3.size());
+  subBars->setData(x3, y3);
+  subBars->setPen(QPen(Qt::black));
+  subBars->setAntialiased(false);
+  subBars->setAntialiasedFill(false);
+  subBars->setBrush(QColor("#705BE8"));
+  subBars->keyAxis()->setSubTicks(false);
+  // setup a ticker for subBars key axis that only gives integer ticks:
   QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
   intTicker->setTickStep(1.0);
   intTicker->setScaleStrategy(QCPAxisTickerFixed::ssMultiples);
-  bars1->keyAxis()->setTicker(intTicker);
+  subBars->keyAxis()->setTicker(intTicker);
   
   // rescale axes according to graph's data:
-  mainGraph1->rescaleAxes();
-  mainGraph2->rescaleAxes();
-  graph2->rescaleAxes();
-  bars1->rescaleAxes();
+  mainGraphCos->rescaleAxes();
+  mainGraphGauss->rescaleAxes();
+  subGraphRandom->rescaleAxes();
+  subBars->rescaleAxes();
   wideAxisRect->axis(QCPAxis::atLeft, 1)->setRangeLower(0);
 }
 
@@ -1395,11 +1387,9 @@ void MainWindow::realtimeDataSlot()
   static double lastPointKey = 0;
   if (key-lastPointKey > 0.002) // at most add point every 5 ms
   {
-    double value0 = qSin(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.3843); //qSin(key*1.6+qCos(key*1.7)*2)*10 + qSin(key*1.2+0.56)*20 + 26;
-    double value1 = qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364); //qSin(key*1.3+qCos(key*1.2)*1.2)*7 + qSin(key*0.9+0.26)*24 + 26;
     // add data to lines:
-    ui->customPlot->graph(0)->addData(key, value0);
-    ui->customPlot->graph(1)->addData(key, value1);
+    ui->customPlot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.3843));
+    ui->customPlot->graph(1)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
     // rescale value (vertical) axis to fit the current data:
     //ui->customPlot->graph(0)->rescaleValueAxis();
     //ui->customPlot->graph(1)->rescaleValueAxis(true);

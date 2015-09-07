@@ -82,7 +82,9 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   coordinate \a t, which defines the order of the points described by the other two coordinates \a
   x and \a y.
 
-  To plot data, assign it with the \ref setData or \ref addData functions.
+  To plot data, assign it with the \ref setData or \ref addData functions. Alternatively, you can
+  also access and modify the curve's data via the \ref data method, which returns a pointer to the
+  internal \ref QCPCurveDataContainer.
   
   Gaps in the curve can be created by adding data points with NaN as key and value
   (<tt>qQNaN()</tt> or <tt>std::numeric_limits<double>::quiet_NaN()</tt>) in between the two data points that shall be
@@ -104,6 +106,17 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcurve-creation-2
 */
+
+/* start of documentation of inline functions */
+
+/*! \fn QSharedPointer<QCPCurveDataContainer> QCPCurve::data() const
+  
+  Returns a shared pointer to the internal data storage of type \ref QCPCurveDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods.
+*/
+
+/* end of documentation of inline functions */
 
 /*!
   Constructs a curve which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value
@@ -137,11 +150,6 @@ QCPCurve::~QCPCurve()
 {
 }
 
-void QCPCurve::setData(const QCPCurveDataContainer &data)
-{
-  mDataContainer->set(data);
-}
-
 void QCPCurve::setData(QSharedPointer<QCPCurveDataContainer> data)
 {
   mDataContainer = data;
@@ -150,22 +158,28 @@ void QCPCurve::setData(QSharedPointer<QCPCurveDataContainer> data)
 /*! \overload
   
   Replaces the current data with the provided points in \a t, \a key and \a value tuples. The
-  provided vectors should have equal length. Else, the number of added points will be the size of
-  the smallest vector.
+  provided vectors should have equal length. Otherwise the number of added points will be the size
+  of the smallest vector.
+  
+  \see addData
 */
 void QCPCurve::setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
 {
-  mDataContainer->set(t, key, value, alreadySorted);
+  mDataContainer->clear();
+  addData(t, key, value, alreadySorted);
 }
 
 /*! \overload
   
   Replaces the current data with the provided \a key and \a value pairs. The t parameter
   of each data point will be set to the integer index of the respective key/value pair.
+  
+  \see addData
 */
 void QCPCurve::setData(const QVector<double> &key, const QVector<double> &value)
 {
-  mDataContainer->set(key, value);
+  mDataContainer->clear();
+  addData(key, value);
 }
 
 /*!
@@ -192,59 +206,25 @@ void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
   mLineStyle = style;
 }
 
-/*!
-  Adds the provided data points in \a data to the current data.
-  
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
-  
-  \see removeData
-*/
-void QCPCurve::addData(const QCPCurveDataContainer &data)
-{
-  mDataContainer->add(data);
-}
-
 /*! \overload
-  Adds the provided single data point in \a data to the current data.
+  Adds the provided data points as \a t, \a key and \a value tuples to the current data.
   
   Alternatively, you can also access and modify the curve's data via the \ref data method, which
   returns a pointer to the internal \ref QCPCurveDataContainer.
-  
-  \see removeData
 */
-void QCPCurve::addData(const QCPCurveData &data)
+void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
 {
-  mDataContainer->add(data);
-}
-
-/*! \overload
-  Adds the provided single data point as \a t, \a key and \a value tuple to the current data
-  
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
-  
-  \see removeData
-*/
-void QCPCurve::addData(double t, double key, double value)
-{
-  mDataContainer->add(QCPCurveData(t, key, value));
-}
-
-/*! \overload
-  
-  Adds the provided single data point as \a key and \a value pair to the current data The t
-  parameter of the data point is set to the t of the last data point plus 1. If there is no last
-  data point, t will be set to 0.
-  
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
-  
-  \see removeData
-*/
-void QCPCurve::addData(double key, double value)
-{
-  mDataContainer->add(key, value);
+  if (t.size() != key.size() || t.size() != value.size())
+    qDebug() << Q_FUNC_INFO << "ts, keys and values have different sizes:" << t.size() << key.size() << value.size();
+  const int n = qMin(qMin(t.size(), key.size()), value.size());
+  QVector<QCPCurveData> tempData(n);
+  for (int i=0; i<n; ++i)
+  {
+    tempData[i].t = t[i];
+    tempData[i].key = key[i];
+    tempData[i].value = value[i];
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /*! \overload
@@ -252,56 +232,23 @@ void QCPCurve::addData(double key, double value)
   
   Alternatively, you can also access and modify the curve's data via the \ref data method, which
   returns a pointer to the internal \ref QCPCurveDataContainer.
-  
-  \see removeData
 */
-void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
+void QCPCurve::addData(const QVector<double> &key, const QVector<double> &value)
 {
-  mDataContainer->add(t, key, value, alreadySorted);
-}
-
-/*!
-  Removes all data points with curve parameter t smaller than \a t.
-  \see addData
-*/
-void QCPCurve::removeDataBefore(double t)
-{
-  mDataContainer->removeBefore(t);
-}
-
-/*!
-  Removes all data points with curve parameter t greater than \a t.
-  \see addData
-*/
-void QCPCurve::removeDataAfter(double t)
-{
-  mDataContainer->removeAfter(t);
-}
-
-/*!
-  Removes all data points with curve parameter t between \a fromt and \a tot. if \a fromt is
-  greater or equal to \a tot, the function does nothing. To remove a single data point with known
-  t, use \ref removeData(double t).
-  
-  \see addData
-*/
-void QCPCurve::removeData(double fromt, double tot)
-{
-  mDataContainer->remove(fromt, tot);
-}
-
-/*! \overload
-  
-  Removes a single data point at curve parameter \a t. If the position is not known with absolute
-  precision, consider using \ref removeData(double fromt, double tot) with a small fuzziness
-  interval around the suspected position, depeding on the precision with which the curve parameter
-  is known.
-  
-  \see addData
-*/
-void QCPCurve::removeData(double t)
-{
-  mDataContainer->remove(t);
+  if (key.size() != value.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << key.size() << value.size();
+  const int n = qMin(key.size(), value.size());
+  double tStart = 0;
+  if (!mDataContainer->isEmpty())
+    tStart = (mDataContainer->constEnd()-1)->t + 1.0;
+  QVector<QCPCurveData> tempData(n);
+  for (int i=0; i<n; ++i)
+  {
+    tempData[i].t = tStart + i;
+    tempData[i].key = key[i];
+    tempData[i].value = value[i];
+  }
+  mDataContainer->add(tempData, true); // don't modify tempData beyond this to prevent copy on write
 }
 
 /* inherits documentation from base class */
@@ -1200,68 +1147,4 @@ QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) c
 QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   return mDataContainer->valueRange(foundRange, inSignDomain);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPCurveDataContainer
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*! \class QCPCurveDataContainer
-  \brief
-
-
-*/
-
-void QCPCurveDataContainer::set(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
-{
-  clear();
-  add(t, key, value, alreadySorted);
-}
-
-void QCPCurveDataContainer::set(const QVector<double> &key, const QVector<double> &value)
-{
-  clear();
-  add(key, value);
-}
-
-void QCPCurveDataContainer::add(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
-{
-  if (t.size() != key.size() || t.size() != value.size())
-    qDebug() << Q_FUNC_INFO << "ts, keys and values have different sizes:" << t.size() << key.size() << value.size();
-  const int n = qMin(qMin(t.size(), key.size()), value.size());
-  QVector<QCPCurveData> tempData(n);
-  for (int i=0; i<n; ++i)
-  {
-    tempData[i].t = t[i];
-    tempData[i].key = key[i];
-    tempData[i].value = value[i];
-  }
-  add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
-}
-
-void QCPCurveDataContainer::add(const QVector<double> &key, const QVector<double> &value)
-{
-  if (key.size() != value.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << key.size() << value.size();
-  const int n = qMin(key.size(), value.size());
-  double tStart = 0;
-  if (!isEmpty())
-    tStart = (constEnd()-1)->t + 1.0;
-  QVector<QCPCurveData> tempData(n);
-  for (int i=0; i<n; ++i)
-  {
-    tempData[i].t = tStart + i;
-    tempData[i].key = key[i];
-    tempData[i].value = value[i];
-  }
-  add(tempData, true); // don't modify tempData beyond this to prevent copy on write
-}
-
-void QCPCurveDataContainer::add(double key, double value)
-{
-  double tStart = 0;
-  if (!isEmpty())
-    tStart = (constEnd()-1)->t + 1.0;
-  add(QCPCurveData(tStart, key, value));
 }

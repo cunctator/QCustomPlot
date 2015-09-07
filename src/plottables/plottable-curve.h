@@ -56,23 +56,7 @@ public:
 Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
 
 
-class QCP_LIB_DECL QCPCurveDataContainer : public QCPDataContainer<QCPCurveData>
-{
-public:
-  // overrides which just call base class methods ("using" keyword would be better but breaks QtCreator autocomplete...hmm [QTCREATORBUG-14941]):
-  inline void set(const QCPDataContainer<QCPCurveData> &data) { QCPDataContainer<QCPCurveData>::set(data); }
-  inline void set(const QVector<QCPCurveData> &data, bool alreadySorted=false) { QCPDataContainer<QCPCurveData>::set(data, alreadySorted); }
-  inline void add(const QCPDataContainer<QCPCurveData> &data) { QCPDataContainer<QCPCurveData>::set(data); }
-  inline void add(const QVector<QCPCurveData> &data, bool alreadySorted=false) { QCPDataContainer<QCPCurveData>::add(data, alreadySorted); }
-  inline void add(const QCPCurveData &data) { QCPDataContainer<QCPCurveData>::add(data); }
-  // overloads which take explicit vectors:
-  void set(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
-  void set(const QVector<double> &key, const QVector<double> &value);
-  void add(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
-  void add(const QVector<double> &key, const QVector<double> &value);
-  void add(double key, double value);
-};
-
+typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
 class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
 {
@@ -99,7 +83,6 @@ public:
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
-  void setData(const QCPCurveDataContainer &data);
   void setData(QSharedPointer<QCPCurveDataContainer> data);
   void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
   void setData(const QVector<double> &key, const QVector<double> &value);
@@ -107,15 +90,8 @@ public:
   void setLineStyle(LineStyle style);
   
   // non-property methods:
-  void addData(const QCPCurveDataContainer &data);
-  void addData(const QCPCurveData &data);
-  void addData(double t, double key, double value);
-  void addData(double key, double value);
   void addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
-  void removeDataBefore(double t);
-  void removeDataAfter(double t);
-  void removeData(double fromt, double tot);
-  void removeData(double t);
+  void addData(const QVector<double> &key, const QVector<double> &value);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;

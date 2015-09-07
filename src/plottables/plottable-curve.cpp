@@ -228,7 +228,11 @@ void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, con
 }
 
 /*! \overload
-  Adds the provided data points as \a t, \a key and \a value tuples to the current data.
+
+  Adds the provided data points as \a key and \a value pairs to the current data.
+
+  The t parameter is generated automatically by increments of 1 for each point, starting at the
+  highest t of previously existing data or 0, if the curve data is empty.
   
   Alternatively, you can also access and modify the curve's data via the \ref data method, which
   returns a pointer to the internal \ref QCPCurveDataContainer.
@@ -238,9 +242,11 @@ void QCPCurve::addData(const QVector<double> &key, const QVector<double> &value)
   if (key.size() != value.size())
     qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << key.size() << value.size();
   const int n = qMin(key.size(), value.size());
-  double tStart = 0;
+  double tStart;
   if (!mDataContainer->isEmpty())
     tStart = (mDataContainer->constEnd()-1)->t + 1.0;
+  else
+    tStart = 0;
   QVector<QCPCurveData> tempData(n);
   for (int i=0; i<n; ++i)
   {
@@ -249,6 +255,34 @@ void QCPCurve::addData(const QVector<double> &key, const QVector<double> &value)
     tempData[i].value = value[i];
   }
   mDataContainer->add(tempData, true); // don't modify tempData beyond this to prevent copy on write
+}
+
+/*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
+  
+  The t parameter is generated automatically by increments of 1 for each point, starting at the
+  highest t of previously existing data or 0, if the curve data is empty.
+  
+  Alternatively, you can also access and modify the curve's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPCurveDataContainer.
+*/
+void QCPCurve::addData(double t, double key, double value)
+{
+  mDataContainer->add(QCPCurveData(t, key, value));
+}
+
+/*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
+  
+  Alternatively, you can also access and modify the curve's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPCurveDataContainer.
+*/
+void QCPCurve::addData(double key, double value)
+{
+  if (!mDataContainer->isEmpty())
+    mDataContainer->add(QCPCurveData((mDataContainer->constEnd()-1)->t + 1.0, key, value));
+  else
+    mDataContainer->add(QCPCurveData(0.0, key, value));
 }
 
 /* inherits documentation from base class */

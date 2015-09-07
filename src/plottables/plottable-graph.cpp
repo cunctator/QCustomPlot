@@ -275,6 +275,17 @@ void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &value
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
+/*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
+  
+  Alternatively, you can also access and modify the graph's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPGraphDataContainer.
+*/
+void QCPGraph::addData(double key, double value)
+{
+  mDataContainer->add(QCPGraphData(key, value));
+}
+
 /* inherits documentation from base class */
 double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {

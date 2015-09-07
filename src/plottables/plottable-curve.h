@@ -92,6 +92,8 @@ public:
   // non-property methods:
   void addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
   void addData(const QVector<double> &key, const QVector<double> &value);
+  void addData(double t, double key, double value);
+  void addData(double key, double value);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;

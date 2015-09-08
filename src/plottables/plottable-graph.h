@@ -137,7 +137,7 @@ protected:
   void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
   void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
   void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &lower, QCPGraphDataContainer::const_iterator &upper) const;
+  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const;
   void addFillBasePoints(QVector<QPointF> *lineData) const;
   void removeFillBasePoints(QVector<QPointF> *lineData) const;
   QPointF lowerFillBasePoint(double lowerKey) const;

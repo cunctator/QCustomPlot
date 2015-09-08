@@ -1050,15 +1050,14 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
   called by \ref getPreparedData to determine which data (key) range is visible at the current key
   axis range setting, so only that needs to be processed.
   
-  \a lower returns an iterator to the lowest data point that needs to be taken into account when
+  \a begin returns an iterator to the lowest data point that needs to be taken into account when
   plotting. Note that in order to get a clean plot all the way to the edge of the axis rect, \a
-  lower may still be just outside the visible range.
+  begin may still be just outside the visible range.
   
-  \a upper returns the iterator just above the highest data point that needs to
-  be taken into account. Same as before, \a upper may also lie just outside of
-  the visible range.
+  \a end returns the iterator just above the highest data point that needs to be taken into
+  account. Same as before, \a end may also lie just outside of the visible range.
 
-  if the graph contains no data, both \a lower and \a upper point to \c constEnd.
+  if the graph contains no data, both \a begin and \a end point to \c constEnd.
 */
 void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const
 {

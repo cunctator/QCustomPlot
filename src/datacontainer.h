@@ -51,10 +51,10 @@ public:
   void add(const QCPDataContainer<DataType> &data);
   void add(const QVector<DataType> &data, bool alreadySorted=false);
   void add(const DataType &data);
-  void removeBefore(double key);
-  void removeAfter(double key);
-  void remove(double fromKey, double toKey);
-  void remove(double key);
+  void removeBefore(double sortKey);
+  void removeAfter(double sortKey);
+  void remove(double sortKeyFrom, double sortKeyTo);
+  void remove(double sortKey);
   void clear();
   void sort();
   void squeeze(bool preAllocation=true, bool postAllocation=true);

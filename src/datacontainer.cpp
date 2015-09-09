@@ -165,29 +165,29 @@ void QCPDataContainer<DataType>::add(const DataType &data)
 }
 
 /*!
-  Removes all data points with keys smaller than \a key.
+  Removes all data points with (sort-)keys smaller than \a sortKey.
   
   \see add, clear
 */
 template <class DataType>
-void QCPDataContainer<DataType>::removeBefore(double key)
+void QCPDataContainer<DataType>::removeBefore(double sortKey)
 {
   QCPDataContainer<DataType>::iterator it = begin();
-  QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
   mPreallocSize += itEnd-it; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
 
 /*!
-  Removes all data points with keys greater than \a key.
+  Removes all data points with (sort-)keys greater than \a sortKey.
 
   \see add, clear
 */
 template <class DataType>
-void QCPDataContainer<DataType>::removeAfter(double key)
+void QCPDataContainer<DataType>::removeAfter(double sortKey)
 {
-  QCPDataContainer<DataType>::iterator it = std::upper_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
+  QCPDataContainer<DataType>::iterator it = std::upper_bound(begin(), end(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
   QCPDataContainer<DataType>::iterator itEnd = end();
   mData.erase(it, itEnd); // typically adds it to the postallocated block
   if (mAutoSqueeze)
@@ -195,20 +195,20 @@ void QCPDataContainer<DataType>::removeAfter(double key)
 }
 
 /*!
-  Removes all data points with keys between \a fromKey and \a toKey. if \a fromKey is greater or
-  equal to \a toKey, the function does nothing. To remove a single data point with known key, use
-  \ref remove(double key).
+  Removes all data points with (sort-)keys between \a sortKeyFrom and \a sortKeyTo. if \a
+  sortKeyFrom is greater or equal to \a sortKeyTo, the function does nothing. To remove a single
+  data point with known (sort-)key, use \ref remove(double sortKey).
   
   \see add, clear
 */
 template <class DataType>
-void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
+void QCPDataContainer<DataType>::remove(double sortKeyFrom, double sortKeyTo)
 {
-  if (fromKey >= toKey || isEmpty())
+  if (sortKeyFrom >= sortKeyTo || isEmpty())
     return;
   
-  QCPDataContainer<DataType>::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(fromKey), qcpLessThanSortKey<DataType>);
-  QCPDataContainer<DataType>::iterator itEnd = std::upper_bound(it, end(), DataType::fromSortKey(toKey), qcpLessThanSortKey<DataType>);
+  QCPDataContainer<DataType>::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(sortKeyFrom), qcpLessThanSortKey<DataType>);
+  QCPDataContainer<DataType>::iterator itEnd = std::upper_bound(it, end(), DataType::fromSortKey(sortKeyTo), qcpLessThanSortKey<DataType>);
   mData.erase(it, itEnd);
   if (mAutoSqueeze)
     performAutoSqueeze();
@@ -216,17 +216,18 @@ void QCPDataContainer<DataType>::remove(double fromKey, double toKey)
 
 /*! \overload
   
-  Removes a single data point at \a key. If the position is not known with absolute precision,
-  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval around
-  the suspected position, depeding on the precision with which the key is known.
+  Removes a single data point at \a sortKey. If the position is not known with absolute precision,
+  consider using \ref removeData(double sortKeyFrom, double sortKeyTo) with a small fuzziness
+  interval around the suspected position, depeding on the precision with which the (sort-)key is
+  known.
 
   \see add, clear
 */
 template <class DataType>
-void QCPDataContainer<DataType>::remove(double key)
+void QCPDataContainer<DataType>::remove(double sortKey)
 {
-  QCPDataContainer::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
-  if (it != end() && it->key == key)
+  QCPDataContainer::iterator it = std::lower_bound(begin(), end(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
+  if (it != end() && it->sortKey() == sortKey)
   {
     if (it == begin())
       ++mPreallocSize; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)

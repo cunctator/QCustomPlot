@@ -24,60 +24,57 @@ void TestQCPCurve::dataManipulation()
   mCurve->setData(t, x, y);
   QCOMPARE(mCurve->data()->size(), 4);
   // data should be sorted by t:
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -2.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, -1.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().t, 1.0);
-  QCOMPARE((mCurve->data()->begin()+3).value().t, 2.0);
-  QCOMPARE((mCurve->data()->begin()+0).value().value, 12.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().value, 10.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().value, 9.0);
-  QCOMPARE((mCurve->data()->begin()+3).value().value, 15.0);
-  QCOMPARE((mCurve->data()->begin()+0).value().key, 3.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().key, 1.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().key, 2.0);
-  QCOMPARE((mCurve->data()->begin()+3).value().key, 4.0);
-  // map key should be identical to data t:
-  for (int i=0; i<4; ++i)
-    QCOMPARE((mCurve->data()->begin()+i).key(), (mCurve->data()->begin()+i).value().t);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -2.0);
+  QCOMPARE((mCurve->data()->begin()+1)->t, -1.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->t, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+3)->t, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->value, 12.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->value, 10.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->value, 9.0);
+  QCOMPARE((mCurve->data()->constBegin()+3)->value, 15.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->key, 3.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->key, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->key, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+3)->key, 4.0);
   
   // data removal:
-  mCurve->removeDataBefore(0);
+  mCurve->data()->removeBefore(0);
   QCOMPARE(mCurve->data()->size(), 2);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, 1.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, 2.0);
   
   mCurve->setData(t, x, y);
-  mCurve->removeDataAfter(0);
+  mCurve->data()->removeAfter(0);
   QCOMPARE(mCurve->data()->size(), 2);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -2.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, -1.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -2.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, -1.0);
   
   mCurve->setData(t, x, y);
-  mCurve->removeData(-1.1, -0.9);
+  mCurve->data()->remove(-1.1, -0.9);
   QCOMPARE(mCurve->data()->size(), 3);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -2.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, 1.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().t, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -2.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->t, 2.0);
   
   mCurve->setData(t, x, y);
-  mCurve->removeData(-2.1, -1.9);
+  mCurve->data()->remove(-2.1, -1.9);
   QCOMPARE(mCurve->data()->size(), 3);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -1.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, 1.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().t, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -1.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->t, 2.0);
   
   mCurve->setData(t, x, y);
-  mCurve->removeData(1.9, 2.1);
+  mCurve->data()->remove(1.9, 2.1);
   QCOMPARE(mCurve->data()->size(), 3);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -2.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, -1.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().t, 1.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -2.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, -1.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->t, 1.0);
   
   mCurve->setData(t, x, y);
-  mCurve->removeData(-1.1, 1.1);
+  mCurve->data()->remove(-1.1, 1.1);
   QCOMPARE(mCurve->data()->size(), 2);
-  QCOMPARE((mCurve->data()->begin()+0).value().t, -2.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().t, 2.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->t, -2.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->t, 2.0);
   
   mCurve->setData(t, x, y);
   mCurve->data()->clear();
@@ -88,36 +85,36 @@ void TestQCPCurve::dataManipulation()
   QCOMPARE(mCurve->data()->size(), 1);
   mCurve->addData(4, 14, 5);
   QCOMPARE(mCurve->data()->size(), 2);
-  QCOMPARE((mCurve->data()->begin()+0).value().value, 5.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().value, 6.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->value, 5.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->value, 6.0);
   
   mCurve->setData(t, x, y);
   mCurve->addData(3, 12, 4);
   QCOMPARE(mCurve->data()->size(), 5);
-  QCOMPARE((mCurve->data()->begin()+0).value().value, 12.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().value, 10.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().value, 9.0);
-  QCOMPARE((mCurve->data()->begin()+3).value().value, 15.0);
-  QCOMPARE((mCurve->data()->begin()+4).value().value, 4.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->value, 12.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->value, 10.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->value, 9.0);
+  QCOMPARE((mCurve->data()->constBegin()+3)->value, 15.0);
+  QCOMPARE((mCurve->data()->constBegin()+4)->value, 4.0);
   
   mCurve->setData(t, x, y);
   mCurve->addData(QVector<double>() << 3 << 4 << 5, QVector<double>() << 17 << 16 << 15, QVector<double>() << 4 << 5 << 6);
   QCOMPARE(mCurve->data()->size(), 7);
-  QCOMPARE((mCurve->data()->begin()+0).value().value, 12.0);
-  QCOMPARE((mCurve->data()->begin()+1).value().value, 10.0);
-  QCOMPARE((mCurve->data()->begin()+2).value().value, 9.0);
-  QCOMPARE((mCurve->data()->begin()+3).value().value, 15.0);
-  QCOMPARE((mCurve->data()->begin()+4).value().value, 4.0);
-  QCOMPARE((mCurve->data()->begin()+5).value().value, 5.0);
-  QCOMPARE((mCurve->data()->begin()+6).value().value, 6.0);
+  QCOMPARE((mCurve->data()->constBegin()+0)->value, 12.0);
+  QCOMPARE((mCurve->data()->constBegin()+1)->value, 10.0);
+  QCOMPARE((mCurve->data()->constBegin()+2)->value, 9.0);
+  QCOMPARE((mCurve->data()->constBegin()+3)->value, 15.0);
+  QCOMPARE((mCurve->data()->constBegin()+4)->value, 4.0);
+  QCOMPARE((mCurve->data()->constBegin()+5)->value, 5.0);
+  QCOMPARE((mCurve->data()->constBegin()+6)->value, 6.0);
 }
 
 void TestQCPCurve::dataSharing()
 {
   QCPCurve *curve2 = new QCPCurve(mPlot->xAxis, mPlot->yAxis);
   
-  QSharedPointer<QCPCurveDataMap> data = curve2->data();
-  mCurve->setData(data); // now shares data with bars2
+  QSharedPointer<QCPCurveDataContainer> data = curve2->data();
+  mCurve->setData(data); // now shares data with curve2
   
   QVector<double> t, x, y;
   t << -1 << 1 << -2 << 2;
@@ -127,7 +124,7 @@ void TestQCPCurve::dataSharing()
   
   QCOMPARE(mCurve->data()->size(), 4);
   QCOMPARE(curve2->data()->size(), 4);
-  data->insert(4, QCPCurveData(4, 9, 5)); // modify from outside
+  data->add(QCPCurveData(4, 9, 5)); // modify from outside
   QCOMPARE(mCurve->data()->size(), 5);
   QCOMPARE(curve2->data()->size(), 5);
   data.clear(); // clear external reference, internals should live on
@@ -136,7 +133,7 @@ void TestQCPCurve::dataSharing()
   QCOMPARE(curve2->data()->size(), 5);
   
   // decouple data again:
-  mCurve->setData(QSharedPointer<QCPCurveDataMap>(new QCPCurveDataMap));
+  mCurve->setData(QSharedPointer<QCPCurveDataContainer>(new QCPCurveDataContainer));
   mCurve->addData(1, 1);
   curve2->addData(4, 5);
   QCOMPARE(mCurve->data()->size(), 1);

@@ -77,40 +77,40 @@ void TestQCPGraph::dataManipulation()
   QCOMPARE((mGraph->data()->constBegin()+3)->key, 2.0);
   
   // data removal:
-  mGraph->removeDataBefore(0);
+  mGraph->data()->removeBefore(0);
   QCOMPARE(mGraph->data()->size(), 2);
   QCOMPARE((mGraph->data()->begin()+0)->key, 1.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, 2.0);
   
   mGraph->setData(x, y);
-  mGraph->removeDataAfter(0);
+  mGraph->data()->removeAfter(0);
   QCOMPARE(mGraph->data()->size(), 2);
   QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, -1.0);
   
   mGraph->setData(x, y);
-  mGraph->removeData(-1.1, -0.9);
+  mGraph->data()->remove(-1.1, -0.9);
   QCOMPARE(mGraph->data()->size(), 3);
   QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, 1.0);
   QCOMPARE((mGraph->data()->constBegin()+2)->key, 2.0);
   
   mGraph->setData(x, y);
-  mGraph->removeData(-2.1, -1.9);
+  mGraph->data()->remove(-2.1, -1.9);
   QCOMPARE(mGraph->data()->size(), 3);
   QCOMPARE((mGraph->data()->constBegin()+0)->key, -1.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, 1.0);
   QCOMPARE((mGraph->data()->constBegin()+2)->key, 2.0);
   
   mGraph->setData(x, y);
-  mGraph->removeData(1.9, 2.1);
+  mGraph->data()->remove(1.9, 2.1);
   QCOMPARE(mGraph->data()->size(), 3);
   QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, -1.0);
   QCOMPARE((mGraph->data()->constBegin()+2)->key, 1.0);
   
   mGraph->setData(x, y);
-  mGraph->removeData(-1.1, 1.1);
+  mGraph->data()->remove(-1.1, 1.1);
   QCOMPARE(mGraph->data()->size(), 2);
   QCOMPARE((mGraph->data()->constBegin()+0)->key, -2.0);
   QCOMPARE((mGraph->data()->constBegin()+1)->key, 2.0);
@@ -148,6 +148,36 @@ void TestQCPGraph::dataManipulation()
   QCOMPARE((mGraph->data()->constBegin()+6)->value, 6.0);
 }
 
+void TestQCPGraph::dataSharing()
+{
+  QCPGraph *graph2 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
+  
+  QSharedPointer<QCPGraphDataContainer> data = graph2->data();
+  mGraph->setData(data); // now shares data with curve2
+  
+  QVector<double> x, y;
+  x << -1 << 1 << -2 << 2;
+  y <<  10 << 9 <<  12 << 15;
+  graph2->setData(x, y);
+  
+  QCOMPARE(mGraph->data()->size(), 4);
+  QCOMPARE(graph2->data()->size(), 4);
+  data->add(QCPGraphData(4, 5)); // modify from outside
+  QCOMPARE(mGraph->data()->size(), 5);
+  QCOMPARE(graph2->data()->size(), 5);
+  data.clear(); // clear external reference, internals should live on
+  QVERIFY(!data);
+  QCOMPARE(mGraph->data()->size(), 5);
+  QCOMPARE(graph2->data()->size(), 5);
+  
+  // decouple data again:
+  mGraph->setData(QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer));
+  mGraph->addData(1, 1);
+  graph2->addData(4, 5);
+  QCOMPARE(mGraph->data()->size(), 1);
+  QCOMPARE(graph2->data()->size(), 6);
+}
+
 void TestQCPGraph::channelFill()
 {
   QCPGraph *otherGraph = mPlot->addGraph();
@@ -162,11 +192,12 @@ void TestQCPGraph::channelFill()
   otherGraph->setData(QVector<double>()<<-2<<-1.5<<-1<<-0.5, QVector<double>()<<1<<1.2<<1.3<<1.4);
   mPlot->replot();
   
-  mGraph->data->clear();
+  mGraph->data()->clear();
   mPlot->replot();
   
   mPlot->removeGraph(otherGraph);
   QCOMPARE(mGraph->channelFillGraph(), (QCPGraph*)0);
   mPlot->replot();
 }
+
 

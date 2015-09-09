@@ -86,7 +86,7 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
   const int n = data.size();
   const int oldSize = size();
   
-  if (oldSize > 0 && (data.constEnd()-1)->key <= constBegin()->key) // prepend if new data keys are all smaller than existing ones
+  if (oldSize > 0 && !qcpLessThanSortKey<DataType>(*constBegin(), *(data.constEnd()-1))) // prepend if new data keys are all smaller than or equal to existing ones
   {
     if (mPreallocSize < n)
       preallocateGrow(n);
@@ -122,7 +122,7 @@ void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool already
   const int n = data.size();
   const int oldSize = size();
   
-  if (alreadySorted && oldSize > 0 && (data.constEnd()-1)->key <= constBegin()->key) // prepend if new data is sorted and keys are all smaller than existing ones
+  if (alreadySorted && oldSize > 0 && !qcpLessThanSortKey<DataType>(*constBegin(), *(data.constEnd()-1))) // prepend if new data is sorted and keys are all smaller than or equal to existing ones
   {
     if (mPreallocSize < n)
       preallocateGrow(n);
@@ -148,10 +148,10 @@ void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool already
 template <class DataType>
 void QCPDataContainer<DataType>::add(const DataType &data)
 {
-  if (isEmpty() || data.key >= (constEnd()-1)->key) // quickly handle appends
+  if (isEmpty() || !qcpLessThanSortKey<DataType>(data, *(constEnd()-1))) // quickly handle appends if new data key is greater or equal to existing ones
   {
     mData.append(data);
-  } else if (data.key < constBegin()->key)  // quickly handle prepends using preallocated space
+  } else if (qcpLessThanSortKey<DataType>(data, *constBegin()))  // quickly handle prepends using preallocated space
   {
     if (mPreallocSize < 1)
       preallocateGrow(1);

@@ -29,6 +29,7 @@
 #include "../global.h"
 #include "../axis/range.h"
 #include "../plottable.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -96,25 +97,35 @@ private:
 };
 
 
-class QCP_LIB_DECL QCPBarData
+class QCP_LIB_DECL QCPBarsData
 {
 public:
-  QCPBarData();
-  QCPBarData(double key, double value);
+  QCPBarsData();
+  QCPBarsData(double key, double value);
+  
+  inline double sortKey() const { return key; }
+  inline static QCPBarsData fromSortKey(double sortKey) { return QCPBarsData(sortKey, 0); }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  inline static bool sortKeyIsMainKey() { return true; } 
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPBarData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
 
-/*! \typedef QCPBarDataMap
-  Container for storing \ref QCPBarData items in a sorted fashion. The key of the map
-  is the key member of the QCPBarData instance.
+/*! \typedef QCPBarsDataContainer
   
-  This is the container in which QCPBars holds its data.
-  \see QCPBarData, QCPBars::setData
+  Container for storing \ref QCPBarsData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPBars holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPBarsData, QCPBars::setData
 */
-typedef QMap<double, QCPBarData> QCPBarDataMap;
-typedef QMapIterator<double, QCPBarData> QCPBarDataMapIterator;
-typedef QMutableMapIterator<double, QCPBarData> QCPBarDataMutableMapIterator;
+typedef QCPDataContainer<QCPBarsData> QCPBarsDataContainer;
 
 
 class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
@@ -151,35 +162,28 @@ public:
   double baseValue() const { return mBaseValue; }
   QCPBars *barBelow() const { return mBarBelow.data(); }
   QCPBars *barAbove() const { return mBarAbove.data(); }
-  QSharedPointer<QCPBarDataMap> data() const { return mData; }
+  QSharedPointer<QCPBarsDataContainer> data() const { return mDataContainer; }
   
   // setters:
   void setWidth(double width);
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
-  void setData(const QCPBarDataMap &data);
-  void setData(QSharedPointer<QCPBarDataMap> data);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setData(QSharedPointer<QCPBarsDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   
   // non-property methods:
   void moveBelow(QCPBars *bars);
   void moveAbove(QCPBars *bars);
-  void addData(const QCPBarDataMap &dataMap);
-  void addData(const QCPBarData &data);
+  void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void addData(double key, double value);
-  void addData(const QVector<double> &keys, const QVector<double> &values);
-  void removeDataBefore(double key);
-  void removeDataAfter(double key);
-  void removeData(double fromKey, double toKey);
-  void removeData(double key);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:
   // property members:
-  QSharedPointer<QCPBarDataMap> mData;
+  QSharedPointer<QCPBarsDataContainer> mDataContainer;
   double mWidth;
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;
@@ -193,7 +197,7 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // non-virtual methods:
-  void getVisibleDataBounds(QCPBarDataMap::const_iterator &lower, QCPBarDataMap::const_iterator &upperEnd) const;
+  void getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const;
   QPolygonF getBarPolygon(double key, double value) const;
   void getPixelWidth(double key, double &lower, double &upper) const;
   double getStackedBaseValue(double key, bool positive) const;

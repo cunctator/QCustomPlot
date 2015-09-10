@@ -372,25 +372,25 @@ double QCPBarsGroup::getPixelSpacing(const QCPBars *bars, double keyCoord)
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPBarData
+//////////////////// QCPBarsData
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPBarData
+/*! \class QCPBarsData
   \brief Holds the data of one single data point (one bar) for QCPBars.
   
-  The container for storing multiple data points is \ref QCPBarDataMap.
+  The container for storing multiple data points is \ref QCPBarsDataContainer.
   
   The stored data is:
   \li \a key: coordinate on the key axis of this bar
   \li \a value: height coordinate on the value axis of this bar
   
-  \see QCPBarDataaMap
+  \see QCPBarsDataContainer
 */
 
 /*!
   Constructs a bar data point with key and value set to zero.
 */
-QCPBarData::QCPBarData() :
+QCPBarsData::QCPBarsData() :
   key(0),
   value(0)
 {
@@ -399,7 +399,7 @@ QCPBarData::QCPBarData() :
 /*!
   Constructs a bar data point with the specified \a key and \a value.
 */
-QCPBarData::QCPBarData(double key, double value) :
+QCPBarsData::QCPBarsData(double key, double value) :
   key(key),
   value(value)
 {
@@ -475,7 +475,7 @@ QCPBarData::QCPBarData(double key, double value) :
 */
 QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
-  mData(new QCPBarDataMap),
+  mDataContainer(new QCPBarsDataContainer),
   mWidth(0.75),
   mWidthType(wtPlotCoords),
   mBarsGroup(0),
@@ -557,34 +557,21 @@ void QCPBars::setBaseValue(double baseValue)
   mBaseValue = baseValue;
 }
 
-void QCPBars::setData(const QCPBarDataMap &data)
+void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
 {
-  *mData = data;
-}
-
-void QCPBars::setData(QSharedPointer<QCPBarDataMap> data)
-{
-  mData = data;
+  mDataContainer = data;
 }
 
 /*! \overload
   
-  Replaces the current data with the provided points in \a key and \a value tuples. The
-  provided vectors should have equal length. Else, the number of added points will be the size of
-  the smallest vector.
+  Replaces the current data with the provided points in \a keys and \a values tuples. The provided
+  vectors should have equal length. Else, the number of added points will be the size of the
+  smallest vector.
 */
-void QCPBars::setData(const QVector<double> &key, const QVector<double> &value)
+void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  QCPBarData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    mData->insertMulti(newData.key, newData);
-  }
+  mDataContainer->clear();
+  addData(keys, values, alreadySorted);
 }
 
 /*!
@@ -653,107 +640,35 @@ void QCPBars::moveAbove(QCPBars *bars)
   }
 }
 
-/*!
-  Adds the provided data points in \a dataMap to the current data.
-  \see removeData
+/*! \overload
+  Adds the provided data points as \a key and \a value pairs to the current data.
+  
+  Alternatively, you can also access and modify the graph's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPGraphDataContainer.
 */
-void QCPBars::addData(const QCPBarDataMap &dataMap)
+void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mData->unite(dataMap);
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPBarsData> tempData(n);
+  for (int i=0; i<n; ++i)
+  {
+    tempData[i].key = keys[i];
+    tempData[i].value = values[i];
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /*! \overload
-  Adds the provided single data point in \a data to the current data.
-  \see removeData
-*/
-void QCPBars::addData(const QCPBarData &data)
-{
-  mData->insertMulti(data.key, data);
-}
-
-/*! \overload
-  Adds the provided single data point as \a key and \a value tuple to the current data
-  \see removeData
+  Adds the provided data point as \a key and \a value to the current data.
+  
+  Alternatively, you can also access and modify the graph's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPGraphDataContainer.
 */
 void QCPBars::addData(double key, double value)
 {
-  QCPBarData newData;
-  newData.key = key;
-  newData.value = value;
-  mData->insertMulti(newData.key, newData);
-}
-
-/*! \overload
-  Adds the provided data points as \a key and \a value tuples to the current data.
-  \see removeData
-*/
-void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values)
-{
-  QCPBarDataMap *dataMap = mData.data();
-  int n = keys.size();
-  n = qMin(n, values.size());
-  QCPBarData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = keys[i];
-    newData.value = values[i];
-    dataMap->insertMulti(newData.key, newData);
-  }
-}
-
-/*!
-  Removes all data points with key smaller than \a key.
-  \see addData
-*/
-void QCPBars::removeDataBefore(double key)
-{
-  QCPBarDataMap *dataMap = mData.data();
-  QCPBarDataMap::iterator it = dataMap->begin();
-  while (it != dataMap->end() && it.key() < key)
-    it = dataMap->erase(it);
-}
-
-/*!
-  Removes all data points with key greater than \a key.
-  \see addData
-*/
-void QCPBars::removeDataAfter(double key)
-{
-  QCPBarDataMap *dataMap = mData.data();
-  if (dataMap->isEmpty()) return;
-  QCPBarDataMap::iterator it = dataMap->upperBound(key);
-  while (it != dataMap->end())
-    it = dataMap->erase(it);
-}
-
-/*!
-  Removes all data points with key between \a fromKey and \a toKey. if \a fromKey is
-  greater or equal to \a toKey, the function does nothing. To remove a single data point with known
-  key, use \ref removeData(double key).
-  
-  \see addData
-*/
-void QCPBars::removeData(double fromKey, double toKey)
-{
-  QCPBarDataMap *dataMap = mData.data();
-  if (fromKey >= toKey || dataMap->isEmpty()) return;
-  QCPBarDataMap::iterator it = dataMap->upperBound(fromKey);
-  QCPBarDataMap::iterator itEnd = dataMap->upperBound(toKey);
-  while (it != itEnd)
-    it = dataMap->erase(it);
-}
-
-/*! \overload
-  
-  Removes a single data point at \a key. If the position is not known with absolute precision,
-  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval
-  around the suspected position, depeding on the precision with which the key is known.
-  
-  \see addData
-*/
-void QCPBars::removeData(double key)
-{
-  mData->remove(key);
+  mDataContainer->add(QCPBarsData(key, value));
 }
 
 /* inherits documentation from base class */
@@ -766,10 +681,10 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
-    QCPBarDataMap::ConstIterator it;
-    for (it = mData->constBegin(); it != mData->constEnd(); ++it)
+    QCPBarsDataContainer::const_iterator it;
+    for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
     {
-      if (getBarPolygon(it.value().key, it.value().value).boundingRect().contains(pos))
+      if (getBarPolygon(it->key, it->value).boundingRect().contains(pos))
         return mParentPlot->selectionTolerance()*0.99;
     }
   }
@@ -780,18 +695,18 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
 void QCPBars::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  if (mData->isEmpty()) return;
+  if (mDataContainer->isEmpty()) return;
   
-  QCPBarDataMap::const_iterator it, lower, upperEnd;
+  QCPBarsDataContainer::const_iterator it, lower, upperEnd;
   getVisibleDataBounds(lower, upperEnd);
   for (it = lower; it != upperEnd; ++it)
   {
     // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-    if (QCP::isInvalidData(it.value().key, it.value().value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it.key() << "of drawn range invalid." << "Plottable name:" << name();
+    if (QCP::isInvalidData(it->key, it->value))
+      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
 #endif
-    QPolygonF barPolygon = getBarPolygon(it.key(), it.value().value);
+    QPolygonF barPolygon = getBarPolygon(it->key, it->value);
     // draw bar fill:
     if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
     {
@@ -828,57 +743,57 @@ void QCPBars::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   called by \ref draw to determine which data (key) range is visible at the current key axis range
   setting, so only that needs to be processed. It also takes into account the bar width.
   
-  \a lower returns an iterator to the lowest data point that needs to be taken into account when
+  \a begin returns an iterator to the lowest data point that needs to be taken into account when
   plotting. Note that in order to get a clean plot all the way to the edge of the axis rect, \a
   lower may still be just outside the visible range.
   
-  \a upperEnd returns an iterator one higher than the highest visible data point. Same as before, \a
-  upperEnd may also lie just outside of the visible range.
+  \a end returns an iterator one higher than the highest visible data point. Same as before, \a end
+  may also lie just outside of the visible range.
   
-  if the bars plottable contains no data, both \a lower and \a upperEnd point to constEnd.
+  if the bars plottable contains no data, both \a begin and \a end point to constEnd.
 */
-void QCPBars::getVisibleDataBounds(QCPBarDataMap::const_iterator &lower, QCPBarDataMap::const_iterator &upperEnd) const
+void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const
 {
   if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-  if (mData->isEmpty())
+  if (mDataContainer->isEmpty())
   {
-    lower = mData->constEnd();
-    upperEnd = mData->constEnd();
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
     return;
   }
   
   // get visible data range as QMap iterators
-  lower = mData->lowerBound(mKeyAxis.data()->range().lower);
-  upperEnd = mData->upperBound(mKeyAxis.data()->range().upper);
+  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
   double lowerPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().lower);
   double upperPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().upper);
   bool isVisible = false;
-  // walk left from lbound to find lower bar that actually is completely outside visible pixel range:
-  QCPBarDataMap::const_iterator it = lower;
-  while (it != mData->constBegin())
+  // walk left from begin to find lower bar that actually is completely outside visible pixel range:
+  QCPBarsDataContainer::const_iterator it = begin;
+  while (it != mDataContainer->constBegin())
   {
     --it;
-    QRectF barBounds = getBarPolygon(it.value().key, it.value().value).boundingRect();
+    QRectF barBounds = getBarPolygon(it->key, it->value).boundingRect();
     if (mKeyAxis.data()->orientation() == Qt::Horizontal)
       isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.right() >= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.left() <= lowerPixelBound));
     else // keyaxis is vertical
       isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.top() <= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.bottom() >= lowerPixelBound));
     if (isVisible)
-      lower = it;
+      begin = it;
     else
       break;
   }
   // walk right from ubound to find upper bar that actually is completely outside visible pixel range:
-  it = upperEnd;
-  while (it != mData->constEnd())
+  it = end;
+  while (it != mDataContainer->constEnd())
   {
-    QRectF barBounds = getBarPolygon(upperEnd.value().key, upperEnd.value().value).boundingRect();
+    QRectF barBounds = getBarPolygon(it->key, it->value).boundingRect();
     if (mKeyAxis.data()->orientation() == Qt::Horizontal)
       isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.left() <= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.right() >= upperPixelBound));
     else // keyaxis is vertical
       isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.bottom() >= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.top() <= upperPixelBound));
     if (isVisible)
-      upperEnd = it+1;
+      end = it+1;
     else
       break;
     ++it;
@@ -987,18 +902,21 @@ double QCPBars::getStackedBaseValue(double key, bool positive) const
 {
   if (mBarBelow)
   {
-    double max = 0; // don't use mBaseValue here because only base value of bottom-most bar has meaning in a bar stack
+    double max = 0; // don't initialize with mBaseValue here because only base value of bottom-most bar has meaning in a bar stack
     // find bars of mBarBelow that are approximately at key and find largest one:
     double epsilon = qAbs(key)*1e-6; // should be safe even when changed to use float at some point
     if (key == 0)
       epsilon = 1e-6;
-    QCPBarDataMap::const_iterator it = mBarBelow.data()->mData->lowerBound(key-epsilon);
-    QCPBarDataMap::const_iterator itEnd = mBarBelow.data()->mData->upperBound(key+epsilon);
+    QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBeginBelowKey(key-epsilon);
+    QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEndAboveKey(key+epsilon);
     while (it != itEnd)
     {
-      if ((positive && it.value().value > max) ||
-          (!positive && it.value().value < max))
-        max = it.value().value;
+      if (it->key > key-epsilon && it->key < key+epsilon)
+      {
+        if ((positive && it->value > max) ||
+            (!positive && it->value < max))
+          max = it->value;
+      }
       ++it;
     }
     // recurse down the bar-stack to find the total height:
@@ -1048,55 +966,33 @@ void QCPBars::connectBars(QCPBars *lower, QCPBars *upper)
 QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
+  range = mDataContainer->keyRange(foundRange, inSignDomain);
   
-  double current;
-  QCPBarDataMap::const_iterator it = mData->constBegin();
-  while (it != mData->constEnd())
-  {
-    current = it.value().key;
-    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
-    {
-      if (current < range.lower || !haveLower)
-      {
-        range.lower = current;
-        haveLower = true;
-      }
-      if (current > range.upper || !haveUpper)
-      {
-        range.upper = current;
-        haveUpper = true;
-      }
-    }
-    ++it;
-  }
   // determine exact range of bars by including bar width and barsgroup offset:
-  if (haveLower && mKeyAxis)
+  if (foundRange && mKeyAxis)
   {
     double lowerPixelWidth, upperPixelWidth, keyPixel;
+    // lower range bound:
     getPixelWidth(range.lower, lowerPixelWidth, upperPixelWidth);
     keyPixel = mKeyAxis.data()->coordToPixel(range.lower) + lowerPixelWidth;
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.lower);
     range.lower = mKeyAxis.data()->pixelToCoord(keyPixel);
-  }
-  if (haveUpper && mKeyAxis)
-  {
-    double lowerPixelWidth, upperPixelWidth, keyPixel;
+    // upper range bound:
     getPixelWidth(range.upper, lowerPixelWidth, upperPixelWidth);
     keyPixel = mKeyAxis.data()->coordToPixel(range.upper) + upperPixelWidth;
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.upper);
     range.upper = mKeyAxis.data()->pixelToCoord(keyPixel);
   }
-  foundRange = haveLower && haveUpper;
   return range;
 }
 
 /* inherits documentation from base class */
 QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
+  // Note: can't simply use mDataContainer->valueRange here because we need to
+  // take into account bar base value and possible stacking of multiple bars
   QCPRange range;
   range.lower = mBaseValue;
   range.upper = mBaseValue;
@@ -1104,10 +1000,10 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) 
   bool haveUpper = true; // set to true, because baseValue should always be visible in bar charts
   double current;
   
-  QCPBarDataMap::const_iterator it = mData->constBegin();
-  while (it != mData->constEnd())
+  QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin();
+  while (it != mDataContainer->constEnd())
   {
-    current = it.value().value + getStackedBaseValue(it.value().key, it.value().value >= 0);
+    current = it->value + getStackedBaseValue(it->key, it->value >= 0);
     if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
     {
       if (current < range.lower || !haveLower)

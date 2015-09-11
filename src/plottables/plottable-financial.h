@@ -30,6 +30,7 @@
 #include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -39,21 +40,22 @@ class QCP_LIB_DECL QCPFinancialData
 public:
   QCPFinancialData();
   QCPFinancialData(double key, double open, double high, double low, double close);
+  
+  inline double sortKey() const { return key; }
+  inline static QCPFinancialData fromSortKey(double sortKey) { return QCPFinancialData(sortKey, 0, 0, 0, 0); }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return open; }
+  inline static bool sortKeyIsMainKey() { return true; } 
+  
+  inline QCPRange valueRange() const { return QCPRange(low, high); } // open and close must lie between low and high, so we don't need to check them
+  
   double key, open, high, low, close;
 };
 Q_DECLARE_TYPEINFO(QCPFinancialData, Q_MOVABLE_TYPE);
 
-/*! \typedef QCPFinancialDataMap
-  Container for storing \ref QCPFinancialData items in a sorted fashion. The key of the map
-  is the key member of the QCPFinancialData instance.
-  
-  This is the container in which QCPFinancial holds its data.
-  \see QCPFinancial, QCPFinancial::setData
-*/
-typedef QMap<double, QCPFinancialData> QCPFinancialDataMap;
-typedef QMapIterator<double, QCPFinancialData> QCPFinancialDataMapIterator;
-typedef QMutableMapIterator<double, QCPFinancialData> QCPFinancialDataMutableMapIterator;
 
+typedef QCPDataContainer<QCPFinancialData> QCPFinancialDataContainer;
 
 class QCP_LIB_DECL QCPFinancial : public QCPAbstractPlottable
 {
@@ -82,7 +84,7 @@ public:
   virtual ~QCPFinancial();
   
   // getters:
-  QSharedPointer<QCPFinancialDataMap> data() const { return mData; }
+  QSharedPointer<QCPFinancialDataContainer> data() const { return mDataContainer; }
   ChartStyle chartStyle() const { return mChartStyle; }
   double width() const { return mWidth; }
   bool twoColored() const { return mTwoColored; }
@@ -93,9 +95,8 @@ public:
   
   
   // setters:
-  void setData(const QCPFinancialDataMap &data);
-  void setData(QSharedPointer<QCPFinancialDataMap> data);
-  void setData(const QVector<double> &key, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close);
+  void setData(QSharedPointer<QCPFinancialDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted=false);
   void setChartStyle(ChartStyle style);
   void setWidth(double width);
   void setTwoColored(bool twoColored);
@@ -105,24 +106,18 @@ public:
   void setPenNegative(const QPen &pen);
   
   // non-property methods:
-  void addData(const QCPFinancialDataMap &dataMap);
-  void addData(const QCPFinancialData &data);
+  void addData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted=false);
   void addData(double key, double open, double high, double low, double close);
-  void addData(const QVector<double> &key, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close);
-  void removeDataBefore(double key);
-  void removeDataAfter(double key);
-  void removeData(double fromKey, double toKey);
-  void removeData(double key);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
   // static methods:
-  static QCPFinancialDataMap timeSeriesToOhlc(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset = 0);
+  static QCPFinancialDataContainer timeSeriesToOhlc(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset = 0);
   
 protected:
   // property members:
-  QSharedPointer<QCPFinancialDataMap> mData;
+  QSharedPointer<QCPFinancialDataContainer> mDataContainer;
   ChartStyle mChartStyle;
   double mWidth;
   bool mTwoColored;
@@ -136,11 +131,11 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // non-virtual methods:
-  void drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end);
-  void drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end);
-  double ohlcSelectTest(const QPointF &pos, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end) const;
-  double candlestickSelectTest(const QPointF &pos, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end) const;
-  void getVisibleDataBounds(QCPFinancialDataMap::const_iterator &lower, QCPFinancialDataMap::const_iterator &upper) const;
+  void drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end);
+  void drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end);
+  double ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
+  double candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
+  void getVisibleDataBounds(QCPFinancialDataContainer::const_iterator &begin, QCPFinancialDataContainer::const_iterator &end) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

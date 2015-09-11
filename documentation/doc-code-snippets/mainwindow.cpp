@@ -221,7 +221,7 @@ void MainWindow::snippetQCPFinancial()
   
   //! [qcpfinancial-creation-2]
   newFinancial->setName("Stock prices");
-  newFinancial->setData(QCPFinancial::timeSeriesToOhlc(time, price, 3600*24));
+  newFinancial->data()->set(QCPFinancial::timeSeriesToOhlc(time, price, 3600*24));
   newFinancial->setChartStyle(QCPFinancial::csCandlestick);
   //! [qcpfinancial-creation-2]
 }

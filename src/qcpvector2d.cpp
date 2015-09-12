@@ -93,6 +93,11 @@ double QCPVector2D::distanceSquaredToLine(const QCPVector2D &start, const QCPVec
     return (*this-start).lengthSquared();
 }
 
+double QCPVector2D::distanceSquaredToLine(const QLineF &line) const
+{
+  return distanceSquaredToLine(QCPVector2D(line.p1()), QCPVector2D(line.p2()));
+}
+
 double QCPVector2D::distanceToStraightLine(const QCPVector2D &base, const QCPVector2D &direction) const
 {
   return qAbs((*this-base).dot(direction.perpendicular()))/direction.length();

@@ -325,17 +325,17 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPFinancialDataContainer::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
-    getVisibleDataBounds(lower, upper);
-    if (lower == mDataContainer->constEnd() || upper == mDataContainer->constEnd())
+    QCPFinancialDataContainer::const_iterator lower, upperEnd;
+    getVisibleDataBounds(lower, upperEnd);
+    if (lower == upperEnd)
       return -1;
     // perform select test according to configured style:
     switch (mChartStyle)
     {
       case QCPFinancial::csOhlc:
-        return ohlcSelectTest(pos, lower, upper+1); break;
+        return ohlcSelectTest(pos, lower, upperEnd); break;
       case QCPFinancial::csCandlestick:
-        return candlestickSelectTest(pos, lower, upper+1); break;
+        return candlestickSelectTest(pos, lower, upperEnd); break;
     }
   }
   return -1;
@@ -398,18 +398,16 @@ QCPFinancialDataContainer QCPFinancial::timeSeriesToOhlc(const QVector<double> &
 void QCPFinancial::draw(QCPPainter *painter)
 {
   // get visible data range:
-  QCPFinancialDataContainer::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
-  getVisibleDataBounds(lower, upper);
-  if (lower == mDataContainer->constEnd() || upper == mDataContainer->constEnd())
-    return;
+  QCPFinancialDataContainer::const_iterator lower, upperEnd;
+  getVisibleDataBounds(lower, upperEnd);
   
   // draw visible data range according to configured style:
   switch (mChartStyle)
   {
     case QCPFinancial::csOhlc:
-      drawOhlcPlot(painter, lower, upper+1); break;
+      drawOhlcPlot(painter, lower, upperEnd); break;
     case QCPFinancial::csCandlestick:
-      drawCandlestickPlot(painter, lower, upper+1); break;
+      drawCandlestickPlot(painter, lower, upperEnd); break;
   }
 }
 
@@ -495,7 +493,7 @@ QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
 
 /*! \internal
   
-  Draws the data from \a begin to \a end as OHLC bars with the provided \a painter.
+  Draws the data from \a begin to \a end-1 as OHLC bars with the provided \a painter.
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csOhlc.
 */
@@ -556,7 +554,7 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
 
 /*! \internal
   
-  Draws the data from \a begin to \a end as Candlesticks with the provided \a painter.
+  Draws the data from \a begin to \a end-1 as Candlesticks with the provided \a painter.
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csCandlestick.
 */

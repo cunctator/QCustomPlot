@@ -875,7 +875,7 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
   // get visible data range:
   QCPGraphDataContainer::const_iterator lower, upperEnd;
   getVisibleDataBounds(lower, upperEnd);
-  if (lower == mDataContainer->constEnd())
+  if (lower == upperEnd)
     return;
   
   // count points in visible range, taking into account that we only need to count to the limit maxCount if using adaptive sampling:
@@ -885,7 +885,7 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
     int keyPixelSpan = qAbs(keyAxis->coordToPixel(lower->key)-keyAxis->coordToPixel((upperEnd-1)->key));
     maxCount = 2*keyPixelSpan+2;
   }
-  int dataCount = (upperEnd-lower)-1;
+  int dataCount = upperEnd-lower;
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average
   {

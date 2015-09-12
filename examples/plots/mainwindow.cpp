@@ -841,38 +841,15 @@ void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
 void MainWindow::setupStatisticalDemo(QCustomPlot *customPlot)
 {
   demoName = "Statistical Demo";
-  // create empty statistical box plottables:
-  QCPStatisticalBox *sample1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  QCPStatisticalBox *sample2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  QCPStatisticalBox *sample3 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  QCPStatisticalBox *statistical = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   QBrush boxBrush(QColor(60, 60, 255, 100));
   boxBrush.setStyle(Qt::Dense6Pattern); // make it look oldschool
-  sample1->setBrush(boxBrush);
-  sample2->setBrush(boxBrush);
-  sample3->setBrush(boxBrush);
+  statistical->setBrush(boxBrush);
   
-  // set data:
-  sample1->setKey(1);
-  sample1->setMinimum(1.1);
-  sample1->setLowerQuartile(1.9);
-  sample1->setMedian(2.25);
-  sample1->setUpperQuartile(2.7);
-  sample1->setMaximum(4.2);
-  
-  sample2->setKey(2);
-  sample2->setMinimum(0.8);
-  sample2->setLowerQuartile(1.6);
-  sample2->setMedian(2.2);
-  sample2->setUpperQuartile(3.2);
-  sample2->setMaximum(4.9);
-  sample2->setOutliers(QVector<double>() << 0.7 << 0.39 << 0.45 << 6.2 << 5.84);
-  
-  sample3->setKey(3);
-  sample3->setMinimum(0.2);
-  sample3->setLowerQuartile(0.7);
-  sample3->setMedian(1.1);
-  sample3->setUpperQuartile(1.6);
-  sample3->setMaximum(2.9);
+  // specify data:
+  statistical->addData(1, 1.1, 1.9, 2.25, 2.7, 4.2);
+  statistical->addData(2, 0.8, 1.6, 2.2, 3.2, 4.9, QVector<double>() << 0.7 << 0.34 << 0.45 << 6.2 << 5.84); // provide some outliers as QVector
+  statistical->addData(3, 0.2, 0.7, 1.1, 1.6, 2.9);
   
   // prepare manual x axis labels:
   customPlot->xAxis->setSubTicks(false);

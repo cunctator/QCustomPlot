@@ -54,6 +54,7 @@ public:
   QCPVector2D perpendicular() const { return QCPVector2D(-mY, mX); }
   double dot(const QCPVector2D &vec) const { return mX*vec.mX+mY*vec.mY; }
   double distanceSquaredToLine(const QCPVector2D &start, const QCPVector2D &end) const;
+  double distanceSquaredToLine(const QLineF &line) const;
   double distanceToStraightLine(const QCPVector2D &base, const QCPVector2D &direction) const;
   
   QCPVector2D &operator*=(double factor);

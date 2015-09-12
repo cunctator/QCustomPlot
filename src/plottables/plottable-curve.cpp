@@ -312,12 +312,11 @@ void QCPCurve::draw(QCPPainter *painter)
   
   // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-  QCPCurveDataMap::const_iterator it;
-  for (it = mData->constBegin(); it != mData->constEnd(); ++it)
+  for (QCPCurveDataContainer::const_iterator it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
   {
-    if (QCP::isInvalidData(it.value().t) ||
-        QCP::isInvalidData(it.value().key, it.value().value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it.key() << "invalid." << "Plottable name:" << name();
+    if (QCP::isInvalidData(it->t) ||
+        QCP::isInvalidData(it->key, it->value))
+      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
   }
 #endif
   

@@ -745,7 +745,7 @@ void MainWindow::setupParametricCurveDemo(QCustomPlot *customPlot)
     double phi = i/(double)(pointCount-1)*8*M_PI;
     double theta = i/(double)(pointCount-1)*2*M_PI;
     dataSpiral1[i] = QCPCurveData(i, qSqrt(phi)*qCos(phi), qSqrt(phi)*qSin(phi));
-    dataSpiral2[i] = QCPCurveData(i, -dataSpiral1.last().key, -dataSpiral1.last().value);
+    dataSpiral2[i] = QCPCurveData(i, -dataSpiral1[i].key, -dataSpiral1[i].value);
     dataDeltoid[i] = QCPCurveData(i, 2*qCos(2*theta)+qCos(1*theta)+2*qSin(theta), 2*qSin(2*theta)-qSin(1*theta));
   }
   // pass the data to the curves; we know t (i in loop above) is ascending, so set alreadySorted=true (saves an extra internal sort):

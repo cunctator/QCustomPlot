@@ -681,8 +681,12 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
-    QCPBarsDataContainer::const_iterator it;
-    for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+    // get visible data range:
+    QCPBarsDataContainer::const_iterator lower, upperEnd;
+    getVisibleDataBounds(lower, upperEnd);
+    if (lower == upperEnd)
+      return -1;
+    for (QCPBarsDataContainer::const_iterator it = lower; it != upperEnd; ++it)
     {
       if (getBarPolygon(it->key, it->value).boundingRect().contains(pos))
         return mParentPlot->selectionTolerance()*0.99;

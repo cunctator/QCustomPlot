@@ -260,14 +260,19 @@ void QCPStatisticalBox::addData(const QVector<double> &keys, const QVector<doubl
              << keys.size() << minimum.size() << lowerQuartile.size() << median.size() << upperQuartile.size() << maximum.size();
   const int n = qMin(keys.size(), qMin(minimum.size(), qMin(lowerQuartile.size(), qMin(median.size(), qMin(upperQuartile.size(), maximum.size())))));
   QVector<QCPStatisticalBoxData> tempData(n);
-  for (int i=0; i<n; ++i)
+  QVector<QCPStatisticalBoxData>::iterator it = tempData.begin();
+  const QVector<QCPStatisticalBoxData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
   {
-    tempData[i].key = keys[i];
-    tempData[i].minimum = minimum[i];
-    tempData[i].lowerQuartile = lowerQuartile[i];
-    tempData[i].median = median[i];
-    tempData[i].upperQuartile = upperQuartile[i];
-    tempData[i].maximum = maximum[i];
+    it->key = keys[i];
+    it->minimum = minimum[i];
+    it->lowerQuartile = lowerQuartile[i];
+    it->median = median[i];
+    it->upperQuartile = upperQuartile[i];
+    it->maximum = maximum[i];
+    ++it;
+    ++i;
   }
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }

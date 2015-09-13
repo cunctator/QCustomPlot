@@ -290,13 +290,18 @@ void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &o
     qDebug() << Q_FUNC_INFO << "keys, open, high, low, close have different sizes:" << keys.size() << open.size() << high.size() << low.size() << close.size();
   const int n = qMin(keys.size(), qMin(open.size(), qMin(high.size(), qMin(low.size(), close.size()))));
   QVector<QCPFinancialData> tempData(n);
-  for (int i=0; i<n; ++i)
+  QVector<QCPFinancialData>::iterator it = tempData.begin();
+  const QVector<QCPFinancialData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
   {
-    tempData[i].key = keys[i];
-    tempData[i].open = open[i];
-    tempData[i].high = high[i];
-    tempData[i].low = low[i];
-    tempData[i].close = close[i];
+    it->key = keys[i];
+    it->open = open[i];
+    it->high = high[i];
+    it->low = low[i];
+    it->close = close[i];
+    ++it;
+    ++i;
   }
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }

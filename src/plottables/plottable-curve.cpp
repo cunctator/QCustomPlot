@@ -163,10 +163,10 @@ void QCPCurve::setData(QSharedPointer<QCPCurveDataContainer> data)
   
   \see addData
 */
-void QCPCurve::setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
+void QCPCurve::setData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
   mDataContainer->clear();
-  addData(t, key, value, alreadySorted);
+  addData(t, keys, values, alreadySorted);
 }
 
 /*! \overload
@@ -176,10 +176,10 @@ void QCPCurve::setData(const QVector<double> &t, const QVector<double> &key, con
   
   \see addData
 */
-void QCPCurve::setData(const QVector<double> &key, const QVector<double> &value)
+void QCPCurve::setData(const QVector<double> &keys, const QVector<double> &values)
 {
   mDataContainer->clear();
-  addData(key, value);
+  addData(keys, values);
 }
 
 /*!
@@ -212,17 +212,22 @@ void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
   Alternatively, you can also access and modify the curve's data via the \ref data method, which
   returns a pointer to the internal \ref QCPCurveDataContainer.
 */
-void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted)
+void QCPCurve::addData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  if (t.size() != key.size() || t.size() != value.size())
-    qDebug() << Q_FUNC_INFO << "ts, keys and values have different sizes:" << t.size() << key.size() << value.size();
-  const int n = qMin(qMin(t.size(), key.size()), value.size());
+  if (t.size() != keys.size() || t.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "ts, keys and values have different sizes:" << t.size() << keys.size() << values.size();
+  const int n = qMin(qMin(t.size(), keys.size()), values.size());
   QVector<QCPCurveData> tempData(n);
-  for (int i=0; i<n; ++i)
+  QVector<QCPCurveData>::iterator it = tempData.begin();
+  const QVector<QCPCurveData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
   {
-    tempData[i].t = t[i];
-    tempData[i].key = key[i];
-    tempData[i].value = value[i];
+    it->t = t[i];
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
   }
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
@@ -237,22 +242,27 @@ void QCPCurve::addData(const QVector<double> &t, const QVector<double> &key, con
   Alternatively, you can also access and modify the curve's data via the \ref data method, which
   returns a pointer to the internal \ref QCPCurveDataContainer.
 */
-void QCPCurve::addData(const QVector<double> &key, const QVector<double> &value)
+void QCPCurve::addData(const QVector<double> &keys, const QVector<double> &values)
 {
-  if (key.size() != value.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << key.size() << value.size();
-  const int n = qMin(key.size(), value.size());
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
   double tStart;
   if (!mDataContainer->isEmpty())
     tStart = (mDataContainer->constEnd()-1)->t + 1.0;
   else
     tStart = 0;
   QVector<QCPCurveData> tempData(n);
-  for (int i=0; i<n; ++i)
+  QVector<QCPCurveData>::iterator it = tempData.begin();
+  const QVector<QCPCurveData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
   {
-    tempData[i].t = tStart + i;
-    tempData[i].key = key[i];
-    tempData[i].value = value[i];
+    it->t = tStart + i;
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
   }
   mDataContainer->add(tempData, true); // don't modify tempData beyond this to prevent copy on write
 }

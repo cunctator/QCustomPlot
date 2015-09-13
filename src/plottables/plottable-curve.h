@@ -84,14 +84,14 @@ public:
   
   // setters:
   void setData(QSharedPointer<QCPCurveDataContainer> data);
-  void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void setData(const QVector<double> &keys, const QVector<double> &values);
   void setScatterStyle(const QCPScatterStyle &style);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
-  void addData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value, bool alreadySorted=false);
-  void addData(const QVector<double> &key, const QVector<double> &value);
+  void addData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void addData(const QVector<double> &keys, const QVector<double> &values);
   void addData(double t, double key, double value);
   void addData(double key, double value);
   

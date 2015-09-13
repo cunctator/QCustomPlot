@@ -652,10 +652,15 @@ void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values
     qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
   const int n = qMin(keys.size(), values.size());
   QVector<QCPBarsData> tempData(n);
-  for (int i=0; i<n; ++i)
+  QVector<QCPBarsData>::iterator it = tempData.begin();
+  const QVector<QCPBarsData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
   {
-    tempData[i].key = keys[i];
-    tempData[i].value = values[i];
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
   }
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }

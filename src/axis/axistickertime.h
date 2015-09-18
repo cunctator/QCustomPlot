@@ -47,11 +47,14 @@ protected:
   // property members:
   QString mDateTimeFormat;
   Qt::TimeSpec mDateTimeSpec;
+  // non-property members:
+  enum DateStrategy {dsNone, dsUniformTimeInDay, dsUniformDayInMonth} mDateStrategy;
   
   // reimplemented virtual methods:
   virtual double getTickStep(const QCPRange &range);
   virtual int getSubTickCount(double tickStep);
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
   
   // non-virtual methods:
   QDateTime keyToDateTime(double key) const;

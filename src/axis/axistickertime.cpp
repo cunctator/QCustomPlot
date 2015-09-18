@@ -36,7 +36,8 @@
 
 QCPAxisTickerTime::QCPAxisTickerTime() :
   mDateTimeFormat(QLatin1String("hh:mm:ss\ndd.MM.yy")),
-  mDateTimeSpec(Qt::LocalTime)
+  mDateTimeSpec(Qt::LocalTime),
+  mDateStrategy(dsNone)
 {
 }
 
@@ -64,19 +65,25 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
+  mDateStrategy = dsNone;
   if (result < 1) // ideal tick step is below 1 second -> use normal clean mantissa algorithm in units of seconds
   {
     result = cleanMantissa(result);
-  } else if (result < 31557600) // below a year
+  } else if (result < 86400*30.4375*12) // below a year
   {
     result = pickClosest(result, QVector<double>()
-                             << 1 << 2.5 << 5 << 10 << 15 << 30 << 60 << 2*60 << 5*60 << 10*60 << 15*60 << 30*60 << 60*60 // second, minute, hour range
+                             << 1 << 2.5 << 5 << 10 << 15 << 30 << 60 << 2.5*60 << 5*60 << 10*60 << 15*60 << 30*60 << 60*60 // second, minute, hour range
                              << 3600 << 3600*2 << 3600*3 << 3600*6 << 3600*12 << 3600*24 // hour to day range
                              << 86400 << 86400*2 << 86400*5 << 86400*7 << 86400*14 << 86400*30.4375 << 86400*30.4375*2 << 86400*30.4375*3 << 86400*30.4375*6 << 86400*30.4375*12); // day, week, month range (avg. days per month includes leap years)
+    if (result > 86400*30.4375-1) // month tick intervals or larger
+      mDateStrategy = dsUniformDayInMonth;
+    else if (result > 3600*24-1) // day tick intervals or larger
+      mDateStrategy = dsUniformTimeInDay;
   } else // more than a year, go back to normal clean mantissa algorithm but in units of years
   {
     const double secondsPerYear = 86400*30.4375*12; // average including leap years
     result = cleanMantissa(result/secondsPerYear)*secondsPerYear;
+    mDateStrategy = dsUniformDayInMonth;
   }
   return result;
 }
@@ -146,6 +153,42 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
   Q_UNUSED(precision)
   Q_UNUSED(formatChar)
   return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
+}
+
+QVector<double> QCPAxisTickerTime::createTickVector(double tickStep, const QCPRange &range)
+{
+  QVector<double> result = QCPAxisTicker::createTickVector(tickStep, range);
+  if (!result.isEmpty())
+  {  
+    if (mDateStrategy == dsUniformTimeInDay)
+    {
+      QDateTime uniformDateTime = keyToDateTime(mTickOrigin); // the time of this datetime will be set for all other ticks, if possible
+      QDateTime tickDateTime;
+      for (int i=0; i<result.size(); ++i)
+      {
+        tickDateTime = keyToDateTime(result.at(i));
+        tickDateTime.setTime(uniformDateTime.time());
+        result[i] = dateTimeToKey(tickDateTime);
+      }
+    } else if (mDateStrategy == dsUniformDayInMonth)
+    {
+      QDateTime uniformDateTime = keyToDateTime(mTickOrigin); // this day (in month) and time will be set for all other ticks, if possible
+      QDateTime tickDateTime;
+      for (int i=0; i<result.size(); ++i)
+      {
+        tickDateTime = keyToDateTime(result.at(i));
+        tickDateTime.setTime(uniformDateTime.time());
+        int thisUniformDay = uniformDateTime.date().day() <= tickDateTime.date().daysInMonth() ? uniformDateTime.date().day() : tickDateTime.date().daysInMonth(); // don't exceed month (e.g. try to set day 31 in February)
+        if (thisUniformDay-tickDateTime.date().day() < -15) // with leap years involved, date month may jump backwards or forwards, and needs to be corrected before setting day
+          tickDateTime = tickDateTime.addMonths(1);
+        else if (thisUniformDay-tickDateTime.date().day() > 15) // with leap years involved, date month may jump backwards or forwards, and needs to be corrected before setting day
+          tickDateTime = tickDateTime.addMonths(-1);
+        tickDateTime.setDate(QDate(tickDateTime.date().year(), tickDateTime.date().month(), thisUniformDay));
+        result[i] = dateTimeToKey(tickDateTime);
+      }
+    }
+  }
+  return result;
 }
 
 QDateTime QCPAxisTickerTime::keyToDateTime(double key) const

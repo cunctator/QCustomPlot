@@ -80,34 +80,19 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
 
 double QCPAxisTicker::getTickStep(const QCPRange &range)
 {
-  double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(result)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = result/magnitudeFactor;
-  if (tickStepMantissa < 5)
-  {
-    // round digit after decimal point to 0.5
-    result = (int)(tickStepMantissa*2)/2.0*magnitudeFactor;
-  } else
-  {
-    // round to first digit in multiples of 2
-    result = (int)(tickStepMantissa/2.0)*2.0*magnitudeFactor;
-  }
-  return result;
+  double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  return cleanMantissa(exactStep);
 }
 
 int QCPAxisTicker::getSubTickCount(double tickStep)
 {
   int result = 1; // default to 1, if no proper value can be found
   
-  // get mantissa of tickstep:
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(tickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = tickStep/magnitudeFactor;
-  
   // separate integer and fractional part of mantissa:
   double epsilon = 0.01;
   double intPartf;
   int intPart;
-  double fracPart = modf(tickStepMantissa, &intPartf);
+  double fracPart = modf(getMantissa(tickStep), &intPartf);
   intPart = intPartf;
   
   // handle cases with (almost) integer mantissa:
@@ -243,4 +228,38 @@ void QCPAxisTicker::trimTicks(const QCPRange &range, QVector<double> &ticks, boo
       ticks = ticks.mid(trimFront, ticks.size()-trimFront-trimBack);
   } else // all ticks are either all below or all above the range
     ticks.clear();
+}
+
+/*!
+  assumes potentialSteps is not empty
+*/
+
+double QCPAxisTicker::pickClosest(double target, const QVector<double> &candidates) const
+{
+  if (candidates.size() == 1)
+    return candidates.first();
+  QVector<double>::const_iterator it = std::lower_bound(candidates.constBegin(), candidates.constEnd(), target);
+  if (it == candidates.constEnd())
+    return *(it-1);
+  else if (it == candidates.constBegin())
+    return *it;
+  else
+    return target-*(it-1) < *it-target ? *(it-1) : *it;
+}
+
+double QCPAxisTicker::getMantissa(double input, double *magnitude) const
+{
+  const double mag = qPow(10.0, qFloor(qLn(input)/qLn(10.0)));
+  if (magnitude) *magnitude = mag;
+  return input/mag;
+}
+
+double QCPAxisTicker::cleanMantissa(double input) const
+{
+  double magnitude;
+  const double mantissa = getMantissa(input, &magnitude);
+  if (mantissa <= 5.0)
+    return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
+  else
+    return (int)(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
 }

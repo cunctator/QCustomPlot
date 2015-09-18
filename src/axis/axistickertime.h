@@ -52,6 +52,10 @@ protected:
   virtual double getTickStep(const QCPRange &range);
   virtual int getSubTickCount(double tickStep);
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  
+  // non-virtual methods:
+  QDateTime keyToDateTime(double key) const;
+  double dateTimeToKey(const QDateTime dateTime) const;
 };
 
 #endif // QCP_AXISTICKERTIME_H

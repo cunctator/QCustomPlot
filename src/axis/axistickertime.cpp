@@ -57,11 +57,7 @@ void QCPAxisTickerTime::setTickOrigin(double origin)
 
 void QCPAxisTickerTime::setTickOrigin(const QDateTime &origin)
 {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  setTickOrigin(origin.toTime_t());
-#else
-  setTickOrigin(origin.toMSecsSinceEpoch()/1000.0);
-#endif
+  setTickOrigin(dateTimeToKey(origin));
 }
 
 double QCPAxisTickerTime::getTickStep(const QCPRange &range)
@@ -149,10 +145,23 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
 {
   Q_UNUSED(precision)
   Q_UNUSED(formatChar)
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0) // use fromMSecsSinceEpoch function if available, to gain sub-second accuracy on tick labels (e.g. for format "hh:mm:ss:zzz")
-  return locale.toString(QDateTime::fromTime_t(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
-#else
-  return locale.toString(QDateTime::fromMSecsSinceEpoch(tick*1000).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
-#endif
+  return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
 }
 
+QDateTime QCPAxisTickerTime::keyToDateTime(double key) const
+{
+# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+  return QDateTime::fromTime_t(key);
+# else
+  return QDateTime::fromMSecsSinceEpoch(key*1000.0);
+# endif
+}
+
+double QCPAxisTickerTime::dateTimeToKey(const QDateTime dateTime) const
+{
+# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+  return dateTime.toTime_t();
+# else
+  return dateTime.toMSecsSinceEpoch()/1000.0;
+# endif
+}

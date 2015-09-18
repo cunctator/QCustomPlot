@@ -110,12 +110,11 @@ enum AntialiasedElement { aeAxes           = 0x0001 ///< <tt>0x0001</tt> Axis ba
                           ,aeSubGrid       = 0x0004 ///< <tt>0x0004</tt> Sub grid lines
                           ,aeLegend        = 0x0008 ///< <tt>0x0008</tt> Legend box
                           ,aeLegendItems   = 0x0010 ///< <tt>0x0010</tt> Legend items
-                          ,aePlottables    = 0x0020 ///< <tt>0x0020</tt> Main lines of plottables (excluding error bars, see element \ref aeErrorBars)
+                          ,aePlottables    = 0x0020 ///< <tt>0x0020</tt> Main lines of plottables
                           ,aeItems         = 0x0040 ///< <tt>0x0040</tt> Main lines of items
                           ,aeScatters      = 0x0080 ///< <tt>0x0080</tt> Scatter symbols of plottables (excluding scatter symbols of type ssPixmap)
-                          ,aeErrorBars     = 0x0100 ///< <tt>0x0100</tt> Error bars
-                          ,aeFills         = 0x0200 ///< <tt>0x0200</tt> Borders of fills (e.g. under or between graphs)
-                          ,aeZeroLine      = 0x0400 ///< <tt>0x0400</tt> Zero-lines, see \ref QCPGrid::setZeroLinePen
+                          ,aeFills         = 0x0100 ///< <tt>0x0100</tt> Borders of fills (e.g. under or between graphs)
+                          ,aeZeroLine      = 0x0200 ///< <tt>0x0200</tt> Zero-lines, see \ref QCPGrid::setZeroLinePen
                           ,aeAll           = 0xFFFF ///< <tt>0xFFFF</tt> All elements
                           ,aeNone          = 0x0000 ///< <tt>0x0000</tt> No elements
                         };

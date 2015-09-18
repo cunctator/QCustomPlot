@@ -399,7 +399,6 @@ void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBo
   painter->drawLine(QLineF(coordsToPixels(it->key-mWidth*0.5, it->median), coordsToPixels(it->key+mWidth*0.5, it->median)));
   painter->restore();
   // draw whisker lines:
-  applyErrorBarsAntialiasingHint(painter);
   painter->setPen(mWhiskerPen);
   painter->drawLines(getWhiskerBackboneLines(it));
   painter->setPen(mWhiskerBarPen);

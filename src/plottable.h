@@ -41,7 +41,6 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(QString name READ name WRITE setName)
   Q_PROPERTY(bool antialiasedFill READ antialiasedFill WRITE setAntialiasedFill)
   Q_PROPERTY(bool antialiasedScatters READ antialiasedScatters WRITE setAntialiasedScatters)
-  Q_PROPERTY(bool antialiasedErrorBars READ antialiasedErrorBars WRITE setAntialiasedErrorBars)
   Q_PROPERTY(QPen pen READ pen WRITE setPen)
   Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   Q_PROPERTY(QBrush brush READ brush WRITE setBrush)
@@ -58,7 +57,6 @@ public:
   QString name() const { return mName; }
   bool antialiasedFill() const { return mAntialiasedFill; }
   bool antialiasedScatters() const { return mAntialiasedScatters; }
-  bool antialiasedErrorBars() const { return mAntialiasedErrorBars; }
   QPen pen() const { return mPen; }
   QPen selectedPen() const { return mSelectedPen; }
   QBrush brush() const { return mBrush; }
@@ -72,7 +70,6 @@ public:
   void setName(const QString &name);
   void setAntialiasedFill(bool enabled);
   void setAntialiasedScatters(bool enabled);
-  void setAntialiasedErrorBars(bool enabled);
   void setPen(const QPen &pen);
   void setSelectedPen(const QPen &pen);
   void setBrush(const QBrush &brush);
@@ -99,7 +96,7 @@ signals:
 protected:
   // property members:
   QString mName;
-  bool mAntialiasedFill, mAntialiasedScatters, mAntialiasedErrorBars;
+  bool mAntialiasedFill, mAntialiasedScatters;
   QPen mPen, mSelectedPen;
   QBrush mBrush, mSelectedBrush;
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
@@ -128,7 +125,6 @@ protected:
   QBrush mainBrush() const;
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
-  void applyErrorBarsAntialiasingHint(QCPPainter *painter) const;
 
 private:
   Q_DISABLE_COPY(QCPAbstractPlottable)

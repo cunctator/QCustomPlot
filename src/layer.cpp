@@ -222,9 +222,9 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   default antialiasing hint.
   
   <b>First example:</b> QCPGraph has multiple entities that have an antialiasing setting: The graph
-  line, fills, scatters and error bars. Those can be configured via QCPGraph::setAntialiased,
-  QCPGraph::setAntialiasedFill, QCPGraph::setAntialiasedScatters etc. Consequently, there isn't
-  only the QCPGraph::applyDefaultAntialiasingHint function (which corresponds to the graph line's
+  line, fills and scatters. Those can be configured via QCPGraph::setAntialiased,
+  QCPGraph::setAntialiasedFill and QCPGraph::setAntialiasedScatters. Consequently, there isn't only
+  the QCPGraph::applyDefaultAntialiasingHint function (which corresponds to the graph line's
   antialiasing), but specialized ones like QCPGraph::applyFillAntialiasingHint and
   QCPGraph::applyScattersAntialiasingHint. So before drawing one of those entities, QCPGraph::draw
   calls the respective specialized applyAntialiasingHint function.

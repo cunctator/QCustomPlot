@@ -26,42 +26,42 @@
 #include "axistickertime.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPAxisTickerTime
+//////////////////// QCPAxisTickerDateTime
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/*! \class QCPAxisTickerTime
+/*! \class QCPAxisTickerDateTime
   \brief 
   
   
 */
 
-QCPAxisTickerTime::QCPAxisTickerTime() :
+QCPAxisTickerDateTime::QCPAxisTickerDateTime() :
   mDateTimeFormat(QLatin1String("hh:mm:ss\ndd.MM.yy")),
   mDateTimeSpec(Qt::LocalTime),
   mDateStrategy(dsNone)
 {
 }
 
-void QCPAxisTickerTime::setDateTimeFormat(const QString &format)
+void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format)
 {
   mDateTimeFormat = format;
 }
 
-void QCPAxisTickerTime::setDateTimeSpec(Qt::TimeSpec spec)
+void QCPAxisTickerDateTime::setDateTimeSpec(Qt::TimeSpec spec)
 {
   mDateTimeSpec = spec;
 }
 
-void QCPAxisTickerTime::setTickOrigin(double origin)
+void QCPAxisTickerDateTime::setTickOrigin(double origin)
 {
   QCPAxisTicker::setTickOrigin(origin);
 }
 
-void QCPAxisTickerTime::setTickOrigin(const QDateTime &origin)
+void QCPAxisTickerDateTime::setTickOrigin(const QDateTime &origin)
 {
   setTickOrigin(dateTimeToKey(origin));
 }
 
-double QCPAxisTickerTime::getTickStep(const QCPRange &range)
+double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
@@ -88,7 +88,7 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
   return result;
 }
 
-int QCPAxisTickerTime::getSubTickCount(double tickStep)
+int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
 {
   int result = QCPAxisTicker::getSubTickCount(tickStep);
   switch (qRound(tickStep)) // hand chosen subticks for specific minute/hour/day/week/month range (as specified in getTickStep)
@@ -116,14 +116,14 @@ int QCPAxisTickerTime::getSubTickCount(double tickStep)
   return result;
 }
 
-QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
+QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
   Q_UNUSED(precision)
   Q_UNUSED(formatChar)
   return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
 }
 
-QVector<double> QCPAxisTickerTime::createTickVector(double tickStep, const QCPRange &range)
+QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const QCPRange &range)
 {
   QVector<double> result = QCPAxisTicker::createTickVector(tickStep, range);
   if (!result.isEmpty())
@@ -159,7 +159,7 @@ QVector<double> QCPAxisTickerTime::createTickVector(double tickStep, const QCPRa
   return result;
 }
 
-QDateTime QCPAxisTickerTime::keyToDateTime(double key) const
+QDateTime QCPAxisTickerDateTime::keyToDateTime(double key) const
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime::fromTime_t(key);
@@ -168,7 +168,7 @@ QDateTime QCPAxisTickerTime::keyToDateTime(double key) const
 # endif
 }
 
-double QCPAxisTickerTime::dateTimeToKey(const QDateTime dateTime) const
+double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime) const
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return dateTime.toTime_t();

@@ -424,7 +424,7 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
 void MainWindow::setupDateTest(QCustomPlot *customPlot)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
-  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTickerTime));
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTickerDateTime));
   customPlot->xAxis->setRange(QDateTime(QDate(2015, 1, 1)).toTime_t(), QDateTime(QDate(2020, 1, 1)).toTime_t());
   QCPGraph *g = customPlot->addGraph();
   g->addData(QDateTime(QDate(2015,1,1), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 1);

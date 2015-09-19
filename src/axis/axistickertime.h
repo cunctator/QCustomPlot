@@ -28,10 +28,10 @@
 
 #include "axisticker.h"
 
-class QCPAxisTickerTime : public QCPAxisTicker
+class QCPAxisTickerDateTime : public QCPAxisTicker
 {
 public:
-  QCPAxisTickerTime();
+  QCPAxisTickerDateTime();
   
   // getters:
   QString dateTimeFormat() const { return mDateTimeFormat; }

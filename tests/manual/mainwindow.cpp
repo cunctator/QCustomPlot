@@ -1215,7 +1215,12 @@ void MainWindow::setupTestbed(QCustomPlot *customPlot)
 
 void MainWindow::setupIntegerTickStepCase(QCustomPlot *customPlot)
 {
-  // TODO: integer ticker for xAxis and yAxis
+  QSharedPointer<QCPAxisTickerFixed> ticker(new QCPAxisTickerFixed);
+  ticker->setTickStep(5.0);
+  ticker->setScaleStrategy(QCPAxisTickerFixed::ssMultiples);
+  
+  customPlot->xAxis->setTicker(ticker);
+  customPlot->yAxis->setTicker(ticker);
 }
 
 void MainWindow::tracerTestMouseMove(QMouseEvent *event)

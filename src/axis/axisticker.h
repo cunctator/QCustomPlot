@@ -29,7 +29,7 @@
 #include "../global.h"
 #include "range.h"
 
-class QCPAxisTicker
+class QCP_LIB_DECL QCPAxisTicker
 {
 public:
   QCPAxisTicker();

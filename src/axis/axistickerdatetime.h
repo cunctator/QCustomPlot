@@ -28,7 +28,7 @@
 
 #include "axisticker.h"
 
-class QCPAxisTickerDateTime : public QCPAxisTicker
+class QCP_LIB_DECL QCPAxisTickerDateTime : public QCPAxisTicker
 {
 public:
   QCPAxisTickerDateTime();

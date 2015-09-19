@@ -34,7 +34,7 @@
 #include "axis/range.h"
 #include "axis/axis.h"
 #include "axis/axisticker.h"
-#include "axis/axistickertime.h"
+#include "axis/axistickerdatetime.h"
 #include "plottable.h"
 #include "item.h"
 #include "lineending.h"

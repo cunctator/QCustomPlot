@@ -37,7 +37,7 @@
 //amalgamation: add layout.h
 //amalgamation: add lineending.h
 //amalgamation: add axis/axisticker.h
-//amalgamation: add axis/axistickertime.h
+//amalgamation: add axis/axistickerdatetime.h
 //amalgamation: add axis/axis.h
 //amalgamation: add plottable.h
 //amalgamation: add item.h

@@ -59,7 +59,7 @@ layoutelements/layoutelement-axisrect.h \
     layoutelements/layoutelement-colorscale.h \
     colorgradient.h \
     qcpvector2d.h \
-    axis/axistickertime.h
+    axis/axistickerdatetime.h
 
 SOURCES += \
 painter.cpp \
@@ -93,7 +93,7 @@ layoutelements/layoutelement-axisrect.cpp \
     layoutelements/layoutelement-colorscale.cpp \
     colorgradient.cpp \
     qcpvector2d.cpp \
-    axis/axistickertime.cpp
+    axis/axistickerdatetime.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

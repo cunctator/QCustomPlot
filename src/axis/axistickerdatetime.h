@@ -23,8 +23,8 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_AXISTICKERTIME_H
-#define QCP_AXISTICKERTIME_H
+#ifndef QCP_AXISTICKERDATETIME_H
+#define QCP_AXISTICKERDATETIME_H
 
 #include "axisticker.h"
 
@@ -61,4 +61,4 @@ protected:
   double dateTimeToKey(const QDateTime dateTime) const;
 };
 
-#endif // QCP_AXISTICKERTIME_H
+#endif // QCP_AXISTICKERDATETIME_H

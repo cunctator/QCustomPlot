@@ -73,8 +73,8 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
   {
     result = pickClosest(result, QVector<double>()
                              << 1 << 2.5 << 5 << 10 << 15 << 30 << 60 << 2.5*60 << 5*60 << 10*60 << 15*60 << 30*60 << 60*60 // second, minute, hour range
-                             << 3600 << 3600*2 << 3600*3 << 3600*6 << 3600*12 << 3600*24 // hour to day range
-                             << 86400 << 86400*2 << 86400*5 << 86400*7 << 86400*14 << 86400*30.4375 << 86400*30.4375*2 << 86400*30.4375*3 << 86400*30.4375*6 << 86400*30.4375*12); // day, week, month range (avg. days per month includes leap years)
+                             << 3600*2 << 3600*3 << 3600*6 << 3600*12 << 3600*24 // hour to day range
+                             << 86400*2 << 86400*5 << 86400*7 << 86400*14 << 86400*30.4375 << 86400*30.4375*2 << 86400*30.4375*3 << 86400*30.4375*6 << 86400*30.4375*12); // day, week, month range (avg. days per month includes leap years)
     if (result > 86400*30.4375-1) // month tick intervals or larger
       mDateStrategy = dsUniformDayInMonth;
     else if (result > 3600*24-1) // day tick intervals or larger
@@ -90,61 +90,29 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 
 int QCPAxisTickerTime::getSubTickCount(double tickStep)
 {
-  // TODO
-  
-  
-  
-  int result = 1; // default to 1, if no proper value can be found
-  
-  // get mantissa of tickstep:
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(tickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = tickStep/magnitudeFactor;
-  
-  // separate integer and fractional part of mantissa:
-  double epsilon = 0.01;
-  double intPartf;
-  int intPart;
-  double fracPart = modf(tickStepMantissa, &intPartf);
-  intPart = intPartf;
-  
-  // handle cases with (almost) integer mantissa:
-  if (fracPart < epsilon || 1.0-fracPart < epsilon)
+  int result = QCPAxisTicker::getSubTickCount(tickStep);
+  switch (qRound(tickStep)) // hand chosen subticks for specific minute/hour/day/week/month range (as specified in getTickStep)
   {
-    if (1.0-fracPart < epsilon)
-      ++intPart;
-    switch (intPart)
-    {
-      case 1: result = 4; break; // 1.0 -> 0.2 substep
-      case 2: result = 3; break; // 2.0 -> 0.5 substep
-      case 3: result = 2; break; // 3.0 -> 1.0 substep
-      case 4: result = 3; break; // 4.0 -> 1.0 substep
-      case 5: result = 4; break; // 5.0 -> 1.0 substep
-      case 6: result = 2; break; // 6.0 -> 2.0 substep
-      case 7: result = 6; break; // 7.0 -> 1.0 substep
-      case 8: result = 3; break; // 8.0 -> 2.0 substep
-      case 9: result = 2; break; // 9.0 -> 3.0 substep
-    }
-  } else
-  {
-    // handle cases with significantly fractional mantissa:
-    if (qAbs(fracPart-0.5) < epsilon) // *.5 mantissa
-    {
-      switch (intPart)
-      {
-        case 1: result = 2; break; // 1.5 -> 0.5 substep
-        case 2: result = 4; break; // 2.5 -> 0.5 substep
-        case 3: result = 4; break; // 3.5 -> 0.7 substep
-        case 4: result = 2; break; // 4.5 -> 1.5 substep
-        case 5: result = 4; break; // 5.5 -> 1.1 substep (won't occur with autoTickStep from here on)
-        case 6: result = 4; break; // 6.5 -> 1.3 substep
-        case 7: result = 2; break; // 7.5 -> 2.5 substep
-        case 8: result = 4; break; // 8.5 -> 1.7 substep
-        case 9: result = 4; break; // 9.5 -> 1.9 substep
-      }
-    }
-    // if mantissa fraction isnt 0.0 or 0.5, don't bother finding good sub tick marks, leave default
+    case 5*60: result = 4; break;
+    case 10*60: result = 1; break;
+    case 15*60: result = 2; break;
+    case 30*60: result = 1; break;
+    case 60*60: result = 3; break;
+    case 3600*2: result = 3; break;
+    case 3600*3: result = 2; break;
+    case 3600*6: result = 1; break;
+    case 3600*12: result = 3; break;
+    case 3600*24: result = 3; break;
+    case 86400*2: result = 1; break;
+    case 86400*5: result = 4; break;
+    case 86400*7: result = 6; break;
+    case 86400*14: result = 1; break;
+    case (int)(86400*30.4375+0.5): result = 3; break;
+    case (int)(86400*30.4375*2+0.5): result = 1; break;
+    case (int)(86400*30.4375*3+0.5): result = 2; break;
+    case (int)(86400*30.4375*6+0.5): result = 5; break;
+    case (int)(86400*30.4375*12+0.5): result = 3; break;
   }
-  
   return result;
 }
 

@@ -39,6 +39,7 @@ QCPAxisTickerDateTime::QCPAxisTickerDateTime() :
   mDateTimeSpec(Qt::LocalTime),
   mDateStrategy(dsNone)
 {
+  setTickCount(4);
 }
 
 void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format)

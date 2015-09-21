@@ -36,7 +36,7 @@
 
 QCPAxisTicker::QCPAxisTicker() :
   mTickStepStrategy(tssReadability),
-  mTickCount(6),
+  mTickCount(5),
   mTickOrigin(0)
 {
 }

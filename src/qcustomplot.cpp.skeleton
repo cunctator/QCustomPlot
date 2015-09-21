@@ -35,6 +35,7 @@
 //amalgamation: add axis/axisticker.cpp
 //amalgamation: add axis/axistickerdatetime.cpp
 //amalgamation: add axis/axistickerfixed.cpp
+//amalgamation: add axis/axistickerpi.cpp
 //amalgamation: add axis/axis.cpp
 //amalgamation: add plottable.cpp
 //amalgamation: add item.cpp

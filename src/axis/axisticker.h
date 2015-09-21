@@ -35,11 +35,19 @@ public:
   QCPAxisTicker();
   virtual ~QCPAxisTicker();
   
+  enum TickStepStrategy
+  {
+    tssReadability
+    ,tssMeetTickCount
+  };
+  
   // getters:
+  TickStepStrategy tickStepStrategy() const { return mTickStepStrategy; }
   int tickCount() const { return mTickCount; }
   double tickOrigin() const { return mTickOrigin; }
   
   // setters:
+  void setTickStepStrategy(TickStepStrategy strategy);
   void setTickCount(int count);
   void setTickOrigin(double origin);
   
@@ -48,6 +56,7 @@ public:
   
 protected:
   // property members:
+  TickStepStrategy mTickStepStrategy;
   int mTickCount;
   double mTickOrigin;
   

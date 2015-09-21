@@ -35,6 +35,7 @@
 */
 
 QCPAxisTicker::QCPAxisTicker() :
+  mTickStepStrategy(tssReadability),
   mTickCount(6),
   mTickOrigin(0)
 {
@@ -43,6 +44,11 @@ QCPAxisTicker::QCPAxisTicker() :
 QCPAxisTicker::~QCPAxisTicker()
 {
   
+}
+
+void QCPAxisTicker::setTickStepStrategy(QCPAxisTicker::TickStepStrategy strategy)
+{
+  mTickStepStrategy = strategy;
 }
 
 void QCPAxisTicker::setTickCount(int count)
@@ -123,7 +129,7 @@ int QCPAxisTicker::getSubTickCount(double tickStep)
         case 2: result = 4; break; // 2.5 -> 0.5 substep
         case 3: result = 4; break; // 3.5 -> 0.7 substep
         case 4: result = 2; break; // 4.5 -> 1.5 substep
-        case 5: result = 4; break; // 5.5 -> 1.1 substep (won't occur with autoTickStep from here on)
+        case 5: result = 4; break; // 5.5 -> 1.1 substep (won't occur with default getTickStep from here on)
         case 6: result = 4; break; // 6.5 -> 1.3 substep
         case 7: result = 2; break; // 7.5 -> 2.5 substep
         case 8: result = 4; break; // 8.5 -> 1.7 substep
@@ -258,8 +264,20 @@ double QCPAxisTicker::cleanMantissa(double input) const
 {
   double magnitude;
   const double mantissa = getMantissa(input, &magnitude);
-  if (mantissa <= 5.0)
-    return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
-  else
-    return (int)(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
+  switch (mTickStepStrategy)
+  {
+    case tssReadability:
+    {
+      return pickClosest(mantissa, QVector<double>() << 1.0 << 2.0 << 2.5 << 5.0)*magnitude;
+    }
+    case tssMeetTickCount:
+    {
+      // this gives effectively a mantissa of 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0
+      if (mantissa <= 5.0)
+        return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
+      else
+        return (int)(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
+    }
+  }
+  return input;
 }

@@ -268,11 +268,11 @@ double QCPAxisTicker::cleanMantissa(double input) const
   {
     case tssReadability:
     {
-      return pickClosest(mantissa, QVector<double>() << 1.0 << 2.0 << 2.5 << 5.0)*magnitude;
+      return pickClosest(mantissa, QVector<double>() << 1.0 << 2.0 << 2.5 << 5.0 << 10.0)*magnitude;
     }
     case tssMeetTickCount:
     {
-      // this gives effectively a mantissa of 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0
+      // this gives effectively a mantissa of 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0
       if (mantissa <= 5.0)
         return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
       else

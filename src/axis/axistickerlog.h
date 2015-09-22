@@ -23,42 +23,35 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#include "qcustomplot.h"
-//amalgamation: place implementation includes
+#ifndef QCP_AXISTICKERLOG_H
+#define QCP_AXISTICKERLOG_H
 
-//amalgamation: add qcpvector2d.cpp
-//amalgamation: add painter.cpp
-//amalgamation: add layer.cpp
-//amalgamation: add axis/range.cpp
-//amalgamation: add layout.cpp
-//amalgamation: add lineending.cpp
-//amalgamation: add axis/axisticker.cpp
-//amalgamation: add axis/axistickerdatetime.cpp
-//amalgamation: add axis/axistickerfixed.cpp
-//amalgamation: add axis/axistickerpi.cpp
-//amalgamation: add axis/axistickerlog.cpp
-//amalgamation: add axis/axis.cpp
-//amalgamation: add plottable.cpp
-//amalgamation: add item.cpp
-//amalgamation: add core.cpp
-//amalgamation: add colorgradient.cpp
-//amalgamation: add layoutelements/layoutelement-axisrect.cpp
-//amalgamation: add layoutelements/layoutelement-legend.cpp
-//amalgamation: add layoutelements/layoutelement-plottitle.cpp
-//amalgamation: add layoutelements/layoutelement-colorscale.cpp
-//amalgamation: add plottables/plottable-graph.cpp
-//amalgamation: add plottables/plottable-curve.cpp
-//amalgamation: add plottables/plottable-bars.cpp
-//amalgamation: add plottables/plottable-statisticalbox.cpp
-//amalgamation: add plottables/plottable-colormap.cpp
-//amalgamation: add plottables/plottable-financial.cpp
-//amalgamation: add items/item-straightline.cpp
-//amalgamation: add items/item-line.cpp
-//amalgamation: add items/item-curve.cpp
-//amalgamation: add items/item-rect.cpp
-//amalgamation: add items/item-text.cpp
-//amalgamation: add items/item-ellipse.cpp
-//amalgamation: add items/item-pixmap.cpp
-//amalgamation: add items/item-tracer.cpp
-//amalgamation: add items/item-bracket.cpp
+#include "axisticker.h"
 
+class QCP_LIB_DECL QCPAxisTickerLog : public QCPAxisTicker
+{
+public:
+  QCPAxisTickerLog();
+  
+  // getters:
+  double logBase() const { return mLogBase; }
+  int subTickCount() const { return mSubTickCount; }
+  
+  // setters:
+  void setLogBase(double base);
+  void setSubTickCount(int subTicks);
+  
+protected:
+  // property members:
+  double mLogBase;
+  int mSubTickCount;
+  // non-property members:
+  double mLogBaseLnInv;
+  
+  // reimplemented virtual methods:
+  virtual double getTickStep(const QCPRange &range);
+  virtual int getSubTickCount(double tickStep);
+  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
+};
+
+#endif // QCP_AXISTICKERLOG_H

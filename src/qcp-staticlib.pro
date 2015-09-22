@@ -61,7 +61,8 @@ layoutelements/layoutelement-axisrect.h \
     qcpvector2d.h \
     axis/axistickerdatetime.h \
     axis/axistickerfixed.h \
-    axis/axistickerpi.h
+    axis/axistickerpi.h \
+    axis/axistickerlog.h
 
 SOURCES += \
 painter.cpp \
@@ -97,7 +98,8 @@ layoutelements/layoutelement-axisrect.cpp \
     qcpvector2d.cpp \
     axis/axistickerdatetime.cpp \
     axis/axistickerfixed.cpp \
-    axis/axistickerpi.cpp
+    axis/axistickerpi.cpp \
+    axis/axistickerlog.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

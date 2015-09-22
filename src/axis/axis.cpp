@@ -2333,8 +2333,9 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   if (substituteExponent)
   {
     ePos = text.indexOf(QLatin1Char('e'));
-    if (ePos > -1)
-      useBeautifulPowers = true;
+    useBeautifulPowers = ePos > 0 && ePos < text.size()-1 &&
+        text.at(ePos-1).isDigit() &&
+        (text.at(ePos+1) == QLatin1Char('+') || text.at(ePos+1) == QLatin1Char('-') || text.at(ePos+1).isDigit());
   }
   
   // calculate text bounding rects and do string preparation for beautiful decimal powers:

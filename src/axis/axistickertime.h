@@ -23,43 +23,39 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#include "qcustomplot.h"
-//amalgamation: place implementation includes
+#ifndef QCP_AXISTICKERTIME_H
+#define QCP_AXISTICKERTIME_H
 
-//amalgamation: add qcpvector2d.cpp
-//amalgamation: add painter.cpp
-//amalgamation: add layer.cpp
-//amalgamation: add axis/range.cpp
-//amalgamation: add layout.cpp
-//amalgamation: add lineending.cpp
-//amalgamation: add axis/axisticker.cpp
-//amalgamation: add axis/axistickerdatetime.cpp
-//amalgamation: add axis/axistickertime.cpp
-//amalgamation: add axis/axistickerfixed.cpp
-//amalgamation: add axis/axistickerpi.cpp
-//amalgamation: add axis/axistickerlog.cpp
-//amalgamation: add axis/axis.cpp
-//amalgamation: add plottable.cpp
-//amalgamation: add item.cpp
-//amalgamation: add core.cpp
-//amalgamation: add colorgradient.cpp
-//amalgamation: add layoutelements/layoutelement-axisrect.cpp
-//amalgamation: add layoutelements/layoutelement-legend.cpp
-//amalgamation: add layoutelements/layoutelement-plottitle.cpp
-//amalgamation: add layoutelements/layoutelement-colorscale.cpp
-//amalgamation: add plottables/plottable-graph.cpp
-//amalgamation: add plottables/plottable-curve.cpp
-//amalgamation: add plottables/plottable-bars.cpp
-//amalgamation: add plottables/plottable-statisticalbox.cpp
-//amalgamation: add plottables/plottable-colormap.cpp
-//amalgamation: add plottables/plottable-financial.cpp
-//amalgamation: add items/item-straightline.cpp
-//amalgamation: add items/item-line.cpp
-//amalgamation: add items/item-curve.cpp
-//amalgamation: add items/item-rect.cpp
-//amalgamation: add items/item-text.cpp
-//amalgamation: add items/item-ellipse.cpp
-//amalgamation: add items/item-pixmap.cpp
-//amalgamation: add items/item-tracer.cpp
-//amalgamation: add items/item-bracket.cpp
+#include "axisticker.h"
 
+class QCP_LIB_DECL QCPAxisTickerTime : public QCPAxisTicker
+{
+public:
+  QCPAxisTickerTime();
+
+  // getters:
+  QString timeFormat() const { return mTimeFormat; }
+  
+  // setters:
+  void setTimeFormat(const QString &format);
+  
+protected:
+  enum TimeUnit {tuMillis, tuSecs, tuMins, tuHours, tuDays};
+  
+  // property members:
+  QString mTimeFormat;
+  
+  // non-property members:
+  TimeUnit mSmallestUnit, mBiggestUnit;
+  
+  // reimplemented virtual methods:
+  virtual double getTickStep(const QCPRange &range);
+  virtual int getSubTickCount(double tickStep);
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  
+  // non-virtual methods:
+  void replaceUnit(QString &text, TimeUnit unit, int value) const;
+  QLatin1String pattern(TimeUnit unit) const;
+};
+
+#endif // QCP_AXISTICKERTIME_H

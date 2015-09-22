@@ -60,6 +60,7 @@ layoutelements/layoutelement-axisrect.h \
     colorgradient.h \
     qcpvector2d.h \
     axis/axistickerdatetime.h \
+    axis/axistickertime.h \
     axis/axistickerfixed.h \
     axis/axistickerpi.h \
     axis/axistickerlog.h
@@ -97,6 +98,7 @@ layoutelements/layoutelement-axisrect.cpp \
     colorgradient.cpp \
     qcpvector2d.cpp \
     axis/axistickerdatetime.cpp \
+    axis/axistickertime.cpp \
     axis/axistickerfixed.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp

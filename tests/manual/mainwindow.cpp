@@ -316,7 +316,9 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
-  // TODO: log ticker yAxis
+  customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  customPlot->yAxis->setNumberFormat("eb");
+  customPlot->yAxis->setNumberPrecision(0);
   customPlot->yAxis->grid()->setSubGridVisible(true);
   int n = 11;
   QVector<double> x(n), y(n), yerr(n), xerr(n);

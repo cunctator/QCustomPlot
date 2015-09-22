@@ -193,14 +193,12 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
   {
     mType = type;
     QCPRange rangeTransfer(0, 6);
-    double logBaseTransfer = 10;
     QString labelTransfer;
     // revert some settings on old axis:
     if (mColorAxis)
     {
       rangeTransfer = mColorAxis.data()->range();
       labelTransfer = mColorAxis.data()->label();
-      logBaseTransfer = mColorAxis.data()->scaleLogBase();
       mColorAxis.data()->setLabel(QString());
       disconnect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
       disconnect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
@@ -216,7 +214,6 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     // transfer settings to new axis:
     mColorAxis.data()->setRange(rangeTransfer); // transfer range of old axis to new one (necessary if axis changes from vertical to horizontal or vice versa)
     mColorAxis.data()->setLabel(labelTransfer);
-    mColorAxis.data()->setScaleLogBase(logBaseTransfer); // scaleType is synchronized among axes in realtime via signals (connected in QCPColorScale ctor), so we only need to take care of log base here
     connect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
     connect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
     mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : 0,

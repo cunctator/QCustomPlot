@@ -393,7 +393,6 @@ bool QCPAxisRect::removeAxis(QCPAxis *axis)
   \li range (\ref QCPAxis::setRange)
   \li range reversed (\ref QCPAxis::setRangeReversed)
   \li scale type (\ref QCPAxis::setScaleType)
-  \li scale log base  (\ref QCPAxis::setScaleLogBase)
   \li ticks (\ref QCPAxis::setTicks)
   \li number format (\ref QCPAxis::setNumberFormat)
   \li number precision (\ref QCPAxis::setNumberPrecision)
@@ -438,7 +437,6 @@ void QCPAxisRect::setupFullAxesBox(bool connectRanges)
   xAxis2->setRange(xAxis->range());
   xAxis2->setRangeReversed(xAxis->rangeReversed());
   xAxis2->setScaleType(xAxis->scaleType());
-  xAxis2->setScaleLogBase(xAxis->scaleLogBase());
   xAxis2->setTicks(xAxis->ticks());
   xAxis2->setNumberFormat(xAxis->numberFormat());
   xAxis2->setNumberPrecision(xAxis->numberPrecision());
@@ -448,7 +446,6 @@ void QCPAxisRect::setupFullAxesBox(bool connectRanges)
   yAxis2->setRange(yAxis->range());
   yAxis2->setRangeReversed(yAxis->rangeReversed());
   yAxis2->setScaleType(yAxis->scaleType());
-  yAxis2->setScaleLogBase(yAxis->scaleLogBase());
   yAxis2->setTicks(yAxis->ticks());
   yAxis2->setNumberFormat(yAxis->numberFormat());
   yAxis2->setNumberPrecision(yAxis->numberPrecision());

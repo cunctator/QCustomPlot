@@ -100,7 +100,6 @@ class QCP_LIB_DECL QCPAxis : public QCPLayerable
   Q_PROPERTY(AxisType axisType READ axisType)
   Q_PROPERTY(QCPAxisRect* axisRect READ axisRect)
   Q_PROPERTY(ScaleType scaleType READ scaleType WRITE setScaleType NOTIFY scaleTypeChanged)
-  Q_PROPERTY(double scaleLogBase READ scaleLogBase WRITE setScaleLogBase)
   Q_PROPERTY(QCPRange range READ range WRITE setRange NOTIFY rangeChanged)
   Q_PROPERTY(bool rangeReversed READ rangeReversed WRITE setRangeReversed)
   Q_PROPERTY(bool ticks READ ticks WRITE setTicks)
@@ -189,7 +188,6 @@ public:
   AxisType axisType() const { return mAxisType; }
   QCPAxisRect *axisRect() const { return mAxisRect; }
   ScaleType scaleType() const { return mScaleType; }
-  double scaleLogBase() const { return mScaleLogBase; }
   const QCPRange range() const { return mRange; }
   bool rangeReversed() const { return mRangeReversed; }
   QSharedPointer<QCPAxisTicker> ticker() const { return mTicker; }
@@ -233,7 +231,6 @@ public:
   
   // setters:
   Q_SLOT void setScaleType(QCPAxis::ScaleType type);
-  void setScaleLogBase(double base);
   Q_SLOT void setRange(const QCPRange &range);
   void setRange(double lower, double upper);
   void setRange(double position, double size, Qt::AlignmentFlag alignment);
@@ -323,7 +320,7 @@ protected:
   QColor mLabelColor, mSelectedLabelColor;
   // tick labels:
   //int mTickLabelPadding; // in QCPAxisPainter
-  bool mTickLabels, mAutoTickLabels;
+  bool mTickLabels;
   //double mTickLabelRotation; // in QCPAxisPainter
   QFont mTickLabelFont, mSelectedTickLabelFont;
   QColor mTickLabelColor, mSelectedTickLabelColor;
@@ -341,7 +338,6 @@ protected:
   QCPRange mRange;
   bool mRangeReversed;
   ScaleType mScaleType;
-  double mScaleLogBase, mScaleLogBaseLogInv;
   
   // non-property members:
   QCPGrid *mGrid;
@@ -366,8 +362,6 @@ protected:
   
   // non-virtual methods:
   void setupTickVectors();
-  double baseLog(double value) const;
-  double basePow(double value) const;
   QPen getBasePen() const;
   QPen getTickPen() const;
   QPen getSubTickPen() const;

@@ -407,8 +407,6 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mRange(0, 5),
   mRangeReversed(false),
   mScaleType(stLinear),
-  mScaleLogBase(10),
-  mScaleLogBaseLogInv(1.0/qLn(mScaleLogBase)),
   // internal members:
   mGrid(new QCPGrid(this)),
   mAxisPainter(new QCPAxisPainterPrivate(parent->parentPlot())),
@@ -548,24 +546,6 @@ void QCPAxis::setScaleType(QCPAxis::ScaleType type)
     mCachedMarginValid = false;
     emit scaleTypeChanged(mScaleType);
   }
-}
-
-/*!
-  If \ref setScaleType is set to \ref stLogarithmic, \a base will be the logarithm base of the
-  scaling. In logarithmic axis scaling, major tick marks appear at all powers of \a base.
-  
-  Properties like tick step (\ref setTickStep) don't apply in logarithmic scaling. If you wish a decimal base but
-  less major ticks, consider choosing \a base 100, 1000 or even higher.
-*/
-void QCPAxis::setScaleLogBase(double base)
-{
-  if (base > 1)
-  {
-    mScaleLogBase = base;
-    mScaleLogBaseLogInv = 1.0/qLn(mScaleLogBase); // buffer for faster baseLog() calculation
-    mCachedMarginValid = false;
-  } else
-    qDebug() << Q_FUNC_INFO << "Invalid logarithmic scale base (must be greater 1):" << base;
 }
 
 /*!
@@ -1490,9 +1470,9 @@ double QCPAxis::coordToPixel(double value) const
       else
       {
         if (!mRangeReversed)
-          return baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
+          return qLn(value/mRange.lower)/qLn(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
         else
-          return baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
+          return qLn(mRange.upper/value)/qLn(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
       }
     }
   } else // orientation() == Qt::Vertical
@@ -1512,9 +1492,9 @@ double QCPAxis::coordToPixel(double value) const
       else
       {
         if (!mRangeReversed)
-          return mAxisRect->bottom()-baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect->height();
+          return mAxisRect->bottom()-qLn(value/mRange.lower)/qLn(mRange.upper/mRange.lower)*mAxisRect->height();
         else
-          return mAxisRect->bottom()-baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect->height();
+          return mAxisRect->bottom()-qLn(mRange.upper/value)/qLn(mRange.upper/mRange.lower)*mAxisRect->height();
       }
     }
   }
@@ -1730,7 +1710,7 @@ void QCPAxis::draw(QCPPainter *painter)
   mAxisPainter->labelFont = getLabelFont();
   mAxisPainter->labelColor = getLabelColor();
   mAxisPainter->label = mLabel;
-  mAxisPainter->substituteExponent = mAutoTickLabels && mNumberBeautifulPowers;
+  mAxisPainter->substituteExponent = mNumberBeautifulPowers;
   mAxisPainter->tickPen = getTickPen();
   mAxisPainter->subTickPen = getSubTickPen();
   mAxisPainter->tickLabelFont = getTickLabelFont();
@@ -1761,31 +1741,6 @@ void QCPAxis::setupTickVectors()
   QVector<QString> oldLabels = mTickVectorLabels;
   mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTickVector, mTickVectorLabels);
   mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
-}
-
-/*! \internal
-  
-  A log function with the base mScaleLogBase, used mostly for coordinate transforms in logarithmic
-  scales with arbitrary log base. Uses the buffered mScaleLogBaseLogInv for faster calculation.
-  This is set to <tt>1.0/qLn(mScaleLogBase)</tt> in \ref setScaleLogBase.
-  
-  \see basePow, setScaleLogBase, setScaleType
-*/
-double QCPAxis::baseLog(double value) const
-{
-  return qLn(value)*mScaleLogBaseLogInv;
-}
-
-/*! \internal
-  
-  A power function with the base mScaleLogBase, used mostly for coordinate transforms in
-  logarithmic scales with arbitrary log base.
-  
-  \see baseLog, setScaleLogBase, setScaleType
-*/
-double QCPAxis::basePow(double value) const
-{
-  return qPow(mScaleLogBase, value);
 }
 
 /*! \internal

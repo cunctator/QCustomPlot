@@ -62,6 +62,7 @@ layoutelements/layoutelement-axisrect.h \
     axis/axistickerdatetime.h \
     axis/axistickertime.h \
     axis/axistickerfixed.h \
+    axis/axistickertext.h \
     axis/axistickerpi.h \
     axis/axistickerlog.h
 
@@ -100,6 +101,7 @@ layoutelements/layoutelement-axisrect.cpp \
     axis/axistickerdatetime.cpp \
     axis/axistickertime.cpp \
     axis/axistickerfixed.cpp \
+    axis/axistickertext.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp
 

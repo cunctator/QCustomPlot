@@ -37,6 +37,7 @@
 #include "axis/axistickerdatetime.h"
 #include "axis/axistickertime.h"
 #include "axis/axistickerfixed.h"
+#include "axis/axistickertext.h"
 #include "axis/axistickerpi.h"
 #include "axis/axistickerlog.h"
 #include "plottable.h"

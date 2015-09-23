@@ -67,7 +67,7 @@ double QCPAxisTickerFixed::getTickStep(const QCPRange &range)
       if (exactStep < mTickStep)
         return mTickStep;
       else
-        return (int)(exactStep/mTickStep+0.5)*mTickStep;
+        return (qint64)(cleanMantissa(exactStep/mTickStep)+0.5)*mTickStep;
     }
     case ssPowers:
     {

@@ -180,7 +180,7 @@ bool QCPColorScale::rangeZoom() const
   
   Note that after setting \a type to a different value, the axis returned by \ref axis() will
   be a different one. The new axis will adopt the following properties from the previous axis: The
-  range, scale type, log base and label.
+  range, scale type, label and ticker (the latter will be shared and not copied).
 */
 void QCPColorScale::setType(QCPAxis::AxisType type)
 {
@@ -194,11 +194,13 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     mType = type;
     QCPRange rangeTransfer(0, 6);
     QString labelTransfer;
+    QSharedPointer<QCPAxisTicker> tickerTransfer;
     // revert some settings on old axis:
     if (mColorAxis)
     {
       rangeTransfer = mColorAxis.data()->range();
       labelTransfer = mColorAxis.data()->label();
+      tickerTransfer = mColorAxis.data()->ticker();
       mColorAxis.data()->setLabel(QString());
       disconnect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
       disconnect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
@@ -212,8 +214,9 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     // set new mColorAxis pointer:
     mColorAxis = mAxisRect.data()->axis(mType);
     // transfer settings to new axis:
-    mColorAxis.data()->setRange(rangeTransfer); // transfer range of old axis to new one (necessary if axis changes from vertical to horizontal or vice versa)
+    mColorAxis.data()->setRange(rangeTransfer); // range transfer necessary if axis changes from vertical to horizontal or vice versa (axes with same orientation are synchronized via signals)
     mColorAxis.data()->setLabel(labelTransfer);
+    mColorAxis.data()->setTicker(tickerTransfer);
     connect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
     connect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
     mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : 0,

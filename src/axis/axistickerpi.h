@@ -58,6 +58,7 @@ public:
   double mPiValue;
   int mPeriodicity;
   FractionStyle mFractionStyle;
+  
   // non-property members:
   double mPiTickStep;
   

@@ -47,6 +47,7 @@ protected:
   // property members:
   QString mDateTimeFormat;
   Qt::TimeSpec mDateTimeSpec;
+  
   // non-property members:
   enum DateStrategy {dsNone, dsUniformTimeInDay, dsUniformDayInMonth} mDateStrategy;
   

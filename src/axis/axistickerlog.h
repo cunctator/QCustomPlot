@@ -45,6 +45,7 @@ protected:
   // property members:
   double mLogBase;
   int mSubTickCount;
+  
   // non-property members:
   double mLogBaseLnInv;
   

@@ -128,7 +128,7 @@ QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const Q
 {
   QVector<double> result = QCPAxisTicker::createTickVector(tickStep, range);
   if (!result.isEmpty())
-  {  
+  {
     if (mDateStrategy == dsUniformTimeInDay)
     {
       QDateTime uniformDateTime = keyToDateTime(mTickOrigin); // the time of this datetime will be set for all other ticks, if possible

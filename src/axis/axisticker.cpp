@@ -78,7 +78,7 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
     subTicks = QVector<double>();
   
   // finally trim also outliers (no further clipping happens in axis drawing):
-  trimTicks(range, ticks, false); 
+  trimTicks(range, ticks, false);
   trimTicks(range, subTicks, false);
   // generate labels for visible ticks if requested:
   if (tickLabels)

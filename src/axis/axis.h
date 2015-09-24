@@ -78,6 +78,7 @@ protected:
   bool mSubGridVisible;
   bool mAntialiasedSubGrid, mAntialiasedZeroLine;
   QPen mPen, mSubGridPen, mZeroLinePen;
+  
   // non-property members:
   QCPAxis *mParentAxis;
   

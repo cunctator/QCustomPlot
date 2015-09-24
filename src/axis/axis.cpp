@@ -2302,6 +2302,8 @@ void QCPAxisPainterPrivate::drawTickLabel(QCPPainter *painter, double x, double 
   {
     painter->setFont(labelData.baseFont);
     painter->drawText(0, 0, 0, 0, Qt::TextDontClip, labelData.basePart);
+    if (!labelData.suffixPart.isEmpty())
+      painter->drawText(labelData.baseBounds.width()+1+labelData.expBounds.width(), 0, 0, 0, Qt::TextDontClip, labelData.suffixPart);
     painter->setFont(labelData.expFont);
     painter->drawText(labelData.baseBounds.width()+1, 0, labelData.expBounds.width(), labelData.expBounds.height(), Qt::TextDontClip,  labelData.expPart);
   } else
@@ -2329,13 +2331,19 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   
   // determine whether beautiful decimal powers should be used
   bool useBeautifulPowers = false;
-  int ePos = -1;
+  int ePos = -1; // first index of exponent part, text before that will be basePart, text until eLast will be expPart
+  int eLast = -1; // last index of exponent part, rest of text after this will be suffixPart
   if (substituteExponent)
   {
     ePos = text.indexOf(QLatin1Char('e'));
-    useBeautifulPowers = ePos > 0 && ePos < text.size()-1 &&
-        text.at(ePos-1).isDigit() &&
-        (text.at(ePos+1) == QLatin1Char('+') || text.at(ePos+1) == QLatin1Char('-') || text.at(ePos+1).isDigit());
+    if (ePos > 0 && text.at(ePos-1).isDigit())
+    {
+      eLast = ePos;
+      while (eLast+1 < text.size() && (text.at(eLast+1) == QLatin1Char('+') || text.at(eLast+1) == QLatin1Char('-') || text.at(eLast+1).isDigit()))
+        ++eLast;
+      if (eLast > ePos) // only if also to right of 'e' is a digit/+/- interpret it as beautifiable power
+        useBeautifulPowers = true;
+    }
   }
   
   // calculate text bounding rects and do string preparation for beautiful decimal powers:
@@ -2346,12 +2354,13 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   {
     // split text into parts of number/symbol that will be drawn normally and part that will be drawn as exponent:
     result.basePart = text.left(ePos);
+    result.suffixPart = text.mid(eLast+1); // also drawn normally but after exponent
     // in log scaling, we want to turn "1*10^n" into "10^n", else add multiplication sign and decimal base:
     if (abbreviateDecimalPowers && result.basePart == QLatin1String("1"))
       result.basePart = QLatin1String("10");
     else
       result.basePart += (numberMultiplyCross ? QString(QChar(215)) : QString(QChar(183))) + QLatin1String("10");
-    result.expPart = text.mid(ePos+1);
+    result.expPart = text.mid(ePos+1, eLast-ePos);
     // clip "+" and leading zeros off expPart:
     while (result.expPart.length() > 2 && result.expPart.at(1) == QLatin1Char('0')) // length > 2 so we leave one zero when numberFormatChar is 'e'
       result.expPart.remove(1, 1);
@@ -2363,10 +2372,12 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
       result.expFont.setPointSize(result.expFont.pointSize()*0.75);
     else
       result.expFont.setPixelSize(result.expFont.pixelSize()*0.75);
-    // calculate bounding rects of base part, exponent part and total one:
+    // calculate bounding rects of base part(s), exponent part and total one:
     result.baseBounds = QFontMetrics(result.baseFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.basePart);
     result.expBounds = QFontMetrics(result.expFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.expPart);
-    result.totalBounds = result.baseBounds.adjusted(0, 0, result.expBounds.width()+2, 0); // +2 consists of the 1 pixel spacing between base and exponent (see drawTickLabel) and an extra pixel to include AA
+    if (!result.suffixPart.isEmpty())
+      result.suffixBounds = QFontMetrics(result.baseFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.suffixPart);
+    result.totalBounds = result.baseBounds.adjusted(0, 0, result.expBounds.width()+result.suffixBounds.width()+2, 0); // +2 consists of the 1 pixel spacing between base and exponent (see drawTickLabel) and an extra pixel to include AA
   } else // useBeautifulPowers == false
   {
     result.basePart = text;

@@ -430,8 +430,8 @@ protected:
   };
   struct TickLabelData
   {
-    QString basePart, expPart;
-    QRect baseBounds, expBounds, totalBounds, rotatedTotalBounds;
+    QString basePart, expPart, suffixPart;
+    QRect baseBounds, expBounds, suffixBounds, totalBounds, rotatedTotalBounds;
     QFont baseFont, expFont;
   };
   QCustomPlot *mParentPlot;

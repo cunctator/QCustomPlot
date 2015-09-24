@@ -64,7 +64,7 @@ void QCPAxisTicker::setTickOrigin(double origin)
   mTickOrigin = origin;
 }
 
-void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> &tickLabels)
+void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> *tickLabels)
 {
   // generate (major) ticks:
   double tickStep = getTickStep(range);
@@ -80,8 +80,9 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
   // finally trim also outliers (no further clipping happens in axis drawing):
   trimTicks(range, ticks, false); 
   trimTicks(range, subTicks, false);
-  // generate labels for visible ticks:
-  tickLabels = createLabelVector(ticks, locale, formatChar, precision);
+  // generate labels for visible ticks if requested:
+  if (tickLabels)
+    *tickLabels = createLabelVector(ticks, locale, formatChar, precision);
 }
 
 double QCPAxisTicker::getTickStep(const QCPRange &range)

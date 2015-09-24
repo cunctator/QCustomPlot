@@ -570,7 +570,6 @@ void QCPAxis::setRange(const QCPRange &range)
   {
     mRange = range.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -643,7 +642,6 @@ void QCPAxis::setRange(double lower, double upper)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -687,7 +685,6 @@ void QCPAxis::setRangeLower(double lower)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -710,7 +707,6 @@ void QCPAxis::setRangeUpper(double upper)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -726,11 +722,7 @@ void QCPAxis::setRangeUpper(double upper)
 */
 void QCPAxis::setRangeReversed(bool reversed)
 {
-  if (mRangeReversed != reversed)
-  {
-    mRangeReversed = reversed;
-    mCachedMarginValid = false;
-  }
+  mRangeReversed = reversed;
 }
 
 void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
@@ -766,6 +758,8 @@ void QCPAxis::setTickLabels(bool show)
   {
     mTickLabels = show;
     mCachedMarginValid = false;
+    if (!mTickLabels)
+      mTickVectorLabels.clear();
   }
 }
 
@@ -803,11 +797,7 @@ void QCPAxis::setTickLabelFont(const QFont &font)
 */
 void QCPAxis::setTickLabelColor(const QColor &color)
 {
-  if (color != mTickLabelColor)
-  {
-    mTickLabelColor = color;
-    mCachedMarginValid = false;
-  }
+  mTickLabelColor = color;
 }
 
 /*!
@@ -1289,7 +1279,6 @@ void QCPAxis::moveRange(double diff)
     mRange.lower *= diff;
     mRange.upper *= diff;
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -1322,7 +1311,6 @@ void QCPAxis::scaleRange(double factor, double center)
     } else
       qDebug() << Q_FUNC_INFO << "Center of scaling operation doesn't lie in same logarithmic sign domain as range:" << center;
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -1739,7 +1727,7 @@ void QCPAxis::setupTickVectors()
   if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
   QVector<QString> oldLabels = mTickVectorLabels;
-  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTickVector, mTickVectorLabels);
+  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTickVector, mTickLabels ? &mTickVectorLabels : 0);
   mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
 }
 

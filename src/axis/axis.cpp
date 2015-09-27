@@ -1727,7 +1727,7 @@ void QCPAxis::setupTickVectors()
   if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
   QVector<QString> oldLabels = mTickVectorLabels;
-  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTickVector, mTickLabels ? &mTickVectorLabels : 0);
+  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : 0, mTickLabels ? &mTickVectorLabels : 0);
   mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
 }
 

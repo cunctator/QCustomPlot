@@ -52,7 +52,7 @@ public:
   void setTickOrigin(double origin);
   
   // introduced virtual methods:
-  virtual void generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> &subTicks, QVector<QString> *tickLabels);
+  virtual void generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> *subTicks, QVector<QString> *tickLabels);
   
 protected:
   // property members:

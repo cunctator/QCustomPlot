@@ -195,8 +195,9 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     QCPRange rangeTransfer(0, 6);
     QString labelTransfer;
     QSharedPointer<QCPAxisTicker> tickerTransfer;
-    // revert some settings on old axis:
-    if (mColorAxis)
+    // transfer/revert some settings on old axis if it exists:
+    bool doTransfer = (bool)mColorAxis;
+    if (doTransfer)
     {
       rangeTransfer = mColorAxis.data()->range();
       labelTransfer = mColorAxis.data()->label();
@@ -214,9 +215,12 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     // set new mColorAxis pointer:
     mColorAxis = mAxisRect.data()->axis(mType);
     // transfer settings to new axis:
-    mColorAxis.data()->setRange(rangeTransfer); // range transfer necessary if axis changes from vertical to horizontal or vice versa (axes with same orientation are synchronized via signals)
-    mColorAxis.data()->setLabel(labelTransfer);
-    mColorAxis.data()->setTicker(tickerTransfer);
+    if (doTransfer)
+    {
+      mColorAxis.data()->setRange(rangeTransfer); // range transfer necessary if axis changes from vertical to horizontal or vice versa (axes with same orientation are synchronized via signals)
+      mColorAxis.data()->setLabel(labelTransfer);
+      mColorAxis.data()->setTicker(tickerTransfer);
+    }
     connect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
     connect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
     mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : 0,

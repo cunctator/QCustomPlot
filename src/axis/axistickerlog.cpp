@@ -78,20 +78,24 @@ QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRan
   QVector<double> result;
   if (range.lower > 0 && range.upper > 0) // positive range
   {
-    double currentTick = qPow(mLogBase, qFloor(qLn(range.lower)*mLogBaseLnInv));
+    double exactPowerStep =  qLn(range.upper/range.lower)*mLogBaseLnInv/(double)(mTickCount+1e-10);
+    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    double currentTick = qPow(newLogBase, qFloor(qLn(range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick > 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
     {
-      currentTick *= mLogBase;
+      currentTick *= newLogBase;
       result.append(currentTick);
     }
   } else if (range.lower < 0 && range.upper < 0) // negative range
   {
-    double currentTick = -qPow(mLogBase, qCeil(qLn(-range.lower)*mLogBaseLnInv));
+    double exactPowerStep =  qLn(range.lower/range.upper)*mLogBaseLnInv/(double)(mTickCount+1e-10);
+    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    double currentTick = -qPow(newLogBase, qCeil(qLn(-range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick < 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
     {
-      currentTick /= mLogBase;
+      currentTick /= newLogBase;
       result.append(currentTick);
     }
   } else // invalid range for logarithmic scale, because lower and upper have different sign

@@ -36,6 +36,7 @@ public slots:
   void genMarginGroup();
   void genAxisRectSpacingOverview();
   void genAxisNamesOverview();
+  void genAxisTickers();
   
   void genLayoutsystem_AddingPlotTitle();
   void genLayoutsystem_MultipleAxisRects();

@@ -386,6 +386,85 @@ void MainWindow::genAxisNamesOverview()
   customPlot->savePng(dir.filePath("AxisNamesOverview.png"), 450, 300);
 }
 
+void MainWindow::genAxisTickers()
+{
+  resetPlot(true);
+  
+  customPlot->xAxis->setVisible(true);
+  customPlot->xAxis->grid()->setVisible(false);
+  customPlot->axisRect()->setMargins(QMargins(5, 0, 5, 35));
+  customPlot->setBackground(QBrush(Qt::transparent));
+  
+  customPlot->xAxis->setRange(-1.5, 8.5);
+  //! [axistickerfixed-creation]
+  QSharedPointer<QCPAxisTickerFixed> fixedTicker(new QCPAxisTickerFixed);
+  customPlot->xAxis->setTicker(fixedTicker);
+  fixedTicker->setTickStep(1.0); // tick step shall be 1.0
+  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
+  //! [axistickerfixed-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(0.05, 5e4);
+  //! [axistickerlog-creation]
+  QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
+  customPlot->xAxis->setTicker(logTicker);
+  // don't forget to also set the scale type accordingly, otherwise you'll have
+  // logarithmically spaced ticks on a linear axis:
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  //! [axistickerlog-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-log.png"), 600, 50);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  
+  //! [axistickerdatetime-creation]
+  QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
+  customPlot->xAxis->setTicker(dateTimeTicker);
+  customPlot->xAxis->setRange(QDateTime(QDate(2013, 11, 16)).toTime_t(), QDateTime(QDate(2015, 5, 2)).toTime_t());
+  dateTimeTicker->setDateTimeFormat("d. MMM\nyyyy");
+  //! [axistickerdatetime-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-datetime.png"), 600, 50);
+  
+  //! [axistickertime-creation]
+  QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
+  customPlot->xAxis->setTicker(timeTicker);
+  customPlot->xAxis->setRange(-60*3.5, 60*11);
+  timeTicker->setTimeFormat("%mm:%ss");
+  //! [axistickertime-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(-3600*12, 3600*24*4);
+  //! [axistickertime-creation-2]
+  timeTicker->setTimeFormat("day %d\n%hh:%mm");
+  //! [axistickertime-creation-2]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(-4, 10);
+  //! [axistickerpi-creation]
+  QSharedPointer<QCPAxisTickerPi> piTicker(new QCPAxisTickerPi);
+  customPlot->xAxis->setTicker(piTicker);
+  //! [axistickerpi-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-pi.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(-0.5, 8.5);
+  //! [axistickertext-creation]
+  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+  customPlot->xAxis->setTicker(textTicker);
+  textTicker->addTick(1.0, "Bacteria");
+  textTicker->addTick(2.0, "Protozoa");
+  textTicker->addTick(3.0, "Chromista");
+  textTicker->addTick(4.0, "Plants");
+  textTicker->addTick(5.0, "Fungi");
+  textTicker->addTick(6.0, "Animals");
+  textTicker->addTick(8.0, "Vogons");
+  //! [axistickertext-creation]
+  customPlot->savePng(dir.filePath("axisticker-text.png"), 600, 50);
+}
+
 void MainWindow::genLayoutsystem_AddingPlotTitle()
 {
   resetPlot(false);

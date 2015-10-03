@@ -319,7 +319,7 @@ void MainWindow::genAxisRectSpacingOverview()
 {
   resetPlot();
  
-  customPlot->xAxis->setRange(-0.4, 1.4);
+  customPlot->xAxis->setRange(0.82, 5);
   customPlot->yAxis->setRange(100, 900);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
@@ -367,6 +367,10 @@ void MainWindow::genAxisNamesOverview()
  
   customPlot->xAxis->setRange(1, 2);
   customPlot->yAxis->setRange(-50, 150);
+  QSharedPointer<QCPAxisTickerFixed> ticker(new QCPAxisTickerFixed);
+  ticker->setTickStep(50);
+  ticker->setScaleStrategy(QCPAxisTickerFixed::ssNone);
+  customPlot->yAxis->setTicker(ticker);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
   customPlot->axisRect()->setupFullAxesBox();
@@ -375,13 +379,13 @@ void MainWindow::genAxisNamesOverview()
   customPlot->axisRect()->setMargins(QMargins(250, 50, 20, 65));
   customPlot->yAxis->setLabel("Axis Label");
   
-  addArrow(QPointF(216, 70), QPointF(150, 32), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(187, 110), QPointF(130, 76), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(260, 77), QPointF(300, 77), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(255, 95), QPointF(300, 95), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(297, 193), QPointF(297, 250), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
-  addArrow(QPointF(354, 165), QPointF(354, 266), "Grid line", Qt::AlignHCenter|Qt::AlignTop);
-  addBracket(QPointF(263, 132), QPointF(263, 105), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
+  addArrow(QPointF(216, 90), QPointF(150, 52), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(187, 130), QPointF(130, 96), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(260, 95), QPointF(300, 95), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(255, 77), QPointF(300, 77), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(297, 191), QPointF(297, 248), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
+  addArrow(QPointF(382, 145), QPointF(382, 245), "Grid line of\ny axis", Qt::AlignHCenter|Qt::AlignTop);
+  addBracket(QPointF(263, 186), QPointF(263, 145), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
   
   customPlot->savePng(dir.filePath("AxisNamesOverview.png"), 450, 300);
 }

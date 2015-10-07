@@ -32,14 +32,19 @@
 class QCP_LIB_DECL QCPAxisTicker
 {
 public:
-  QCPAxisTicker();
-  virtual ~QCPAxisTicker();
-  
+  /*!
+    Defines the strategies that the axis ticker may follow when choosing the size of the tick step.
+    
+    \see setTickStepStrategy
+  */
   enum TickStepStrategy
   {
-    tssReadability
-    ,tssMeetTickCount
+    tssReadability    ///< A nicely readable tick step is prioritized over matching the requested number of ticks (see \ref setTickCount)
+    ,tssMeetTickCount ///< Less readable tick steps are allowed which in turn facilitates getting closer to the requested tick count
   };
+  
+  QCPAxisTicker();
+  virtual ~QCPAxisTicker();
   
   // getters:
   TickStepStrategy tickStepStrategy() const { return mTickStepStrategy; }

@@ -29,11 +29,59 @@
 //////////////////// QCPAxisTicker
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /*! \class QCPAxisTicker
-  \brief 
+  \brief The base class tick generator used by QCPAxis to create tick positions and tick labels
   
+  Each QCPAxis has an internal QCPAxisTicker (or a subclass) in order to generate tick positions
+  and tick labels for the current axis range. The ticker of an axis can be set via \ref
+  QCPAxis::setTicker. Since that method takes a <tt>QSharedPointer<QCPAxisTicker></tt>, multiple
+  axes can share the same ticker instance.
   
+  This base class generates normal tick coordinates and numeric labels for linear axes. It picks a
+  reasonable tick step (the separation between ticks) which results in readable tick labels. The
+  number of ticks that should be approximately generated can be set via \ref setTickCount.
+  Depending on the current tick step strategy (\ref setTickStepStrategy), the algorithm either
+  sacrifices readability to better match the specified tick count (\ref
+  QCPAxisTicker::tssMeetTickCount) or relaxes the tick count in favor of better tick steps (\ref
+  QCPAxisTicker::tssReadability), which is the default.
+  
+  The following more specialized axis ticker subclasses are available, see details in the
+  respective class documentation:
+  
+  <center>
+  <table>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerFixed</td><td>\image html axisticker-fixed.png</td></tr>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerLog</td><td>\image html axisticker-log.png</td></tr>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerPi</td><td>\image html axisticker-pi.png</td></tr>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerText</td><td>\image html axisticker-text.png</td></tr>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerDateTime</td><td>\image html axisticker-datetime.png</td></tr>
+  <tr><td style="text-align:right; padding: 0 1em">QCPAxisTickerTime</td><td>\image html axisticker-time.png
+    \image html axisticker-time2.png</td></tr>
+  </table>
+  </center>
+  
+  \section axisticker-subclassing Creating own axis tickers
+  
+  Creating own axis tickers can be achieved very easily by sublassing QCPAxisTicker and
+  reimplementing some or all of the available virtual methods.
+
+  In the simplest case you might wish to just generate different tick steps than the other tickers,
+  so you only reimplement the method \ref getTickStep. If you additionally want control over the
+  string that will be shown as tick label, reimplement \ref getTickLabel.
+  
+  If you wish to have complete control, you can generate the tick vectors and tick label vectors
+  yourself by reimplementing \ref createTickVector and \ref createLabelVector. The default
+  implementations of these methods call the previously mentioned virtual methods, but your
+  reimplementations don't necessarily need to do so, for example in the case of unequal tick steps,
+  where the method \ref getTickStep loses its usefulness.
+  
+  The sub tick count between major ticks can be controlled with \ref getSubTickCount. Full sub tick
+  placement control is obtained by reimplementing \ref createSubTickVector.
 */
 
+/*!
+  Constructs the ticker and sets reasonable default values. Axis tickers are commonly created
+  managed by a QSharedPointer, which then can be passed to QCPAxis::setTicker.
+*/
 QCPAxisTicker::QCPAxisTicker() :
   mTickStepStrategy(tssReadability),
   mTickCount(5),
@@ -46,11 +94,23 @@ QCPAxisTicker::~QCPAxisTicker()
   
 }
 
+/*!
+  Sets which strategy the axis ticker follows when choosing the size of the tick step. For the
+  available strategies, see \ref TickStepStrategy.
+*/
 void QCPAxisTicker::setTickStepStrategy(QCPAxisTicker::TickStepStrategy strategy)
 {
   mTickStepStrategy = strategy;
 }
 
+/*!
+  Sets how many ticks this ticker shall aim to generate across the axis range. Note that \a count
+  is not guaranteed to be matched exactly, as generating readable tick intervals may conflict with
+  the requested number of ticks.
+
+  Whether the readability has priority over meeting the requested \a count can be specified with
+  \ref setTickStepStrategy.
+*/
 void QCPAxisTicker::setTickCount(int count)
 {
   if (count > 0)
@@ -59,11 +119,32 @@ void QCPAxisTicker::setTickCount(int count)
     qDebug() << Q_FUNC_INFO << "tick count must be greater than zero:" << count;
 }
 
+/*!
+  Sets the mathematical coordinate (or "offset") of the zeroth tick. This tick coordinate is just a
+  concept and doesn't need to be inside the currently visible axis range.
+  
+  By default \a origin is zero, which for example yields ticks {-5, 0, 5, 10, 15,...} when the tick
+  step is five. If \a origin is now set to 1 instead, the correspondingly generated ticks would be
+  {-4, 1, 6, 11, 16,...}.
+*/
 void QCPAxisTicker::setTickOrigin(double origin)
 {
   mTickOrigin = origin;
 }
 
+/*!
+  This is the method called by QCPAxis in order to actually generate tick coordinates (\a ticks),
+  tick label strings (\a tickLabels) and sub tick coordinates (\a subTicks).
+  
+  The ticks are generated for the specified \a range. The generated labels typically follow the
+  specified \a locale, \a formatChar and number \a precision, however this might be different (or
+  even irrelevant) for certain QCPAxisTicker subclasses.
+  
+  The output parameter \a ticks is filled with the generated tick positions in axis coordinates.
+  The output parameters \a subTicks and \a tickLabels are optional (set them to 0 if not needed)
+  and are respectively filled with sub tick coordinates, and tick label strings belonging to \a
+  ticks by index.
+*/
 void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> *subTicks, QVector<QString> *tickLabels)
 {
   // generate (major) ticks:
@@ -89,12 +170,29 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
     *tickLabels = createLabelVector(ticks, locale, formatChar, precision);
 }
 
+/*! \internal
+  
+  Takes the entire currently visible axis range and returns a sensible tick step in
+  order to provide readable tick labels as well as a reasonable number of tick counts (see \ref
+  setTickCount, \ref setTickStepStrategy).
+  
+  If a QCPAxisTicker subclass only wants a different tick step behaviour than the default
+  implementation, it should reimplement this method. See \ref cleanMantissa for a possible helper
+  function.
+*/
 double QCPAxisTicker::getTickStep(const QCPRange &range)
 {
   double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   return cleanMantissa(exactStep);
 }
 
+/*! \internal
+  
+  Takes the \a tickStep, i.e. the distance between two consecutive ticks, and returns
+  an appropriate number of sub ticks for that specific tick step.
+  
+  Note that a returned sub tick count of e.g. 4 will split each tick interval into 5 sections.
+*/
 int QCPAxisTicker::getSubTickCount(double tickStep)
 {
   int result = 1; // default to 1, if no proper value can be found
@@ -147,6 +245,17 @@ int QCPAxisTicker::getSubTickCount(double tickStep)
   return result;
 }
 
+/*! \internal
+  
+  This method returns the tick label string as it should be printed under the \a tick coordinate.
+  If a textual number is returned, it should respect the provided \a locale, \a formatChar and \a
+  precision.
+  
+  If the returned value contains exponentials of the form "2e5" and beautifully typeset powers is
+  enabled in the QCPAxis number format (\ref QCPAxis::setNumberFormat), the exponential part will
+  be formatted accordingly using multiplication symbol and superscript during rendering of the
+  label automatically.
+*/
 QString QCPAxisTicker::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
   return locale.toString(tick, formatChar.toLatin1(), precision);
@@ -154,18 +263,13 @@ QString QCPAxisTicker::getTickLabel(double tick, const QLocale &locale, QChar fo
 
 /*! \internal
   
-  Called by generateAutoTicks when \ref setAutoSubTicks is set to true. Depending on the \a
-  tickStep between two major ticks on the axis, a different number of sub ticks is appropriate. For
-  Example taking 4 sub ticks for a \a tickStep of 1 makes more sense than taking 5 sub ticks,
-  because this corresponds to a sub tick step of 0.2, instead of the less intuitive 0.16667. Note
-  that a subtick count of 4 means dividing the major tick step into 5 sections.
+  Returns a vector containing all coordinates of sub ticks that should be drawn. It generates \a
+  subTickCount sub ticks between each tick pair given in \a ticks.
   
-  This is implemented by a hand made lookup for integer tick steps as well as fractional tick steps
-  with a fractional part of (approximately) 0.5. If a tick step is different (i.e. has no
-  fractional part close to 0.5), the currently set sub tick count (\ref setSubTickCount) is
-  returned.
+  If a QCPAxisTicker subclass needs maximal control over the generated sub ticks, it should
+  reimplement this method. Depending on the purpose of the subclass it doesn't necessarily need to
+  base its result on \a subTickCount or \a ticks.
 */
-
 QVector<double> QCPAxisTicker::createSubTickVector(int subTickCount, const QVector<double> &ticks)
 {
   QVector<double> result;
@@ -182,6 +286,21 @@ QVector<double> QCPAxisTicker::createSubTickVector(int subTickCount, const QVect
   return result;
 }
 
+/*! \internal
+  
+  Returns a vector containing all coordinates of ticks that should be drawn. The default
+  implementation generates ticks with a spacing of \a tickStep (mathematically starting at the tick
+  step origin, see \ref setTickOrigin) distributed over the passed \a range.
+  
+  In order for the axis ticker to generate proper sub ticks, it is necessary that the first and
+  last tick coordinates returned by this method are just below/above the provided \a range.
+  Otherwise the outer intervals won't contain any sub ticks.
+  
+  If a QCPAxisTicker subclass needs maximal control over the generated ticks, it should reimplement
+  this method. Depending on the purpose of the subclass it doesn't necessarily need to base its
+  result on \a tickStep, e.g. when the ticks are spaced unequally like in the case of
+  QCPAxisTickerLog.
+*/
 QVector<double> QCPAxisTicker::createTickVector(double tickStep, const QCPRange &range)
 {
   QVector<double> result;
@@ -196,6 +315,15 @@ QVector<double> QCPAxisTicker::createTickVector(double tickStep, const QCPRange 
   return result;
 }
 
+/*! \internal
+  
+  Returns a vector containing all tick label strings corresponding to the tick coordinates provided
+  in \a ticks. The default implementation calls \ref getTickLabel to generate the respective
+  strings.
+  
+  It is possible but uncommon for QCPAxisTicker subclasses to reimplement this method, as
+  reimplementing \ref getTickLabel often achieves the intended result easier.
+*/
 QVector<QString> QCPAxisTicker::createLabelVector(const QVector<double> &ticks, const QLocale &locale, QChar formatChar, int precision)
 {
   QVector<QString> result;
@@ -205,6 +333,11 @@ QVector<QString> QCPAxisTicker::createLabelVector(const QVector<double> &ticks, 
   return result;
 }
 
+/*! \internal
+  
+  Removes tick coordinates from \a ticks which lie outside the specified \a range. If \a
+  keepOneOutlier is true, it preserves one tick just outside the range on both sides, if present.
+*/
 void QCPAxisTicker::trimTicks(const QCPRange &range, QVector<double> &ticks, bool keepOneOutlier) const
 {
   bool lowFound = false;
@@ -241,10 +374,12 @@ void QCPAxisTicker::trimTicks(const QCPRange &range, QVector<double> &ticks, boo
     ticks.clear();
 }
 
-/*!
-  assumes potentialSteps is not empty
+/*! \internal
+  
+  Returns the coordinate contained in \a candidates which is closest to the provided \a target.
+  
+  This method assumes \a candidates is not empty.
 */
-
 double QCPAxisTicker::pickClosest(double target, const QVector<double> &candidates) const
 {
   if (candidates.size() == 1)
@@ -258,6 +393,13 @@ double QCPAxisTicker::pickClosest(double target, const QVector<double> &candidat
     return target-*(it-1) < *it-target ? *(it-1) : *it;
 }
 
+/*! \internal
+  
+  Returns the decimal mantissa of \a input. Optionally, if \a magnitude is not set to zero, it also
+  returns the magnitude of \a input as a power of 10.
+  
+  For example, an input of 142.6 will return a mantissa of 1.426 and a magnitude of 100.
+*/
 double QCPAxisTicker::getMantissa(double input, double *magnitude) const
 {
   const double mag = qPow(10.0, qFloor(qLn(input)/qLn(10.0)));
@@ -265,6 +407,12 @@ double QCPAxisTicker::getMantissa(double input, double *magnitude) const
   return input/mag;
 }
 
+/*! \internal
+  
+  Returns a number that is close to \a input but has a clean, easier human readable mantissa. How
+  strongly the mantissa is altered, and thus how strong the result deviates from the original \a
+  input, depends on the current tick step strategy (see \ref setTickStepStrategy).
+*/
 double QCPAxisTicker::cleanMantissa(double input) const
 {
   double magnitude;

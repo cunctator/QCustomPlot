@@ -56,8 +56,8 @@ protected:
   // reimplemented virtual methods:
   virtual double getTickStep(const QCPRange &range);
   virtual int getSubTickCount(double tickStep);
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
   virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
-  virtual QVector<QString> createLabelVector(const QVector<double> &ticks, const QLocale &locale, QChar formatChar, int precision);
   
 };
 

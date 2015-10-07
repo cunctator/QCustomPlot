@@ -91,8 +91,16 @@ double QCPAxisTickerText::getTickStep(const QCPRange &range)
 
 int QCPAxisTickerText::getSubTickCount(double tickStep)
 {
-  Q_UNUSED(tickStep);
+  Q_UNUSED(tickStep)
   return mSubTickCount;
+}
+
+QString QCPAxisTickerText::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
+{
+  Q_UNUSED(locale)
+  Q_UNUSED(formatChar)
+  Q_UNUSED(precision)
+  return mTicks.value(tick);
 }
 
 QVector<double> QCPAxisTickerText::createTickVector(double tickStep, const QCPRange &range)
@@ -110,16 +118,5 @@ QVector<double> QCPAxisTickerText::createTickVector(double tickStep, const QCPRa
   for (QMap<double, QString>::const_iterator it = start; it != end; ++it)
     result.append(it.key());
   
-  return result;
-}
-
-QVector<QString> QCPAxisTickerText::createLabelVector(const QVector<double> &ticks, const QLocale &locale, QChar formatChar, int precision)
-{
-  Q_UNUSED(locale)
-  Q_UNUSED(formatChar)
-  Q_UNUSED(precision)
-  QVector<QString> result;
-  for (int i=0; i<ticks.size(); ++i)
-    result.append(mTicks.value(ticks.at(i)));
   return result;
 }

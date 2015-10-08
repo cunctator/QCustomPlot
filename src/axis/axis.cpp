@@ -1686,9 +1686,12 @@ void QCPAxis::draw(QCPPainter *painter)
         tickLabels.append(mTickVectorLabels.at(i));
     }
 
-    const int subTickCount = mSubTickVector.size();
-    for (int i=0; i<subTickCount; ++i)
-      subTickPositions.append(coordToPixel(mSubTickVector.at(i)));
+    if (mSubTicks)
+    {
+      const int subTickCount = mSubTickVector.size();
+      for (int i=0; i<subTickCount; ++i)
+        subTickPositions.append(coordToPixel(mSubTickVector.at(i)));
+    }
   }
   
   // transfer all properties of this axis to QCPAxisPainterPrivate which it needs to draw the axis.

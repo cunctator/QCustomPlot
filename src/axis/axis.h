@@ -201,8 +201,8 @@ public:
   LabelSide tickLabelSide() const;
   QString numberFormat() const;
   int numberPrecision() const { return mNumberPrecision; }
-  QVector<double> tickVector() const { return mTickVector; } // TODO: document readonly
-  QVector<QString> tickVectorLabels() const { return mTickVectorLabels; } // TODO: document readonly
+  QVector<double> tickVector() const { return mTickVector; }
+  QVector<QString> tickVectorLabels() const { return mTickVectorLabels; }
   int tickLengthIn() const;
   int tickLengthOut() const;
   bool subTicks() const { return mSubTicks; }

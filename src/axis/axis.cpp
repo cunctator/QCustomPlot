@@ -279,7 +279,11 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \image html AxisRectSpacingOverview.png
   <center>Overview of the spacings and paddings that define the geometry of an axis. The dashed gray line
   on the left represents the QCustomPlot widget border.</center>
-
+  
+  Each axis holds an instance of QCPAxisTicker which is used to generate the tick coordinates and
+  tick labels. You can access the currently installed \ref ticker or set a new one (possibly one of
+  the specialized subclasses, or your own subclass) via \ref setTicker. For details, see the
+  documentation of QCPAxisTicker.
 */
 
 /* start of documentation of inline functions */
@@ -305,23 +309,44 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \see orientation()
 */
 
+/*! \fn QSharedPointer<QCPAxisTicker> ticker() const
+  
+  Returns a modifiable shared pointer to the currently installed axis ticker. The axis ticker is
+  responsible for generating the tick positions and tick labels of this axis. You can access the
+  QCPAxisTicker with this method and modify basic properties such as the approximate tick count
+  (\ref QCPAxisTicker::setTickCount).
+  
+  You can gain more control over the axis ticks by setting a different QCPAxisTicker subclass, see
+  the documentation there. A new axis ticker can be set with setTicker.
+  
+  Since the ticker is stored in the axis as a shared pointer, multiple axes may share the same axis
+  ticker simply by passing the same shared pointer to multiple axes.
+  
+  \see setTicker
+*/
+
+/*! \fn QVector<double> tickVector() const
+  
+  Returns a vector of coordinates which correspond to the currently displayed axis ticks.
+  
+  This tick vector is read-only. If you wish to control the ticks, access or subclass the
+  QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  
+  \see tickVectorLabels
+*/
+
+/*! \fn QVector<QString> tickVectorLabels() const
+  
+  Returns a vector of strings which correspond to the currently displayed axis ticks labels.
+  
+  This tick label vector is read-only. If you wish to control the tick labels, access or subclass
+  the QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  
+  \see tickVector
+*/
+
 /* end of documentation of inline functions */
 /* start of documentation of signals */
-
-/*! \fn void QCPAxis::ticksRequest()
-  
-  This signal is emitted when \ref setAutoTicks is false and the axis is about to generate tick
-  labels for a replot.
-  
-  Modifying the tick positions can be done with \ref setTickVector. If you also want to control the
-  tick labels, set \ref setAutoTickLabels to false and also provide the labels with \ref
-  setTickVectorLabels.
-  
-  If you only want static ticks you probably don't need this signal, since you can just set the
-  tick vector (and possibly tick label vector) once. However, if you want to provide ticks (and
-  maybe labels) dynamically, e.g. depending on the current axis range, connect a slot to this
-  signal and set the vector/vectors there.
-*/
 
 /*! \fn void QCPAxis::rangeChanged(const QCPRange &newRange)
 
@@ -725,6 +750,19 @@ void QCPAxis::setRangeReversed(bool reversed)
   mRangeReversed = reversed;
 }
 
+/*!
+  The axis ticker is responsible for generating the tick positions and tick labels. See the
+  documentation of QCPAxisTicker for details on how to work with axis tickers.
+  
+  You can change the tick positioning/labeling behaviour of this axis by setting a different
+  QCPAxisTicker subclass using this method. If you only wish to modify the currently installed axis
+  ticker, access it via \ref ticker.
+  
+  Since the ticker is stored in the axis as a shared pointer, multiple axes may share the same axis
+  ticker simply by passing the same shared pointer to multiple axes.
+  
+  \see ticker
+*/
 void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
 {
   if (ticker)
@@ -739,6 +777,8 @@ void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
 
   Note that setting \a show to false does not imply that tick labels are invisible, too. To achieve
   that, see \ref setTickLabels.
+  
+  \see setSubTicks
 */
 void QCPAxis::setTicks(bool show)
 {
@@ -986,6 +1026,13 @@ void QCPAxis::setTickLengthOut(int outside)
   }
 }
 
+/*!
+  Sets whether sub tick marks are displayed.
+  
+  Sub ticks are only potentially visible if (major) ticks are also visible (see \ref setTicks)
+  
+  \see setTicks
+*/
 void QCPAxis::setSubTicks(bool show)
 {
   if (mSubTicks != show)
@@ -1718,12 +1765,12 @@ void QCPAxis::draw(QCPPainter *painter)
 
 /*! \internal
   
-  This function is called to prepare the tick vector, sub tick vector and tick label vector. If
-  \ref setAutoTicks is set to true, appropriate tick values are determined automatically via \ref
-  generateAutoTicks. If it's set to false, the signal ticksRequest is emitted, which can be used to
-  provide external tick positions. Then the sub tick vectors and tick label vectors are created.
+  Prepares the internal tick vector, sub tick vector and tick label vector. This is done by calling
+  QCPAxisTicker::generate on the currently installed ticker.
+  
+  If a change in the label text/count is detected, the cached axis margin is invalidated to make
+  sure the next margin calculation recalculates the label sizes and returns an up-to-date value.
 */
-
 void QCPAxis::setupTickVectors()
 {
   if (!mParentPlot) return;

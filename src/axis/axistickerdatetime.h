@@ -58,8 +58,8 @@ protected:
   virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
   
   // non-virtual methods:
-  QDateTime keyToDateTime(double key) const;
-  double dateTimeToKey(const QDateTime dateTime) const;
+  static QDateTime keyToDateTime(double key);
+  static double dateTimeToKey(const QDateTime dateTime);
 };
 
 #endif // QCP_AXISTICKERDATETIME_H

@@ -160,7 +160,7 @@ QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const Q
   return result;
 }
 
-QDateTime QCPAxisTickerDateTime::keyToDateTime(double key) const
+QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime::fromTime_t(key);
@@ -169,7 +169,7 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key) const
 # endif
 }
 
-double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime) const
+double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return dateTime.toTime_t();

@@ -46,6 +46,7 @@
 #include <QTimer>
 #include <qmath.h>
 #include <limits>
+#include <algorithm>
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #  include <qnumeric.h>
 #  include <QPrinter>

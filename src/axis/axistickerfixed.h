@@ -31,13 +31,19 @@
 class QCP_LIB_DECL QCPAxisTickerFixed : public QCPAxisTicker
 {
 public:
-  QCPAxisTickerFixed();
-  
+  /*!
+    Defines how the axis ticker may modify the specified tick step (\ref setTickStep) in order to
+    control the number of ticks in the axis range.
+    
+    \see setScaleStrategy
+  */
   enum ScaleStrategy {
-     ssNone
-    ,ssMultiples
-    ,ssPowers
+     ssNone      ///< Modifications are not allowed, the specified tick step is absolutely fixed. This might cause a high tick density and overlapping labels if the axis range is zoomed out.
+    ,ssMultiples ///< An integer multiple of the specified tick step is allowed. The used factor follows the base class properties of \ref setTickStepStrategy and \ref setTickCount.
+    ,ssPowers    ///< An integer power of the specified tick step is allowed.
   };
+  
+  QCPAxisTickerFixed();
   
   // getters:
   double tickStep() const { return mTickStep; }

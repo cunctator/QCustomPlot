@@ -543,6 +543,8 @@ QList<QCPAbstractItem *> QCPAxisRect::items() const
   Calls the base class implementation to update the margins (see \ref QCPLayoutElement::update),
   and finally passes the \ref rect to the inset layout (\ref insetLayout) and calls its
   QCPInsetLayout::update function.
+  
+  \seebaseclassmethod
 */
 void QCPAxisRect::update(UpdatePhase phase)
 {

@@ -571,8 +571,11 @@ QCPColorScaleAxisRectPrivate::QCPColorScaleAxisRectPrivate(QCPColorScale *parent
 }
 
 /*! \internal
+  
   Updates the color gradient image if necessary, by calling \ref updateGradientImage, then draws
   it. Then the axes are drawn by calling the \ref QCPAxisRect::draw base class implementation.
+  
+  \seebaseclassmethod
 */
 void QCPColorScaleAxisRectPrivate::draw(QCPPainter *painter)
 {

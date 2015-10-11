@@ -140,6 +140,8 @@ void QCPAxisTickerDateTime::setTickOrigin(const QDateTime &origin)
   interval. Otherwise this would lead to unintuitive date displays, e.g. jumping between first day
   in the month to the last day in the previous month from tick to tick, due to the non-uniform
   length of months. The same problem arises with leap years.
+  
+  \seebaseclassmethod
 */
 double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
 {
@@ -172,6 +174,8 @@ double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
   
   Returns a sensible sub tick count with intervals appropriate for a date-time-display, such as weekly,
   monthly, bi-monthly, etc.
+  
+  \seebaseclassmethod
 */
 int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
 {
@@ -205,6 +209,8 @@ int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
   
   Generates a date/time tick label for tick coordinate \a tick, based on the currently set format
   (\ref setDateTimeFormat) and time spec (\ref setDateTimeSpec).
+  
+  \seebaseclassmethod
 */
 QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
@@ -217,6 +223,8 @@ QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, 
   
   Uses the passed \a tickStep as a guiding value and applies corrections in order to obtain
   non-uniform tick intervals but intuitive tick labels, e.g. falling on the same day of each month.
+  
+  \seebaseclassmethod
 */
 QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const QCPRange &range)
 {

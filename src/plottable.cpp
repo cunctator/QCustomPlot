@@ -642,6 +642,8 @@ QBrush QCPAbstractPlottable::mainBrush() const
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
   
+  \seebaseclassmethod
+  
   \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
 */
 void QCPAbstractPlottable::applyDefaultAntialiasingHint(QCPPainter *painter) const

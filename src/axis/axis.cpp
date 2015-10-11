@@ -1703,6 +1703,8 @@ void QCPAxis::deselectEvent(bool *selectionStateChanged)
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
   
+  \seebaseclassmethod
+  
   \see setAntialiased
 */
 void QCPAxis::applyDefaultAntialiasingHint(QCPPainter *painter) const
@@ -1714,6 +1716,7 @@ void QCPAxis::applyDefaultAntialiasingHint(QCPPainter *painter) const
   
   Draws the axis with the specified \a painter, using the internal QCPAxisPainterPrivate instance.
 
+  \seebaseclassmethod
 */
 void QCPAxis::draw(QCPPainter *painter)
 {

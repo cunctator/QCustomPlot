@@ -40,7 +40,9 @@
   tick labels in the form of powers of ten without mantissa display. To achieve this, set the
   number precision (\ref QCPAxis::setNumberPrecision) to zero and the number format (\ref
   QCPAxis::setNumberFormat) to scientific (exponential) display with beautifully typeset decimal
-  powers, so a format string of <tt>"eb"</tt>.
+  powers, so a format string of <tt>"eb"</tt>. This will result in the following axis tick labels:
+  
+  \image html axisticker-log-powers.png
 
   The ticker can be created and assigned to an axis like this:
   \snippet documentation/doc-image-generator/mainwindow.cpp axistickerlog-creation

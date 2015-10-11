@@ -399,7 +399,7 @@ void MainWindow::genAxisTickers()
   customPlot->axisRect()->setMargins(QMargins(5, 0, 5, 35));
   customPlot->setBackground(QBrush(Qt::transparent));
   
-  
+  // QCPAxisTickerFixed:
   customPlot->xAxis->setRange(-1.5, 8.5);
   //! [axistickerfixed-creation]
   QSharedPointer<QCPAxisTickerFixed> fixedTicker(new QCPAxisTickerFixed);
@@ -412,6 +412,7 @@ void MainWindow::genAxisTickers()
   customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
   
   
+  // QCPAxisTickerLog:
   customPlot->xAxis->setRange(0.05, 5e4);
   //! [axistickerlog-creation]
   QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
@@ -422,9 +423,19 @@ void MainWindow::genAxisTickers()
   //! [axistickerlog-creation]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-log.png"), 600, 50);
+  
+  QString formatBefore = customPlot->xAxis->numberFormat();
+  int precBefore = customPlot->xAxis->numberPrecision();
+  customPlot->xAxis->setNumberFormat("eb");
+  customPlot->xAxis->setNumberPrecision(0);
+  customPlot->savePng(dir.filePath("axisticker-log-powers.png"), 600, 50);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  customPlot->xAxis->setNumberFormat(formatBefore);
+  customPlot->xAxis->setNumberPrecision(precBefore);
   customPlot->xAxis->setScaleType(QCPAxis::stLinear);
   
   
+  // QCPAxisTickerDateTime:
   //! [axistickerdatetime-creation]
   QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
   customPlot->xAxis->setTicker(dateTimeTicker);
@@ -436,6 +447,7 @@ void MainWindow::genAxisTickers()
   customPlot->savePng(dir.filePath("axisticker-datetime.png"), 600, 50);
   
   
+  // QCPAxisTickerTime:
   //! [axistickertime-creation]
   QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
   customPlot->xAxis->setTicker(timeTicker);
@@ -446,7 +458,6 @@ void MainWindow::genAxisTickers()
   customPlot->xAxis->ticker()->setTickCount(7);
   customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
   
-  
   customPlot->xAxis->setRange(-3600*12, 3600*24*4);
   //! [axistickertime-creation-2]
   timeTicker->setTimeFormat("day %d\n%hh:%mm");
@@ -455,6 +466,7 @@ void MainWindow::genAxisTickers()
   customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);
   
   
+  // QCPAxisTickerPi:
   customPlot->xAxis->setRange(-4, 10);
   //! [axistickerpi-creation]
   QSharedPointer<QCPAxisTickerPi> piTicker(new QCPAxisTickerPi);
@@ -464,6 +476,7 @@ void MainWindow::genAxisTickers()
   customPlot->savePng(dir.filePath("axisticker-pi.png"), 600, 50);
   
   
+  // QCPAxisTickerText:
   customPlot->xAxis->setRange(-0.5, 8.5);
   //! [axistickertext-creation]
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);

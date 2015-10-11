@@ -699,9 +699,6 @@ void MainWindow::setupLogarithmicDemo(QCustomPlot *customPlot)
 
 void MainWindow::setupRealtimeDataDemo(QCustomPlot *customPlot)
 {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  QMessageBox::critical(this, "", "You're using Qt < 4.7, the realtime data demo needs functions that are available with Qt 4.7 to work properly");
-#endif
   demoName = "Real Time Data Demo";
   
   // include this section to fully disable antialiasing for higher performance:
@@ -924,10 +921,6 @@ void MainWindow::setupSimpleItemDemo(QCustomPlot *customPlot)
 
 void MainWindow::setupItemDemo(QCustomPlot *customPlot)
 {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  QMessageBox::critical(this, "", "You're using Qt < 4.7, the animation of the item demo needs functions that are available with Qt 4.7 to work properly");
-#endif
-  
   demoName = "Item Demo";
   
   customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
@@ -1434,11 +1427,7 @@ void MainWindow::realtimeDataSlot()
 
 void MainWindow::bracketDataSlot()
 {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  double secs = 0;
-#else
-  double secs = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
-#endif
+  double secs = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime());
   
   // update data to make phase move:
   int n = 500;

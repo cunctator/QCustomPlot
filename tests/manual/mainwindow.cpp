@@ -425,16 +425,14 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
 
 void MainWindow::setupDateTest(QCustomPlot *customPlot)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
   customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTickerDateTime));
   customPlot->xAxis->setRange(QDateTime(QDate(2015, 1, 1)).toTime_t(), QDateTime(QDate(2020, 1, 1)).toTime_t());
   QCPGraph *g = customPlot->addGraph();
-  g->addData(QDateTime(QDate(2015,1,1), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 1);
-  g->addData(QDateTime(QDate(2015,6,1), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 2);
-  g->addData(QDateTime(QDate(2015,6,12), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 4);
-  g->addData(QDateTime(QDate(2017,12,15), QTime(0, 0)).toMSecsSinceEpoch()/1000.0, 8);
+  g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2015,1,1)), 1);
+  g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2015,6,1)), 2);
+  g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2015,6,12)), 4);
+  g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2017,12,15)), 8);
   g->rescaleAxes();
-#endif
 }
 
 void MainWindow::setupTickLabelTest(QCustomPlot *customPlot)
@@ -1267,8 +1265,7 @@ void MainWindow::setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event)
 
 void MainWindow::daqPerformanceDataSlot()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
-  qint64 currentMillisecond = QDateTime::currentMSecsSinceEpoch();
+  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
   static qint64 lastMillisecond = currentMillisecond;
   static int ptsInThisMillisecond = 0;
   if (ptsInThisMillisecond < 10)
@@ -1283,12 +1280,10 @@ void MainWindow::daqPerformanceDataSlot()
     ptsInThisMillisecond = 0;
     lastMillisecond = currentMillisecond;
   }
-#endif
 }
 
 void MainWindow::daqPerformanceReplotSlot()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
   double lastX = 0;
   if (mCustomPlot->graph(0)->data()->end() != mCustomPlot->graph(0)->data()->begin())
     lastX = (mCustomPlot->graph(0)->data()->end()-1).key();
@@ -1297,7 +1292,7 @@ void MainWindow::daqPerformanceReplotSlot()
   
   int dataPoints = mCustomPlot->graph(0)->data()->size();
   static int lastDataPoints = dataPoints;
-  qint64 now = QDateTime::currentMSecsSinceEpoch();
+  qint64 now = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
   static qint64 lastT = now;
   static QString dataPointFrequency("0 Hz");
   if (now-lastT > 1000)
@@ -1307,7 +1302,6 @@ void MainWindow::daqPerformanceReplotSlot()
     lastDataPoints = dataPoints;
   }
   ui->statusBar->showMessage(QString("Data Points: %1, Data Frequency: %2").arg(dataPoints).arg(dataPointFrequency));
-#endif
 }
 
 void MainWindow::colorMapMouseMove(QMouseEvent *event)

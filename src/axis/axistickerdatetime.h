@@ -43,6 +43,11 @@ public:
   void setTickOrigin(double origin); // hides base class method but calls baseclass implementation ("using" throws off IDEs and doxygen)
   void setTickOrigin(const QDateTime &origin);
   
+  // static methods:
+  static QDateTime keyToDateTime(double key);
+  static double dateTimeToKey(const QDateTime dateTime);
+  static double dateTimeToKey(const QDate date);
+  
 protected:
   // property members:
   QString mDateTimeFormat;
@@ -56,10 +61,6 @@ protected:
   virtual int getSubTickCount(double tickStep);
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
   virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
-  
-  // non-virtual methods:
-  static QDateTime keyToDateTime(double key);
-  static double dateTimeToKey(const QDateTime dateTime);
 };
 
 #endif // QCP_AXISTICKERDATETIME_H

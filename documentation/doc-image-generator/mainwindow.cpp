@@ -424,7 +424,7 @@ void MainWindow::genAxisTickers()
   //! [axistickerdatetime-creation]
   QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
   customPlot->xAxis->setTicker(dateTimeTicker);
-  customPlot->xAxis->setRange(QDateTime(QDate(2013, 11, 16)).toTime_t(), QDateTime(QDate(2015, 5, 2)).toTime_t());
+  customPlot->xAxis->setRange(QCPAxisTickerDateTime::dateTimeToKey(QDate(2013, 11, 16)), QCPAxisTickerDateTime::dateTimeToKey(QDate(2015, 5, 2)));
   dateTimeTicker->setDateTimeFormat("d. MMM\nyyyy");
   //! [axistickerdatetime-creation]
   customPlot->xAxis->ticker()->setTickCount(9);

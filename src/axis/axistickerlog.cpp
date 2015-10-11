@@ -29,11 +29,27 @@
 //////////////////// QCPAxisTickerLog
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /*! \class QCPAxisTickerLog
-  \brief 
+  \brief Specialized axis ticker suited for logarithmic axes
   
+  \image html axisticker-log.png
   
+  This QCPAxisTicker subclass generates ticks with unequal tick intervals suited for logarithmic
+  axis scales. The ticks are placed at powers of the specified log base (\ref setLogBase).
+  
+  Especially in the case of a log base equal to 10 (the default), it might be desirable to have
+  tick labels in the form of powers of ten without mantissa display. To achieve this, set the
+  number precision (\ref QCPAxis::setNumberPrecision) to zero and the number format (\ref
+  QCPAxis::setNumberFormat) to scientific (exponential) display with beautifully typeset decimal
+  powers, so a format string of <tt>"eb"</tt>.
+
+  The ticker can be created and assigned to an axis like this:
+  \snippet documentation/doc-image-generator/mainwindow.cpp axistickerlog-creation
 */
 
+/*!
+  Constructs the ticker and sets reasonable default values. Axis tickers are commonly created
+  managed by a QSharedPointer, which then can be passed to QCPAxis::setTicker.
+*/
 QCPAxisTickerLog::QCPAxisTickerLog() :
   mLogBase(10.0),
   mSubTickCount(8), // generates 10 intervals
@@ -41,6 +57,10 @@ QCPAxisTickerLog::QCPAxisTickerLog() :
 {
 }
 
+/*!
+  Sets the logarithm base used for tick coordinate generation. The ticks will be placed at integer
+  powers of \a base.
+*/
 void QCPAxisTickerLog::setLogBase(double base)
 {
   if (base > 0)
@@ -51,6 +71,16 @@ void QCPAxisTickerLog::setLogBase(double base)
     qDebug() << Q_FUNC_INFO << "log base has to be greater than zero:" << base;
 }
 
+/*!
+  Sets the number of sub ticks in a tick interval. Within each interval, the sub ticks are spaced
+  linearly to provide a better visual guide, so the sub tick density increases toward the higher
+  tick.
+  
+  Note that \a subTicks is the number of sub ticks (not sub intervals) in one tick interval. So in
+  the case of logarithm base 10 an intuitive sub tick spacing would be achieved with eight sub
+  ticks (the default). This means e.g. between the ticks 10 and 100 there will be eight ticks,
+  namely at 20, 30, 40, 50, 60, 70, 80 and 90.
+*/
 void QCPAxisTickerLog::setSubTickCount(int subTicks)
 {
   if (subTicks >= 0)
@@ -59,6 +89,13 @@ void QCPAxisTickerLog::setSubTickCount(int subTicks)
     qDebug() << Q_FUNC_INFO << "sub tick count can't be negative:" << subTicks;
 }
 
+/*! \internal
+  
+  Since logarithmic tick steps are necessarily different for each tick interval, this method does
+  nothing in the case of QCPAxisTickerLog
+  
+  \seebaseclassmethod
+*/
 double QCPAxisTickerLog::getTickStep(const QCPRange &range)
 {
   // Logarithmic axis ticker has unequal tick spacing, so doesn't need this method
@@ -66,12 +103,28 @@ double QCPAxisTickerLog::getTickStep(const QCPRange &range)
   return 1.0;
 }
 
+/*! \internal
+  
+  Returns the sub tick count specified in \ref setSubTickCount. For QCPAxisTickerLog, there is no
+  automatic sub tick count calculation necessary.
+  
+  \seebaseclassmethod
+*/
 int QCPAxisTickerLog::getSubTickCount(double tickStep)
 {
   Q_UNUSED(tickStep)
   return mSubTickCount;
 }
 
+/*! \internal
+  
+  Creates ticks with a spacing given by the logarithm base and an increasing integer power in the
+  provided \a range. The step in which the power increases tick by tick is chosen in order to keep
+  the total number of ticks as close as possible to the tick count (\ref setTickCount). The
+  parameter \a tickStep is ignored for QCPAxisTickerLog
+  
+  \seebaseclassmethod
+*/
 QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRange &range)
 {
   Q_UNUSED(tickStep)

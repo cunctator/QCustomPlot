@@ -399,15 +399,18 @@ void MainWindow::genAxisTickers()
   customPlot->axisRect()->setMargins(QMargins(5, 0, 5, 35));
   customPlot->setBackground(QBrush(Qt::transparent));
   
+  
   customPlot->xAxis->setRange(-1.5, 8.5);
   //! [axistickerfixed-creation]
   QSharedPointer<QCPAxisTickerFixed> fixedTicker(new QCPAxisTickerFixed);
   customPlot->xAxis->setTicker(fixedTicker);
+  
   fixedTicker->setTickStep(1.0); // tick step shall be 1.0
   fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
   //! [axistickerfixed-creation]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
+  
   
   customPlot->xAxis->setRange(0.05, 5e4);
   //! [axistickerlog-creation]
@@ -421,23 +424,28 @@ void MainWindow::genAxisTickers()
   customPlot->savePng(dir.filePath("axisticker-log.png"), 600, 50);
   customPlot->xAxis->setScaleType(QCPAxis::stLinear);
   
+  
   //! [axistickerdatetime-creation]
   QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
   customPlot->xAxis->setTicker(dateTimeTicker);
+  
   customPlot->xAxis->setRange(QCPAxisTickerDateTime::dateTimeToKey(QDate(2013, 11, 16)), QCPAxisTickerDateTime::dateTimeToKey(QDate(2015, 5, 2)));
   dateTimeTicker->setDateTimeFormat("d. MMM\nyyyy");
   //! [axistickerdatetime-creation]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-datetime.png"), 600, 50);
   
+  
   //! [axistickertime-creation]
   QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
   customPlot->xAxis->setTicker(timeTicker);
+  
   customPlot->xAxis->setRange(-60*3.5, 60*11);
   timeTicker->setTimeFormat("%mm:%ss");
   //! [axistickertime-creation]
   customPlot->xAxis->ticker()->setTickCount(7);
   customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
+  
   
   customPlot->xAxis->setRange(-3600*12, 3600*24*4);
   //! [axistickertime-creation-2]
@@ -445,6 +453,7 @@ void MainWindow::genAxisTickers()
   //! [axistickertime-creation-2]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);
+  
   
   customPlot->xAxis->setRange(-4, 10);
   //! [axistickerpi-creation]
@@ -454,10 +463,12 @@ void MainWindow::genAxisTickers()
   customPlot->xAxis->ticker()->setTickCount(7);
   customPlot->savePng(dir.filePath("axisticker-pi.png"), 600, 50);
   
+  
   customPlot->xAxis->setRange(-0.5, 8.5);
   //! [axistickertext-creation]
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   customPlot->xAxis->setTicker(textTicker);
+  
   textTicker->addTick(1.0, "Bacteria");
   textTicker->addTick(2.0, "Protozoa");
   textTicker->addTick(3.0, "Chromista");

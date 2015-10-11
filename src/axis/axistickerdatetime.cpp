@@ -29,11 +29,45 @@
 //////////////////// QCPAxisTickerDateTime
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /*! \class QCPAxisTickerDateTime
-  \brief 
+  \brief Specialized axis ticker for calendar dates and times as axis ticks
   
+  \image html axisticker-datetime.png
   
+  This QCPAxisTicker subclass generates ticks that correspond to real calendar dates and times. The
+  plot axis coordinate is interpreted as Unix Time, so seconds since Epoch (January 1, 1970, 00:00
+  UTC). This is also used for example by QDateTime in the <tt>toTime_t()/setTime_t()</tt> methods
+  with a precision of one second. Since Qt 4.7, millisecond accuracy can be obtained from QDateTime
+  by using <tt>QDateTime::fromMSecsSinceEpoch()/1000.0</tt>. The static methods \ref dateTimeToKey
+  and \ref keyToDateTime conveniently perform this conversion achieving a precision of one
+  millisecond on all Qt versions.
+  
+  The format of the date/time display in the tick labels is controlled with \ref setDateTimeFormat.
+  If a different time spec (time zone) shall be used, see \ref setTimeSpec.
+  
+  This ticker produces unequal tick spacing in order to provide intuitive date and time-of-day
+  ticks. For example, if the axis range spans a few years such that there is one tick per year,
+  ticks will be positioned on 1. January of every year. This is intuitive but, due to leap years,
+  will result in slightly unequal tick intervals (visually unnoticeable). The same can be seen in
+  the image above: even though the number of days varies month by month, this ticker generates
+  ticks on the same day of each month.
+  
+  If you would like to change the date/time that is used as a (mathematical) starting date for the
+  ticks, use the \ref setTickOrigin(const QDateTime &origin) method overload, which takes a
+  QDateTime. If you pass 15. July, 9:45 to this method, the yearly ticks will end up on 15. July at
+  9:45 of every year.
+  
+  The ticker can be created and assigned to an axis like this:
+  \snippet documentation/doc-image-generator/mainwindow.cpp axistickerdatetime-creation
+  
+  \note If you rather wish to display relative times in terms of days, hours, minutes, seconds and
+  milliseconds, and are not interested in the intricacies of real calendar dates with months and
+  (leap) years, have a look at QCPAxisTickerTime instead.
 */
 
+/*!
+  Constructs the ticker and sets reasonable default values. Axis tickers are commonly created
+  managed by a QSharedPointer, which then can be passed to QCPAxis::setTicker.
+*/
 QCPAxisTickerDateTime::QCPAxisTickerDateTime() :
   mDateTimeFormat(QLatin1String("hh:mm:ss\ndd.MM.yy")),
   mDateTimeSpec(Qt::LocalTime),
@@ -42,26 +76,71 @@ QCPAxisTickerDateTime::QCPAxisTickerDateTime() :
   setTickCount(4);
 }
 
+/*!
+  Sets the format in which dates and times are displayed as tick labels. For details about the \a
+  format string, see the documentation of QDateTime::toString().
+  
+  Newlines can be inserted with "\n".
+  
+  \see setDateTimeSpec
+*/
 void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format)
 {
   mDateTimeFormat = format;
 }
 
+/*!
+  Sets the time spec that is used for creating the tick labels from corresponding dates/times.
+
+  The default value of QDateTime objects (and also QCPAxisTickerDateTime) is
+  <tt>Qt::LocalTime</tt>. However, if the date time values passed to QCustomPlot (e.g. in the form
+  of axis ranges or keys of a plottable) are given in the UTC spec, set \a spec to <tt>Qt::UTC</tt>
+  to get the correct axis labels.
+  
+  \see setDateTimeFormat
+*/
 void QCPAxisTickerDateTime::setDateTimeSpec(Qt::TimeSpec spec)
 {
   mDateTimeSpec = spec;
 }
 
+/*!
+  Sets the tick origin (see \ref QCPAxisTicker::setTickOrigin) in seconds since Epoch (1. Jan 1970,
+  00:00 UTC). For the date time ticker it might be more intuitive to use the overload which
+  directly takes a QDateTime, see \ref setTickOrigin(const QDateTime &origin).
+  
+  This is useful to define the month/day/time recurring at greater tick interval steps. For
+  example, If you pass 15. July, 9:45 to this method and the tick interval happens to be one tick
+  per year, the ticks will end up on 15. July at 9:45 of every year.
+*/
 void QCPAxisTickerDateTime::setTickOrigin(double origin)
 {
   QCPAxisTicker::setTickOrigin(origin);
 }
 
+/*!
+  Sets the tick origin (see \ref QCPAxisTicker::setTickOrigin) as a QDateTime \a origin.
+  
+  This is useful to define the month/day/time recurring at greater tick interval steps. For
+  example, If you pass 15. July, 9:45 to this method and the tick interval happens to be one tick
+  per year, the ticks will end up on 15. July at 9:45 of every year.
+*/
 void QCPAxisTickerDateTime::setTickOrigin(const QDateTime &origin)
 {
   setTickOrigin(dateTimeToKey(origin));
 }
 
+/*! \internal
+  
+  Returns a sensible tick step with intervals appropriate for a date-time-display, such as weekly,
+  monthly, bi-monthly, etc.
+  
+  Note that this tick step isn't used exactly when generating the tick vector in \ref
+  createTickVector, but only as a guiding value requiring some correction for each individual tick
+  interval. Otherwise this would lead to unintuitive date displays, e.g. jumping between first day
+  in the month to the last day in the previous month from tick to tick, due to the non-uniform
+  length of months. The same problem arises with leap years.
+*/
 double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
@@ -89,6 +168,11 @@ double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
   return result;
 }
 
+/*! \internal
+  
+  Returns a sensible sub tick count with intervals appropriate for a date-time-display, such as weekly,
+  monthly, bi-monthly, etc.
+*/
 int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
 {
   int result = QCPAxisTicker::getSubTickCount(tickStep);
@@ -117,6 +201,11 @@ int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
   return result;
 }
 
+/*! \internal
+  
+  Generates a date/time tick label for tick coordinate \a tick, based on the currently set format
+  (\ref setDateTimeFormat) and time spec (\ref setDateTimeSpec).
+*/
 QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
   Q_UNUSED(precision)
@@ -124,6 +213,11 @@ QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, 
   return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
 }
 
+/*! \internal
+  
+  Uses the passed \a tickStep as a guiding value and applies corrections in order to obtain
+  non-uniform tick intervals but intuitive tick labels, e.g. falling on the same day of each month.
+*/
 QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const QCPRange &range)
 {
   QVector<double> result = QCPAxisTicker::createTickVector(tickStep, range);
@@ -160,6 +254,15 @@ QVector<double> QCPAxisTickerDateTime::createTickVector(double tickStep, const Q
   return result;
 }
 
+/*!
+  A convenience method which turns \a key (in seconds since Epoch 1. Jan 1970, 00:00 UTC) into a
+  QDateTime object. This can be used to turn axis coordinates to actual QDateTimes.
+  
+  The accuracy achieved by this method is one millisecond, irrespective of the used Qt version (it
+  works around the lack of a QDateTime::fromMSecsSinceEpoch in Qt 4.6)
+  
+  \see dateTimeToKey
+*/
 QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
@@ -169,6 +272,17 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
 # endif
 }
 
+/*! \overload
+  
+  A convenience method which turns a QDateTime object into a double value that corresponds to
+  seconds since Epoch (1. Jan 1970, 00:00 UTC). This is the format used as axis coordinates by
+  QCPAxisTickerDateTime.
+  
+  The accuracy achieved by this method is one millisecond, irrespective of the used Qt version (it
+  works around the lack of a QDateTime::toMSecsSinceEpoch in Qt 4.6)
+  
+  \see keyToDateTime
+*/
 double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
@@ -178,6 +292,14 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
 # endif
 }
 
+/*! \overload
+  
+  A convenience method which turns a QDate object into a double value that corresponds to
+  seconds since Epoch (1. Jan 1970, 00:00 UTC). This is the format used as axis coordinates by
+  QCPAxisTickerDateTime.
+  
+  \see keyToDateTime
+*/
 double QCPAxisTickerDateTime::dateTimeToKey(const QDate date)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)

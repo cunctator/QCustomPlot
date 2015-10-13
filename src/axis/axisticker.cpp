@@ -70,12 +70,15 @@
   
   If you wish to have complete control, you can generate the tick vectors and tick label vectors
   yourself by reimplementing \ref createTickVector and \ref createLabelVector. The default
-  implementations of these methods call the previously mentioned virtual methods, but your
-  reimplementations don't necessarily need to do so, for example in the case of unequal tick steps,
-  where the method \ref getTickStep loses its usefulness.
+  implementations use the previously mentioned virtual methods \ref getTickStep and \ref
+  getTickLabel, but your reimplementations don't necessarily need to do so. For example in the case
+  of unequal tick steps, the method \ref getTickStep loses its usefulness and can be ignored.
   
   The sub tick count between major ticks can be controlled with \ref getSubTickCount. Full sub tick
   placement control is obtained by reimplementing \ref createSubTickVector.
+  
+  See the documentation of all these virtual methods in QCPAxisTicker for detailed information
+  about the parameters and expected return values.
 */
 
 /*!

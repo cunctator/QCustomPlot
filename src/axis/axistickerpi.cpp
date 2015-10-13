@@ -29,11 +29,25 @@
 //////////////////// QCPAxisTickerPi
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /*! \class QCPAxisTickerPi
-  \brief 
+  \brief Specialized axis ticker to display ticks in units of an arbitrary constant, for example pi
   
+  \image html axisticker-pi.png
   
+  This QCPAxisTicker subclass generates ticks that are expressed with respect to a given symbolic
+  constant with a numerical value specified with \ref setPiValue and an appearance in the tick
+  labels specified with \ref setPiSymbol.
+  
+  Ticks may be generated at fractions of the symbolic constant. How these fractions appear in the
+  tick label can be configured with \ref setFractionStyle.
+  
+  The ticker can be created and assigned to an axis like this:
+  \snippet documentation/doc-image-generator/mainwindow.cpp axistickerpi-creation
 */
 
+/*!
+  Constructs the ticker and sets reasonable default values. Axis tickers are commonly created
+  managed by a QSharedPointer, which then can be passed to QCPAxis::setTicker.
+*/
 QCPAxisTickerPi::QCPAxisTickerPi() :
   mPiSymbol(QLatin1String(" ")+QChar(0x03C0)),
   mPiValue(M_PI),
@@ -43,26 +57,59 @@ QCPAxisTickerPi::QCPAxisTickerPi() :
   setTickCount(4);
 }
 
+/*!
+  Sets how the symbol part (which is always a suffix to the number) shall appear in the axis tick
+  label.
+  
+  If a space shall appear between the number and the symbol, make sure the space is contained in \a
+  symbol.
+*/
 void QCPAxisTickerPi::setPiSymbol(QString symbol)
 {
   mPiSymbol = symbol;
 }
 
+/*!
+  Sets the numerical value that the symbolic constant has.
+
+  This will be used to place the appropriate fractions of the symbol at the respective axis
+  coordinates.
+*/
 void QCPAxisTickerPi::setPiValue(double pi)
 {
   mPiValue = pi;
 }
 
+/*!
+  Sets whether the axis labels shall appear periodicly and if so, at which multiplicity of the
+  symbolic constant.
+  
+  To disable periodicity, set \a multiplesOfPi to zero.
+  
+  For example, an axis that identifies 0 with 2pi would set \a multiplesOfPi to two.
+*/
 void QCPAxisTickerPi::setPeriodicity(int multiplesOfPi)
 {
   mPeriodicity = qAbs(multiplesOfPi);
 }
 
+/*!
+  Sets how the numerical/fractional part preceding the symbolic constant is displayed in tick
+  labels. See \ref FractionStyle for the various options.
+*/
 void QCPAxisTickerPi::setFractionStyle(QCPAxisTickerPi::FractionStyle style)
 {
   mFractionStyle = style;
 }
 
+/*! \internal
+  
+  Returns the tick step, using the constant's value (\ref setPiValue) as base unit. In consequence
+  the numerical/fractional part preceding the symbolic constant is made to have a readable
+  mantissa.
+  
+  \seebaseclassmethod
+*/
 double QCPAxisTickerPi::getTickStep(const QCPRange &range)
 {
   mPiTickStep = range.size()/mPiValue/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
@@ -70,11 +117,27 @@ double QCPAxisTickerPi::getTickStep(const QCPRange &range)
   return mPiTickStep*mPiValue;
 }
 
+/*! \internal
+  
+  Returns the sub tick count, using the constant's value (\ref setPiValue) as base unit. In
+  consequence the sub ticks divide the numerical/fractional part preceding the symbolic constant
+  reasonably, and not the total tick coordinate.
+  
+  \seebaseclassmethod
+*/
 int QCPAxisTickerPi::getSubTickCount(double tickStep)
 {
   return QCPAxisTicker::getSubTickCount(tickStep/mPiValue);
 }
 
+/*! \internal
+  
+  Returns the tick label as a fractional/numerical part and a symbolic string as suffix. The
+  formatting of the fraction is done according to the specified \ref setFractionStyle. The appended
+  symbol is specified with \ref setPiSymbol.
+  
+  \seebaseclassmethod
+*/
 QString QCPAxisTickerPi::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
   double tickInPis = tick/mPiValue;
@@ -104,6 +167,12 @@ QString QCPAxisTickerPi::getTickLabel(double tick, const QLocale &locale, QChar 
   }
 }
 
+/*! \internal
+  
+  Takes the fraction given by \a numerator and \a denominator and modifies the values to make sure
+  the fraction is in irreducible form, i.e. numerator and denominator don't share any common
+  factors which could be cancelled.
+*/
 void QCPAxisTickerPi::simplifyFraction(int &numerator, int &denominator) const
 {
   if (numerator == 0 || denominator == 0)
@@ -122,6 +191,15 @@ void QCPAxisTickerPi::simplifyFraction(int &numerator, int &denominator) const
   denominator /= num;
 }
 
+/*! \internal
+  
+  Takes the fraction given by \a numerator and \a denominator and returns a string representation.
+  The result depends on the configured fraction style (\ref setFractionStyle).
+  
+  This method is used to format the numerical/fractional part when generating tick labels. It
+  simplifies the passed fraction to an irreducible form using \ref simplifyFraction and factors out
+  any integer parts of the fraction (e.g. "10/4" becomes "2 1/2").
+*/
 QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
 {
   if (denominator == 0)
@@ -169,11 +247,25 @@ QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
   return QString();
 }
 
+/*! \internal
+  
+  Returns the unicode string representation of the fraction given by \a numerator and \a
+  denominator. This is the representation used in \ref fractionToString when the fraction style
+  (\ref setFractionStyle) is \ref fsUnicodeFractions.
+  
+  This method doesn't use the single-character common fractions but builds each fraction from a
+  superscript unicode digit, the unicode fraction character, and a subscript unicode digit.
+*/
 QString QCPAxisTickerPi::unicodeFraction(int numerator, int denominator) const
 {
   return unicodeSuperscript(numerator)+QChar(0x2044)+unicodeSubscript(denominator);
 }
 
+/*! \internal
+  
+  Returns the unicode character representing \a number as superscript. This is used to build
+  unicode fractions in \ref unicodeFraction.
+*/
 QString QCPAxisTickerPi::unicodeSuperscript(int number) const
 {
   if (number == 0)
@@ -195,6 +287,11 @@ QString QCPAxisTickerPi::unicodeSuperscript(int number) const
   return result;
 }
 
+/*! \internal
+  
+  Returns the unicode character representing \a number as subscript. This is used to build unicode
+  fractions in \ref unicodeFraction.
+*/
 QString QCPAxisTickerPi::unicodeSubscript(int number) const
 {
   if (number == 0)

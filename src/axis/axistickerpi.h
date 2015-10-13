@@ -31,14 +31,19 @@
 class QCP_LIB_DECL QCPAxisTickerPi : public QCPAxisTicker
 {
 public:
-  QCPAxisTickerPi();
-  
+  /*!
+    Defines how fractions should be displayed in tick labels.
+    
+    \see setFractionStyle
+  */
   enum FractionStyle
   {
-    fsFloatingPoint
-    ,fsAsciiFractions
-    ,fsUnicodeFractions
+    fsFloatingPoint     ///< Fractions are displayed as regular decimal floating point numbers, e.g. "0.25" or "0.125".
+    ,fsAsciiFractions   ///< Fractions are written as rationals using ASCII characters only, e.g. "1/4" or "1/8"
+    ,fsUnicodeFractions ///< Fractions are written using sub- and superscript UTF-8 digits and the fraction symbol.
   };
+  
+  QCPAxisTickerPi();
   
   // getters:
   QString piSymbol() const { return mPiSymbol; }

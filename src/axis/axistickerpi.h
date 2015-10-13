@@ -52,7 +52,7 @@ public:
   void setPeriodicity(int multiplesOfPi);
   void setFractionStyle(FractionStyle style);
   
-public:
+protected:
   // property members:
   QString mPiSymbol;
   double mPiValue;

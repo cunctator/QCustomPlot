@@ -31,19 +31,28 @@
 class QCP_LIB_DECL QCPAxisTickerTime : public QCPAxisTicker
 {
 public:
+  enum TimeUnit {
+    tuMilliseconds
+    ,tuSeconds
+    ,tuMinutes
+    ,tuHours
+    ,tuDays
+  };
+  
   QCPAxisTickerTime();
 
   // getters:
   QString timeFormat() const { return mTimeFormat; }
+  int fieldWidth(TimeUnit unit) const { return mFieldWidth.value(unit); }
   
   // setters:
   void setTimeFormat(const QString &format);
+  void setFieldWidth(TimeUnit unit, int width);
   
 protected:
-  enum TimeUnit {tuMillis, tuSecs, tuMins, tuHours, tuDays};
-  
   // property members:
   QString mTimeFormat;
+  QHash<TimeUnit, int> mFieldWidth;
   
   // non-property members:
   TimeUnit mSmallestUnit, mBiggestUnit;

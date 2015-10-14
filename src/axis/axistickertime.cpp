@@ -35,11 +35,16 @@
 */
 
 QCPAxisTickerTime::QCPAxisTickerTime() :
-  mTimeFormat("%hh:%mm:%ss"),
-  mSmallestUnit(tuSecs),
+  mTimeFormat("%h:%m:%s"),
+  mSmallestUnit(tuSeconds),
   mBiggestUnit(tuHours)
 {
   setTickCount(4);
+  mFieldWidth[tuMilliseconds] = 3;
+  mFieldWidth[tuSeconds] = 2;
+  mFieldWidth[tuMinutes] = 2;
+  mFieldWidth[tuHours] = 2;
+  mFieldWidth[tuDays] = 1;
 }
 
 void QCPAxisTickerTime::setTimeFormat(const QString &format)
@@ -48,10 +53,10 @@ void QCPAxisTickerTime::setTimeFormat(const QString &format)
   
   // determine smallest and biggest unit in format, to optimize unit replacement and allow biggest
   // unit to consume remaining time of a tick value and grow beyond its modulo (e.g. min > 59)
-  mSmallestUnit = tuMillis;
-  mBiggestUnit = tuMillis;
+  mSmallestUnit = tuMilliseconds;
+  mBiggestUnit = tuMilliseconds;
   bool hasSmallest = false;
-  for (int i = tuMillis; i <= tuDays; ++i)
+  for (int i = tuMilliseconds; i <= tuDays; ++i)
   {
     TimeUnit unit = static_cast<TimeUnit>(i);
     if (mTimeFormat.contains(pattern(unit)))
@@ -66,13 +71,18 @@ void QCPAxisTickerTime::setTimeFormat(const QString &format)
   }
 }
 
+void QCPAxisTickerTime::setFieldWidth(QCPAxisTickerTime::TimeUnit unit, int width)
+{
+  mFieldWidth[unit] = qMax(width, 1);
+}
+
 double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
   if (result < 1) // ideal tick step is below 1 second -> use normal clean mantissa algorithm in units of seconds
   {
-    if (mSmallestUnit == tuMillis)
+    if (mSmallestUnit == tuMilliseconds)
       result = qMax(cleanMantissa(result), 0.001); // smallest tick step is 1 millisecond
     else // have no milliseconds available in format, so stick with 1 second tickstep
       result = 1.0;
@@ -81,22 +91,22 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
     // the filling of availableSteps seems a bit contorted but it fills in a sorted fashion and thus saves a post-fill sorting run
     QVector<double> availableSteps;
     // seconds range:
-    if (mSmallestUnit <= tuSecs)
+    if (mSmallestUnit <= tuSeconds)
       availableSteps << 1;
-    if (mSmallestUnit == tuMillis)
+    if (mSmallestUnit == tuMilliseconds)
       availableSteps << 2.5; // only allow half second steps if milliseconds are there to display it
-    else if (mSmallestUnit == tuSecs)
+    else if (mSmallestUnit == tuSeconds)
       availableSteps << 2;
-    if (mSmallestUnit <= tuSecs)
+    if (mSmallestUnit <= tuSeconds)
       availableSteps << 5 << 10 << 15 << 30;
     // minutes range:
-    if (mSmallestUnit <= tuMins)
+    if (mSmallestUnit <= tuMinutes)
       availableSteps << 1*60;
-    if (mSmallestUnit <= tuSecs)
+    if (mSmallestUnit <= tuSeconds)
       availableSteps << 2.5*60; // only allow half minute steps if seconds are there to display it
-    else if (mSmallestUnit == tuMins)
+    else if (mSmallestUnit == tuMinutes)
       availableSteps << 2*60;
-    if (mSmallestUnit <= tuMins)
+    if (mSmallestUnit <= tuMinutes)
       availableSteps << 5*60 << 10*60 << 15*60 << 30*60;
     // hours range:
     if (mSmallestUnit <= tuHours)
@@ -140,10 +150,10 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
   double values[tuDays+1]; // contains the msec/sec/min/... value with its respective modulo (e.g. minute 0..59)
   double restValues[tuDays+1]; // contains the msec/sec/min/... value as if it's the largest available unit and thus consumes the remaining time
   
-  restValues[tuMillis] = tick*1000;
-  values[tuMillis] = modf(restValues[tuMillis]/1000, &restValues[tuSecs])*1000;
-  values[tuSecs] = modf(restValues[tuSecs]/60, &restValues[tuMins])*60;
-  values[tuMins] = modf(restValues[tuMins]/60, &restValues[tuHours])*60;
+  restValues[tuMilliseconds] = tick*1000;
+  values[tuMilliseconds] = modf(restValues[tuMilliseconds]/1000, &restValues[tuSeconds])*1000;
+  values[tuSeconds] = modf(restValues[tuSeconds]/60, &restValues[tuMinutes])*60;
+  values[tuMinutes] = modf(restValues[tuMinutes]/60, &restValues[tuHours])*60;
   values[tuHours] = modf(restValues[tuHours]/24, &restValues[tuDays])*24;
   // no need to set values[tuDays] because days are always a rest value (there is no higher unit so it consumes all remaining time)
   
@@ -160,17 +170,8 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
 
 void QCPAxisTickerTime::replaceUnit(QString &text, QCPAxisTickerTime::TimeUnit unit, int value) const
 {
-  int fieldWidth = 0;
-  switch (unit)
-  {
-    case tuMillis: { fieldWidth = 3; break; }
-    case tuSecs: { fieldWidth = 2; break; }
-    case tuMins: { fieldWidth = 2; break; }
-    case tuHours: { fieldWidth = 2; break; }
-    case tuDays: { fieldWidth = 0; break; }
-  }
   QString valueStr = QString::number(value);
-  while (valueStr.size() < fieldWidth)
+  while (valueStr.size() < mFieldWidth.value(unit))
     valueStr.prepend('0');
   
   text.replace(pattern(unit), valueStr);
@@ -180,10 +181,10 @@ QLatin1String QCPAxisTickerTime::pattern(QCPAxisTickerTime::TimeUnit unit) const
 {
   switch (unit)
   {
-    case tuMillis: return QLatin1String("%zzz");
-    case tuSecs: return QLatin1String("%ss");
-    case tuMins: return QLatin1String("%mm");
-    case tuHours: return  QLatin1String("%hh");
+    case tuMilliseconds: return QLatin1String("%z");
+    case tuSeconds: return QLatin1String("%s");
+    case tuMinutes: return QLatin1String("%m");
+    case tuHours: return  QLatin1String("%h");
     case tuDays: return QLatin1String("%d");
     default: return QLatin1String("");
   }

@@ -453,14 +453,14 @@ void MainWindow::genAxisTickers()
   customPlot->xAxis->setTicker(timeTicker);
   
   customPlot->xAxis->setRange(-60*3.5, 60*11);
-  timeTicker->setTimeFormat("%mm:%ss");
+  timeTicker->setTimeFormat("%m:%s");
   //! [axistickertime-creation]
   customPlot->xAxis->ticker()->setTickCount(7);
   customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
   
   customPlot->xAxis->setRange(-3600*12, 3600*24*4);
   //! [axistickertime-creation-2]
-  timeTicker->setTimeFormat("day %d\n%hh:%mm");
+  timeTicker->setTimeFormat("day %d\n%h:%m");
   //! [axistickertime-creation-2]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);

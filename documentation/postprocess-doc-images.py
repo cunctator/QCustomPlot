@@ -52,6 +52,14 @@ fileList += [(64  ,"html/QCPItemLine.png")]
 fileList += [(64  ,"html/QCPItemStraightLine.png")]
 fileList += [(64  ,"html/QCPItemCurve.png")]
 fileList += [(64  ,"html/QCPItemPixmap.png")]
+fileList += [(8   ,"html/axisticker-datetime.png")]
+fileList += [(8   ,"html/axisticker-pi.png")]
+fileList += [(8   ,"html/axisticker-log-powers.png")]
+fileList += [(8   ,"html/axisticker-time2.png")]
+fileList += [(8   ,"html/axisticker-log.png")]
+fileList += [(8   ,"html/axisticker-fixed.png")]
+fileList += [(8   ,"html/axisticker-text.png")]
+fileList += [(8   ,"html/axisticker-time.png")]
 fileList += [(8   ,"html/ssDot.png")]
 fileList += [(8   ,"html/ssCross.png")]
 fileList += [(8   ,"html/ssPlus.png")]
@@ -112,5 +120,5 @@ for (colors, fileName) in fileList:
 
 
 for fileName in allPngFiles:
-  print "WARNING: documentation image not color compressed (was not specified in script): '"+fileName+"'"
+  print "WARNING: doc image not compressed (not specified in script). Specify with e.g.: fileList += [(8   ,\""+fileName+"\")]"
 

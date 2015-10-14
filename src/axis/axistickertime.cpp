@@ -29,11 +29,45 @@
 //////////////////// QCPAxisTickerTime
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /*! \class QCPAxisTickerTime
-  \brief 
+  \brief Specialized axis ticker for time spans in units of milliseconds to days
   
+  \image html axisticker-time.png
   
+  This QCPAxisTicker subclass generates ticks that corresponds to time intervals.
+  
+  The format of the time display in the tick labels is controlled with \ref setTimeFormat and \ref
+  setFieldWidth. The time coordinate is in the unit of seconds with respect to the time coordinate
+  zero. Unlike with QCPAxisTickerDateTime, the ticks don't correspond to a specific calendar date
+  and time.
+  
+  The time can be displayed in milliseconds, seconds, minutes, hours and days. Depending on the
+  largest available unit in the format specified with \ref setTimeFormat, any time spans above will
+  be carried in that largest unit. So for example if the format string is "%m:%s" and a tick at
+  coordinate value 7815 (being 2 hours, 10 minutes and 15 seconds) is created, the resulting tick
+  label will show "130:15" (130 minutes, 15 seconds). If the format string is "%h:%m:%s", the hour
+  unit will be used and the label will thus be "02:10:15". Negative times with respect to the axis
+  zero will carry a leading minus sign.
+  
+  The ticker can be created and assigned to an axis like this:
+  \snippet documentation/doc-image-generator/mainwindow.cpp axistickertime-creation
+  
+  Here is an example of a time axis providing time information in days, hours and minutes. Due to
+  the axis range spanning a few days and the wanted tick count (\ref setTickCount), the ticker
+  decided to use tick steps of 12 hours:
+  
+  \image html axisticker-time2.png
+  
+  The format string for this example is
+  \snippet documentation/doc-image-generator/mainwindow.cpp axistickertime-creation-2
+  
+  \note If you rather wish to display calendar dates and times, have a look at QCPAxisTickerDateTime
+  instead.
 */
 
+/*!
+  Constructs the ticker and sets reasonable default values. Axis tickers are commonly created
+  managed by a QSharedPointer, which then can be passed to QCPAxis::setTicker.
+*/
 QCPAxisTickerTime::QCPAxisTickerTime() :
   mTimeFormat(QLatin1String("%h:%m:%s")),
   mSmallestUnit(tuSeconds),
@@ -53,6 +87,24 @@ QCPAxisTickerTime::QCPAxisTickerTime() :
   mFormatPattern[tuDays] = QLatin1String("%d");
 }
 
+/*!
+  Sets the format that will be used to display time in the tick labels.
+  
+  The available patterns are:
+  - %%z for milliseconds
+  - %%s for seconds
+  - %%m for minutes
+  - %%h for hours
+  - %%d for days
+  
+  The field width (zero padding) can be controlled for each unit with \ref setFieldWidth.
+  
+  The largest unit that appears in \a format will carry all the remaining time of a certain tick
+  coordinate, even if it overflows the natural limit of the unit. For example, if %%m is the
+  largest unit it might become larger than 59 in order to consume larger time values. If on the
+  other hand %%h is available, the minutes will wrap around to zero after 59 and the time will
+  carry to the hour digit.
+*/
 void QCPAxisTickerTime::setTimeFormat(const QString &format)
 {
   mTimeFormat = format;
@@ -77,11 +129,27 @@ void QCPAxisTickerTime::setTimeFormat(const QString &format)
   }
 }
 
+/*!
+  Sets the field widh of the specified \a unit to be \a width digits, when displayed in the tick
+  label. If the number for the specific unit is shorter than \a width, it will be padded with an
+  according number of zeros to the left in order to reach the field width.
+  
+  \see setTimeFormat
+*/
 void QCPAxisTickerTime::setFieldWidth(QCPAxisTickerTime::TimeUnit unit, int width)
 {
   mFieldWidth[unit] = qMax(width, 1);
 }
 
+/*! \internal
+
+  Returns the tick step appropriate for time displays, depending on the provided \a range and the
+  smallest available time unit in the current format (\ref setTimeFormat). For example if the unit
+  of seconds isn't available in the format, this method will not generate steps (like 2.5 minutes)
+  that require sub-minute precision to be displayed correctly.
+  
+  \seebaseclassmethod
+*/
 double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
   double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
@@ -127,6 +195,12 @@ double QCPAxisTickerTime::getTickStep(const QCPRange &range)
   return result;
 }
 
+/*! \internal
+
+  Returns the sub tick count appropriate for the provided \a tickStep and time displays.
+  
+  \seebaseclassmethod
+*/
 int QCPAxisTickerTime::getSubTickCount(double tickStep)
 {
   int result = QCPAxisTicker::getSubTickCount(tickStep);
@@ -146,6 +220,13 @@ int QCPAxisTickerTime::getSubTickCount(double tickStep)
   return result;
 }
 
+/*! \internal
+  
+  Returns the tick label corresponding to the provided \a tick and the configured format and field
+  widths (\ref setTimeFormat, \ref setFieldWidth).
+  
+  \seebaseclassmethod
+*/
 QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision)
 {
   Q_UNUSED(precision)
@@ -174,6 +255,11 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
   return result;
 }
 
+/*! \internal
+  
+  Replaces all occurrences of the format pattern belonging to \a unit in \a text with the specified
+  \a value, using the field width as specified with \ref setFieldWidth for the \a unit.
+*/
 void QCPAxisTickerTime::replaceUnit(QString &text, QCPAxisTickerTime::TimeUnit unit, int value) const
 {
   QString valueStr = QString::number(value);

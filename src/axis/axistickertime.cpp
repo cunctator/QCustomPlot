@@ -35,7 +35,7 @@
 */
 
 QCPAxisTickerTime::QCPAxisTickerTime() :
-  mTimeFormat("%h:%m:%s"),
+  mTimeFormat(QLatin1String("%h:%m:%s")),
   mSmallestUnit(tuSeconds),
   mBiggestUnit(tuHours)
 {
@@ -45,6 +45,12 @@ QCPAxisTickerTime::QCPAxisTickerTime() :
   mFieldWidth[tuMinutes] = 2;
   mFieldWidth[tuHours] = 2;
   mFieldWidth[tuDays] = 1;
+  
+  mFormatPattern[tuMilliseconds] = QLatin1String("%z");
+  mFormatPattern[tuSeconds] = QLatin1String("%s");
+  mFormatPattern[tuMinutes] = QLatin1String("%m");
+  mFormatPattern[tuHours] = QLatin1String("%h");
+  mFormatPattern[tuDays] = QLatin1String("%d");
 }
 
 void QCPAxisTickerTime::setTimeFormat(const QString &format)
@@ -59,7 +65,7 @@ void QCPAxisTickerTime::setTimeFormat(const QString &format)
   for (int i = tuMilliseconds; i <= tuDays; ++i)
   {
     TimeUnit unit = static_cast<TimeUnit>(i);
-    if (mTimeFormat.contains(pattern(unit)))
+    if (mTimeFormat.contains(mFormatPattern.value(unit)))
     {
       if (!hasSmallest)
       {
@@ -174,20 +180,7 @@ void QCPAxisTickerTime::replaceUnit(QString &text, QCPAxisTickerTime::TimeUnit u
   while (valueStr.size() < mFieldWidth.value(unit))
     valueStr.prepend('0');
   
-  text.replace(pattern(unit), valueStr);
-}
-
-QLatin1String QCPAxisTickerTime::pattern(QCPAxisTickerTime::TimeUnit unit) const
-{
-  switch (unit)
-  {
-    case tuMilliseconds: return QLatin1String("%z");
-    case tuSeconds: return QLatin1String("%s");
-    case tuMinutes: return QLatin1String("%m");
-    case tuHours: return  QLatin1String("%h");
-    case tuDays: return QLatin1String("%d");
-    default: return QLatin1String("");
-  }
+  text.replace(mFormatPattern.value(unit), valueStr);
 }
 
 

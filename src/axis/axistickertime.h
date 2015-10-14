@@ -56,6 +56,7 @@ protected:
   
   // non-property members:
   TimeUnit mSmallestUnit, mBiggestUnit;
+  QHash<TimeUnit, QString> mFormatPattern;
   
   // reimplemented virtual methods:
   virtual double getTickStep(const QCPRange &range);
@@ -64,7 +65,6 @@ protected:
   
   // non-virtual methods:
   void replaceUnit(QString &text, TimeUnit unit, int value) const;
-  QLatin1String pattern(TimeUnit unit) const;
 };
 
 #endif // QCP_AXISTICKERTIME_H

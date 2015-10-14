@@ -25,12 +25,13 @@
 
 #include "axis.h"
 
-#include "painter.h"
-#include "core.h"
-#include "plottable.h"
-#include "plottables/plottable-graph.h"
-#include "item.h"
-#include "layoutelements/layoutelement-axisrect.h"
+#include "../painter.h"
+#include "../core.h"
+#include "../plottable.h"
+#include "../plottables/plottable-graph.h"
+#include "../item.h"
+#include "../layoutelements/layoutelement-axisrect.h"
+#include "axisticker.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +151,7 @@ void QCPGrid::draw(QCPPainter *painter)
 {
   if (!mParentAxis) { qDebug() << Q_FUNC_INFO << "invalid parent axis"; return; }
   
-  if (mSubGridVisible)
+  if (mParentAxis->subTicks() && mSubGridVisible)
     drawSubGridLines(painter);
   drawGridLines(painter);
 }
@@ -165,8 +166,7 @@ void QCPGrid::drawGridLines(QCPPainter *painter) const
 {
   if (!mParentAxis) { qDebug() << Q_FUNC_INFO << "invalid parent axis"; return; }
   
-  int lowTick = mParentAxis->mLowestVisibleTick;
-  int highTick = mParentAxis->mHighestVisibleTick;
+  const int tickCount = mParentAxis->mTickVector.size();
   double t; // helper variable, result of coordinate-to-pixel transforms
   if (mParentAxis->orientation() == Qt::Horizontal)
   {
@@ -177,7 +177,7 @@ void QCPGrid::drawGridLines(QCPPainter *painter) const
       applyAntialiasingHint(painter, mAntialiasedZeroLine, QCP::aeZeroLine);
       painter->setPen(mZeroLinePen);
       double epsilon = mParentAxis->range().size()*1E-6; // for comparing double to zero
-      for (int i=lowTick; i <= highTick; ++i)
+      for (int i=0; i<tickCount; ++i)
       {
         if (qAbs(mParentAxis->mTickVector.at(i)) < epsilon)
         {
@@ -191,7 +191,7 @@ void QCPGrid::drawGridLines(QCPPainter *painter) const
     // draw grid lines:
     applyDefaultAntialiasingHint(painter);
     painter->setPen(mPen);
-    for (int i=lowTick; i <= highTick; ++i)
+    for (int i=0; i<tickCount; ++i)
     {
       if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
       t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // x
@@ -206,7 +206,7 @@ void QCPGrid::drawGridLines(QCPPainter *painter) const
       applyAntialiasingHint(painter, mAntialiasedZeroLine, QCP::aeZeroLine);
       painter->setPen(mZeroLinePen);
       double epsilon = mParentAxis->mRange.size()*1E-6; // for comparing double to zero
-      for (int i=lowTick; i <= highTick; ++i)
+      for (int i=0; i<tickCount; ++i)
       {
         if (qAbs(mParentAxis->mTickVector.at(i)) < epsilon)
         {
@@ -220,7 +220,7 @@ void QCPGrid::drawGridLines(QCPPainter *painter) const
     // draw grid lines:
     applyDefaultAntialiasingHint(painter);
     painter->setPen(mPen);
-    for (int i=lowTick; i <= highTick; ++i)
+    for (int i=0; i<tickCount; ++i)
     {
       if (i == zeroLineIndex) continue; // don't draw a gridline on top of the zeroline
       t = mParentAxis->coordToPixel(mParentAxis->mTickVector.at(i)); // y
@@ -279,7 +279,11 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \image html AxisRectSpacingOverview.png
   <center>Overview of the spacings and paddings that define the geometry of an axis. The dashed gray line
   on the left represents the QCustomPlot widget border.</center>
-
+  
+  Each axis holds an instance of QCPAxisTicker which is used to generate the tick coordinates and
+  tick labels. You can access the currently installed \ref ticker or set a new one (possibly one of
+  the specialized subclasses, or your own subclass) via \ref setTicker. For details, see the
+  documentation of QCPAxisTicker.
 */
 
 /* start of documentation of inline functions */
@@ -305,23 +309,44 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \see orientation()
 */
 
+/*! \fn QSharedPointer<QCPAxisTicker> ticker() const
+  
+  Returns a modifiable shared pointer to the currently installed axis ticker. The axis ticker is
+  responsible for generating the tick positions and tick labels of this axis. You can access the
+  QCPAxisTicker with this method and modify basic properties such as the approximate tick count
+  (\ref QCPAxisTicker::setTickCount).
+  
+  You can gain more control over the axis ticks by setting a different QCPAxisTicker subclass, see
+  the documentation there. A new axis ticker can be set with setTicker.
+  
+  Since the ticker is stored in the axis as a shared pointer, multiple axes may share the same axis
+  ticker simply by passing the same shared pointer to multiple axes.
+  
+  \see setTicker
+*/
+
+/*! \fn QVector<double> tickVector() const
+  
+  Returns a vector of coordinates which correspond to the currently displayed axis ticks.
+  
+  This tick vector is read-only. If you wish to control the ticks, access or subclass the
+  QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  
+  \see tickVectorLabels
+*/
+
+/*! \fn QVector<QString> tickVectorLabels() const
+  
+  Returns a vector of strings which correspond to the currently displayed axis ticks labels.
+  
+  This tick label vector is read-only. If you wish to control the tick labels, access or subclass
+  the QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  
+  \see tickVector
+*/
+
 /* end of documentation of inline functions */
 /* start of documentation of signals */
-
-/*! \fn void QCPAxis::ticksRequest()
-  
-  This signal is emitted when \ref setAutoTicks is false and the axis is about to generate tick
-  labels for a replot.
-  
-  Modifying the tick positions can be done with \ref setTickVector. If you also want to control the
-  tick labels, set \ref setAutoTickLabels to false and also provide the labels with \ref
-  setTickVectorLabels.
-  
-  If you only want static ticks you probably don't need this signal, since you can just set the
-  tick vector (and possibly tick label vector) once. However, if you want to provide ticks (and
-  maybe labels) dynamically, e.g. depending on the current axis range, connect a slot to this
-  signal and set the vector/vectors there.
-*/
 
 /*! \fn void QCPAxis::rangeChanged(const QCPRange &newRange)
 
@@ -389,25 +414,16 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mSelectedLabelColor(Qt::blue),
   // tick labels:
   mTickLabels(true),
-  mAutoTickLabels(true),
-  mTickLabelType(ltNumber),
   mTickLabelFont(mParentPlot->font()),
   mSelectedTickLabelFont(QFont(mTickLabelFont.family(), mTickLabelFont.pointSize(), QFont::Bold)),
   mTickLabelColor(Qt::black),
   mSelectedTickLabelColor(Qt::blue),
-  mDateTimeFormat(QLatin1String("hh:mm:ss\ndd.MM.yy")),
-  mDateTimeSpec(Qt::LocalTime),
   mNumberPrecision(6),
   mNumberFormatChar('g'),
   mNumberBeautifulPowers(true),
   // ticks and subticks:
   mTicks(true),
-  mTickStep(1),
-  mSubTickCount(4),
-  mAutoTickCount(6),
-  mAutoTicks(true),
-  mAutoTickStep(true),
-  mAutoSubTicks(true),
+  mSubTicks(true),
   mTickPen(QPen(Qt::black, 0, Qt::SolidLine, Qt::SquareCap)),
   mSelectedTickPen(QPen(Qt::blue, 2)),
   mSubTickPen(QPen(Qt::black, 0, Qt::SolidLine, Qt::SquareCap)),
@@ -416,13 +432,10 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mRange(0, 5),
   mRangeReversed(false),
   mScaleType(stLinear),
-  mScaleLogBase(10),
-  mScaleLogBaseLogInv(1.0/qLn(mScaleLogBase)),
   // internal members:
   mGrid(new QCPGrid(this)),
   mAxisPainter(new QCPAxisPainterPrivate(parent->parentPlot())),
-  mLowestVisibleTick(0),
-  mHighestVisibleTick(-1),
+  mTicker(new QCPAxisTicker),
   mCachedMarginValid(false),
   mCachedMargin(0)
 {
@@ -561,24 +574,6 @@ void QCPAxis::setScaleType(QCPAxis::ScaleType type)
 }
 
 /*!
-  If \ref setScaleType is set to \ref stLogarithmic, \a base will be the logarithm base of the
-  scaling. In logarithmic axis scaling, major tick marks appear at all powers of \a base.
-  
-  Properties like tick step (\ref setTickStep) don't apply in logarithmic scaling. If you wish a decimal base but
-  less major ticks, consider choosing \a base 100, 1000 or even higher.
-*/
-void QCPAxis::setScaleLogBase(double base)
-{
-  if (base > 1)
-  {
-    mScaleLogBase = base;
-    mScaleLogBaseLogInv = 1.0/qLn(mScaleLogBase); // buffer for faster baseLog() calculation
-    mCachedMarginValid = false;
-  } else
-    qDebug() << Q_FUNC_INFO << "Invalid logarithmic scale base (must be greater 1):" << base;
-}
-
-/*!
   Sets the range of the axis.
   
   This slot may be connected with the \ref rangeChanged signal of another axis so this axis
@@ -600,7 +595,6 @@ void QCPAxis::setRange(const QCPRange &range)
   {
     mRange = range.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -673,7 +667,6 @@ void QCPAxis::setRange(double lower, double upper)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -717,7 +710,6 @@ void QCPAxis::setRangeLower(double lower)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -740,7 +732,6 @@ void QCPAxis::setRangeUpper(double upper)
   {
     mRange = mRange.sanitizedForLinScale();
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -756,122 +747,29 @@ void QCPAxis::setRangeUpper(double upper)
 */
 void QCPAxis::setRangeReversed(bool reversed)
 {
-  if (mRangeReversed != reversed)
-  {
-    mRangeReversed = reversed;
-    mCachedMarginValid = false;
-  }
+  mRangeReversed = reversed;
 }
 
 /*!
-  Sets whether the tick positions should be calculated automatically (either from an automatically
-  generated tick step or a tick step provided manually via \ref setTickStep, see \ref setAutoTickStep).
+  The axis ticker is responsible for generating the tick positions and tick labels. See the
+  documentation of QCPAxisTicker for details on how to work with axis tickers.
   
-  If \a on is set to false, you must provide the tick positions manually via \ref setTickVector.
-  For these manual ticks you may let QCPAxis generate the appropriate labels automatically by
-  leaving \ref setAutoTickLabels set to true. If you also wish to control the displayed labels
-  manually, set \ref setAutoTickLabels to false and provide the label strings with \ref
-  setTickVectorLabels.
+  You can change the tick positioning/labeling behaviour of this axis by setting a different
+  QCPAxisTicker subclass using this method. If you only wish to modify the currently installed axis
+  ticker, access it via \ref ticker.
   
-  If you need dynamically calculated tick vectors (and possibly tick label vectors), set the
-  vectors in a slot connected to the \ref ticksRequest signal.
+  Since the ticker is stored in the axis as a shared pointer, multiple axes may share the same axis
+  ticker simply by passing the same shared pointer to multiple axes.
   
-  \see setAutoTickLabels, setAutoSubTicks, setAutoTickCount, setAutoTickStep
+  \see ticker
 */
-void QCPAxis::setAutoTicks(bool on)
+void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
 {
-  if (mAutoTicks != on)
-  {
-    mAutoTicks = on;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  When \ref setAutoTickStep is true, \a approximateCount determines how many ticks should be
-  generated in the visible range, approximately.
-  
-  It's not guaranteed that this number of ticks is met exactly, but approximately within a
-  tolerance of about two.
-  
-  Only values greater than zero are accepted as \a approximateCount.
-  
-  \see setAutoTickStep, setAutoTicks, setAutoSubTicks
-*/
-void QCPAxis::setAutoTickCount(int approximateCount)
-{
-  if (mAutoTickCount != approximateCount)
-  {
-    if (approximateCount > 0)
-    {
-      mAutoTickCount = approximateCount;
-      mCachedMarginValid = false;
-    } else
-      qDebug() << Q_FUNC_INFO << "approximateCount must be greater than zero:" << approximateCount;
-  }
-}
-
-/*!
-  Sets whether the tick labels are generated automatically. Depending on the tick label type (\ref
-  ltNumber or \ref ltDateTime), the labels will either show the coordinate as floating point
-  number (\ref setNumberFormat), or a date/time formatted according to \ref setDateTimeFormat.
-  
-  If \a on is set to false, you should provide the tick labels via \ref setTickVectorLabels. This
-  is usually used in a combination with \ref setAutoTicks set to false for complete control over
-  tick positions and labels, e.g. when the ticks should be at multiples of pi and show "2pi", "3pi"
-  etc. as tick labels.
-  
-  If you need dynamically calculated tick vectors (and possibly tick label vectors), set the
-  vectors in a slot connected to the \ref ticksRequest signal.
-  
-  \see setAutoTicks
-*/
-void QCPAxis::setAutoTickLabels(bool on)
-{
-  if (mAutoTickLabels != on)
-  {
-    mAutoTickLabels = on;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  Sets whether the tick step, i.e. the interval between two (major) ticks, is calculated
-  automatically. If \a on is set to true, the axis finds a tick step that is reasonable for human
-  readable plots.
-
-  The number of ticks the algorithm aims for within the visible range can be specified with \ref
-  setAutoTickCount.
-  
-  If \a on is set to false, you may set the tick step manually with \ref setTickStep.
-  
-  \see setAutoTicks, setAutoSubTicks, setAutoTickCount
-*/
-void QCPAxis::setAutoTickStep(bool on)
-{
-  if (mAutoTickStep != on)
-  {
-    mAutoTickStep = on;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  Sets whether the number of sub ticks in one tick interval is determined automatically. This
-  works, as long as the tick step mantissa is a multiple of 0.5. When \ref setAutoTickStep is
-  enabled, this is always the case.
-  
-  When \a on is set to false, you may set the sub tick count with \ref setSubTickCount manually.
-  
-  \see setAutoTickCount, setAutoTicks, setAutoTickStep
-*/
-void QCPAxis::setAutoSubTicks(bool on)
-{
-  if (mAutoSubTicks != on)
-  {
-    mAutoSubTicks = on;
-    mCachedMarginValid = false;
-  }
+  if (ticker)
+    mTicker = ticker;
+  else
+    qDebug() << Q_FUNC_INFO << "can not set 0 as axis ticker";
+  // no need to invalidate margin cache here because produced tick labels are checked for changes in setupTickVector
 }
 
 /*!
@@ -879,6 +777,8 @@ void QCPAxis::setAutoSubTicks(bool on)
 
   Note that setting \a show to false does not imply that tick labels are invisible, too. To achieve
   that, see \ref setTickLabels.
+  
+  \see setSubTicks
 */
 void QCPAxis::setTicks(bool show)
 {
@@ -898,6 +798,8 @@ void QCPAxis::setTickLabels(bool show)
   {
     mTickLabels = show;
     mCachedMarginValid = false;
+    if (!mTickLabels)
+      mTickVectorLabels.clear();
   }
 }
 
@@ -910,36 +812,6 @@ void QCPAxis::setTickLabelPadding(int padding)
   if (mAxisPainter->tickLabelPadding != padding)
   {
     mAxisPainter->tickLabelPadding = padding;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  Sets whether the tick labels display numbers or dates/times.
-  
-  If \a type is set to \ref ltNumber, the format specifications of \ref setNumberFormat apply.
-  
-  If \a type is set to \ref ltDateTime, the format specifications of \ref setDateTimeFormat apply.
-  
-  In QCustomPlot, date/time coordinates are <tt>double</tt> numbers representing the seconds since
-  1970-01-01T00:00:00 UTC. This format can be retrieved from QDateTime objects with the
-  QDateTime::toTime_t() function. Since this only gives a resolution of one second, there is also
-  the QDateTime::toMSecsSinceEpoch() function which returns the timespan described above in
-  milliseconds. Divide its return value by 1000.0 to get a value with the format needed for
-  date/time plotting, with a resolution of one millisecond.
-  
-  Using the toMSecsSinceEpoch function allows dates that go back to 2nd January 4713 B.C.
-  (represented by a negative number), unlike the toTime_t function, which works with unsigned
-  integers and thus only goes back to 1st January 1970. So both for range and accuracy, use of
-  toMSecsSinceEpoch()/1000.0 should be preferred as key coordinate for date/time axes.
-  
-  \see setTickLabels
-*/
-void QCPAxis::setTickLabelType(LabelType type)
-{
-  if (mTickLabelType != type)
-  {
-    mTickLabelType = type;
     mCachedMarginValid = false;
   }
 }
@@ -965,11 +837,7 @@ void QCPAxis::setTickLabelFont(const QFont &font)
 */
 void QCPAxis::setTickLabelColor(const QColor &color)
 {
-  if (color != mTickLabelColor)
-  {
-    mTickLabelColor = color;
-    mCachedMarginValid = false;
-  }
+  mTickLabelColor = color;
 }
 
 /*!
@@ -1001,38 +869,6 @@ void QCPAxis::setTickLabelSide(LabelSide side)
 {
   mAxisPainter->tickLabelSide = side;
   mCachedMarginValid = false;
-}
-
-/*!
-  Sets the format in which dates and times are displayed as tick labels, if \ref setTickLabelType is \ref ltDateTime.
-  for details about the \a format string, see the documentation of QDateTime::toString().
-  
-  Newlines can be inserted with "\n".
-  
-  \see setDateTimeSpec
-*/
-void QCPAxis::setDateTimeFormat(const QString &format)
-{
-  if (mDateTimeFormat != format)
-  {
-    mDateTimeFormat = format;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  Sets the time spec that is used for the date time values when \ref setTickLabelType is \ref
-  ltDateTime.
-
-  The default value of QDateTime objects (and also QCustomPlot) is <tt>Qt::LocalTime</tt>. However,
-  if the date time values passed to QCustomPlot are given in the UTC spec, set \a
-  timeSpec to <tt>Qt::UTC</tt> to get the correct axis labels.
-  
-  \see setDateTimeFormat
-*/
-void QCPAxis::setDateTimeSpec(const Qt::TimeSpec &timeSpec)
-{
-  mDateTimeSpec = timeSpec;
 }
 
 /*!
@@ -1147,58 +983,6 @@ void QCPAxis::setNumberPrecision(int precision)
 }
 
 /*!
-  If \ref setAutoTickStep is set to false, use this function to set the tick step manually.
-  The tick step is the interval between (major) ticks, in plot coordinates.
-  \see setSubTickCount
-*/
-void QCPAxis::setTickStep(double step)
-{
-  if (mTickStep != step)
-  {
-    mTickStep = step;
-    mCachedMarginValid = false;
-  }
-}
-
-/*!
-  If you want full control over what ticks (and possibly labels) the axes show, this function is
-  used to set the coordinates at which ticks will appear.\ref setAutoTicks must be disabled, else
-  the provided tick vector will be overwritten with automatically generated tick coordinates upon
-  replot. The labels of the ticks can be generated automatically when \ref setAutoTickLabels is
-  left enabled. If it is disabled, you can set the labels manually with \ref setTickVectorLabels.
-  
-  \a vec is a vector containing the positions of the ticks, in plot coordinates.
-  
-  \warning \a vec must be sorted in ascending order, no additional checks are made to ensure this.
-
-  \see setTickVectorLabels
-*/
-void QCPAxis::setTickVector(const QVector<double> &vec)
-{
-  // don't check whether mTickVector != vec here, because it takes longer than we would save
-  mTickVector = vec;
-  mCachedMarginValid = false;
-}
-
-/*!
-  If you want full control over what ticks and labels the axes show, this function is used to set a
-  number of QStrings that will be displayed at the tick positions which you need to provide with
-  \ref setTickVector. These two vectors should have the same size. (Note that you need to disable
-  \ref setAutoTicks and \ref setAutoTickLabels first.)
-  
-  \a vec is a vector containing the labels of the ticks. The entries correspond to the respective
-  indices in the tick vector, passed via \ref setTickVector.
-  
-  \see setTickVector
-*/
-void QCPAxis::setTickVectorLabels(const QVector<QString> &vec)
-{
-  // don't check whether mTickVectorLabels != vec here, because it takes longer than we would save
-  mTickVectorLabels = vec;
-  mCachedMarginValid = false;
-}
-
-/*!
   Sets the length of the ticks in pixels. \a inside is the length the ticks will reach inside the
   plot and \a outside is the length they will reach outside the plot. If \a outside is greater than
   zero, the tick labels and axis label will increase their distance to the axis accordingly, so
@@ -1243,19 +1027,19 @@ void QCPAxis::setTickLengthOut(int outside)
 }
 
 /*!
-  Sets the number of sub ticks in one (major) tick step. A sub tick count of three for example,
-  divides the tick intervals in four sub intervals.
+  Sets whether sub tick marks are displayed.
   
-  By default, the number of sub ticks is chosen automatically in a reasonable manner as long as the
-  mantissa of the tick step is a multiple of 0.5. When \ref setAutoTickStep is enabled, this is
-  always the case.
-
-  If you want to disable automatic sub tick count and use this function to set the count manually,
-  see \ref setAutoSubTicks.
+  Sub ticks are only potentially visible if (major) ticks are also visible (see \ref setTicks)
+  
+  \see setTicks
 */
-void QCPAxis::setSubTickCount(int count)
+void QCPAxis::setSubTicks(bool show)
 {
-  mSubTickCount = count;
+  if (mSubTicks != show)
+  {
+    mSubTicks = show;
+    mCachedMarginValid = false;
+  }
 }
 
 /*!
@@ -1542,7 +1326,6 @@ void QCPAxis::moveRange(double diff)
     mRange.lower *= diff;
     mRange.upper *= diff;
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -1575,7 +1358,6 @@ void QCPAxis::scaleRange(double factor, double center)
     } else
       qDebug() << Q_FUNC_INFO << "Center of scaling operation doesn't lie in same logarithmic sign domain as range:" << center;
   }
-  mCachedMarginValid = false;
   emit rangeChanged(mRange);
   emit rangeChanged(mRange, oldRange);
 }
@@ -1723,9 +1505,9 @@ double QCPAxis::coordToPixel(double value) const
       else
       {
         if (!mRangeReversed)
-          return baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
+          return qLn(value/mRange.lower)/qLn(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
         else
-          return baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
+          return qLn(mRange.upper/value)/qLn(mRange.upper/mRange.lower)*mAxisRect->width()+mAxisRect->left();
       }
     }
   } else // orientation() == Qt::Vertical
@@ -1745,9 +1527,9 @@ double QCPAxis::coordToPixel(double value) const
       else
       {
         if (!mRangeReversed)
-          return mAxisRect->bottom()-baseLog(value/mRange.lower)/baseLog(mRange.upper/mRange.lower)*mAxisRect->height();
+          return mAxisRect->bottom()-qLn(value/mRange.lower)/qLn(mRange.upper/mRange.lower)*mAxisRect->height();
         else
-          return mAxisRect->bottom()-baseLog(mRange.upper/value)/baseLog(mRange.upper/mRange.lower)*mAxisRect->height();
+          return mAxisRect->bottom()-qLn(mRange.upper/value)/qLn(mRange.upper/mRange.lower)*mAxisRect->height();
       }
     }
   }
@@ -1887,238 +1669,6 @@ QCPAxis::AxisType QCPAxis::opposite(QCPAxis::AxisType type)
   }
 }
 
-/*! \internal
-  
-  This function is called to prepare the tick vector, sub tick vector and tick label vector. If
-  \ref setAutoTicks is set to true, appropriate tick values are determined automatically via \ref
-  generateAutoTicks. If it's set to false, the signal ticksRequest is emitted, which can be used to
-  provide external tick positions. Then the sub tick vectors and tick label vectors are created.
-*/
-void QCPAxis::setupTickVectors()
-{
-  if (!mParentPlot) return;
-  if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
-  
-  // fill tick vectors, either by auto generating or by notifying user to fill the vectors himself
-  if (mAutoTicks)
-  {
-    generateAutoTicks();
-  } else
-  {
-    emit ticksRequest();
-  }
-  
-  visibleTickBounds(mLowestVisibleTick, mHighestVisibleTick);
-  if (mTickVector.isEmpty())
-  {
-    mSubTickVector.clear();
-    return;
-  }
-  
-  // generate subticks between ticks:
-  mSubTickVector.resize((mTickVector.size()-1)*mSubTickCount);
-  if (mSubTickCount > 0)
-  {
-    double subTickStep = 0;
-    double subTickPosition = 0;
-    int subTickIndex = 0;
-    bool done = false;
-    int lowTick = mLowestVisibleTick > 0 ? mLowestVisibleTick-1 : mLowestVisibleTick;
-    int highTick = mHighestVisibleTick < mTickVector.size()-1 ? mHighestVisibleTick+1 : mHighestVisibleTick;
-    for (int i=lowTick+1; i<=highTick; ++i)
-    {
-      subTickStep = (mTickVector.at(i)-mTickVector.at(i-1))/(double)(mSubTickCount+1);
-      for (int k=1; k<=mSubTickCount; ++k)
-      {
-        subTickPosition = mTickVector.at(i-1) + k*subTickStep;
-        if (subTickPosition < mRange.lower)
-          continue;
-        if (subTickPosition > mRange.upper)
-        {
-          done = true;
-          break;
-        }
-        mSubTickVector[subTickIndex] = subTickPosition;
-        subTickIndex++;
-      }
-      if (done) break;
-    }
-    mSubTickVector.resize(subTickIndex);
-  }
-
-  // generate tick labels according to tick positions:
-  if (mAutoTickLabels)
-  {
-    int vecsize = mTickVector.size();
-    mTickVectorLabels.resize(vecsize);
-    if (mTickLabelType == ltNumber)
-    {
-      for (int i=mLowestVisibleTick; i<=mHighestVisibleTick; ++i)
-        mTickVectorLabels[i] = mParentPlot->locale().toString(mTickVector.at(i), mNumberFormatChar.toLatin1(), mNumberPrecision);
-    } else if (mTickLabelType == ltDateTime)
-    {
-      for (int i=mLowestVisibleTick; i<=mHighestVisibleTick; ++i)
-      {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0) // use fromMSecsSinceEpoch function if available, to gain sub-second accuracy on tick labels (e.g. for format "hh:mm:ss:zzz")
-        mTickVectorLabels[i] = mParentPlot->locale().toString(QDateTime::fromTime_t(mTickVector.at(i)).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
-#else
-        mTickVectorLabels[i] = mParentPlot->locale().toString(QDateTime::fromMSecsSinceEpoch(mTickVector.at(i)*1000).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
-#endif
-      }
-    }
-  } else // mAutoTickLabels == false
-  {
-    if (mAutoTicks) // ticks generated automatically, but not ticklabels, so emit ticksRequest here for labels
-    {
-      emit ticksRequest();
-    }
-    // make sure provided tick label vector has correct (minimal) length:
-    if (mTickVectorLabels.size() < mTickVector.size())
-      mTickVectorLabels.resize(mTickVector.size());
-  }
-}
-
-/*! \internal
-  
-  If \ref setAutoTicks is set to true, this function is called by \ref setupTickVectors to
-  generate reasonable tick positions (and subtick count). The algorithm tries to create
-  approximately <tt>mAutoTickCount</tt> ticks (set via \ref setAutoTickCount).
- 
-  If the scale is logarithmic, \ref setAutoTickCount is ignored, and one tick is generated at every
-  power of the current logarithm base, set via \ref setScaleLogBase.
-*/
-void QCPAxis::generateAutoTicks()
-{
-  if (mScaleType == stLinear)
-  {
-    if (mAutoTickStep)
-    {
-      // Generate tick positions according to linear scaling:
-      mTickStep = mRange.size()/(double)(mAutoTickCount+1e-10); // mAutoTickCount ticks on average, the small addition is to prevent jitter on exact integers
-      double magnitudeFactor = qPow(10.0, qFloor(qLn(mTickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-      double tickStepMantissa = mTickStep/magnitudeFactor;
-      if (tickStepMantissa < 5)
-      {
-        // round digit after decimal point to 0.5
-        mTickStep = (int)(tickStepMantissa*2)/2.0*magnitudeFactor;
-      } else
-      {
-        // round to first digit in multiples of 2
-        mTickStep = (int)(tickStepMantissa/2.0)*2.0*magnitudeFactor;
-      }
-    }
-    if (mAutoSubTicks)
-      mSubTickCount = calculateAutoSubTickCount(mTickStep);
-    // Generate tick positions according to mTickStep:
-    qint64 firstStep = floor(mRange.lower/mTickStep); // do not use qFloor here, or we'll lose 64 bit precision
-    qint64 lastStep = ceil(mRange.upper/mTickStep); // do not use qCeil here, or we'll lose 64 bit precision
-    int tickcount = lastStep-firstStep+1;
-    if (tickcount < 0) tickcount = 0;
-    mTickVector.resize(tickcount);
-    for (int i=0; i<tickcount; ++i)
-      mTickVector[i] = (firstStep+i)*mTickStep;
-  } else // mScaleType == stLogarithmic
-  {
-    // Generate tick positions according to logbase scaling:
-    if (mRange.lower > 0 && mRange.upper > 0) // positive range
-    {
-      double lowerMag = basePow(qFloor(baseLog(mRange.lower)));
-      double currentMag = lowerMag;
-      mTickVector.clear();
-      mTickVector.append(currentMag);
-      while (currentMag < mRange.upper && currentMag > 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
-      {
-        currentMag *= mScaleLogBase;
-        mTickVector.append(currentMag);
-      }
-    } else if (mRange.lower < 0 && mRange.upper < 0) // negative range
-    {
-      double lowerMag = -basePow(qCeil(baseLog(-mRange.lower)));
-      double currentMag = lowerMag;
-      mTickVector.clear();
-      mTickVector.append(currentMag);
-      while (currentMag < mRange.upper && currentMag < 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
-      {
-        currentMag /= mScaleLogBase;
-        mTickVector.append(currentMag);
-      }
-    } else // invalid range for logarithmic scale, because lower and upper have different sign
-    {
-      mTickVector.clear();
-      qDebug() << Q_FUNC_INFO << "Invalid range for logarithmic plot: " << mRange.lower << "-" << mRange.upper;
-    }
-  }
-}
-
-/*! \internal
-  
-  Called by generateAutoTicks when \ref setAutoSubTicks is set to true. Depending on the \a
-  tickStep between two major ticks on the axis, a different number of sub ticks is appropriate. For
-  Example taking 4 sub ticks for a \a tickStep of 1 makes more sense than taking 5 sub ticks,
-  because this corresponds to a sub tick step of 0.2, instead of the less intuitive 0.16667. Note
-  that a subtick count of 4 means dividing the major tick step into 5 sections.
-  
-  This is implemented by a hand made lookup for integer tick steps as well as fractional tick steps
-  with a fractional part of (approximately) 0.5. If a tick step is different (i.e. has no
-  fractional part close to 0.5), the currently set sub tick count (\ref setSubTickCount) is
-  returned.
-*/
-int QCPAxis::calculateAutoSubTickCount(double tickStep) const
-{
-  int result = mSubTickCount; // default to current setting, if no proper value can be found
-  
-  // get mantissa of tickstep:
-  double magnitudeFactor = qPow(10.0, qFloor(qLn(tickStep)/qLn(10.0))); // get magnitude factor e.g. 0.01, 1, 10, 1000 etc.
-  double tickStepMantissa = tickStep/magnitudeFactor;
-  
-  // separate integer and fractional part of mantissa:
-  double epsilon = 0.01;
-  double intPartf;
-  int intPart;
-  double fracPart = modf(tickStepMantissa, &intPartf);
-  intPart = intPartf;
-  
-  // handle cases with (almost) integer mantissa:
-  if (fracPart < epsilon || 1.0-fracPart < epsilon)
-  {
-    if (1.0-fracPart < epsilon)
-      ++intPart;
-    switch (intPart)
-    {
-      case 1: result = 4; break; // 1.0 -> 0.2 substep
-      case 2: result = 3; break; // 2.0 -> 0.5 substep
-      case 3: result = 2; break; // 3.0 -> 1.0 substep
-      case 4: result = 3; break; // 4.0 -> 1.0 substep
-      case 5: result = 4; break; // 5.0 -> 1.0 substep
-      case 6: result = 2; break; // 6.0 -> 2.0 substep
-      case 7: result = 6; break; // 7.0 -> 1.0 substep
-      case 8: result = 3; break; // 8.0 -> 2.0 substep
-      case 9: result = 2; break; // 9.0 -> 3.0 substep
-    }
-  } else
-  {
-    // handle cases with significantly fractional mantissa:
-    if (qAbs(fracPart-0.5) < epsilon) // *.5 mantissa
-    {
-      switch (intPart)
-      {
-        case 1: result = 2; break; // 1.5 -> 0.5 substep
-        case 2: result = 4; break; // 2.5 -> 0.5 substep
-        case 3: result = 4; break; // 3.5 -> 0.7 substep
-        case 4: result = 2; break; // 4.5 -> 1.5 substep
-        case 5: result = 4; break; // 5.5 -> 1.1 substep (won't occur with autoTickStep from here on)
-        case 6: result = 4; break; // 6.5 -> 1.3 substep
-        case 7: result = 2; break; // 7.5 -> 2.5 substep
-        case 8: result = 4; break; // 8.5 -> 1.7 substep
-        case 9: result = 4; break; // 9.5 -> 1.9 substep
-      }
-    }
-    // if mantissa fraction isnt 0.0 or 0.5, don't bother finding good sub tick marks, leave default
-  }
-  
-  return result;
-}
-
 /* inherits documentation from base class */
 void QCPAxis::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
 {
@@ -2153,6 +1703,8 @@ void QCPAxis::deselectEvent(bool *selectionStateChanged)
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
   
+  \seebaseclassmethod
+  
   \see setAntialiased
 */
 void QCPAxis::applyDefaultAntialiasingHint(QCPPainter *painter) const
@@ -2164,34 +1716,34 @@ void QCPAxis::applyDefaultAntialiasingHint(QCPPainter *painter) const
   
   Draws the axis with the specified \a painter, using the internal QCPAxisPainterPrivate instance.
 
+  \seebaseclassmethod
 */
 void QCPAxis::draw(QCPPainter *painter)
 {
-  const int lowTick = mLowestVisibleTick;
-  const int highTick = mHighestVisibleTick;
   QVector<double> subTickPositions; // the final coordToPixel transformed vector passed to QCPAxisPainter
   QVector<double> tickPositions; // the final coordToPixel transformed vector passed to QCPAxisPainter
   QVector<QString> tickLabels; // the final vector passed to QCPAxisPainter
-  tickPositions.reserve(highTick-lowTick+1);
-  tickLabels.reserve(highTick-lowTick+1);
+  tickPositions.reserve(mTickVector.size());
+  tickLabels.reserve(mTickVector.size());
   subTickPositions.reserve(mSubTickVector.size());
   
   if (mTicks)
   {
-    for (int i=lowTick; i<=highTick; ++i)
+    for (int i=0; i<mTickVector.size(); ++i)
     {
       tickPositions.append(coordToPixel(mTickVector.at(i)));
       if (mTickLabels)
         tickLabels.append(mTickVectorLabels.at(i));
     }
-    
-    if (mSubTickCount > 0)
+
+    if (mSubTicks)
     {
       const int subTickCount = mSubTickVector.size();
-      for (int i=0; i<subTickCount; ++i) // no need to check bounds because subticks are always only created inside current mRange
+      for (int i=0; i<subTickCount; ++i)
         subTickPositions.append(coordToPixel(mSubTickVector.at(i)));
     }
   }
+  
   // transfer all properties of this axis to QCPAxisPainterPrivate which it needs to draw the axis.
   // Note that some axis painter properties are already set by direct feed-through with QCPAxis setters
   mAxisPainter->type = mAxisType;
@@ -2199,7 +1751,7 @@ void QCPAxis::draw(QCPPainter *painter)
   mAxisPainter->labelFont = getLabelFont();
   mAxisPainter->labelColor = getLabelColor();
   mAxisPainter->label = mLabel;
-  mAxisPainter->substituteExponent = mAutoTickLabels && mNumberBeautifulPowers && mTickLabelType == ltNumber;
+  mAxisPainter->substituteExponent = mNumberBeautifulPowers;
   mAxisPainter->tickPen = getTickPen();
   mAxisPainter->subTickPen = getSubTickPen();
   mAxisPainter->tickLabelFont = getTickLabelFont();
@@ -2216,75 +1768,20 @@ void QCPAxis::draw(QCPPainter *painter)
 
 /*! \internal
   
-  Returns via \a lowIndex and \a highIndex, which ticks in the current tick vector are visible in
-  the current range. The return values are indices of the tick vector, not the positions of the
-  ticks themselves.
+  Prepares the internal tick vector, sub tick vector and tick label vector. This is done by calling
+  QCPAxisTicker::generate on the currently installed ticker.
   
-  The actual use of this function is when an external tick vector is provided, since it might
-  exceed far beyond the currently displayed range, and would cause unnecessary calculations e.g. of
-  subticks.
-  
-  If all ticks are outside the axis range, an inverted range is returned, i.e. highIndex will be
-  smaller than lowIndex. There is one case, where this function returns indices that are not really
-  visible in the current axis range: When the tick spacing is larger than the axis range size and
-  one tick is below the axis range and the next tick is already above the axis range. Because in
-  such cases it is usually desirable to know the tick pair, to draw proper subticks.
+  If a change in the label text/count is detected, the cached axis margin is invalidated to make
+  sure the next margin calculation recalculates the label sizes and returns an up-to-date value.
 */
-void QCPAxis::visibleTickBounds(int &lowIndex, int &highIndex) const
+void QCPAxis::setupTickVectors()
 {
-  bool lowFound = false;
-  bool highFound = false;
-  lowIndex = 0;
-  highIndex = -1;
+  if (!mParentPlot) return;
+  if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
-  for (int i=0; i < mTickVector.size(); ++i)
-  {
-    if (mTickVector.at(i) >= mRange.lower)
-    {
-      lowFound = true;
-      lowIndex = i;
-      break;
-    }
-  }
-  for (int i=mTickVector.size()-1; i >= 0; --i)
-  {
-    if (mTickVector.at(i) <= mRange.upper)
-    {
-      highFound = true;
-      highIndex = i;
-      break;
-    }
-  }
-  
-  if (!lowFound && highFound)
-    lowIndex = highIndex+1;
-  else if (lowFound && !highFound)
-    highIndex = lowIndex-1;
-}
-
-/*! \internal
-  
-  A log function with the base mScaleLogBase, used mostly for coordinate transforms in logarithmic
-  scales with arbitrary log base. Uses the buffered mScaleLogBaseLogInv for faster calculation.
-  This is set to <tt>1.0/qLn(mScaleLogBase)</tt> in \ref setScaleLogBase.
-  
-  \see basePow, setScaleLogBase, setScaleType
-*/
-double QCPAxis::baseLog(double value) const
-{
-  return qLn(value)*mScaleLogBaseLogInv;
-}
-
-/*! \internal
-  
-  A power function with the base mScaleLogBase, used mostly for coordinate transforms in
-  logarithmic scales with arbitrary log base.
-  
-  \see baseLog, setScaleLogBase, setScaleType
-*/
-double QCPAxis::basePow(double value) const
-{
-  return qPow(mScaleLogBase, value);
+  QVector<QString> oldLabels = mTickVectorLabels;
+  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : 0, mTickLabels ? &mTickVectorLabels : 0);
+  mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
 }
 
 /*! \internal
@@ -2382,15 +1879,14 @@ int QCPAxis::calculateMargin()
   // run through similar steps as QCPAxis::draw, and caluclate margin needed to fit axis and its labels
   int margin = 0;
   
-  int lowTick, highTick;
-  visibleTickBounds(lowTick, highTick);
   QVector<double> tickPositions; // the final coordToPixel transformed vector passed to QCPAxisPainter
   QVector<QString> tickLabels; // the final vector passed to QCPAxisPainter
-  tickPositions.reserve(highTick-lowTick+1);
-  tickLabels.reserve(highTick-lowTick+1);
+  tickPositions.reserve(mTickVector.size());
+  tickLabels.reserve(mTickVector.size());
+  
   if (mTicks)
   {
-    for (int i=lowTick; i<=highTick; ++i)
+    for (int i=0; i<mTickVector.size(); ++i)
     {
       tickPositions.append(coordToPixel(mTickVector.at(i)));
       if (mTickLabels)
@@ -2847,6 +2343,8 @@ void QCPAxisPainterPrivate::drawTickLabel(QCPPainter *painter, double x, double 
   {
     painter->setFont(labelData.baseFont);
     painter->drawText(0, 0, 0, 0, Qt::TextDontClip, labelData.basePart);
+    if (!labelData.suffixPart.isEmpty())
+      painter->drawText(labelData.baseBounds.width()+1+labelData.expBounds.width(), 0, 0, 0, Qt::TextDontClip, labelData.suffixPart);
     painter->setFont(labelData.expFont);
     painter->drawText(labelData.baseBounds.width()+1, 0, labelData.expBounds.width(), labelData.expBounds.height(), Qt::TextDontClip,  labelData.expPart);
   } else
@@ -2874,12 +2372,19 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   
   // determine whether beautiful decimal powers should be used
   bool useBeautifulPowers = false;
-  int ePos = -1;
+  int ePos = -1; // first index of exponent part, text before that will be basePart, text until eLast will be expPart
+  int eLast = -1; // last index of exponent part, rest of text after this will be suffixPart
   if (substituteExponent)
   {
     ePos = text.indexOf(QLatin1Char('e'));
-    if (ePos > -1)
-      useBeautifulPowers = true;
+    if (ePos > 0 && text.at(ePos-1).isDigit())
+    {
+      eLast = ePos;
+      while (eLast+1 < text.size() && (text.at(eLast+1) == QLatin1Char('+') || text.at(eLast+1) == QLatin1Char('-') || text.at(eLast+1).isDigit()))
+        ++eLast;
+      if (eLast > ePos) // only if also to right of 'e' is a digit/+/- interpret it as beautifiable power
+        useBeautifulPowers = true;
+    }
   }
   
   // calculate text bounding rects and do string preparation for beautiful decimal powers:
@@ -2890,12 +2395,13 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   {
     // split text into parts of number/symbol that will be drawn normally and part that will be drawn as exponent:
     result.basePart = text.left(ePos);
+    result.suffixPart = text.mid(eLast+1); // also drawn normally but after exponent
     // in log scaling, we want to turn "1*10^n" into "10^n", else add multiplication sign and decimal base:
     if (abbreviateDecimalPowers && result.basePart == QLatin1String("1"))
       result.basePart = QLatin1String("10");
     else
       result.basePart += (numberMultiplyCross ? QString(QChar(215)) : QString(QChar(183))) + QLatin1String("10");
-    result.expPart = text.mid(ePos+1);
+    result.expPart = text.mid(ePos+1, eLast-ePos);
     // clip "+" and leading zeros off expPart:
     while (result.expPart.length() > 2 && result.expPart.at(1) == QLatin1Char('0')) // length > 2 so we leave one zero when numberFormatChar is 'e'
       result.expPart.remove(1, 1);
@@ -2907,10 +2413,12 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
       result.expFont.setPointSize(result.expFont.pointSize()*0.75);
     else
       result.expFont.setPixelSize(result.expFont.pixelSize()*0.75);
-    // calculate bounding rects of base part, exponent part and total one:
+    // calculate bounding rects of base part(s), exponent part and total one:
     result.baseBounds = QFontMetrics(result.baseFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.basePart);
     result.expBounds = QFontMetrics(result.expFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.expPart);
-    result.totalBounds = result.baseBounds.adjusted(0, 0, result.expBounds.width()+2, 0); // +2 consists of the 1 pixel spacing between base and exponent (see drawTickLabel) and an extra pixel to include AA
+    if (!result.suffixPart.isEmpty())
+      result.suffixBounds = QFontMetrics(result.baseFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.suffixPart);
+    result.totalBounds = result.baseBounds.adjusted(0, 0, result.expBounds.width()+result.suffixBounds.width()+2, 0); // +2 consists of the 1 pixel spacing between base and exponent (see drawTickLabel) and an extra pixel to include AA
   } else // useBeautifulPowers == false
   {
     result.basePart = text;

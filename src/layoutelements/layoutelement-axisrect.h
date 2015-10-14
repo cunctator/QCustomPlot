@@ -27,7 +27,7 @@
 #define QCP_LAYOUTELEMENT_AXISRECT_H
 
 #include "../global.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 #include "../layout.h"
 
 class QCPPainter;

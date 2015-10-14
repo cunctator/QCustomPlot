@@ -23,50 +23,61 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCUSTOMPLOT_H
-#define QCUSTOMPLOT_H
+#ifndef QCP_AXISTICKERPI_H
+#define QCP_AXISTICKERPI_H
 
-//amalgamation: place header includes
+#include "axisticker.h"
 
-//amalgamation: place forward declarations
-//amalgamation: add global.h
-//amalgamation: add qcpvector2d.h
-//amalgamation: add painter.h
-//amalgamation: add layer.h
-//amalgamation: add axis/range.h
-//amalgamation: add layout.h
-//amalgamation: add lineending.h
-//amalgamation: add axis/axisticker.h
-//amalgamation: add axis/axistickerdatetime.h
-//amalgamation: add axis/axistickertime.h
-//amalgamation: add axis/axistickerfixed.h
-//amalgamation: add axis/axistickertext.h
-//amalgamation: add axis/axistickerpi.h
-//amalgamation: add axis/axistickerlog.h
-//amalgamation: add axis/axis.h
-//amalgamation: add plottable.h
-//amalgamation: add item.h
-//amalgamation: add core.h
-//amalgamation: add colorgradient.h
-//amalgamation: add layoutelements/layoutelement-axisrect.h
-//amalgamation: add layoutelements/layoutelement-legend.h
-//amalgamation: add layoutelements/layoutelement-plottitle.h
-//amalgamation: add layoutelements/layoutelement-colorscale.h
-//amalgamation: add plottables/plottable-graph.h
-//amalgamation: add plottables/plottable-curve.h
-//amalgamation: add plottables/plottable-bars.h
-//amalgamation: add plottables/plottable-statisticalbox.h
-//amalgamation: add plottables/plottable-colormap.h
-//amalgamation: add plottables/plottable-financial.h
-//amalgamation: add items/item-straightline.h
-//amalgamation: add items/item-line.h
-//amalgamation: add items/item-curve.h
-//amalgamation: add items/item-rect.h
-//amalgamation: add items/item-text.h
-//amalgamation: add items/item-ellipse.h
-//amalgamation: add items/item-pixmap.h
-//amalgamation: add items/item-tracer.h
-//amalgamation: add items/item-bracket.h
+class QCP_LIB_DECL QCPAxisTickerPi : public QCPAxisTicker
+{
+public:
+  /*!
+    Defines how fractions should be displayed in tick labels.
+    
+    \see setFractionStyle
+  */
+  enum FractionStyle
+  {
+    fsFloatingPoint     ///< Fractions are displayed as regular decimal floating point numbers, e.g. "0.25" or "0.125".
+    ,fsAsciiFractions   ///< Fractions are written as rationals using ASCII characters only, e.g. "1/4" or "1/8"
+    ,fsUnicodeFractions ///< Fractions are written using sub- and superscript UTF-8 digits and the fraction symbol.
+  };
+  
+  QCPAxisTickerPi();
+  
+  // getters:
+  QString piSymbol() const { return mPiSymbol; }
+  double piValue() const { return mPiValue; }
+  bool periodicity() const { return mPeriodicity; }
+  FractionStyle fractionStyle() const { return mFractionStyle; }
+  
+  // setters:
+  void setPiSymbol(QString symbol);
+  void setPiValue(double pi);
+  void setPeriodicity(int multiplesOfPi);
+  void setFractionStyle(FractionStyle style);
+  
+protected:
+  // property members:
+  QString mPiSymbol;
+  double mPiValue;
+  int mPeriodicity;
+  FractionStyle mFractionStyle;
+  
+  // non-property members:
+  double mPiTickStep;
+  
+  // reimplemented virtual methods:
+  virtual double getTickStep(const QCPRange &range);
+  virtual int getSubTickCount(double tickStep);
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  
+  // non-virtual methods:
+  void simplifyFraction(int &numerator, int &denominator) const;
+  QString fractionToString(int numerator, int denominator) const;
+  QString unicodeFraction(int numerator, int denominator) const;
+  QString unicodeSuperscript(int number) const;
+  QString unicodeSubscript(int number) const;
+};
 
-#endif // QCUSTOMPLOT_H
-
+#endif // QCP_AXISTICKERPI_H

@@ -23,50 +23,42 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCUSTOMPLOT_H
-#define QCUSTOMPLOT_H
+#ifndef QCP_AXISTICKERTEXT_H
+#define QCP_AXISTICKERTEXT_H
 
-//amalgamation: place header includes
+#include "axisticker.h"
 
-//amalgamation: place forward declarations
-//amalgamation: add global.h
-//amalgamation: add qcpvector2d.h
-//amalgamation: add painter.h
-//amalgamation: add layer.h
-//amalgamation: add axis/range.h
-//amalgamation: add layout.h
-//amalgamation: add lineending.h
-//amalgamation: add axis/axisticker.h
-//amalgamation: add axis/axistickerdatetime.h
-//amalgamation: add axis/axistickertime.h
-//amalgamation: add axis/axistickerfixed.h
-//amalgamation: add axis/axistickertext.h
-//amalgamation: add axis/axistickerpi.h
-//amalgamation: add axis/axistickerlog.h
-//amalgamation: add axis/axis.h
-//amalgamation: add plottable.h
-//amalgamation: add item.h
-//amalgamation: add core.h
-//amalgamation: add colorgradient.h
-//amalgamation: add layoutelements/layoutelement-axisrect.h
-//amalgamation: add layoutelements/layoutelement-legend.h
-//amalgamation: add layoutelements/layoutelement-plottitle.h
-//amalgamation: add layoutelements/layoutelement-colorscale.h
-//amalgamation: add plottables/plottable-graph.h
-//amalgamation: add plottables/plottable-curve.h
-//amalgamation: add plottables/plottable-bars.h
-//amalgamation: add plottables/plottable-statisticalbox.h
-//amalgamation: add plottables/plottable-colormap.h
-//amalgamation: add plottables/plottable-financial.h
-//amalgamation: add items/item-straightline.h
-//amalgamation: add items/item-line.h
-//amalgamation: add items/item-curve.h
-//amalgamation: add items/item-rect.h
-//amalgamation: add items/item-text.h
-//amalgamation: add items/item-ellipse.h
-//amalgamation: add items/item-pixmap.h
-//amalgamation: add items/item-tracer.h
-//amalgamation: add items/item-bracket.h
+class QCP_LIB_DECL QCPAxisTickerText : public QCPAxisTicker
+{
+public:
+  QCPAxisTickerText();
+  
+  // getters:
+  QMap<double, QString> &ticks() { return mTicks; }
+  int subTickCount() const { return mSubTickCount; }
+  
+  // setters:
+  void setTicks(const QMap<double, QString> &ticks);
+  void setTicks(const QVector<double> &positions, const QVector<QString> labels);
+  void setSubTickCount(int subTicks);
+  
+  // non-virtual methods:
+  void clear();
+  void addTick(double position, QString label);
+  void addTicks(const QMap<double, QString> &ticks);
+  void addTicks(const QVector<double> &positions, const QVector<QString> &labels);
+  
+protected:
+  // property members:
+  QMap<double, QString> mTicks;
+  int mSubTickCount;
+  
+  // reimplemented virtual methods:
+  virtual double getTickStep(const QCPRange &range);
+  virtual int getSubTickCount(double tickStep);
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
+  
+};
 
-#endif // QCUSTOMPLOT_H
-
+#endif // QCP_AXISTICKERTEXT_H

@@ -28,9 +28,9 @@
 
 #include "global.h"
 #include "qcpvector2d.h"
-#include "range.h"
+#include "axis/range.h"
 #include "layer.h"
-#include "axis.h"
+#include "axis/axis.h"
 
 class QCPPainter;
 

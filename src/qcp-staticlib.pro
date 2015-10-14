@@ -30,8 +30,9 @@ HEADERS += \
 global.h \
 painter.h \
 layer.h \
-range.h \
-axis.h \
+axis/range.h \
+axis/axis.h \
+axis/axisticker.h \
 plottable.h \
 item.h \
 lineending.h \
@@ -57,13 +58,20 @@ layoutelements/layoutelement-axisrect.h \
     layoutelements/layoutelement-plottitle.h \
     layoutelements/layoutelement-colorscale.h \
     colorgradient.h \
-    qcpvector2d.h
+    qcpvector2d.h \
+    axis/axistickerdatetime.h \
+    axis/axistickertime.h \
+    axis/axistickerfixed.h \
+    axis/axistickertext.h \
+    axis/axistickerpi.h \
+    axis/axistickerlog.h
 
 SOURCES += \
 painter.cpp \
 layer.cpp \
-range.cpp \
-axis.cpp \
+axis/range.cpp \
+axis/axis.cpp \
+axis/axisticker.cpp \
 plottable.cpp \
 item.cpp \
 lineending.cpp \
@@ -89,7 +97,13 @@ layoutelements/layoutelement-axisrect.cpp \
     layoutelements/layoutelement-plottitle.cpp \
     layoutelements/layoutelement-colorscale.cpp \
     colorgradient.cpp \
-    qcpvector2d.cpp
+    qcpvector2d.cpp \
+    axis/axistickerdatetime.cpp \
+    axis/axistickertime.cpp \
+    axis/axistickerfixed.cpp \
+    axis/axistickertext.cpp \
+    axis/axistickerpi.cpp \
+    axis/axistickerlog.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

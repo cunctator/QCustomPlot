@@ -30,7 +30,8 @@
 #include "../plottable.h"
 #include "../plottables/plottable-graph.h"
 #include "../item.h"
-#include "../axis.h"
+#include "../axis/axis.h"
+#include "../axis/axisticker.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -392,18 +393,11 @@ bool QCPAxisRect::removeAxis(QCPAxis *axis)
   \li range (\ref QCPAxis::setRange)
   \li range reversed (\ref QCPAxis::setRangeReversed)
   \li scale type (\ref QCPAxis::setScaleType)
-  \li scale log base  (\ref QCPAxis::setScaleLogBase)
   \li ticks (\ref QCPAxis::setTicks)
-  \li auto (major) tick count (\ref QCPAxis::setAutoTickCount)
-  \li sub tick count (\ref QCPAxis::setSubTickCount)
-  \li auto sub ticks (\ref QCPAxis::setAutoSubTicks)
-  \li tick step (\ref QCPAxis::setTickStep)
-  \li auto tick step (\ref QCPAxis::setAutoTickStep)
   \li number format (\ref QCPAxis::setNumberFormat)
   \li number precision (\ref QCPAxis::setNumberPrecision)
-  \li tick label type (\ref QCPAxis::setTickLabelType)
-  \li date time format (\ref QCPAxis::setDateTimeFormat)
-  \li date time spec (\ref QCPAxis::setDateTimeSpec)
+  \li tick count of ticker (\ref QCPAxisTicker::setTickCount)
+  \li tick origin of ticker (\ref QCPAxisTicker::setTickOrigin)
   
   Tick labels (\ref QCPAxis::setTickLabels) of the right and top axes are set to false.
 
@@ -443,34 +437,20 @@ void QCPAxisRect::setupFullAxesBox(bool connectRanges)
   xAxis2->setRange(xAxis->range());
   xAxis2->setRangeReversed(xAxis->rangeReversed());
   xAxis2->setScaleType(xAxis->scaleType());
-  xAxis2->setScaleLogBase(xAxis->scaleLogBase());
   xAxis2->setTicks(xAxis->ticks());
-  xAxis2->setAutoTickCount(xAxis->autoTickCount());
-  xAxis2->setSubTickCount(xAxis->subTickCount());
-  xAxis2->setAutoSubTicks(xAxis->autoSubTicks());
-  xAxis2->setTickStep(xAxis->tickStep());
-  xAxis2->setAutoTickStep(xAxis->autoTickStep());
   xAxis2->setNumberFormat(xAxis->numberFormat());
   xAxis2->setNumberPrecision(xAxis->numberPrecision());
-  xAxis2->setTickLabelType(xAxis->tickLabelType());
-  xAxis2->setDateTimeFormat(xAxis->dateTimeFormat());
-  xAxis2->setDateTimeSpec(xAxis->dateTimeSpec());
-
+  xAxis2->ticker()->setTickCount(xAxis->ticker()->tickCount());
+  xAxis2->ticker()->setTickOrigin(xAxis->ticker()->tickOrigin());
+  
   yAxis2->setRange(yAxis->range());
   yAxis2->setRangeReversed(yAxis->rangeReversed());
   yAxis2->setScaleType(yAxis->scaleType());
-  yAxis2->setScaleLogBase(yAxis->scaleLogBase());
   yAxis2->setTicks(yAxis->ticks());
-  yAxis2->setAutoTickCount(yAxis->autoTickCount());
-  yAxis2->setSubTickCount(yAxis->subTickCount());
-  yAxis2->setAutoSubTicks(yAxis->autoSubTicks());
-  yAxis2->setTickStep(yAxis->tickStep());
-  yAxis2->setAutoTickStep(yAxis->autoTickStep());
   yAxis2->setNumberFormat(yAxis->numberFormat());
   yAxis2->setNumberPrecision(yAxis->numberPrecision());
-  yAxis2->setTickLabelType(yAxis->tickLabelType());
-  yAxis2->setDateTimeFormat(yAxis->dateTimeFormat());
-  yAxis2->setDateTimeSpec(yAxis->dateTimeSpec());
+  yAxis2->ticker()->setTickCount(yAxis->ticker()->tickCount());
+  yAxis2->ticker()->setTickOrigin(yAxis->ticker()->tickOrigin());
   
   if (connectRanges)
   {
@@ -563,6 +543,8 @@ QList<QCPAbstractItem *> QCPAxisRect::items() const
   Calls the base class implementation to update the margins (see \ref QCPLayoutElement::update),
   and finally passes the \ref rect to the inset layout (\ref insetLayout) and calls its
   QCPInsetLayout::update function.
+  
+  \seebaseclassmethod
 */
 void QCPAxisRect::update(UpdatePhase phase)
 {

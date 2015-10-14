@@ -27,7 +27,7 @@
 
 #include "painter.h"
 #include "core.h"
-#include "axis.h"
+#include "axis/axis.h"
 #include "layoutelements/layoutelement-axisrect.h"
 #include "layoutelements/layoutelement-legend.h"
 
@@ -641,6 +641,8 @@ QBrush QCPAbstractPlottable::mainBrush() const
   This function takes into account the local setting of the antialiasing flag as well as the
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
+  
+  \seebaseclassmethod
   
   \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
 */

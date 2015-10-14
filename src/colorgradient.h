@@ -27,7 +27,7 @@
 #define QCP_COLORGRADIENT_H
 
 #include "global.h"
-#include "range.h"
+#include "axis/range.h"
 
 class QCP_LIB_DECL QCPColorGradient
 {

@@ -27,8 +27,8 @@
 #define QCP_CORE_H
 
 #include "global.h"
-#include "range.h"
-#include "axis.h"
+#include "axis/range.h"
+#include "axis/axis.h"
 
 class QCPPainter;
 class QCPLayer;

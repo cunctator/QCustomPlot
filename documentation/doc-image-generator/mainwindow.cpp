@@ -319,7 +319,7 @@ void MainWindow::genAxisRectSpacingOverview()
 {
   resetPlot();
  
-  customPlot->xAxis->setRange(-0.4, 1.4);
+  customPlot->xAxis->setRange(0.82, 5);
   customPlot->yAxis->setRange(100, 900);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
@@ -367,6 +367,10 @@ void MainWindow::genAxisNamesOverview()
  
   customPlot->xAxis->setRange(1, 2);
   customPlot->yAxis->setRange(-50, 150);
+  QSharedPointer<QCPAxisTickerFixed> ticker(new QCPAxisTickerFixed);
+  ticker->setTickStep(50);
+  ticker->setScaleStrategy(QCPAxisTickerFixed::ssNone);
+  customPlot->yAxis->setTicker(ticker);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
   customPlot->axisRect()->setupFullAxesBox();
@@ -375,15 +379,118 @@ void MainWindow::genAxisNamesOverview()
   customPlot->axisRect()->setMargins(QMargins(250, 50, 20, 65));
   customPlot->yAxis->setLabel("Axis Label");
   
-  addArrow(QPointF(216, 70), QPointF(150, 32), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(187, 110), QPointF(130, 76), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(260, 77), QPointF(300, 77), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(255, 95), QPointF(300, 95), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(297, 193), QPointF(297, 250), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
-  addArrow(QPointF(354, 165), QPointF(354, 266), "Grid line", Qt::AlignHCenter|Qt::AlignTop);
-  addBracket(QPointF(263, 132), QPointF(263, 105), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
+  addArrow(QPointF(216, 90), QPointF(150, 52), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(187, 130), QPointF(130, 96), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(260, 95), QPointF(300, 95), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(255, 77), QPointF(300, 77), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(297, 191), QPointF(297, 248), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
+  addArrow(QPointF(382, 145), QPointF(382, 245), "Grid line of\ny axis", Qt::AlignHCenter|Qt::AlignTop);
+  addBracket(QPointF(263, 186), QPointF(263, 145), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
   
   customPlot->savePng(dir.filePath("AxisNamesOverview.png"), 450, 300);
+}
+
+void MainWindow::genAxisTickers()
+{
+  resetPlot(true);
+  
+  customPlot->xAxis->setVisible(true);
+  customPlot->xAxis->grid()->setVisible(false);
+  customPlot->axisRect()->setMargins(QMargins(5, 0, 5, 35));
+  customPlot->setBackground(QBrush(Qt::transparent));
+  
+  // QCPAxisTickerFixed:
+  customPlot->xAxis->setRange(-1.5, 8.5);
+  //! [axistickerfixed-creation]
+  QSharedPointer<QCPAxisTickerFixed> fixedTicker(new QCPAxisTickerFixed);
+  customPlot->xAxis->setTicker(fixedTicker);
+  
+  fixedTicker->setTickStep(1.0); // tick step shall be 1.0
+  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
+  //! [axistickerfixed-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
+  
+  
+  // QCPAxisTickerLog:
+  customPlot->xAxis->setRange(0.05, 5e4);
+  //! [axistickerlog-creation]
+  QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
+  customPlot->xAxis->setTicker(logTicker);
+  // don't forget to also set the scale type accordingly, otherwise you'll have
+  // logarithmically spaced ticks on a linear axis:
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  //! [axistickerlog-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-log.png"), 600, 50);
+  
+  QString formatBefore = customPlot->xAxis->numberFormat();
+  int precBefore = customPlot->xAxis->numberPrecision();
+  customPlot->xAxis->setNumberFormat("eb");
+  customPlot->xAxis->setNumberPrecision(0);
+  customPlot->savePng(dir.filePath("axisticker-log-powers.png"), 600, 50);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  customPlot->xAxis->setNumberFormat(formatBefore);
+  customPlot->xAxis->setNumberPrecision(precBefore);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  
+  
+  // QCPAxisTickerDateTime:
+  //! [axistickerdatetime-creation]
+  QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
+  customPlot->xAxis->setTicker(dateTimeTicker);
+  
+  customPlot->xAxis->setRange(QCPAxisTickerDateTime::dateTimeToKey(QDate(2013, 11, 16)), QCPAxisTickerDateTime::dateTimeToKey(QDate(2015, 5, 2)));
+  dateTimeTicker->setDateTimeFormat("d. MMM\nyyyy");
+  //! [axistickerdatetime-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-datetime.png"), 600, 50);
+  
+  
+  // QCPAxisTickerTime:
+  //! [axistickertime-creation]
+  QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
+  customPlot->xAxis->setTicker(timeTicker);
+  
+  customPlot->xAxis->setRange(-60*3.5, 60*11);
+  timeTicker->setTimeFormat("%m:%s");
+  //! [axistickertime-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(-3600*12, 3600*24*4);
+  //! [axistickertime-creation-2]
+  timeTicker->setTimeFormat("day %d\n%h:%m");
+  //! [axistickertime-creation-2]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);
+  
+  
+  // QCPAxisTickerPi:
+  customPlot->xAxis->setRange(-4, 10);
+  //! [axistickerpi-creation]
+  QSharedPointer<QCPAxisTickerPi> piTicker(new QCPAxisTickerPi);
+  customPlot->xAxis->setTicker(piTicker);
+  //! [axistickerpi-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-pi.png"), 600, 50);
+  
+  
+  // QCPAxisTickerText:
+  customPlot->xAxis->setRange(-0.5, 8.5);
+  //! [axistickertext-creation]
+  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+  customPlot->xAxis->setTicker(textTicker);
+  
+  textTicker->addTick(1.0, "Bacteria");
+  textTicker->addTick(2.0, "Protozoa");
+  textTicker->addTick(3.0, "Chromista");
+  textTicker->addTick(4.0, "Plants");
+  textTicker->addTick(5.0, "Fungi");
+  textTicker->addTick(6.0, "Animals");
+  textTicker->addTick(8.0, "Vogons");
+  //! [axistickertext-creation]
+  customPlot->savePng(dir.filePath("axisticker-text.png"), 600, 50);
 }
 
 void MainWindow::genLayoutsystem_AddingPlotTitle()
@@ -544,8 +651,6 @@ void MainWindow::genQCPBars()
   bars2->setPen(QPen(QColor(200, 50, 50)));
   bars2->setBrush(QColor(255, 50, 50, 25));
   
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
   customPlot->xAxis->setRange(-3, 3);
   customPlot->yAxis->setRange(-1, 2);
   
@@ -600,8 +705,8 @@ void MainWindow::genQCPColorMap()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
   
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
   int nx = 200;
@@ -640,8 +745,8 @@ void MainWindow::genQCPFinancial()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
 
   // generate two sets of random walk data (one for candlestick and one for ohlc chart):
   int n = 500;
@@ -704,7 +809,7 @@ void MainWindow::genQCPColorScale()
   colorScaleV->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   colorScaleV->setDataScaleType(QCPAxis::stLogarithmic);
   colorScaleV->setDataRange(QCPRange(1, 1000));
-  colorScaleV->axis()->setSubTickCount(9);
+  colorScaleV->axis()->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   colorScaleV->axis()->setNumberFormat("eb");
   colorScaleV->axis()->setNumberPrecision(0);
   
@@ -756,8 +861,9 @@ void MainWindow::genQCPColorGradient()
     QCPColorScale *colorScale = new QCPColorScale(customPlot);
     customPlot->plotLayout()->addElement(0, 1, colorScale);
     colorMap->setColorScale(colorScale);
-    colorScale->axis()->setAutoTickStep(false);
-    colorScale->axis()->setTickStep(1);
+    QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
+    intTicker->setTickStep(1.0);
+    colorScale->axis()->setTicker(intTicker);
     QCPMarginGroup *group = new QCPMarginGroup(customPlot);
     colorScale->setMarginGroup(QCP::msTop|QCP::msBottom, group);
     customPlot->axisRect()->setMarginGroup(QCP::msTop|QCP::msBottom, group);
@@ -810,8 +916,6 @@ void MainWindow::genQCPBarsGroup()
 
   customPlot->xAxis->setRange(0.1, 4.9);
   customPlot->yAxis->setRange(0, 0.7);
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
   //! [qcpbarsgroup-example]
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
 }
@@ -863,16 +967,18 @@ void MainWindow::genQCPColorMap_Interpolate()
 void MainWindow::genQCPColorMap_TightBoundary()
 {
   resetPlot(false);
+  customPlot->moveLayer(customPlot->layer("main"), customPlot->layer("grid"), QCustomPlot::limBelow);
   QCPAxisRect *ar1 = customPlot->axisRect();
   QCPAxisRect *ar2 = new QCPAxisRect(customPlot);
   foreach (QCPAxis *axis, QList<QCPAxis*>() << ar1->axes() << ar2->axes())
   {
     axis->setTickLabels(false);
-    axis->grid()->setLayer("axes");
-    axis->grid()->setZeroLinePen(Qt::NoPen);
     axis->setLayer("axes");
-    axis->setAutoTickStep(false);
-    axis->setTickStep(2);
+    axis->grid()->setZeroLinePen(Qt::NoPen);
+    axis->grid()->setLayer("grid");
+    QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
+    intTicker->setTickStep(2.0);
+    axis->setTicker(intTicker);
   }
   customPlot->plotLayout()->setMargins(QMargins(0, 5, 0, 0));
   customPlot->plotLayout()->addElement(0, 1, ar2);
@@ -1041,8 +1147,8 @@ void MainWindow::genQCPColorGradient_Periodic()
   r2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale1->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
-  scale1->axis()->setAutoTickCount(3);
-  scale2->axis()->setAutoTickCount(3);
+  scale1->axis()->ticker()->setTickCount(3);
+  scale2->axis()->ticker()->setTickCount(3);
   map1->setDataRange(QCPRange(-0.2, 0.2));
   map2->setDataRange(QCPRange(-0.2, 0.2));
   customPlot->rescaleAxes();

@@ -317,6 +317,8 @@ void QCPPlottableLegendItem::draw(QCPPainter *painter)
   
   Calculates and returns the size of this item. This includes the icon, the text and the padding in
   between.
+  
+  \seebaseclassmethod
 */
 QSize QCPPlottableLegendItem::minimumSizeHint() const
 {
@@ -799,6 +801,8 @@ QList<QCPAbstractLegendItem *> QCPLegend::selectedItems() const
   This function takes into account the local setting of the antialiasing flag as well as the
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
+  
+  \seebaseclassmethod
   
   \see setAntialiased
 */

@@ -511,11 +511,12 @@ div.ah {
   margin-bottom: 3px;
   margin-top: 3px;
 }
-div.groupHeader {
+h2.groupheader {
   font-weight: 700;
-  margin-bottom: 6px;
-  margin-left: 16px;
-  margin-top: 12px;
+  font-size: 170%;
+  margin-bottom: 0.8em;
+  margin-left: 0.8em;
+  margin-top: 1.8em;
 }
 div.groupText {
   font-style: italic;

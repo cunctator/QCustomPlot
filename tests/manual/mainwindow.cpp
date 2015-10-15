@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupBarsTest(mCustomPlot);
   //setupBarsGroupTest(mCustomPlot);
   //setupLargeDataSetDelete(mCustomPlot);
+  //setupMultiValueGraph(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -1050,6 +1051,25 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   }
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediate);
+}
+
+void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)
+{
+  QCPGraph *g = customPlot->addGraph();
+  
+  QVector<double> x, y;
+  x << 1 << 2 << 3 << 4 << 3 << 5 << 3; // three values at key 3, with exit point in center but out of order key data
+  y << 1 << 1 << 2 << 3 << 4 << 3 << 3;
+  g->setData(x, y);
+  
+  // now merge with second dataset which lies in same key range and has own multi-key:
+  QVector<double> u, v;
+  u << 2.5 << 2.6 << 3.5 << 3.5 << 3.5 << 3.6; // three values at key 3.5, with exit point in center
+  v << 0   << 0   << 0   << 0.5 << 0.25 << 0;
+  g->addData(u, v);
+  
+  customPlot->rescaleAxes();
+  customPlot->replot();
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)

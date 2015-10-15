@@ -716,7 +716,7 @@ void MainWindow::setupRealtimeDataDemo(QCustomPlot *customPlot)
   customPlot->graph(1)->setPen(QPen(QColor(255, 110, 40)));
 
   QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
-  timeTicker->setTimeFormat("%hh:%mm:%ss");
+  timeTicker->setTimeFormat("%h:%m:%s");
   customPlot->xAxis->setTicker(timeTicker);
   customPlot->axisRect()->setupFullAxesBox();
   customPlot->yAxis->setRange(-1, 1);

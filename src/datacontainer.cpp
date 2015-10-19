@@ -94,7 +94,7 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
     std::copy(data.constBegin(), data.constEnd(), begin());
   } else // don't need to prepend, so append and merge if necessary
   {
-    mData.resize(oldSize+n);
+    mData.resize(mData.size()+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
     if (oldSize > 0 && !qcpLessThanSortKey<DataType>(*(constEnd()-n-1), *(constEnd()-n))) // if appended range keys aren't all greater than existing ones, merge the two partitions
       std::inplace_merge(begin(), end()-n, end(), qcpLessThanSortKey<DataType>);
@@ -130,7 +130,7 @@ void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool already
     std::copy(data.constBegin(), data.constEnd(), begin());
   } else // don't need to prepend, so append and then sort and merge if necessary
   {
-    mData.resize(oldSize+n);
+    mData.resize(mData.size()+n);
     std::copy(data.constBegin(), data.constEnd(), end()-n);
     if (!alreadySorted) // sort appended subrange if it wasn't already sorted
       std::sort(end()-n, end(), qcpLessThanSortKey<DataType>);
@@ -262,9 +262,12 @@ void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation
 {
   if (preAllocation)
   {
-    std::copy(begin(), end(), mData.begin());
-    mData.resize(size());
-    mPreallocSize = 0;
+    if (mPreallocSize > 0)
+    {
+      std::copy(begin(), end(), mData.begin());
+      mData.resize(size());
+      mPreallocSize = 0;
+    }
     mPreallocIteration = 0;
   }
   if (postAllocation)

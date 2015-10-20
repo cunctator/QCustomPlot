@@ -55,6 +55,15 @@ public:
 Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
 
 
+/*! \typedef QCPGraphDataContainer
+  
+  Container for storing \ref QCPGraphData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPGraph holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPGraphData, QCPGraph::setData
+*/
 typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 
 class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable

@@ -55,6 +55,16 @@ public:
 Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
 
 
+/*! \typedef QCPCurveDataContainer
+  
+  Container for storing \ref QCPCurveData points. The data is stored sorted by \a t, so the \a
+  sortKey() (returning \a t) is different from \a mainKey() (returning \a key).
+  
+  This template instantiation is the container in which QCPCurve holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPCurveData, QCPCurve::setData
+*/
 typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
 class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable

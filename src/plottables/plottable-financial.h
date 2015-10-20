@@ -55,6 +55,15 @@ public:
 Q_DECLARE_TYPEINFO(QCPFinancialData, Q_MOVABLE_TYPE);
 
 
+/*! \typedef QCPFinancialDataContainer
+  
+  Container for storing \ref QCPFinancialData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPFinancial holds its data. For details
+  about the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPFinancialData, QCPFinancial::setData
+*/
 typedef QCPDataContainer<QCPFinancialData> QCPFinancialDataContainer;
 
 class QCP_LIB_DECL QCPFinancial : public QCPAbstractPlottable

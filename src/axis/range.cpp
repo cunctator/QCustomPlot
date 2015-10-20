@@ -259,7 +259,7 @@ bool QCPRange::validRange(double lower, double upper)
           qAbs(lower-upper) > minRange &&
           qAbs(lower-upper) < maxRange &&
           !(lower > 0 && qIsInf(upper/lower)) &&
-          !(lower < 0 && qIsInf(lower/upper)));
+          !(upper < 0 && qIsInf(lower/upper)));
 }
 
 /*!
@@ -286,5 +286,5 @@ bool QCPRange::validRange(const QCPRange &range)
           qAbs(range.lower-range.upper) > minRange &&
           qAbs(range.lower-range.upper) < maxRange &&
           !(range.lower > 0 && qIsInf(range.upper/range.lower)) &&
-          !(range.lower < 0 && qIsInf(range.lower/range.upper)));
+          !(range.upper < 0 && qIsInf(range.lower/range.upper)));
 }

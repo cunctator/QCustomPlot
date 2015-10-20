@@ -38,14 +38,18 @@ class QCP_LIB_DECL QCPDataContainer
 public:
   typedef typename QVector<DataType>::const_iterator const_iterator;
   typedef typename QVector<DataType>::iterator iterator;
+  
   QCPDataContainer();
   
-  void setAutoSqueeze(bool enabled);
-  
+  // getters:
   int size() const { return mData.size()-mPreallocSize; }
   bool isEmpty() const { return size() == 0; }
   bool autoSqueeze() const { return mAutoSqueeze; }
   
+  // setters:
+  void setAutoSqueeze(bool enabled);
+  
+  // non-virtual methods:
   void set(const QCPDataContainer<DataType> &data);
   void set(const QVector<DataType> &data, bool alreadySorted=false);
   void add(const QCPDataContainer<DataType> &data);
@@ -69,12 +73,15 @@ public:
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   
 protected:
+  // property members:
   bool mAutoSqueeze;
   
+  // non-property memebers:
   QVector<DataType> mData;
   int mPreallocSize;
   int mPreallocIteration;
   
+  // non-virtual methods:
   void preallocateGrow(int minimumPreallocSize);
   void performAutoSqueeze();
 };

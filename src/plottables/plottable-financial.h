@@ -43,10 +43,10 @@ public:
   
   inline double sortKey() const { return key; }
   inline static QCPFinancialData fromSortKey(double sortKey) { return QCPFinancialData(sortKey, 0, 0, 0, 0); }
+  inline static bool sortKeyIsMainKey() { return true; } 
   
   inline double mainKey() const { return key; }
   inline double mainValue() const { return open; }
-  inline static bool sortKeyIsMainKey() { return true; } 
   
   inline QCPRange valueRange() const { return QCPRange(low, high); } // open and close must lie between low and high, so we don't need to check them
   
@@ -92,7 +92,6 @@ public:
   QBrush brushNegative() const { return mBrushNegative; }
   QPen penPositive() const { return mPenPositive; }
   QPen penNegative() const { return mPenNegative; }
-  
   
   // setters:
   void setData(QSharedPointer<QCPFinancialDataContainer> data);

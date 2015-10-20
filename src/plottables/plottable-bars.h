@@ -105,16 +105,17 @@ public:
   
   inline double sortKey() const { return key; }
   inline static QCPBarsData fromSortKey(double sortKey) { return QCPBarsData(sortKey, 0); }
+  inline static bool sortKeyIsMainKey() { return true; } 
   
   inline double mainKey() const { return key; }
   inline double mainValue() const { return value; }
-  inline static bool sortKeyIsMainKey() { return true; } 
   
-  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  inline QCPRange valueRange() const { return QCPRange(value, value); } // note that bar base value isn't held in each QCPBarsData and thus can't/shouldn't be returned here
   
   double key, value;
 };
 Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
+
 
 /*! \typedef QCPBarsDataContainer
   
@@ -126,7 +127,6 @@ Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
   \see QCPBarsData, QCPBars::setData
 */
 typedef QCPDataContainer<QCPBarsData> QCPBarsDataContainer;
-
 
 class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
 {

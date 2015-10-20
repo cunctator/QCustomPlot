@@ -43,13 +43,12 @@ public:
   
   inline double sortKey() const { return t; }
   inline static QCPCurveData fromSortKey(double sortKey) { return QCPCurveData(sortKey, 0, 0); }
+  inline static bool sortKeyIsMainKey() { return false; }
   
   inline double mainKey() const { return key; }
   inline double mainValue() const { return value; }
-  inline static bool sortKeyIsMainKey() { return false; }
   
   inline QCPRange valueRange() const { return QCPRange(value, value); }
-  
   
   double t, key, value;
 };

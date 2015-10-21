@@ -36,13 +36,17 @@ public:
   QCPVector2D(const QPoint &point);
   QCPVector2D(const QPointF &point);
   
-  void setX(double x) { mX = x; }
-  void setY(double y) { mY = y; }
-  
+  // getters:
   double x() const { return mX; }
   double y() const { return mY; }
   double &rx() { return mX; }
   double &ry() { return mY; }
+  
+  // setters:
+  void setX(double x) { mX = x; }
+  void setY(double y) { mY = y; }
+  
+  // non-virtual methods:
   double length() const { return qSqrt(mX*mX+mY*mY); }
   double lengthSquared() const { return mX*mX+mY*mY; }
   QPoint toPoint() const { return QPoint(mX, mY); }
@@ -63,6 +67,7 @@ public:
   QCPVector2D &operator-=(const QCPVector2D &vector);
   
 private:
+  // property members:
   double mX, mY;
   
   friend inline const QCPVector2D operator*(double factor, const QCPVector2D &vec);

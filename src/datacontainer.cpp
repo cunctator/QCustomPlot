@@ -30,10 +30,111 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPDataContainer
-  \brief 
+  \brief The generic data container for two-dimensional plottables
   
-  TODO
+  This class template provides a fast container for data storage of two-dimensional data. The data
+  type is specified as template parameter (called \a DataType in the following) and must provide
+  some methods as described in the \ref qcpdatacontainer-datatype "next section".
+  
+  The data is stored in a sorted fashion, which allows very quick lookups by the sorted key as well
+  as retrieval of ranges (see \ref findBeginBelowKey, \ref findEndAboveKey, \ref keyRange) using
+  binary search. The container uses a preallocation and a postallocation scheme, such that
+  appending and prepending data (with respect to the sort key) is very fast and minimizes
+  reallocations. If data is added which needs to be inserted between existing keys, the merge
+  usually can be done quickly too, using the fact that existing data is always sorted. The user can
+  further improve performance by specifying that added data is already itself sorted by key, if he
+  can guarantee that this is the case (see for example 
+  \ref add(const QVector<DataType> &data, bool alreadySorted)).
+  
+  The data can be accessed with the provided const iterators (\ref constBegin, \ref constEnd). If
+  it is necessary to alter existing data in-place, the non-const iterators can be used (\ref begin,
+  \ref end). Changing data members that are not the sort key (for most data types called \a key) is
+  safe from the container's perspective.
+  
+  Great care must be taken however if the sort key of existing data is modified through the
+  non-const iterators. For performance reasons, the iterators don't automatically cause a
+  re-sorting upon their manipulation. It is thus the responsibility of the user to leave the
+  container in a sorted state when finished with the data manipulation, before calling any other
+  methods on the container. A complete re-sort (e.g. after finishing all sort key manipulation) can
+  be done by calling \ref sort. Failing to do so can not be detected by the container efficiently
+  and will cause both rendering artifacts and potential data loss.
+  
+  \section qcpdatacontainer-datatype Requirements for the DataType template parameter
+  
+  The template parameter is the data type that is stored in the container and typically represents
+  one single data point. It must be trivially copyable and have the following public methods,
+  preferably inline:
+  
+  \li <tt>double sortKey() const</tt>\n Returns the member variable of this data point that is the
+  sort key, defining the ordering in the container. Often this variable is simply called \a key.
+  
+  \li <tt>static DataType fromSortKey(double sortKey)</tt>\n Returns a new instance of the data
+  type initialized with its sort key set to \a sortKey.
+  
+  \li <tt>static bool sortKeyIsMainKey()</tt>\n Returns true if the sort key is equal to the main
+  key (see method \c mainKey below). For most plottables this is the case. It is not the case for
+  example for \ref QCPCurve, which uses \a t as sort key and \a key as main key. This is the reason
+  why QCPCurve unlike QCPGraph can display parametric curves with loops.
+  
+  \li <tt>double mainKey() const</tt>\n Returns the variable of this data point considered the main
+  key. This is commonly the variable that is used as the coordinate of this data point on the key
+  axis of the plottable. This method is used for example when determining the automatic axis
+  rescaling of key axes (\ref QCPAxis::rescaleAxis).
+  
+  \li <tt>double mainValue() const</tt>\n Returns the variable of this data point considered the
+  main value. This is commonly the variable that is used as the coordinate of this data point on
+  the value axis of the plottable.
+  
+  \li <tt>QCPRange valueRange() const</tt>\n Returns the range this data point spans in the value
+  axis coordinate. If the data is single-valued (e.g. QCPGraphData), this is simply a range with
+  both lower and upper set to the main data point value. However if the data points can represent
+  multiple values at once (e.g QCPFinancialData with its \a high, \a low, \a open and \a close
+  values at each \a key) this method should return the range those values span. This method is used
+  for example when determining the automatic axis rescaling of value axes (\ref
+  QCPAxis::rescaleAxis).
 */
+
+/* start documentation of inline functions */
+
+/*! \fn int QCPDataContainer<DataType>::size() const
+  
+  Returns the number of data points in the container.
+*/
+
+/*! \fn bool QCPDataContainer<DataType>::isEmpty() const
+  
+  Returns whether this container holds no data points.
+*/
+
+/*! \fn QCPDataContainer::const_iterator QCPDataContainer<DataType>::constBegin() const
+  
+  Returns a const iterator to the first data point in this container.
+*/
+
+/*! \fn QCPDataContainer::const_iterator QCPDataContainer<DataType>::constEnd() const
+  
+  Returns a const iterator to the element past the last data point in this container.
+*/
+
+/*! \fn QCPDataContainer::iterator QCPDataContainer<DataType>::begin() const
+  
+  Returns a non-const iterator to the first data point in this container.
+
+  You can manipulate the data points in-place through the non-const iterators, but great care must
+  be taken when manipulating the sort key of a data point, see \ref sort, or the detailed
+  description of this class.
+*/
+
+/*! \fn QCPDataContainer::iterator QCPDataContainer<DataType>::end() const
+  
+  Returns a non-const iterator to the element past the last data point in this container.
+  
+  You can manipulate the data points in-place through the non-const iterators, but great care must
+  be taken when manipulating the sort key of a data point, see \ref sort, or the detailed
+  description of this class.
+*/
+
+/* end documentation of inline functions */
 
 /*!
   Constructs a QCPDataContainer used for plottable classes that represent a series of key-sorted
@@ -47,6 +148,14 @@ QCPDataContainer<DataType>::QCPDataContainer() :
 {
 }
 
+/*!
+  Sets whether the container automatically decides when to release memory from its post- and
+  preallocation pools when data points are removed. By default this is enabled and for typical
+  applications shouldn't be changed.
+  
+  If auto squeeze is disabled, you can manually decide when to release pre-/postallocation with
+  \ref squeeze.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
 {
@@ -58,8 +167,11 @@ void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
   }
 }
 
-/*!
-  Replaces the current data with the provided \a data.
+/*! \overload
+  
+  Replaces the current data in this container with the provided \a data.
+  
+  \see add, remove
 */
 template <class DataType>
 void QCPDataContainer<DataType>::set(const QCPDataContainer<DataType> &data)
@@ -67,6 +179,15 @@ void QCPDataContainer<DataType>::set(const QCPDataContainer<DataType> &data)
   set(data.mData, true);
 }
 
+/*! \overload
+  
+  Replaces the current data in this container with the provided \a dat
+
+  If you can guarantee that the data points in \a data have ascending order with respect to the
+  DataType's sort key, set \a alreadySorted to true to avoid an unnecessary sorting run.
+  
+  \see add, remove
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::set(const QVector<DataType> &data, bool alreadySorted)
 {
@@ -77,6 +198,12 @@ void QCPDataContainer<DataType>::set(const QVector<DataType> &data, bool already
     sort();
 }
 
+/*! \overload
+  
+  Adds the provided \a data to the current data in this container.
+  
+  \see set, remove
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
 {
@@ -104,9 +231,10 @@ void QCPDataContainer<DataType>::add(const QCPDataContainer<DataType> &data)
 /*!
   Adds the provided data points in \a data to the current data.
   
-  TODO: alreadySorted doc
+  If you can guarantee that the data points in \a data have ascending order with respect to the
+  DataType's sort key, set \a alreadySorted to true to avoid an unnecessary sorting run.
   
-  \see remove
+  \see set, remove
 */
 template <class DataType>
 void QCPDataContainer<DataType>::add(const QVector<DataType> &data, bool alreadySorted)
@@ -165,9 +293,9 @@ void QCPDataContainer<DataType>::add(const DataType &data)
 }
 
 /*!
-  Removes all data points with (sort-)keys smaller than \a sortKey.
+  Removes all data points with (sort-)keys smaller than or equal to \a sortKey.
   
-  \see add, clear
+  \see removeAfter, remove, clear
 */
 template <class DataType>
 void QCPDataContainer<DataType>::removeBefore(double sortKey)
@@ -180,9 +308,9 @@ void QCPDataContainer<DataType>::removeBefore(double sortKey)
 }
 
 /*!
-  Removes all data points with (sort-)keys greater than \a sortKey.
+  Removes all data points with (sort-)keys greater than or equal to \a sortKey.
 
-  \see add, clear
+  \see removeBefore, remove, clear
 */
 template <class DataType>
 void QCPDataContainer<DataType>::removeAfter(double sortKey)
@@ -199,7 +327,7 @@ void QCPDataContainer<DataType>::removeAfter(double sortKey)
   sortKeyFrom is greater or equal to \a sortKeyTo, the function does nothing. To remove a single
   data point with known (sort-)key, use \ref remove(double sortKey).
   
-  \see add, clear
+  \see removeBefore, removeAfter, clear
 */
 template <class DataType>
 void QCPDataContainer<DataType>::remove(double sortKeyFrom, double sortKeyTo)
@@ -216,12 +344,12 @@ void QCPDataContainer<DataType>::remove(double sortKeyFrom, double sortKeyTo)
 
 /*! \overload
   
-  Removes a single data point at \a sortKey. If the position is not known with absolute precision,
-  consider using \ref removeData(double sortKeyFrom, double sortKeyTo) with a small fuzziness
-  interval around the suspected position, depeding on the precision with which the (sort-)key is
-  known.
-
-  \see add, clear
+  Removes a single data point at \a sortKey. If the position is not known with absolute (binary)
+  precision, consider using \ref removeData(double sortKeyFrom, double sortKeyTo) with a small
+  fuzziness interval around the suspected position, depeding on the precision with which the
+  (sort-)key is known.
+  
+  \see removeBefore, removeAfter, clear
 */
 template <class DataType>
 void QCPDataContainer<DataType>::remove(double sortKey)
@@ -251,12 +379,33 @@ void QCPDataContainer<DataType>::clear()
   mPreallocSize = 0;
 }
 
+/*!
+  Re-sorts all data points in the container by their sort key.
+
+  When setting, adding or removing points using the QCPDataContainer interface (\ref set, \ref add,
+  \ref remove, etc.), the container makes sure to always stay in a sorted state such that a full
+  resort is never necessary. However, if you choose to directly manipulate the sort key on data
+  points by accessing and modifying it through the non-const iterators (\ref begin, \ref end), it
+  is your responsibility to bring the container back into a sorted state before any other methods
+  are called on it. This can be achieved by calling this method immediately after finishing the
+  sort key manipulation.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::sort()
 {
   std::sort(begin(), end(), qcpLessThanSortKey<DataType>);
 }
 
+/*!
+  Frees all unused memory that is currently in the preallocation and postallocation pools.
+  
+  Note that QCPDataContainer automatically decides whether squeezing is necessary, if \ref
+  setAutoSqueeze is left enabled. It should thus not be necessary to use this method for typical
+  applications.
+  
+  The parameters \a preAllocation and \a postAllocation control whether pre- and/or post allocation
+  should be freed, respectively.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation)
 {
@@ -274,6 +423,17 @@ void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation
     mData.squeeze();
 }
 
+/*!
+  Returns an iterator to the data point with a (sort-)key that is just below \a key. This can be
+  used in conjunction with \ref findEndAboveKey to iterate over data points within a given key
+  range, including the bounding data points that are just below and above the specified range.
+  
+  If there are no data points below \a key, the data point with the smallest key is returned.
+  
+  If the container is empty, returns \ref constEnd.
+  
+  \see findEndAboveKey
+*/
 template <class DataType>
 typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBeginBelowKey(double key) const
 {
@@ -286,6 +446,16 @@ typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::
   return it;
 }
 
+/*!
+  Returns an iterator pointing to the element after the data point with a (sort-)key that is just
+  above \a key. This can be used in conjunction with \ref findBeginBelowKey to iterate over data
+  points within a given key range, including the bounding data points that are just below and above
+  the specified range.
+  
+  If there are no data points above \a key, or if the container is empty, \ref constEnd is returned.
+  
+  \see findEndBelowKey
+*/
 template <class DataType>
 typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEndAboveKey(double key) const
 {
@@ -298,6 +468,21 @@ typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::
   return it;
 }
 
+/*!
+  Returns the range encompassed by the (main-)key coordinate of all data points. The output
+  parameter \a foundRange indicates whether a sensible range was found. If this is false, you
+  should not use the returned QCPRange (e.g. the data container is empty or all points have the
+  same key).
+  
+  Use \a signDomain to control which sign of the key coordinates should be considered. This is
+  relevant e.g. for logarithmic plots which can mathematically only display one sign domain at a
+  time.
+  
+  If the DataType reports that its main key is equal to the sort key (\a sortKeyIsMainKey), as is
+  the case for most plottables, this method uses this fact and finds the range very quickly.
+  
+  \see valueRange
+*/
 template <class DataType>
 QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain signDomain)
 {
@@ -405,6 +590,18 @@ QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain 
   return range;
 }
 
+/*!
+  Returns the range encompassed by the value coordinates of all data points, using the full \a
+  DataType::valueRange which each data point reports. The output parameter \a foundRange indicates
+  whether a sensible range was found. If this is false, you should not use the returned QCPRange
+  (e.g. the data container is empty or all points have the same value).
+  
+  Use \a signDomain to control which sign of the value coordinates should be considered. This is
+  relevant e.g. for logarithmic plots which can mathematically only display one sign domain at a
+  time.
+  
+  \see keyRange
+*/
 template <class DataType>
 QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomain signDomain)
 {
@@ -477,6 +674,15 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   return range;
 }
 
+/*! \internal
+  
+  Increases the preallocation pool to have a size of at least \a minimumPreallocSize. Depending on
+  the preallocation history, the container will grow by more than requested, to speed up future
+  consecutive size increases.
+  
+  if \a minimumPreallocSize is smaller than or equal to the current preallocation pool size, this
+  method does nothing.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::preallocateGrow(int minimumPreallocSize)
 {
@@ -493,6 +699,20 @@ void QCPDataContainer<DataType>::preallocateGrow(int minimumPreallocSize)
   mPreallocSize = newPreallocSize;
 }
 
+/*! \internal
+  
+  This method decides, depending on the total allocation size and the size of the unused pre- and
+  postallocation pools, whether it is sensible to reduce the pools in order to free up unused
+  memory. It then possibly calls \ref squeeze to do the deallocation.
+  
+  If \ref setAutoSqueeze is enabled, this method is called automatically each time data points are
+  removed from the container (e.g. \ref remove).
+  
+  \note when changing the decision parameters, care must be taken not to cause a back-and-forth
+  between squeezing and reallocation due to the growth strategy of the internal QVector and \ref
+  preallocateGrow. The hysteresis between allocation and deallocation should be made high enough
+  (at the expense of possibly larger unused memory from time to time).
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::performAutoSqueeze()
 {

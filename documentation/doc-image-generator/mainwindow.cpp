@@ -684,7 +684,7 @@ void MainWindow::genQCPStatisticalBox()
   statistical->addData(1, -0.6, -0.2, 0.15, 0.6, 1.2);
   statistical->setBrush(QColor(0, 0, 255, 20));
   
-  (statistical->data()->begin()+3)->outliers << -0.9 << -1 << 1.35 << 1.4 << 1.1;
+  (statistical->data()->begin()+2)->outliers << -0.9 << -1 << 1.35 << 1.4 << 1.1;
   statistical->setOutlierStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, 5));
   
   customPlot->xAxis->setRange(-3, 3);

@@ -64,7 +64,8 @@ layoutelements/layoutelement-axisrect.h \
     axis/axistickerfixed.h \
     axis/axistickertext.h \
     axis/axistickerpi.h \
-    axis/axistickerlog.h
+    axis/axistickerlog.h \
+    datacontainer.h
 
 SOURCES += \
 painter.cpp \
@@ -103,7 +104,8 @@ layoutelements/layoutelement-axisrect.cpp \
     axis/axistickerfixed.cpp \
     axis/axistickertext.cpp \
     axis/axistickerpi.cpp \
-    axis/axistickerlog.cpp
+    axis/axistickerlog.cpp \
+    datacontainer.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

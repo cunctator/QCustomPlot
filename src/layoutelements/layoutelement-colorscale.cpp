@@ -379,9 +379,9 @@ void QCPColorScale::rescaleDataRange(bool onlyVisibleMaps)
   QList<QCPColorMap*> maps = colorMaps();
   QCPRange newRange;
   bool haveRange = false;
-  int sign = 0; // TODO: should change this to QCPAbstractPlottable::SignDomain later (currently is protected, maybe move to QCP namespace)
+  QCP::SignDomain sign = QCP::sdBoth;
   if (mDataScaleType == QCPAxis::stLogarithmic)
-    sign = (mDataRange.upper < 0 ? -1 : 1);
+    sign = (mDataRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   for (int i=0; i<maps.size(); ++i)
   {
     if (!maps.at(i)->realVisibility() && onlyVisibleMaps)
@@ -391,13 +391,13 @@ void QCPColorScale::rescaleDataRange(bool onlyVisibleMaps)
     {
       bool currentFoundRange = true;
       mapRange = maps.at(i)->data()->dataBounds();
-      if (sign == 1)
+      if (sign == QCP::sdPositive)
       {
         if (mapRange.lower <= 0 && mapRange.upper > 0)
           mapRange.lower = mapRange.upper*1e-3;
         else if (mapRange.lower <= 0 && mapRange.upper <= 0)
           currentFoundRange = false;
-      } else if (sign == -1)
+      } else if (sign == QCP::sdNegative)
       {
         if (mapRange.upper >= 0 && mapRange.lower < 0)
           mapRange.upper = mapRange.lower*1e-3;

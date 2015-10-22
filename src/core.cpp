@@ -416,9 +416,6 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
 
 QCustomPlot::~QCustomPlot()
 {
-  qDeleteAll(mAsyncPlottablesToClear); // if an asynchronous clear operation is still running, delete all remaining plottables right now
-  mAsyncPlottablesToClear.clear();
-  
   clearPlottables();
   clearItems();
 
@@ -861,7 +858,7 @@ bool QCustomPlot::removePlottable(int index)
   
   Returns the number of plottables removed.
   
-  \see removePlottable clearPlottablesAsynchronous
+  \see removePlottable
 */
 int QCustomPlot::clearPlottables()
 {
@@ -869,38 +866,6 @@ int QCustomPlot::clearPlottables()
   for (int i=c-1; i >= 0; --i)
     removePlottable(mPlottables[i]);
   return c;
-}
-
-/*!
-  Removes all plottables from the plot (and the QCustomPlot::legend, if necessary) immediately, but
-  frees the related memory successively in future event loop iterations. This way very large
-  amounts of data can be quickly removed from the plot without blocking, as would happen with \ref
-  clearPlottables.
-  
-  After calling this method everything will effectively behave as if \ref clearPlottables was used.
-  The plottables will not be accessible anymore and will have been removed from the layer system.
-  
-  Returns the number of plottables that were removed.
-  
-  \see clearPlottables
-*/
-int QCustomPlot::clearPlottablesAsynchronous()
-{
-  if (mPlottables.isEmpty())
-    return 0;
-  
-  int result = mPlottables.size();
-  mAsyncPlottablesToClear << mPlottables;
-  // remove plottables from layer, so they are invisible and don't interact anymore, and remove from legend:
-  foreach (QCPAbstractPlottable *p, mPlottables)
-  {
-    p->removeFromLegend();
-    p->setLayer(0);
-  }
-  mPlottables.clear();
-  mGraphs.clear();
-  QTimer::singleShot(0, this, SLOT(asyncPlottableClearer()));
-  return result;
 }
 
 /*!
@@ -2245,51 +2210,6 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
     }
   }
 }
-
-/*! \internal
-  
-  This is the worker slot that gets queued in the event loop by a call to \ref
-  clearPlottablesAsynchronous. Each call of this slot frees the memory of a single plottable that
-  is in the \a mAsyncPlottablesToClear list, which was populated once in \ref
-  clearPlottablesAsynchronous. If the plottable is a QCPGraph with more than \a batchSize data
-  points, it only deletes one batch of data, to prevent blocking for single graphs with large
-  amounts of data.
-  
-  If \a mAsyncPlottablesToClear is not empty after the operation, it adds itself to the event loop
-  queue again to carry on with freeing the memory in the next iteration.
-*/
-void QCustomPlot::asyncPlottableClearer()
-{
-  if (!mAsyncPlottablesToClear.isEmpty())
-  {
-    QCPAbstractPlottable *p = mAsyncPlottablesToClear.last();
-    if (QCPGraph *g = qobject_cast<QCPGraph*>(p)) // single graphs may contain large datasets, so delete them batch by batch
-    {
-      const int batchSize = 20000;
-      if (g->data()->size() > batchSize) // more than batchSize points, delete batch by batch in every call of this method
-      {
-        int i = 0;
-        QCPDataMap::iterator it = g->data()->begin();
-        while (it != g->data()->end() && i < batchSize)
-        {
-          it = g->data()->erase(it);
-          ++i;
-        }
-      } else // less than batchSize points, delete graph as whole
-      {
-        delete g;
-        mAsyncPlottablesToClear.removeLast();
-      }
-    } else
-    {
-      delete p;
-      mAsyncPlottablesToClear.removeLast();
-    }
-    if (!mAsyncPlottablesToClear.isEmpty()) // continue clearing in next event loop iteration
-      QTimer::singleShot(0, this, SLOT(asyncPlottableClearer()));
-  }
-}
-
 
 /*! \internal
   

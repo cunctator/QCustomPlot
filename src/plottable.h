@@ -41,7 +41,6 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(QString name READ name WRITE setName)
   Q_PROPERTY(bool antialiasedFill READ antialiasedFill WRITE setAntialiasedFill)
   Q_PROPERTY(bool antialiasedScatters READ antialiasedScatters WRITE setAntialiasedScatters)
-  Q_PROPERTY(bool antialiasedErrorBars READ antialiasedErrorBars WRITE setAntialiasedErrorBars)
   Q_PROPERTY(QPen pen READ pen WRITE setPen)
   Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   Q_PROPERTY(QBrush brush READ brush WRITE setBrush)
@@ -58,7 +57,6 @@ public:
   QString name() const { return mName; }
   bool antialiasedFill() const { return mAntialiasedFill; }
   bool antialiasedScatters() const { return mAntialiasedScatters; }
-  bool antialiasedErrorBars() const { return mAntialiasedErrorBars; }
   QPen pen() const { return mPen; }
   QPen selectedPen() const { return mSelectedPen; }
   QBrush brush() const { return mBrush; }
@@ -72,7 +70,6 @@ public:
   void setName(const QString &name);
   void setAntialiasedFill(bool enabled);
   void setAntialiasedScatters(bool enabled);
-  void setAntialiasedErrorBars(bool enabled);
   void setPen(const QPen &pen);
   void setSelectedPen(const QPen &pen);
   void setBrush(const QBrush &brush);
@@ -83,7 +80,6 @@ public:
   Q_SLOT void setSelected(bool selected);
 
   // introduced virtual methods:
-  virtual void clearData() = 0;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
   
   // non-property methods:
@@ -98,17 +94,9 @@ signals:
   void selectableChanged(bool selectable);
   
 protected:
-  /*!
-    Represents negative and positive sign domain for passing to \ref getKeyRange and \ref getValueRange.
-  */
-  enum SignDomain { sdNegative  ///< The negative sign domain, i.e. numbers smaller than zero
-                    ,sdBoth     ///< Both sign domains, including zero, i.e. all (rational) numbers
-                    ,sdPositive ///< The positive sign domain, i.e. numbers greater than zero
-                  };
-  
   // property members:
   QString mName;
-  bool mAntialiasedFill, mAntialiasedScatters, mAntialiasedErrorBars;
+  bool mAntialiasedFill, mAntialiasedScatters;
   QPen mPen, mSelectedPen;
   QBrush mBrush, mSelectedBrush;
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
@@ -125,8 +113,8 @@ protected:
   
   // introduced virtual methods:
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const = 0;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   
   // non-virtual methods:
   void coordsToPixels(double key, double value, double &x, double &y) const;
@@ -137,7 +125,6 @@ protected:
   QBrush mainBrush() const;
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
-  void applyErrorBarsAntialiasingHint(QCPPainter *painter) const;
 
 private:
   Q_DISABLE_COPY(QCPAbstractPlottable)

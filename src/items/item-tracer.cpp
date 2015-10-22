@@ -332,39 +332,41 @@ void QCPItemTracer::updatePosition()
     {
       if (mGraph->data()->size() > 1)
       {
-        QCPDataMap::const_iterator first = mGraph->data()->constBegin();
-        QCPDataMap::const_iterator last = mGraph->data()->constEnd()-1;
-        if (mGraphKey < first.key())
-          position->setCoords(first.key(), first.value().value);
-        else if (mGraphKey > last.key())
-          position->setCoords(last.key(), last.value().value);
+        QCPGraphDataContainer::const_iterator first = mGraph->data()->constBegin();
+        QCPGraphDataContainer::const_iterator last = mGraph->data()->constEnd()-1;
+        if (mGraphKey <= first->key)
+          position->setCoords(first->key, first->value);
+        else if (mGraphKey >= last->key)
+          position->setCoords(last->key, last->value);
         else
         {
-          QCPDataMap::const_iterator it = mGraph->data()->lowerBound(mGraphKey);
-          if (it != first) // mGraphKey is somewhere between iterators
+          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBeginBelowKey(mGraphKey);
+          if (it != mGraph->data()->constEnd()) // mGraphKey is not exactly on last iterator, but somewhere between iterators
           {
-            QCPDataMap::const_iterator prevIt = it-1;
+            QCPGraphDataContainer::const_iterator prevIt = it;
+            ++it; // won't advance to constEnd because we handled that case (mGraphKey >= last->key) before
             if (mInterpolating)
             {
               // interpolate between iterators around mGraphKey:
               double slope = 0;
-              if (!qFuzzyCompare((double)it.key(), (double)prevIt.key()))
-                slope = (it.value().value-prevIt.value().value)/(it.key()-prevIt.key());
-              position->setCoords(mGraphKey, (mGraphKey-prevIt.key())*slope+prevIt.value().value);
+              if (!qFuzzyCompare((double)it->key, (double)prevIt->key))
+                slope = (it->value-prevIt->value)/(it->key-prevIt->key);
+              position->setCoords(mGraphKey, (mGraphKey-prevIt->key)*slope+prevIt->value);
             } else
             {
               // find iterator with key closest to mGraphKey:
-              if (mGraphKey < (prevIt.key()+it.key())*0.5)
-                it = prevIt;
-              position->setCoords(it.key(), it.value().value);
+              if (mGraphKey < (prevIt->key+it->key)*0.5)
+                position->setCoords(prevIt->key, prevIt->value);
+              else
+                position->setCoords(it->key, it->value);
             }
-          } else // mGraphKey is exactly on first iterator
-            position->setCoords(it.key(), it.value().value);
+          } else // mGraphKey is exactly on last iterator (should actually be caught when comparing first/last keys, but this is a failsafe for fp uncertainty)
+            position->setCoords(it->key, it->value);
         }
       } else if (mGraph->data()->size() == 1)
       {
-        QCPDataMap::const_iterator it = mGraph->data()->constBegin();
-        position->setCoords(it.key(), it.value().value);
+        QCPGraphDataContainer::const_iterator it = mGraph->data()->constBegin();
+        position->setCoords(it->key, it->value);
       } else
         qDebug() << Q_FUNC_INFO << "graph has no data";
     } else

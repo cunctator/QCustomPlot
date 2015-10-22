@@ -259,3 +259,30 @@ QCPGraph_RemoveDataBetween       116.15 +/- 3.50 ms
 QCPGraph_Standard                  2.05 +/- 0.07 ms
 
 
+*** Benchmark on 2015-09-13 23:15 ***
+Platform: Linux-3.13.0-24-generic-i686-athlon-with-LinuxMint-17-qiana, dermanu on dermanu-linux
+Qt Version: 5.3.2
+Git Branch: dev-container...qcpp/dev-container [ahead 1]
+Git Head: 3c18309 - Changed plottable's addData methods to use (faster) iterators - unified plural in addData/setData naming of keys and values parameter
+Rounds: 10
+Comment: After new data container [single addData tests have changed]
+QCPAxis_TickLabels                 1.410 +/- 0.030 ms
+QCPAxis_TickLabelsCached           0.583 +/- 0.011 ms
+QCPGraph_AddDataAtBeginSorted     18.800 +/- 0.600 ms
+QCPGraph_AddDataAtBeginUnsorted   85.600 +/- 0.663 ms
+QCPGraph_AddDataAtEndSorted       16.100 +/- 0.300 ms
+QCPGraph_AddDataAtEndUnsorted     69.500 +/- 0.500 ms
+QCPGraph_AddDataMixedSorted       32.600 +/- 0.663 ms
+QCPGraph_AddDataMixedUnsorted     86.900 +/- 0.700 ms
+QCPGraph_AddDataSingleAtBegin      0.520 +/- 0.040 ms
+QCPGraph_AddDataSingleAtEnd        0.220 +/- 0.040 ms
+QCPGraph_AddDataSingleRandom      52.000 +/- 0.000 ms
+QCPGraph_ManyLines                 3.620 +/- 0.040 ms
+QCPGraph_ManyOffScreenLines        0.531 +/- 0.003 ms
+QCPGraph_ManyPoints               12.220 +/- 0.271 ms
+QCPGraph_RemoveDataAfter           0.003 +/- 0.000 ms
+QCPGraph_RemoveDataBefore          2.100 +/- 0.300 ms
+QCPGraph_RemoveDataBetween         1.000 +/- 0.000 ms
+QCPGraph_Standard                  2.020 +/- 0.040 ms
+
+

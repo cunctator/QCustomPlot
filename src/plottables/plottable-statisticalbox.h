@@ -30,21 +30,57 @@
 #include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
+
+class QCP_LIB_DECL QCPStatisticalBoxData
+{
+public:
+  QCPStatisticalBoxData();
+  QCPStatisticalBoxData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double>& outliers=QVector<double>());
+  
+  inline double sortKey() const { return key; }
+  inline static QCPStatisticalBoxData fromSortKey(double sortKey) { return QCPStatisticalBoxData(sortKey, 0, 0, 0, 0, 0); }
+  inline static bool sortKeyIsMainKey() { return true; }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return median; }
+  
+  inline QCPRange valueRange() const
+  {
+    QCPRange result(minimum, maximum);
+    for (QVector<double>::const_iterator it = outliers.constBegin(); it != outliers.constEnd(); ++it)
+    {
+      if (*it < result.lower) result.lower = *it;
+      if (*it > result.upper) result.upper = *it;
+    }
+    return result;
+  }
+  
+  double key, minimum, lowerQuartile, median, upperQuartile, maximum;
+  QVector<double> outliers;
+};
+Q_DECLARE_TYPEINFO(QCPStatisticalBoxData, Q_MOVABLE_TYPE);
+
+
+/*! \typedef QCPStatisticalBoxDataContainer
+  
+  Container for storing \ref QCPStatisticalBoxData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPStatisticalBox holds its data. For
+  details about the generic container, see the documentation of the class template \ref
+  QCPDataContainer.
+  
+  \see QCPStatisticalBoxData, QCPStatisticalBox::setData
+*/
+typedef QCPDataContainer<QCPStatisticalBoxData> QCPStatisticalBoxDataContainer;
 
 class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
-  Q_PROPERTY(double key READ key WRITE setKey)
-  Q_PROPERTY(double minimum READ minimum WRITE setMinimum)
-  Q_PROPERTY(double lowerQuartile READ lowerQuartile WRITE setLowerQuartile)
-  Q_PROPERTY(double median READ median WRITE setMedian)
-  Q_PROPERTY(double upperQuartile READ upperQuartile WRITE setUpperQuartile)
-  Q_PROPERTY(double maximum READ maximum WRITE setMaximum)
-  Q_PROPERTY(QVector<double> outliers READ outliers WRITE setOutliers)
   Q_PROPERTY(double width READ width WRITE setWidth)
   Q_PROPERTY(double whiskerWidth READ whiskerWidth WRITE setWhiskerWidth)
   Q_PROPERTY(QPen whiskerPen READ whiskerPen WRITE setWhiskerPen)
@@ -56,13 +92,7 @@ public:
   explicit QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis);
   
   // getters:
-  double key() const { return mKey; }
-  double minimum() const { return mMinimum; }
-  double lowerQuartile() const { return mLowerQuartile; }
-  double median() const { return mMedian; }
-  double upperQuartile() const { return mUpperQuartile; }
-  double maximum() const { return mMaximum; }
-  QVector<double> outliers() const { return mOutliers; }
+  QSharedPointer<QCPStatisticalBoxDataContainer> data() const { return mDataContainer; }
   double width() const { return mWidth; }
   double whiskerWidth() const { return mWhiskerWidth; }
   QPen whiskerPen() const { return mWhiskerPen; }
@@ -71,14 +101,8 @@ public:
   QCPScatterStyle outlierStyle() const { return mOutlierStyle; }
 
   // setters:
-  void setKey(double key);
-  void setMinimum(double value);
-  void setLowerQuartile(double value);
-  void setMedian(double value);
-  void setUpperQuartile(double value);
-  void setMaximum(double value);
-  void setOutliers(const QVector<double> &values);
-  void setData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum);
+  void setData(QSharedPointer<QCPStatisticalBoxDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &minimum, const QVector<double> &lowerQuartile, const QVector<double> &median, const QVector<double> &upperQuartile, const QVector<double> &maximum, bool alreadySorted=false);
   void setWidth(double width);
   void setWhiskerWidth(double width);
   void setWhiskerPen(const QPen &pen);
@@ -87,13 +111,15 @@ public:
   void setOutlierStyle(const QCPScatterStyle &style);
   
   // non-property methods:
-  virtual void clearData();
+  void addData(const QVector<double> &keys, const QVector<double> &minimum, const QVector<double> &lowerQuartile, const QVector<double> &median, const QVector<double> &upperQuartile, const QVector<double> &maximum, bool alreadySorted=false);
+  void addData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double> &outliers=QVector<double>());
+  
+  // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:
   // property members:
-  QVector<double> mOutliers;
-  double mKey, mMinimum, mLowerQuartile, mMedian, mUpperQuartile, mMaximum;
+  QSharedPointer<QCPStatisticalBoxDataContainer> mDataContainer;
   double mWidth;
   double mWhiskerWidth;
   QPen mWhiskerPen, mWhiskerBarPen, mMedianPen;
@@ -102,14 +128,17 @@ protected:
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawQuartileBox(QCPPainter *painter, QRectF *quartileBox=0) const;
-  virtual void drawMedian(QCPPainter *painter) const;
-  virtual void drawWhiskers(QCPPainter *painter) const;
-  virtual void drawOutliers(QCPPainter *painter) const;
+  virtual void drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it) const;
+  
+  // non-virtual methods:
+  void getVisibleDataBounds(QCPStatisticalBoxDataContainer::const_iterator &begin, QCPStatisticalBoxDataContainer::const_iterator &end) const;
+  QRectF getQuartileBox(QCPStatisticalBoxDataContainer::const_iterator it) const;
+  QVector<QLineF> getWhiskerBackboneLines(QCPStatisticalBoxDataContainer::const_iterator it) const;
+  QVector<QLineF> getWhiskerBarLines(QCPStatisticalBoxDataContainer::const_iterator it) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

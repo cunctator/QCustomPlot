@@ -31,48 +31,91 @@
 #include "../layoutelements/layoutelement-axisrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPData
+//////////////////// QCPGraphData
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPData
+/*! \class QCPGraphData
   \brief Holds the data of one single data point for QCPGraph.
   
-  The container for storing multiple data points is \ref QCPDataMap.
-  
   The stored data is:
-  \li \a key: coordinate on the key axis of this data point
-  \li \a value: coordinate on the value axis of this data point
-  \li \a keyErrorMinus: negative error in the key dimension (for error bars)
-  \li \a keyErrorPlus: positive error in the key dimension (for error bars)
-  \li \a valueErrorMinus: negative error in the value dimension (for error bars)
-  \li \a valueErrorPlus: positive error in the value dimension (for error bars)
+  \li \a key: coordinate on the key axis of this data point (this is the \a mainKey and the \a sortKey)
+  \li \a value: coordinate on the value axis of this data point (this is the \a mainValue)
   
-  \see QCPDataMap
+  The container for storing multiple data points is \ref QCPGraphDataContainer. It is a typedef for
+  \ref QCPDataContainer with \ref QCPGraphData as the DataType template parameter. See the
+  documentation there for an explanation regarding the data type's generic methods.
+  
+  \see QCPGraphDataContainer
 */
 
-/*!
-  Constructs a data point with key, value and all errors set to zero.
+/* start documentation of inline functions */
+
+/*! \fn double QCPGraphData::sortKey() const
+  
+  Returns the \a key member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
 */
-QCPData::QCPData() :
+
+/*! \fn static QCPGraphData QCPGraphData::fromSortKey(double sortKey)
+  
+  Returns a data point with the specified \a sortKey. All other members are set to zero.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn static static bool QCPGraphData::sortKeyIsMainKey()
+  
+  Since the member \a key is both the data point key coordinate and the data ordering parameter,
+  this method returns true.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn double QCPGraphData::mainKey() const
+  
+  Returns the \a key member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn double QCPGraphData::mainValue() const
+  
+  Returns the \a value member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn QCPRange QCPGraphData::valueRange() const
+  
+  Returns a QCPRange with both lower and upper boundary set to \a value of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/* end documentation of inline functions */
+
+/*!
+  Constructs a data point with key and value set to zero.
+*/
+QCPGraphData::QCPGraphData() :
   key(0),
-  value(0),
-  keyErrorPlus(0),
-  keyErrorMinus(0),
-  valueErrorPlus(0),
-  valueErrorMinus(0)
+  value(0)
 {
 }
 
 /*!
-  Constructs a data point with the specified \a key and \a value. All errors are set to zero.
+  Constructs a data point with the specified \a key and \a value.
 */
-QCPData::QCPData(double key, double value) :
+QCPGraphData::QCPGraphData(double key, double value) :
   key(key),
-  value(value),
-  keyErrorPlus(0),
-  keyErrorMinus(0),
-  valueErrorPlus(0),
-  valueErrorMinus(0)
+  value(value)
 {
 }
 
@@ -91,7 +134,7 @@ QCPData::QCPData(double key, double value) :
 
   To plot data, assign it with the \ref setData or \ref addData functions. Alternatively, you can
   also access and modify the graph's data via the \ref data method, which returns a pointer to the
-  internal \ref QCPDataMap.
+  internal \ref QCPGraphDataContainer.
   
   Graphs are used to display single-valued data. Single-valued means that there should only be one
   data point per unique key coordinate. In other words, the graph can't have \a loops. If you do
@@ -121,11 +164,11 @@ QCPData::QCPData(double key, double value) :
 
 /* start of documentation of inline functions */
 
-/*! \fn QCPDataMap *QCPGraph::data() const
+/*! \fn QSharedPointer<QCPGraphDataContainer> QCPGraph::data() const
   
-  Returns a pointer to the internal data storage of type \ref QCPDataMap. You may use it to
-  directly manipulate the data, which may be more convenient and faster than using the regular \ref
-  setData or \ref addData methods, in certain situations.
+  Returns a shared pointer to the internal data storage of type \ref QCPGraphDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods, in certain situations.
 */
 
 /* end of documentation of inline functions */
@@ -143,245 +186,42 @@ QCPData::QCPData(double key, double value) :
   To directly create a graph inside a plot, you can also use the simpler QCustomPlot::addGraph function.
 */
 QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis)
+  QCPAbstractPlottable(keyAxis, valueAxis),
+  mDataContainer(new QCPGraphDataContainer)
 {
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);
-  
-  mData = new QCPDataMap;
-  
+
   setPen(QPen(Qt::blue, 0));
-  setErrorPen(QPen(Qt::black));
   setBrush(Qt::NoBrush);
   setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
   setSelectedBrush(Qt::NoBrush);
   
   setLineStyle(lsLine);
-  setErrorType(etNone);
-  setErrorBarSize(6);
-  setErrorBarSkipSymbol(true);
   setChannelFillGraph(0);
   setAdaptiveSampling(true);
 }
 
 QCPGraph::~QCPGraph()
 {
-  delete mData;
 }
 
-/*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the graph
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
-*/
-void QCPGraph::setData(QCPDataMap *data, bool copy)
+void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
 {
-  if (mData == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mData = *data;
-  } else
-  {
-    delete mData;
-    mData = data;
-  }
+  mDataContainer = data;
 }
 
 /*! \overload
   
-  Replaces the current data with the provided points in \a key and \a value pairs. The provided
+  Replaces the current data with the provided points in \a keys and \a values. The provided
   vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
 */
-void QCPGraph::setData(const QVector<double> &key, const QVector<double> &value)
+void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    mData->insertMulti(newData.key, newData);
-  }
+  mDataContainer->clear();
+  addData(keys, values, alreadySorted);
 }
-
-/*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical value error of the data points are set to the values in \a valueError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.valueErrorMinus = valueError[i];
-    newData.valueErrorPlus = valueError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative value error of the data points are set to the values in \a valueErrorMinus, the positive
-  value error to \a valueErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueErrorMinus.size());
-  n = qMin(n, valueErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.valueErrorMinus = valueErrorMinus[i];
-    newData.valueErrorPlus = valueErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical key error of the data points are set to the values in \a keyError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, keyError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyError[i];
-    newData.keyErrorPlus = keyError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative key error of the data points are set to the values in \a keyErrorMinus, the positive
-  key error to \a keyErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, keyErrorMinus.size());
-  n = qMin(n, keyErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyErrorMinus[i];
-    newData.keyErrorPlus = keyErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  symmetrical key and value errors of the data points are set to the values in \a keyError and \a valueError.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-  
-  For asymmetrical errors (plus different from minus), see the overloaded version of this function.
-*/
-void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueError.size());
-  n = qMin(n, keyError.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyError[i];
-    newData.keyErrorPlus = keyError[i];
-    newData.valueErrorMinus = valueError[i];
-    newData.valueErrorPlus = valueError[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
-/*!
-  \overload
-  Replaces the current data with the provided points in \a key and \a value pairs. Additionally the
-  negative key and value errors of the data points are set to the values in \a keyErrorMinus and \a valueErrorMinus. The positive
-  key and value errors are set to the values in \a keyErrorPlus \a valueErrorPlus.
-  For error bars to show appropriately, see \ref setErrorType.
-  The provided vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
-*/
-void QCPGraph::setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus)
-{
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, value.size());
-  n = qMin(n, valueErrorMinus.size());
-  n = qMin(n, valueErrorPlus.size());
-  n = qMin(n, keyErrorMinus.size());
-  n = qMin(n, keyErrorPlus.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = key[i];
-    newData.value = value[i];
-    newData.keyErrorMinus = keyErrorMinus[i];
-    newData.keyErrorPlus = keyErrorPlus[i];
-    newData.valueErrorMinus = valueErrorMinus[i];
-    newData.valueErrorPlus = valueErrorPlus[i];
-    mData->insertMulti(key[i], newData);
-  }
-}
-
 
 /*!
   Sets how the single data points are connected in the plot. For scatter-only plots, set \a ls to
@@ -403,52 +243,6 @@ void QCPGraph::setLineStyle(LineStyle ls)
 void QCPGraph::setScatterStyle(const QCPScatterStyle &style)
 {
   mScatterStyle = style;
-}
-
-/*!
-  Sets which kind of error bars (Key Error, Value Error or both) should be drawn on each data
-  point. If you set \a errorType to something other than \ref etNone, make sure to actually pass
-  error data via the specific setData functions along with the data points (e.g. \ref
-  setDataValueError, \ref setDataKeyError, \ref setDataBothError).
-
-  \see ErrorType
-*/
-void QCPGraph::setErrorType(ErrorType errorType)
-{
-  mErrorType = errorType;
-}
-
-/*!
-  Sets the pen with which the error bars will be drawn.
-  \see setErrorBarSize, setErrorType
-*/
-void QCPGraph::setErrorPen(const QPen &pen)
-{
-  mErrorPen = pen;
-}
-
-/*!
-  Sets the width of the handles at both ends of an error bar in pixels.
-*/
-void QCPGraph::setErrorBarSize(double size)
-{
-  mErrorBarSize = size;
-}
-
-/*!
-  If \a enabled is set to true, the error bar will not be drawn as a solid line under the scatter symbol but
-  leave some free space around the symbol.
-  
-  This feature uses the current scatter size (\ref QCPScatterStyle::setSize) to determine the size
-  of the area to leave blank. So when drawing Pixmaps as scatter points (\ref
-  QCPScatterStyle::ssPixmap), the scatter size must be set manually to a value corresponding to the
-  size of the Pixmap, if the error bars should leave gaps to its boundaries.
-  
-  \ref setErrorType, setErrorBarSize, setScatterStyle
-*/
-void QCPGraph::setErrorBarSkipSymbol(bool enabled)
-{
-  mErrorBarSkipSymbol = enabled;
 }
 
 /*!
@@ -516,134 +310,47 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
   mAdaptiveSampling = enabled;
 }
 
-/*!
-  Adds the provided data points in \a dataMap to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
-  
-  \see removeData
-*/
-void QCPGraph::addData(const QCPDataMap &dataMap)
-{
-  mData->unite(dataMap);
-}
-
-/*! \overload
-  Adds the provided single data point in \a data to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
-  
-  \see removeData
-*/
-void QCPGraph::addData(const QCPData &data)
-{
-  mData->insertMulti(data.key, data);
-}
-
-/*! \overload
-  Adds the provided single data point as \a key and \a value pair to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
-  
-  \see removeData
-*/
-void QCPGraph::addData(double key, double value)
-{
-  QCPData newData;
-  newData.key = key;
-  newData.value = value;
-  mData->insertMulti(newData.key, newData);
-}
-
 /*! \overload
   Adds the provided data points as \a key and \a value pairs to the current data.
   
   Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPDataMap.
-  
-  \see removeData
+  returns a pointer to the internal \ref QCPGraphDataContainer.
 */
-void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values)
+void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  int n = qMin(keys.size(), values.size());
-  QCPData newData;
-  for (int i=0; i<n; ++i)
-  {
-    newData.key = keys[i];
-    newData.value = values[i];
-    mData->insertMulti(newData.key, newData);
-  }
-}
-
-/*!
-  Removes all data points with keys smaller than \a key.
-  \see addData, clearData
-*/
-void QCPGraph::removeDataBefore(double key)
-{
-  QCPDataMap::iterator it = mData->begin();
-  while (it != mData->end() && it.key() < key)
-    it = mData->erase(it);
-}
-
-/*!
-  Removes all data points with keys greater than \a key.
-  \see addData, clearData
-*/
-void QCPGraph::removeDataAfter(double key)
-{
-  if (mData->isEmpty()) return;
-  QCPDataMap::iterator it = mData->upperBound(key);
-  while (it != mData->end())
-    it = mData->erase(it);
-}
-
-/*!
-  Removes all data points with keys between \a fromKey and \a toKey.
-  if \a fromKey is greater or equal to \a toKey, the function does nothing. To remove
-  a single data point with known key, use \ref removeData(double key).
-  
-  \see addData, clearData
-*/
-void QCPGraph::removeData(double fromKey, double toKey)
-{
-  if (fromKey >= toKey || mData->isEmpty()) return;
-  QCPDataMap::iterator it = mData->upperBound(fromKey);
-  QCPDataMap::iterator itEnd = mData->upperBound(toKey);
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPGraphData> tempData(n);
+  QVector<QCPGraphData>::iterator it = tempData.begin();
+  const QVector<QCPGraphData>::iterator itEnd = tempData.end();
+  int i = 0;
   while (it != itEnd)
-    it = mData->erase(it);
+  {
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
   
-  Removes a single data point at \a key. If the position is not known with absolute precision,
-  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval around
-  the suspected position, depeding on the precision with which the key is known.
-
-  \see addData, clearData
+  Alternatively, you can also access and modify the graph's data via the \ref data method, which
+  returns a pointer to the internal \ref QCPGraphDataContainer.
 */
-void QCPGraph::removeData(double key)
+void QCPGraph::addData(double key, double value)
 {
-  mData->remove(key);
-}
-
-/*!
-  Removes all data points.
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPGraph::clearData()
-{
-  mData->clear();
+  mDataContainer->add(QCPGraphData(key, value));
 }
 
 /* inherits documentation from base class */
 double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if ((onlySelectable && !mSelectable) || mData->isEmpty())
+  if ((onlySelectable && !mSelectable) || mDataContainer->isEmpty())
     return -1;
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
   
@@ -653,116 +360,29 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
     return -1;
 }
 
-/*! \overload
-  
-  Allows to define whether error bars are taken into consideration when determining the new axis
-  range.
-  
-  \see rescaleKeyAxis, rescaleValueAxis, QCPAbstractPlottable::rescaleAxes, QCustomPlot::rescaleAxes
-*/
-void QCPGraph::rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const
-{
-  rescaleKeyAxis(onlyEnlarge, includeErrorBars);
-  rescaleValueAxis(onlyEnlarge, includeErrorBars);
-}
-
-/*! \overload
-  
-  Allows to define whether error bars (of kind \ref QCPGraph::etKey) are taken into consideration
-  when determining the new axis range.
-  
-  \see rescaleAxes, QCPAbstractPlottable::rescaleKeyAxis
-*/
-void QCPGraph::rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const
-{
-  // this code is a copy of QCPAbstractPlottable::rescaleKeyAxis with the only change
-  // that getKeyRange is passed the includeErrorBars value.
-  if (mData->isEmpty()) return;
-  
-  QCPAxis *keyAxis = mKeyAxis.data();
-  if (!keyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-
-  SignDomain signDomain = sdBoth;
-  if (keyAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (keyAxis->range().upper < 0 ? sdNegative : sdPositive);
-  
-  bool foundRange;
-  QCPRange newRange = getKeyRange(foundRange, signDomain, includeErrorBars);
-  
-  if (foundRange)
-  {
-    if (onlyEnlarge)
-    {
-      if (keyAxis->range().lower < newRange.lower)
-        newRange.lower = keyAxis->range().lower;
-      if (keyAxis->range().upper > newRange.upper)
-        newRange.upper = keyAxis->range().upper;
-    }
-    keyAxis->setRange(newRange);
-  }
-}
-
-/*! \overload
-  
-  Allows to define whether error bars (of kind \ref QCPGraph::etValue) are taken into consideration
-  when determining the new axis range.
-  
-  \see rescaleAxes, QCPAbstractPlottable::rescaleValueAxis
-*/
-void QCPGraph::rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const
-{
-  // this code is a copy of QCPAbstractPlottable::rescaleValueAxis with the only change
-  // is that getValueRange is passed the includeErrorBars value.
-  if (mData->isEmpty()) return;
-  
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
-
-  SignDomain signDomain = sdBoth;
-  if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (valueAxis->range().upper < 0 ? sdNegative : sdPositive);
-  
-  bool foundRange;
-  QCPRange newRange = getValueRange(foundRange, signDomain, includeErrorBars);
-  
-  if (foundRange)
-  {
-    if (onlyEnlarge)
-    {
-      if (valueAxis->range().lower < newRange.lower)
-        newRange.lower = valueAxis->range().lower;
-      if (valueAxis->range().upper > newRange.upper)
-        newRange.upper = valueAxis->range().upper;
-    }
-    valueAxis->setRange(newRange);
-  }
-}
-
 /* inherits documentation from base class */
 void QCPGraph::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  if (mKeyAxis.data()->range().size() <= 0 || mData->isEmpty()) return;
+  if (mKeyAxis.data()->range().size() <= 0 || mDataContainer->isEmpty()) return;
   if (mLineStyle == lsNone && mScatterStyle.isNone()) return;
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
-  QVector<QCPData> *scatterData = 0;
+  QVector<QCPGraphData> *scatterData = 0;
   if (!mScatterStyle.isNone())
-    scatterData = new QVector<QCPData>;
+    scatterData = new QVector<QCPGraphData>;
   
   // fill vectors with data appropriate to plot style:
   getPlotData(lineData, scatterData);
   
   // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-  QCPDataMap::const_iterator it;
-  for (it = mData->constBegin(); it != mData->constEnd(); ++it)
+  QCPGraphDataContainer::const_iterator it;
+  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
   {
-    if (QCP::isInvalidData(it.value().key, it.value().value) ||
-        QCP::isInvalidData(it.value().keyErrorPlus, it.value().keyErrorMinus) ||
-        QCP::isInvalidData(it.value().valueErrorPlus, it.value().valueErrorPlus))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it.key() << "invalid." << "Plottable name:" << name();
+    if (QCP::isInvalidData(it->key, it->value))
+      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
   }
 #endif
 
@@ -839,7 +459,7 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   \see getScatterPlotData, getLinePlotData, getStepLeftPlotData, getStepRightPlotData,
   getStepCenterPlotData, getImpulsePlotData
 */
-void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatterData) const
+void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const
 {
   switch(mLineStyle)
   {
@@ -863,7 +483,7 @@ void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatter
   
   \see drawScatterPlot
 */
-void QCPGraph::getScatterPlotData(QVector<QCPData> *scatterData) const
+void QCPGraph::getScatterPlotData(QVector<QCPGraphData> *scatterData) const
 {
   getPreparedData(0, scatterData);
 }
@@ -879,14 +499,14 @@ void QCPGraph::getScatterPlotData(QVector<QCPData> *scatterData) const
   
   \see drawLinePlot
 */
-void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size());
@@ -920,14 +540,14 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData>
   
   \see drawLinePlot
 */
-void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -973,14 +593,14 @@ void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPD
   
   \see drawLinePlot
 */
-void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -1026,14 +646,14 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCP
   
   \see drawLinePlot
 */
-void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
@@ -1091,14 +711,14 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QC
   
   \see drawImpulsePlot
 */
-void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const
+void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
-  QVector<QCPData> lineData;
+  QVector<QCPGraphData> lineData;
   getPreparedData(&lineData, scatterData);
   linePixelData->resize(lineData.size()*2); // no need to reserve 2 extra points because impulse plot has no fill
   
@@ -1175,27 +795,11 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
   
   \see drawLinePlot, drawImpulsePlot
 */
-void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const
+void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  // draw error bars:
-  if (mErrorType != etNone)
-  {
-    applyErrorBarsAntialiasingHint(painter);
-    painter->setPen(mErrorPen);
-    if (keyAxis->orientation() == Qt::Vertical)
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key), scatterData->at(i));
-    } else
-    {
-      for (int i=0; i<scatterData->size(); ++i)
-        drawError(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value), scatterData->at(i));
-    }
-  }
   
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
@@ -1323,38 +927,37 @@ void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) 
   
   This method is used by the various "get(...)PlotData" methods to get the basic working set of data.
 */
-void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *scatterData) const
+void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   // get visible data range:
-  QCPDataMap::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
-  getVisibleDataBounds(lower, upper);
-  if (lower == mData->constEnd() || upper == mData->constEnd())
+  QCPGraphDataContainer::const_iterator lower, upperEnd;
+  getVisibleDataBounds(lower, upperEnd);
+  if (lower == upperEnd)
     return;
   
   // count points in visible range, taking into account that we only need to count to the limit maxCount if using adaptive sampling:
   int maxCount = std::numeric_limits<int>::max();
   if (mAdaptiveSampling)
   {
-    int keyPixelSpan = qAbs(keyAxis->coordToPixel(lower.key())-keyAxis->coordToPixel(upper.key()));
+    int keyPixelSpan = qAbs(keyAxis->coordToPixel(lower->key)-keyAxis->coordToPixel((upperEnd-1)->key));
     maxCount = 2*keyPixelSpan+2;
   }
-  int dataCount = countDataInBounds(lower, upper, maxCount);
+  int dataCount = upperEnd-lower;
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average
   {
     if (lineData)
     {
-      QCPDataMap::const_iterator it = lower;
-      QCPDataMap::const_iterator upperEnd = upper+1;
-      double minValue = it.value().value;
-      double maxValue = it.value().value;
-      QCPDataMap::const_iterator currentIntervalFirstPoint = it;
+      QCPGraphDataContainer::const_iterator it = lower;
+      double minValue = it->value;
+      double maxValue = it->value;
+      QCPGraphDataContainer::const_iterator currentIntervalFirstPoint = it;
       int reversedFactor = keyAxis->rangeReversed() != (keyAxis->orientation()==Qt::Vertical) ? -1 : 1; // is used to calculate keyEpsilon pixel into the correct direction
       int reversedRound = keyAxis->rangeReversed() != (keyAxis->orientation()==Qt::Vertical) ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-      double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(lower.key())+reversedRound));
+      double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(lower->key)+reversedRound));
       double lastIntervalEndKey = currentIntervalStartKey;
       double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
       bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
@@ -1362,30 +965,30 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
       ++it; // advance iterator to second data point because adaptive sampling works in 1 point retrospect
       while (it != upperEnd)
       {
-        if (it.key() < currentIntervalStartKey+keyEpsilon) // data point is still within same pixel, so skip it and expand value span of this cluster if necessary
+        if (it->key < currentIntervalStartKey+keyEpsilon) // data point is still within same pixel, so skip it and expand value span of this cluster if necessary
         {
-          if (it.value().value < minValue)
-            minValue = it.value().value;
-          else if (it.value().value > maxValue)
-            maxValue = it.value().value;
+          if (it->value < minValue)
+            minValue = it->value;
+          else if (it->value > maxValue)
+            maxValue = it->value;
           ++intervalDataCount;
         } else // new pixel interval started
         {
           if (intervalDataCount >= 2) // last pixel had multiple data points, consolidate them to a cluster
           {
             if (lastIntervalEndKey < currentIntervalStartKey-keyEpsilon) // last point is further away, so first point of this cluster must be at a real data point
-              lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
-            lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
-            lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
-            if (it.key() > currentIntervalStartKey+keyEpsilon*2) // new pixel started further away from previous cluster, so make sure the last point of the cluster is at a real data point
-              lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.8, (it-1).value().value));
+              lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint->value));
+            lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
+            lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
+            if (it->key > currentIntervalStartKey+keyEpsilon*2) // new pixel started further away from previous cluster, so make sure the last point of the cluster is at a real data point
+              lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.8, (it-1)->value));
           } else
-            lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
-          lastIntervalEndKey = (it-1).value().key;
-          minValue = it.value().value;
-          maxValue = it.value().value;
+            lineData->append(QCPGraphData(currentIntervalFirstPoint->key, currentIntervalFirstPoint->value));
+          lastIntervalEndKey = (it-1)->key;
+          minValue = it->value;
+          maxValue = it->value;
           currentIntervalFirstPoint = it;
-          currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it.key())+reversedRound));
+          currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
           if (keyEpsilonVariable)
             keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
           intervalDataCount = 1;
@@ -1396,42 +999,41 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
       if (intervalDataCount >= 2) // last pixel had multiple data points, consolidate them to a cluster
       {
         if (lastIntervalEndKey < currentIntervalStartKey-keyEpsilon) // last point wasn't a cluster, so first point of this cluster must be at a real data point
-          lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint.value().value));
-        lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
-        lineData->append(QCPData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
+          lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.2, currentIntervalFirstPoint->value));
+        lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.25, minValue));
+        lineData->append(QCPGraphData(currentIntervalStartKey+keyEpsilon*0.75, maxValue));
       } else
-        lineData->append(QCPData(currentIntervalFirstPoint.key(), currentIntervalFirstPoint.value().value));
+        lineData->append(QCPGraphData(currentIntervalFirstPoint->key, currentIntervalFirstPoint->value));
     }
     
     if (scatterData)
     {
       double valueMaxRange = valueAxis->range().upper;
       double valueMinRange = valueAxis->range().lower;
-      QCPDataMap::const_iterator it = lower;
-      QCPDataMap::const_iterator upperEnd = upper+1;
-      double minValue = it.value().value;
-      double maxValue = it.value().value;
-      QCPDataMap::const_iterator minValueIt = it;
-      QCPDataMap::const_iterator maxValueIt = it;
-      QCPDataMap::const_iterator currentIntervalStart = it;
+      QCPGraphDataContainer::const_iterator it = lower;
+      double minValue = it->value;
+      double maxValue = it->value;
+      QCPGraphDataContainer::const_iterator minValueIt = it;
+      QCPGraphDataContainer::const_iterator maxValueIt = it;
+      QCPGraphDataContainer::const_iterator currentIntervalStart = it;
       int reversedFactor = keyAxis->rangeReversed() ? -1 : 1; // is used to calculate keyEpsilon pixel into the correct direction
       int reversedRound = keyAxis->rangeReversed() ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-      double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(lower.key())+reversedRound));
+      double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(lower->key)+reversedRound));
       double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
       bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
       int intervalDataCount = 1;
       ++it; // advance iterator to second data point because adaptive sampling works in 1 point retrospect
       while (it != upperEnd)
       {
-        if (it.key() < currentIntervalStartKey+keyEpsilon) // data point is still within same pixel, so skip it and expand value span of this pixel if necessary
+        if (it->key < currentIntervalStartKey+keyEpsilon) // data point is still within same pixel, so skip it and expand value span of this pixel if necessary
         {
-          if (it.value().value < minValue && it.value().value > valueMinRange && it.value().value < valueMaxRange)
+          if (it->value < minValue && it->value > valueMinRange && it->value < valueMaxRange)
           {
-            minValue = it.value().value;
+            minValue = it->value;
             minValueIt = it;
-          } else if (it.value().value > maxValue && it.value().value > valueMinRange && it.value().value < valueMaxRange)
+          } else if (it->value > maxValue && it->value > valueMinRange && it->value < valueMaxRange)
           {
-            maxValue = it.value().value;
+            maxValue = it->value;
             maxValueIt = it;
           }
           ++intervalDataCount;
@@ -1442,21 +1044,21 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
             // determine value pixel span and add as many points in interval to maintain certain vertical data density (this is specific to scatter plot):
             double valuePixelSpan = qAbs(valueAxis->coordToPixel(minValue)-valueAxis->coordToPixel(maxValue));
             int dataModulo = qMax(1, qRound(intervalDataCount/(valuePixelSpan/4.0))); // approximately every 4 value pixels one data point on average
-            QCPDataMap::const_iterator intervalIt = currentIntervalStart;
+            QCPGraphDataContainer::const_iterator intervalIt = currentIntervalStart;
             int c = 0;
             while (intervalIt != it)
             {
-              if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt.value().value > valueMinRange && intervalIt.value().value < valueMaxRange)
-                scatterData->append(intervalIt.value());
+              if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt->value > valueMinRange && intervalIt->value < valueMaxRange)
+                scatterData->append(*intervalIt);
               ++c;
               ++intervalIt;
             }
-          } else if (currentIntervalStart.value().value > valueMinRange && currentIntervalStart.value().value < valueMaxRange)
-            scatterData->append(currentIntervalStart.value());
-          minValue = it.value().value;
-          maxValue = it.value().value;
+          } else if (currentIntervalStart->value > valueMinRange && currentIntervalStart->value < valueMaxRange)
+            scatterData->append(*currentIntervalStart);
+          minValue = it->value;
+          maxValue = it->value;
           currentIntervalStart = it;
-          currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it.key())+reversedRound));
+          currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
           if (keyEpsilonVariable)
             keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
           intervalDataCount = 1;
@@ -1469,33 +1071,32 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
         // determine value pixel span and add as many points in interval to maintain certain vertical data density (this is specific to scatter plot):
         double valuePixelSpan = qAbs(valueAxis->coordToPixel(minValue)-valueAxis->coordToPixel(maxValue));
         int dataModulo = qMax(1, qRound(intervalDataCount/(valuePixelSpan/4.0))); // approximately every 4 value pixels one data point on average
-        QCPDataMap::const_iterator intervalIt = currentIntervalStart;
+        QCPGraphDataContainer::const_iterator intervalIt = currentIntervalStart;
         int c = 0;
         while (intervalIt != it)
         {
-          if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt.value().value > valueMinRange && intervalIt.value().value < valueMaxRange)
-            scatterData->append(intervalIt.value());
+          if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt->value > valueMinRange && intervalIt->value < valueMaxRange)
+            scatterData->append(*intervalIt);
           ++c;
           ++intervalIt;
         }
-      } else if (currentIntervalStart.value().value > valueMinRange && currentIntervalStart.value().value < valueMaxRange)
-        scatterData->append(currentIntervalStart.value());
+      } else if (currentIntervalStart->value > valueMinRange && currentIntervalStart->value < valueMaxRange)
+        scatterData->append(*currentIntervalStart);
     }
   } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output parameters
   {
-    QVector<QCPData> *dataVector = 0;
+    QVector<QCPGraphData> *dataVector = 0;
     if (lineData)
       dataVector = lineData;
     else if (scatterData)
       dataVector = scatterData;
     if (dataVector)
     {
-      QCPDataMap::const_iterator it = lower;
-      QCPDataMap::const_iterator upperEnd = upper+1;
+      QCPGraphDataContainer::const_iterator it = lower;
       dataVector->reserve(dataCount+2); // +2 for possible fill end points
       while (it != upperEnd)
       {
-        dataVector->append(it.value());
+        dataVector->append(*it);
         ++it;
       }
     }
@@ -1506,164 +1107,23 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
 
 /*!  \internal
   
-  called by the scatter drawing function (\ref drawScatterPlot) to draw the error bars on one data
-  point. \a x and \a y pixel positions of the data point are passed since they are already known in
-  pixel coordinates in the drawing function, so we save some extra coordToPixel transforms here. \a
-  data is therefore only used for the errors, not key and value.
-*/
-void QCPGraph::drawError(QCPPainter *painter, double x, double y, const QCPData &data) const
-{
-  if (qIsNaN(data.value))
-    return;
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  double a, b; // positions of error bar bounds in pixels
-  double barWidthHalf = mErrorBarSize*0.5;
-  double skipSymbolMargin = mScatterStyle.size(); // pixels left blank per side, when mErrorBarSkipSymbol is true
-
-  if (keyAxis->orientation() == Qt::Vertical)
-  {
-    // draw key error vertically and value error horizontally
-    if (mErrorType == etKey || mErrorType == etBoth)
-    {
-      a = keyAxis->coordToPixel(data.key-data.keyErrorMinus);
-      b = keyAxis->coordToPixel(data.key+data.keyErrorPlus);
-      if (keyAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
-        painter->drawLine(QLineF(x, a, x, b));
-      // draw handles:
-      painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
-      painter->drawLine(QLineF(x-barWidthHalf, b, x+barWidthHalf, b));
-    }
-    if (mErrorType == etValue || mErrorType == etBoth)
-    {
-      a = valueAxis->coordToPixel(data.value-data.valueErrorMinus);
-      b = valueAxis->coordToPixel(data.value+data.valueErrorPlus);
-      if (valueAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
-        painter->drawLine(QLineF(a, y, b, y));
-      // draw handles:
-      painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
-      painter->drawLine(QLineF(b, y-barWidthHalf, b, y+barWidthHalf));
-    }
-  } else // mKeyAxis->orientation() is Qt::Horizontal
-  {
-    // draw value error vertically and key error horizontally
-    if (mErrorType == etKey || mErrorType == etBoth)
-    {
-      a = keyAxis->coordToPixel(data.key-data.keyErrorMinus);
-      b = keyAxis->coordToPixel(data.key+data.keyErrorPlus);
-      if (keyAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (x-a > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(a, y, x-skipSymbolMargin, y));
-        if (b-x > skipSymbolMargin)
-          painter->drawLine(QLineF(x+skipSymbolMargin, y, b, y));
-      } else
-        painter->drawLine(QLineF(a, y, b, y));
-      // draw handles:
-      painter->drawLine(QLineF(a, y-barWidthHalf, a, y+barWidthHalf));
-      painter->drawLine(QLineF(b, y-barWidthHalf, b, y+barWidthHalf));
-    }
-    if (mErrorType == etValue || mErrorType == etBoth)
-    {
-      a = valueAxis->coordToPixel(data.value-data.valueErrorMinus);
-      b = valueAxis->coordToPixel(data.value+data.valueErrorPlus);
-      if (valueAxis->rangeReversed())
-        qSwap(a,b);
-      // draw spine:
-      if (mErrorBarSkipSymbol)
-      {
-        if (a-y > skipSymbolMargin) // don't draw spine if error is so small it's within skipSymbolmargin
-          painter->drawLine(QLineF(x, a, x, y+skipSymbolMargin));
-        if (y-b > skipSymbolMargin)
-          painter->drawLine(QLineF(x, y-skipSymbolMargin, x, b));
-      } else
-        painter->drawLine(QLineF(x, a, x, b));
-      // draw handles:
-      painter->drawLine(QLineF(x-barWidthHalf, a, x+barWidthHalf, a));
-      painter->drawLine(QLineF(x-barWidthHalf, b, x+barWidthHalf, b));
-    }
-  }
-}
-
-/*!  \internal
-  
   called by \ref getPreparedData to determine which data (key) range is visible at the current key
   axis range setting, so only that needs to be processed.
   
-  \a lower returns an iterator to the lowest data point that needs to be taken into account when
+  \a begin returns an iterator to the lowest data point that needs to be taken into account when
   plotting. Note that in order to get a clean plot all the way to the edge of the axis rect, \a
-  lower may still be just outside the visible range.
+  begin may still be just outside the visible range.
   
-  \a upper returns an iterator to the highest data point. Same as before, \a upper may also lie
-  just outside of the visible range.
-  
-  if the graph contains no data, both \a lower and \a upper point to constEnd.
+  \a end returns the iterator just above the highest data point that needs to be taken into
+  account. Same as before, \a end may also lie just outside of the visible range.
+
+  if the graph contains no data, both \a begin and \a end point to \c constEnd.
 */
-void QCPGraph::getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const
+void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const
 {
   if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-  if (mData->isEmpty())
-  {
-    lower = mData->constEnd();
-    upper = mData->constEnd();
-    return;
-  }
-  
-  // get visible data range as QMap iterators
-  QCPDataMap::const_iterator lbound = mData->lowerBound(mKeyAxis.data()->range().lower);
-  QCPDataMap::const_iterator ubound = mData->upperBound(mKeyAxis.data()->range().upper);
-  bool lowoutlier = lbound != mData->constBegin(); // indicates whether there exist points below axis range
-  bool highoutlier = ubound != mData->constEnd(); // indicates whether there exist points above axis range
-  
-  lower = (lowoutlier ? lbound-1 : lbound); // data point range that will be actually drawn
-  upper = (highoutlier ? ubound : ubound-1); // data point range that will be actually drawn
-}
-
-/*!  \internal
-  
-  Counts the number of data points between \a lower and \a upper (including them), up to a maximum
-  of \a maxCount.
-  
-  This function is used by \ref getPreparedData to determine whether adaptive sampling shall be
-  used (if enabled via \ref setAdaptiveSampling) or not. This is also why counting of data points
-  only needs to be done until \a maxCount is reached, which should be set to the number of data
-  points at which adaptive sampling sets in.
-*/
-int QCPGraph::countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const
-{
-  if (upper == mData->constEnd() && lower == mData->constEnd())
-    return 0;
-  QCPDataMap::const_iterator it = lower;
-  int count = 1;
-  while (it != upper && count < maxCount)
-  {
-    ++it;
-    ++count;
-  }
-  return count;
+  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
 }
 
 /*! \internal
@@ -2064,7 +1524,7 @@ int QCPGraph::findIndexAboveY(const QVector<QPointF> *data, double y) const
 */
 double QCPGraph::pointDistance(const QPointF &pixelPoint) const
 {
-  if (mData->isEmpty())
+  if (mDataContainer->isEmpty())
     return -1.0;
   if (mLineStyle == lsNone && mScatterStyle.isNone())
     return -1.0;
@@ -2073,7 +1533,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
   if (mLineStyle == lsNone)
   {
     // no line displayed, only calculate distance to scatter points:
-    QVector<QCPData> scatterData;
+    QVector<QCPGraphData> scatterData;
     getScatterPlotData(&scatterData);
     if (scatterData.size() > 0)
     {
@@ -2149,247 +1609,13 @@ int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  // just call the specialized version which takes an additional argument whether error bars
-  // should also be taken into consideration for range calculation. We set this to true here.
-  return getKeyRange(foundRange, inSignDomain, true);
+  return mDataContainer->keyRange(foundRange, inSignDomain);
 }
 
 /* inherits documentation from base class */
-QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
-  // just call the specialized version which takes an additional argument whether error bars
-  // should also be taken into consideration for range calculation. We set this to true here.
-  return getValueRange(foundRange, inSignDomain, true);
-}
-
-/*! \overload
-  
-  Allows to specify whether the error bars should be included in the range calculation.
-  
-  \see getKeyRange(bool &foundRange, SignDomain inSignDomain)
-*/
-QCPRange QCPGraph::getKeyRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current, currentErrorMinus, currentErrorPlus;
-  
-  if (inSignDomain == sdBoth) // range may be anywhere
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if (current-currentErrorMinus < range.lower || !haveLower)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if (current+currentErrorPlus > range.upper || !haveUpper)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == sdNegative) // range may only be in the negative sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus < 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus < 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to geht that point.
-        {
-          if ((current < range.lower || !haveLower) && current < 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current < 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == sdPositive) // range may only be in the positive sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      if (!qIsNaN(it.value().value))
-      {
-        current = it.value().key;
-        currentErrorMinus = (includeErrors ? it.value().keyErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().keyErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus > 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus > 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to get that point.
-        {
-          if ((current < range.lower || !haveLower) && current > 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current > 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
-}
-
-/*! \overload
-  
-  Allows to specify whether the error bars should be included in the range calculation.
-  
-  \see getValueRange(bool &foundRange, SignDomain inSignDomain)
-*/
-QCPRange QCPGraph::getValueRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current, currentErrorMinus, currentErrorPlus;
-  
-  if (inSignDomain == sdBoth) // range may be anywhere
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if (current-currentErrorMinus < range.lower || !haveLower)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if (current+currentErrorPlus > range.upper || !haveUpper)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == sdNegative) // range may only be in the negative sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus < 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus < 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to get that point.
-        {
-          if ((current < range.lower || !haveLower) && current < 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current < 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  } else if (inSignDomain == sdPositive) // range may only be in the positive sign domain
-  {
-    QCPDataMap::const_iterator it = mData->constBegin();
-    while (it != mData->constEnd())
-    {
-      current = it.value().value;
-      if (!qIsNaN(current))
-      {
-        currentErrorMinus = (includeErrors ? it.value().valueErrorMinus : 0);
-        currentErrorPlus = (includeErrors ? it.value().valueErrorPlus : 0);
-        if ((current-currentErrorMinus < range.lower || !haveLower) && current-currentErrorMinus > 0)
-        {
-          range.lower = current-currentErrorMinus;
-          haveLower = true;
-        }
-        if ((current+currentErrorPlus > range.upper || !haveUpper) && current+currentErrorPlus > 0)
-        {
-          range.upper = current+currentErrorPlus;
-          haveUpper = true;
-        }
-        if (includeErrors) // in case point is in valid sign domain but errobars stretch beyond it, we still want to geht that point.
-        {
-          if ((current < range.lower || !haveLower) && current > 0)
-          {
-            range.lower = current;
-            haveLower = true;
-          }
-          if ((current > range.upper || !haveUpper) && current > 0)
-          {
-            range.upper = current;
-            haveUpper = true;
-          }
-        }
-      }
-      ++it;
-    }
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
+  return mDataContainer->valueRange(foundRange, inSignDomain);
 }

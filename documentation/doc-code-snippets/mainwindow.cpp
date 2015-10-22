@@ -202,13 +202,12 @@ void MainWindow::snippetQCPBars()
 void MainWindow::snippetQCPStatisticalBox()
 {
   //! [qcpstatisticalbox-creation-1]
-  QCPStatisticalBox *newBox = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  QCPStatisticalBox *newStatistical = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   //! [qcpstatisticalbox-creation-1]
   
   //! [qcpstatisticalbox-creation-2]
-  newBox->setName("Measurement Series 1");
-  newBox->setData(1000, 1, 3, 4, 5, 7);
-  newBox->setOutliers(QVector<double>() << 0.5 << 0.64 << 7.2 << 7.42);
+  newStatistical->setName("Measurement Series 1");
+  newStatistical->addData(1000, 1, 3, 4, 5, 7);
   //! [qcpstatisticalbox-creation-2]
 }
 
@@ -221,7 +220,7 @@ void MainWindow::snippetQCPFinancial()
   
   //! [qcpfinancial-creation-2]
   newFinancial->setName("Stock prices");
-  newFinancial->setData(QCPFinancial::timeSeriesToOhlc(time, price, 3600*24));
+  newFinancial->data()->set(QCPFinancial::timeSeriesToOhlc(time, price, 3600*24));
   newFinancial->setChartStyle(QCPFinancial::csCandlestick);
   //! [qcpfinancial-creation-2]
 }

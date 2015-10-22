@@ -8,8 +8,8 @@ private slots:
   void init();
   void cleanup();
   
-  void dataSharing();
   void dataManipulation();
+  void dataSharing();
   
 private:
   QCustomPlot *mPlot;

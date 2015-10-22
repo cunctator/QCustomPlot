@@ -30,6 +30,7 @@
 #include "../axis/range.h"
 #include "../plottable.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -39,22 +40,32 @@ class QCP_LIB_DECL QCPCurveData
 public:
   QCPCurveData();
   QCPCurveData(double t, double key, double value);
+  
+  inline double sortKey() const { return t; }
+  inline static QCPCurveData fromSortKey(double sortKey) { return QCPCurveData(sortKey, 0, 0); }
+  inline static bool sortKeyIsMainKey() { return false; }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  
   double t, key, value;
 };
 Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
 
-/*! \typedef QCPCurveDataMap
-  Container for storing \ref QCPCurveData items in a sorted fashion. The key of the map
-  is the t member of the QCPCurveData instance.
+
+/*! \typedef QCPCurveDataContainer
   
-  This is the container in which QCPCurve holds its data.
+  Container for storing \ref QCPCurveData points. The data is stored sorted by \a t, so the \a
+  sortKey() (returning \a t) is different from \a mainKey() (returning \a key).
+  
+  This template instantiation is the container in which QCPCurve holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
   \see QCPCurveData, QCPCurve::setData
 */
-
-typedef QMap<double, QCPCurveData> QCPCurveDataMap;
-typedef QMapIterator<double, QCPCurveData> QCPCurveDataMapIterator;
-typedef QMutableMapIterator<double, QCPCurveData> QCPCurveDataMutableMapIterator;
-
+typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
 class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
 {
@@ -76,44 +87,37 @@ public:
   virtual ~QCPCurve();
   
   // getters:
-  QSharedPointer<QCPCurveDataMap> data() const { return mData; }
+  QSharedPointer<QCPCurveDataContainer> data() const { return mDataContainer; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
-  void setData(const QCPCurveDataMap &data);
-  void setData(QSharedPointer<QCPCurveDataMap> data);
-  void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setData(QSharedPointer<QCPCurveDataContainer> data);
+  void setData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void setData(const QVector<double> &keys, const QVector<double> &values);
   void setScatterStyle(const QCPScatterStyle &style);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
-  void addData(const QCPCurveDataMap &dataMap);
-  void addData(const QCPCurveData &data);
+  void addData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void addData(const QVector<double> &keys, const QVector<double> &values);
   void addData(double t, double key, double value);
   void addData(double key, double value);
-  void addData(const QVector<double> &ts, const QVector<double> &keys, const QVector<double> &values);
-  void removeDataBefore(double t);
-  void removeDataAfter(double t);
-  void removeData(double fromt, double tot);
-  void removeData(double t);
   
   // reimplemented virtual methods:
-  virtual void clearData();
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:
   // property members:
-  QSharedPointer<QCPCurveDataMap> mData;
+  QSharedPointer<QCPCurveDataContainer> mDataContainer;
   QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
   virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;

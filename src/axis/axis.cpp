@@ -1410,9 +1410,9 @@ void QCPAxis::rescale(bool onlyVisiblePlottables)
       continue;
     QCPRange plottableRange;
     bool currentFoundRange;
-    QCPAbstractPlottable::SignDomain signDomain = QCPAbstractPlottable::sdBoth;
+    QCP::SignDomain signDomain = QCP::sdBoth;
     if (mScaleType == stLogarithmic)
-      signDomain = (mRange.upper < 0 ? QCPAbstractPlottable::sdNegative : QCPAbstractPlottable::sdPositive);
+      signDomain = (mRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
     if (p.at(i)->keyAxis() == this)
       plottableRange = p.at(i)->getKeyRange(currentFoundRange, signDomain);
     else

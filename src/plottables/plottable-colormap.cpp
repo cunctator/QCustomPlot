@@ -749,15 +749,6 @@ void QCPColorMap::updateLegendIcon(Qt::TransformationMode transformMode, const Q
   }
 }
 
-/*!
-  Clears the colormap data by calling \ref QCPColorMapData::clear() on the internal data. This also
-  resizes the map to 0x0 cells.
-*/
-void QCPColorMap::clearData()
-{
-  mMapData->clear();
-}
-
 /* inherits documentation from base class */
 double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
@@ -941,18 +932,18 @@ void QCPColorMap::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 }
 
 /* inherits documentation from base class */
-QCPRange QCPColorMap::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPColorMap::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   foundRange = true;
   QCPRange result = mMapData->keyRange();
   result.normalize();
-  if (inSignDomain == QCPAbstractPlottable::sdPositive)
+  if (inSignDomain == QCP::sdPositive)
   {
     if (result.lower <= 0 && result.upper > 0)
       result.lower = result.upper*1e-3;
     else if (result.lower <= 0 && result.upper <= 0)
       foundRange = false;
-  } else if (inSignDomain == QCPAbstractPlottable::sdNegative)
+  } else if (inSignDomain == QCP::sdNegative)
   {
     if (result.upper >= 0 && result.lower < 0)
       result.upper = result.lower*1e-3;
@@ -963,18 +954,18 @@ QCPRange QCPColorMap::getKeyRange(bool &foundRange, SignDomain inSignDomain) con
 }
 
 /* inherits documentation from base class */
-QCPRange QCPColorMap::getValueRange(bool &foundRange, SignDomain inSignDomain) const
+QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   foundRange = true;
   QCPRange result = mMapData->valueRange();
   result.normalize();
-  if (inSignDomain == QCPAbstractPlottable::sdPositive)
+  if (inSignDomain == QCP::sdPositive)
   {
     if (result.lower <= 0 && result.upper > 0)
       result.lower = result.upper*1e-3;
     else if (result.lower <= 0 && result.upper <= 0)
       foundRange = false;
-  } else if (inSignDomain == QCPAbstractPlottable::sdNegative)
+  } else if (inSignDomain == QCP::sdNegative)
   {
     if (result.upper >= 0 && result.lower < 0)
       result.upper = result.lower*1e-3;

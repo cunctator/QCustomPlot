@@ -43,7 +43,6 @@
 #include <QStack>
 #include <QCache>
 #include <QMargins>
-#include <QTimer>
 #include <qmath.h>
 #include <limits>
 #include <algorithm>
@@ -72,6 +71,18 @@
 namespace QCP
 {
 /*!
+  Represents negative and positive sign domain, e.g. for passing to \ref
+  QCPAbstractPlottable::getKeyRange and \ref QCPAbstractPlottable::getValueRange.
+  
+  This is primarily needed when working with logarithmic axis scales, since only one of the sign
+  domains can be visible at a time.
+*/
+enum SignDomain { sdNegative  ///< The negative sign domain, i.e. numbers smaller than zero
+                  ,sdBoth     ///< Both sign domains, including zero, i.e. all numbers
+                  ,sdPositive ///< The positive sign domain, i.e. numbers greater than zero
+                };
+
+/*!
   Defines the sides of a rectangular entity to which margins can be applied.
   
   \see QCPLayoutElement::setAutoMargins, QCPAxisRect::setAutoMargins
@@ -99,12 +110,11 @@ enum AntialiasedElement { aeAxes           = 0x0001 ///< <tt>0x0001</tt> Axis ba
                           ,aeSubGrid       = 0x0004 ///< <tt>0x0004</tt> Sub grid lines
                           ,aeLegend        = 0x0008 ///< <tt>0x0008</tt> Legend box
                           ,aeLegendItems   = 0x0010 ///< <tt>0x0010</tt> Legend items
-                          ,aePlottables    = 0x0020 ///< <tt>0x0020</tt> Main lines of plottables (excluding error bars, see element \ref aeErrorBars)
+                          ,aePlottables    = 0x0020 ///< <tt>0x0020</tt> Main lines of plottables
                           ,aeItems         = 0x0040 ///< <tt>0x0040</tt> Main lines of items
                           ,aeScatters      = 0x0080 ///< <tt>0x0080</tt> Scatter symbols of plottables (excluding scatter symbols of type ssPixmap)
-                          ,aeErrorBars     = 0x0100 ///< <tt>0x0100</tt> Error bars
-                          ,aeFills         = 0x0200 ///< <tt>0x0200</tt> Borders of fills (e.g. under or between graphs)
-                          ,aeZeroLine      = 0x0400 ///< <tt>0x0400</tt> Zero-lines, see \ref QCPGrid::setZeroLinePen
+                          ,aeFills         = 0x0100 ///< <tt>0x0100</tt> Borders of fills (e.g. under or between graphs)
+                          ,aeZeroLine      = 0x0200 ///< <tt>0x0200</tt> Zero-lines, see \ref QCPGrid::setZeroLinePen
                           ,aeAll           = 0xFFFF ///< <tt>0xFFFF</tt> All elements
                           ,aeNone          = 0x0000 ///< <tt>0x0000</tt> No elements
                         };

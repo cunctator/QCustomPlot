@@ -43,7 +43,7 @@
   create new ways of displaying data (see "Creating own plottables" below).
   
   All further specifics are in the subclasses, for example:
-  \li A normal graph with possibly a line, scatter points and error bars: \ref QCPGraph
+  \li A normal graph with possibly a line and/or scatter points \ref QCPGraph
   (typically created with \ref QCustomPlot::addGraph)
   \li A parametric curve: \ref QCPCurve
   \li A bar chart: \ref QCPBars
@@ -55,7 +55,6 @@
   
   To create an own plottable, you implement a subclass of QCPAbstractPlottable. These are the pure
   virtual functions, you must implement:
-  \li \ref clearData
   \li \ref selectTest
   \li \ref draw
   \li \ref drawLegendIcon
@@ -105,10 +104,6 @@
 
 /* start of documentation of pure virtual functions */
 
-/*! \fn void QCPAbstractPlottable::clearData() = 0
-  Clears all data in the plottable.
-*/
-
 /*! \fn void QCPAbstractPlottable::drawLegendIcon(QCPPainter *painter, const QRect &rect) const = 0
   \internal
   
@@ -119,7 +114,7 @@
   appear outside the legend icon border.
 */
 
-/*! \fn QCPRange QCPAbstractPlottable::getKeyRange(bool &foundRange, SignDomain inSignDomain) const = 0
+/*! \fn QCPRange QCPAbstractPlottable::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
   \internal
   
   called by rescaleAxes functions to get the full data key bounds. For logarithmic plots, one can
@@ -136,7 +131,7 @@
   \see rescaleAxes, getValueRange
 */
 
-/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, SignDomain inSignDomain) const = 0
+/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
   \internal
   
   called by rescaleAxes functions to get the full data value bounds. For logarithmic plots, one can
@@ -187,7 +182,6 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mName(),
   mAntialiasedFill(true),
   mAntialiasedScatters(true),
-  mAntialiasedErrorBars(false),
   mPen(Qt::black),
   mSelectedPen(Qt::black),
   mBrush(Qt::NoBrush),
@@ -235,18 +229,6 @@ void QCPAbstractPlottable::setAntialiasedScatters(bool enabled)
 {
   mAntialiasedScatters = enabled;
 }
-
-/*!
-  Sets whether the error bars of this plottable are drawn antialiased or not.
-  
-  Note that this setting may be overridden by \ref QCustomPlot::setAntialiasedElements and \ref
-  QCustomPlot::setNotAntialiasedElements.
-*/
-void QCPAbstractPlottable::setAntialiasedErrorBars(bool enabled)
-{
-  mAntialiasedErrorBars = enabled;
-}
-
 
 /*!
   The pen is used to draw basic lines that make up the plottable representation in the
@@ -399,9 +381,9 @@ void QCPAbstractPlottable::rescaleKeyAxis(bool onlyEnlarge) const
   QCPAxis *keyAxis = mKeyAxis.data();
   if (!keyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
   
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (keyAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (keyAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (keyAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getKeyRange(foundRange, signDomain);
@@ -439,9 +421,9 @@ void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge) const
   QCPAxis *valueAxis = mValueAxis.data();
   if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
   
-  SignDomain signDomain = sdBoth;
+  QCP::SignDomain signDomain = QCP::sdBoth;
   if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
-    signDomain = (valueAxis->range().upper < 0 ? sdNegative : sdPositive);
+    signDomain = (valueAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
   QCPRange newRange = getValueRange(foundRange, signDomain);
@@ -644,7 +626,7 @@ QBrush QCPAbstractPlottable::mainBrush() const
   
   \seebaseclassmethod
   
-  \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
+  \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint
 */
 void QCPAbstractPlottable::applyDefaultAntialiasingHint(QCPPainter *painter) const
 {
@@ -660,7 +642,7 @@ void QCPAbstractPlottable::applyDefaultAntialiasingHint(QCPPainter *painter) con
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
   
-  \see setAntialiased, applyDefaultAntialiasingHint, applyScattersAntialiasingHint, applyErrorBarsAntialiasingHint
+  \see setAntialiased, applyDefaultAntialiasingHint, applyScattersAntialiasingHint
 */
 void QCPAbstractPlottable::applyFillAntialiasingHint(QCPPainter *painter) const
 {
@@ -676,27 +658,11 @@ void QCPAbstractPlottable::applyFillAntialiasingHint(QCPPainter *painter) const
   overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
   QCustomPlot::setNotAntialiasedElements.
   
-  \see setAntialiased, applyFillAntialiasingHint, applyDefaultAntialiasingHint, applyErrorBarsAntialiasingHint
+  \see setAntialiased, applyFillAntialiasingHint, applyDefaultAntialiasingHint
 */
 void QCPAbstractPlottable::applyScattersAntialiasingHint(QCPPainter *painter) const
 {
   applyAntialiasingHint(painter, mAntialiasedScatters, QCP::aeScatters);
-}
-
-/*! \internal
-
-  A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
-  before drawing plottable error bars.
-  
-  This function takes into account the local setting of the antialiasing flag as well as the
-  overrides set with \ref QCustomPlot::setAntialiasedElements and \ref
-  QCustomPlot::setNotAntialiasedElements.
-  
-  \see setAntialiased, applyFillAntialiasingHint, applyScattersAntialiasingHint, applyDefaultAntialiasingHint
-*/
-void QCPAbstractPlottable::applyErrorBarsAntialiasingHint(QCPPainter *painter) const
-{
-  applyAntialiasingHint(painter, mAntialiasedErrorBars, QCP::aeErrorBars);
 }
 
 /* inherits documentation from base class */

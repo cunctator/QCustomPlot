@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupBarsTest(mCustomPlot);
   //setupBarsGroupTest(mCustomPlot);
   //setupLargeDataSetDelete(mCustomPlot);
+  //setupMultiValueGraph(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -185,20 +186,21 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
 {
   customPlot->addGraph();
 
-  QCPDataMap *dataMap = new QCPDataMap;
+  QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
   int n = 10e6;
   QTime t;
   t.start();
   for (int i=0; i<n; ++i)
   {
-    dataMap->insert(i, QCPData(i, i));
+    data->add(QCPGraphData(i, i));
   }
   qDebug() << "data" << t.restart();
-  customPlot->graph(0)->setData(dataMap, false);
+  customPlot->graph(0)->setData(data);
   qDebug() << "set" << t.restart();
   customPlot->xAxis->setRange(0, 50);
   customPlot->yAxis->setRange(-1, 1);
   t.restart();
+  customPlot->rescaleAxes();
   customPlot->replot();
   qDebug() << "replot" << t.restart();
   //customPlot->rescaleAxes();
@@ -315,6 +317,7 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
+  /* TODO: with new error bars plottable
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
   customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   customPlot->yAxis->setNumberFormat("eb");
@@ -338,6 +341,7 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   //customPlot->rescaleAxes();
   customPlot->xAxis->setRange(0, 10);
   customPlot->yAxis->setRange(1, 10);
+  */
 }
 
 void MainWindow::setupSelectTest(QCustomPlot *customPlot)
@@ -527,7 +531,7 @@ void MainWindow::setupLayoutTest(QCustomPlot *customPlot)
   d1->insert(1, QCPCurveData(1, 3, 2));
   d1->insert(2, QCPCurveData(2, 6, 4));
   
-  c->clearData();
+  c->data()->clear();
   c->setData(d1, false);
   
   QCPCurveDataMap *d2 = new QCPCurveDataMap;
@@ -535,7 +539,7 @@ void MainWindow::setupLayoutTest(QCustomPlot *customPlot)
   d2->insert(2, QCPCurveData(2, 31, 22));
   d2->insert(4, QCPCurveData(4, 61, 42));
   
-  c->clearData();
+  c->data->clear();
   c->setData(d2, false);
   
   customPlot->replot();
@@ -1019,35 +1023,53 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPDataMap *data = new QCPDataMap;
+    QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<82000; ++i)
-      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);
   }
   qDebug() << "create" << timer.nsecsElapsed()/1e6 << "ms";
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediate);
   
-  // asynchronous remove:
   timer.start();
-  customPlot->clearPlottablesAsynchronous();
+  customPlot->clearPlottables();
   qDebug() << "remove" << timer.nsecsElapsed()/1e6 << "ms";
   
   customPlot->replot(QCustomPlot::rpImmediate);
   
-  // create next set right away to see whether asynchronous remove works:
+  // create next set right away:
   for (int n=0; n<10; ++n)
   {
     QCPGraph *g = customPlot->addGraph();
     QPen p(Qt::blue, 0, Qt::SolidLine);
     g->setSelectedPen(p);
-    QCPDataMap *data = new QCPDataMap;
+    QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<5000; ++i)
-      data->insert(i, QCPData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
     g->setData(data);
   }
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediate);
+}
+
+void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)
+{
+  QCPGraph *g = customPlot->addGraph();
+  
+  QVector<double> x, y;
+  x << 1 << 2 << 3 << 4 << 3 << 5 << 3; // three values at key 3, with exit point in center but out of order key data
+  y << 1 << 1 << 2 << 3 << 4 << 3 << 3;
+  g->setData(x, y);
+  
+  // now merge with second dataset which lies in same key range and has own multi-key:
+  QVector<double> u, v;
+  u << 2.5 << 2.6 << 3.5 << 3.5 << 3.5 << 3.6; // three values at key 3.5, with exit point in center
+  v << 0   << 0   << 0   << 0.5 << 0.25 << 0;
+  g->addData(u, v);
+  
+  customPlot->rescaleAxes();
+  customPlot->replot();
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
@@ -1265,29 +1287,65 @@ void MainWindow::setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event)
 
 void MainWindow::daqPerformanceDataSlot()
 {
-  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
+  static qint64 start = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
+  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000 - start;
   static qint64 lastMillisecond = currentMillisecond;
   static int ptsInThisMillisecond = 0;
-  if (ptsInThisMillisecond < 10)
-  {
-    ptsInThisMillisecond++;
-    double x = currentMillisecond/1000.0;
-    double y = qSin(x*10)*qCos(x/2.0);
-    mCustomPlot->graph(0)->addData(x+qSin(ptsInThisMillisecond*100)*0.001,y+qSin(ptsInThisMillisecond*10)*0.001);
-  }
   if (lastMillisecond != currentMillisecond)
   {
     ptsInThisMillisecond = 0;
     lastMillisecond = currentMillisecond;
   }
+  static int dir = 1;
+  static bool grow = true;
+  if (mCustomPlot->graph()->data()->size() > 100000)
+    grow = false;
+  
+  if (rand()%100000 < 100)
+  {
+    if (grow)
+    {
+      if (rand()%1000 < 280)
+        dir = -1;
+      else
+        dir = 1;
+    } else
+    {
+      if (rand()%1000 < 450)
+        dir = -1;
+      else
+        dir = 1;
+    }
+  }
+  if (dir == 1)
+  {
+    if (ptsInThisMillisecond < 100)
+    {
+      ptsInThisMillisecond++;
+      double x = currentMillisecond/1000.0 + ptsInThisMillisecond/1e6;
+      double y = qSin(x*10)*qCos(x/2.0);
+      mCustomPlot->graph(0)->addData(x,y+qSin(ptsInThisMillisecond*10)*0.001);
+      mCustomPlot->graph(0)->addData(-x,y+qSin(ptsInThisMillisecond*10)*0.001);
+    }
+  } else
+  {
+    if (rand()%10 < 1)
+      mCustomPlot->graph(0)->data()->removeBefore(mCustomPlot->graph(0)->data()->constBegin()->key+0.00000001);
+    else
+      mCustomPlot->graph(0)->data()->remove((mCustomPlot->graph(0)->data()->constEnd()-1)->key);
+    if (mCustomPlot->graph(0)->data()->isEmpty())
+      qApp->quit();
+  }
 }
 
 void MainWindow::daqPerformanceReplotSlot()
 {
-  double lastX = 0;
-  if (mCustomPlot->graph(0)->data()->end() != mCustomPlot->graph(0)->data()->begin())
-    lastX = (mCustomPlot->graph(0)->data()->end()-1).key();
-  mCustomPlot->xAxis->setRange(lastX, 10, Qt::AlignRight);
+  static bool hasRescaled = false;
+  if (!hasRescaled)
+  {
+    mCustomPlot->rescaleAxes();
+    hasRescaled = true;
+  }
   mCustomPlot->replot();
   
   int dataPoints = mCustomPlot->graph(0)->data()->size();

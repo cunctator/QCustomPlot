@@ -814,7 +814,7 @@ void QCPBars::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   \a end returns an iterator one higher than the highest visible data point. Same as before, \a end
   may also lie just outside of the visible range.
   
-  if the bars plottable contains no data, both \a begin and \a end point to constEnd.
+  if the plottable contains no data, both \a begin and \a end point to constEnd.
 */
 void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const
 {

@@ -133,8 +133,8 @@ QCPGraphData::QCPGraphData(double key, double value) :
   accessed via QCustomPlot::graph.
 
   To plot data, assign it with the \ref setData or \ref addData functions. Alternatively, you can
-  also access and modify the graph's data via the \ref data method, which returns a pointer to the
-  internal \ref QCPGraphDataContainer.
+  also access and modify the data via the \ref data method, which returns a pointer to the internal
+  \ref QCPGraphDataContainer.
   
   Graphs are used to display single-valued data. Single-valued means that there should only be one
   data point per unique key coordinate. In other words, the graph can't have \a loops. If you do
@@ -168,7 +168,7 @@ QCPGraphData::QCPGraphData(double key, double value) :
   
   Returns a shared pointer to the internal data storage of type \ref QCPGraphDataContainer. You may
   use it to directly manipulate the data, which may be more convenient and faster than using the
-  regular \ref setData or \ref addData methods, in certain situations.
+  regular \ref setData or \ref addData methods.
 */
 
 /* end of documentation of inline functions */
@@ -1105,7 +1105,7 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
   }
 }
 
-/*!  \internal
+/*! \internal
   
   called by \ref getPreparedData to determine which data (key) range is visible at the current key
   axis range setting, so only that needs to be processed.
@@ -1117,7 +1117,7 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
   \a end returns the iterator just above the highest data point that needs to be taken into
   account. Same as before, \a end may also lie just outside of the visible range.
 
-  if the graph contains no data, both \a begin and \a end point to \c constEnd.
+  if the plottable contains no data, both \a begin and \a end point to \c constEnd.
 */
 void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const
 {

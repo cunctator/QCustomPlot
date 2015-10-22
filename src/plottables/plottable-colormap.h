@@ -76,6 +76,7 @@ protected:
   int mKeySize, mValueSize;
   QCPRange mKeyRange, mValueRange;
   bool mIsEmpty;
+  
   // non-property members:
   double *mData;
   QCPRange mDataBounds;
@@ -139,6 +140,7 @@ protected:
   bool mInterpolate;
   bool mTightBoundary;
   QPointer<QCPColorScale> mColorScale;
+  
   // non-property members:
   QImage mMapImage, mUndersampledMapImage;
   QPixmap mLegendIcon;

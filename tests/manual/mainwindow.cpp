@@ -736,13 +736,13 @@ void MainWindow::setupColorMapTest(QCustomPlot *customPlot)
 
 void MainWindow::setupBarsTest(QCustomPlot *customPlot)
 {
-  QVector<double> datax = QVector<double>() << 2 << 3 << 4 << 5; 
-  QVector<double> datay1 = QVector<double>() << 0.2 << 0.3 << 0.4 << 0.5; 
-  QVector<double> datay2 = QVector<double>() << 0.5 << 0.4 << 0.3 << 0.2; 
-  QVector<double> datay3 = QVector<double>() << 0.1 << 0.2 << 0.1 << 0.2; 
-  QVector<double> datay1n = QVector<double>() << -0.2 << -0.3 << -0.4 << -0.5; 
-  QVector<double> datay2n = QVector<double>() << -0.5 << -0.4 << -0.3 << -0.2; 
-  QVector<double> datay3n = QVector<double>() << -0.1 << -0.2 << -0.1 << -0.2; 
+  QVector<double> datax = QVector<double>() << 2 << 3 << 4 << 5;
+  QVector<double> datay1 = QVector<double>() << 0.2 << 0.3 << 0.4 << 0.5;
+  QVector<double> datay2 = QVector<double>() << 0.5 << 0.4 << 0.3 << 0.2;
+  QVector<double> datay3 = QVector<double>() << 0.1 << 0.2 << 0.1 << 0.2;
+  QVector<double> datay1n = QVector<double>() << -0.2 << -0.3 << -0.4 << -0.5;
+  QVector<double> datay2n = QVector<double>() << -0.5 << -0.4 << -0.3 << -0.2;
+  QVector<double> datay3n = QVector<double>() << -0.1 << -0.2 << -0.1 << -0.2;
   
   customPlot->yAxis->setRangeReversed(false);
   QCPBars *bars;
@@ -921,10 +921,10 @@ void MainWindow::setupBarsTest(QCustomPlot *customPlot)
 
 void MainWindow::setupBarsGroupTest(QCustomPlot *customPlot)
 {
-  QVector<double> datax = QVector<double>() << 2 << 5 << 8 << 11; 
-  QVector<double> datay1 = QVector<double>() << 0.2 << 0.3 << 0.4 << 0.5; 
-  QVector<double> datay2 = QVector<double>() << 0.5 << 0.4 << 0.3 << 0.2; 
-  QVector<double> datay3 = QVector<double>() << 0.1 << 0.2 << 0.1 << 0.2; 
+  QVector<double> datax = QVector<double>() << 2 << 5 << 8 << 11;
+  QVector<double> datay1 = QVector<double>() << 0.2 << 0.3 << 0.4 << 0.5;
+  QVector<double> datay2 = QVector<double>() << 0.5 << 0.4 << 0.3 << 0.2;
+  QVector<double> datay3 = QVector<double>() << 0.1 << 0.2 << 0.1 << 0.2;
   
   QCPBarsGroup *group1 = new QCPBarsGroup(customPlot);
   QCPBarsGroup *group2 = new QCPBarsGroup(customPlot);

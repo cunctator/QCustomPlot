@@ -118,6 +118,7 @@ protected:
   Qt::Orientations mRangeDrag, mRangeZoom;
   QPointer<QCPAxis> mRangeDragHorzAxis, mRangeDragVertAxis, mRangeZoomHorzAxis, mRangeZoomVertAxis;
   double mRangeZoomFactorHorz, mRangeZoomFactorVert;
+  
   // non-property members:
   QCPRange mDragStartHorzRange, mDragStartVertRange;
   QCP::AntialiasedElements mAADragBackup, mNotAADragBackup;

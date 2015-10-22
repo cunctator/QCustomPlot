@@ -87,8 +87,6 @@ public:
   QCPColorGradient inverted() const;
   
 protected:
-  void updateColorBuffer();
-  
   // property members:
   int mLevelCount;
   QMap<double, QColor> mColorStops;
@@ -98,6 +96,9 @@ protected:
   // non-property members:
   QVector<QRgb> mColorBuffer;
   bool mColorBufferInvalidated;
+  
+  // non-virtual methods:
+  void updateColorBuffer();
 };
 
 #endif // QCP_COLORGRADIENT_H

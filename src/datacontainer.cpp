@@ -176,7 +176,8 @@ void QCPDataContainer<DataType>::setAutoSqueeze(bool enabled)
 template <class DataType>
 void QCPDataContainer<DataType>::set(const QCPDataContainer<DataType> &data)
 {
-  set(data.mData, true);
+  clear();
+  add(data);
 }
 
 /*! \overload

@@ -1827,8 +1827,8 @@ bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
   objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
   this function.
 
-  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush
-  &brush) with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
+  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush &brush)
+  with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
 
   PNG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
   -1 to use the default setting.
@@ -2213,8 +2213,8 @@ void QCustomPlot::draw(QCPPainter *painter)
   dependent on the \ref setBackgroundScaledMode), or when a differend axis background pixmap was
   set.
   
-  Note that this function does not draw a fill with the background brush (\ref setBackground(const
-  QBrush &brush)) beneath the pixmap.
+  Note that this function does not draw a fill with the background brush
+  (\ref setBackground(const QBrush &brush)) beneath the pixmap.
   
   \see setBackground, setBackgroundScaled, setBackgroundScaledMode
 */

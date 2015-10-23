@@ -118,10 +118,10 @@
   \internal
   
   called by rescaleAxes functions to get the full data key bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref sdNegative or \ref sdPositive in order to restrict the
+  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
   returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref sdBoth (default). \a foundRange is an output
+  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
+  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
   parameter that indicates whether a range could be found or not. If this is false, you shouldn't
   use the returned range (e.g. no points in data).
 
@@ -135,10 +135,10 @@
   \internal
   
   called by rescaleAxes functions to get the full data value bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref sdNegative or \ref sdPositive in order to restrict the
+  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
   returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref sdBoth (default). \a foundRange is an output
+  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
+  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
   parameter that indicates whether a range could be found or not. If this is false, you shouldn't
   use the returned range (e.g. no points in data).
 

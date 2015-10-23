@@ -42,11 +42,11 @@
   \li \a key: coordinate on the key axis of this curve point (this is the \a mainKey)
   \li \a value: coordinate on the value axis of this curve point (this is the \a mainValue)
   
-  The container for storing multiple data points is \ref QCPCurveDataMap. It is a typedef for \ref
-  QCPDataContainer with \ref QCPCurveData as the DataType template parameter. See the documentation
-  there for an explanation regarding the data type's generic methods.
+  The container for storing multiple data points is \ref QCPCurveDataContainer. It is a typedef for
+  \ref QCPDataContainer with \ref QCPCurveData as the DataType template parameter. See the
+  documentation there for an explanation regarding the data type's generic methods.
   
-  \see QCPCurveDataMap
+  \see QCPCurveDataContainer
 */
 
 /* start documentation of inline functions */

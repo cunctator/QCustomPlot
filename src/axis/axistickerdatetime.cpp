@@ -42,7 +42,7 @@
   millisecond on all Qt versions.
   
   The format of the date/time display in the tick labels is controlled with \ref setDateTimeFormat.
-  If a different time spec (time zone) shall be used, see \ref setTimeSpec.
+  If a different time spec (time zone) shall be used, see \ref setDateTimeSpec.
   
   This ticker produces unequal tick spacing in order to provide intuitive date and time-of-day
   ticks. For example, if the axis range spans a few years such that there is one tick per year,

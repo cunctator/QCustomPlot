@@ -167,7 +167,7 @@ public:
     \see setScaleType
   */
   enum ScaleType { stLinear       ///< Linear scaling
-                   ,stLogarithmic ///< Logarithmic scaling with correspondingly transformed plots and (major) tick marks at every base power (see \ref setScaleLogBase).
+                   ,stLogarithmic ///< Logarithmic scaling with correspondingly transformed axis coordinates (possibly also \ref setTicker to a \ref QCPAxisTickerLog instance).
                  };
   Q_ENUMS(ScaleType)
   /*!

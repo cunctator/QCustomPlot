@@ -79,7 +79,7 @@
   \li <tt>double mainKey() const</tt>\n Returns the variable of this data point considered the main
   key. This is commonly the variable that is used as the coordinate of this data point on the key
   axis of the plottable. This method is used for example when determining the automatic axis
-  rescaling of key axes (\ref QCPAxis::rescaleAxis).
+  rescaling of key axes (\ref QCPAxis::rescale).
   
   \li <tt>double mainValue() const</tt>\n Returns the variable of this data point considered the
   main value. This is commonly the variable that is used as the coordinate of this data point on
@@ -91,7 +91,7 @@
   multiple values at once (e.g QCPFinancialData with its \a high, \a low, \a open and \a close
   values at each \a key) this method should return the range those values span. This method is used
   for example when determining the automatic axis rescaling of value axes (\ref
-  QCPAxis::rescaleAxis).
+  QCPAxis::rescale).
 */
 
 /* start documentation of inline functions */
@@ -346,7 +346,7 @@ void QCPDataContainer<DataType>::remove(double sortKeyFrom, double sortKeyTo)
 /*! \overload
   
   Removes a single data point at \a sortKey. If the position is not known with absolute (binary)
-  precision, consider using \ref removeData(double sortKeyFrom, double sortKeyTo) with a small
+  precision, consider using \ref remove(double sortKeyFrom, double sortKeyTo) with a small
   fuzziness interval around the suspected position, depeding on the precision with which the
   (sort-)key is known.
   

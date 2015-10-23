@@ -308,7 +308,7 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \see orientation()
 */
 
-/*! \fn QSharedPointer<QCPAxisTicker> ticker() const
+/*! \fn QSharedPointer<QCPAxisTicker> QCPAxis::ticker() const
   
   Returns a modifiable shared pointer to the currently installed axis ticker. The axis ticker is
   responsible for generating the tick positions and tick labels of this axis. You can access the
@@ -324,22 +324,22 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   \see setTicker
 */
 
-/*! \fn QVector<double> tickVector() const
+/*! \fn QVector<double> QCPAxis::tickVector() const
   
   Returns a vector of coordinates which correspond to the currently displayed axis ticks.
   
   This tick vector is read-only. If you wish to control the ticks, access or subclass the
-  QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  \ref QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
   
   \see tickVectorLabels
 */
 
-/*! \fn QVector<QString> tickVectorLabels() const
+/*! \fn QVector<QString> QCPAxis::tickVectorLabels() const
   
   Returns a vector of strings which correspond to the currently displayed axis ticks labels.
   
   This tick label vector is read-only. If you wish to control the tick labels, access or subclass
-  the QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
+  the \ref QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
   
   \see tickVector
 */
@@ -549,17 +549,14 @@ QCPLineEnding QCPAxis::upperEnding() const
 }
 
 /*!
-  Sets whether the axis uses a linear scale or a logarithmic scale. If \a type is set to \ref
-  stLogarithmic, the logarithm base can be set with \ref setScaleLogBase. In logarithmic axis
-  scaling, major tick marks appear at all powers of the logarithm base. Properties like tick step
-  (\ref setTickStep) don't apply in logarithmic scaling. If you wish a decimal base but less major
-  ticks, consider choosing a logarithm base of 100, 1000 or even higher.
+  Sets whether the axis uses a linear scale or a logarithmic scale.
   
-  If \a type is \ref stLogarithmic and the number format (\ref setNumberFormat) uses the 'b' option
-  (beautifully typeset decimal powers), the display usually is "1 [multiplication sign] 10
-  [superscript] n", which looks unnatural for logarithmic scaling (the "1 [multiplication sign]"
-  part). To only display the decimal power, set the number precision to zero with
-  \ref setNumberPrecision.
+  Note that this method controls the coordinate transformation. You will likely also want to use a
+  logarithmic tick spacing and labeling, which can be achieved by setting an instance of \ref
+  QCPAxisTickerLog via \ref setTicker. See the documentation of \ref QCPAxisTickerLog about the
+  details of logarithmic axis tick creation.
+  
+  \ref setNumberPrecision
 */
 void QCPAxis::setScaleType(QCPAxis::ScaleType type)
 {
@@ -872,13 +869,13 @@ void QCPAxis::setTickLabelSide(LabelSide side)
 }
 
 /*!
-  Sets the number format for the numbers drawn as tick labels (if tick label type is \ref
-  ltNumber). This \a formatCode is an extended version of the format code used e.g. by
-  QString::number() and QLocale::toString(). For reference about that, see the "Argument Formats"
-  section in the detailed description of the QString class. \a formatCode is a string of one, two
-  or three characters. The first character is identical to the normal format code used by Qt. In
-  short, this means: 'e'/'E' scientific format, 'f' fixed format, 'g'/'G' scientific or fixed,
-  whichever is shorter.
+  Sets the number format for the numbers in tick labels. This \a formatCode is an extended version
+  of the format code used e.g. by QString::number() and QLocale::toString(). For reference about
+  that, see the "Argument Formats" section in the detailed description of the QString class.
+  
+  \a formatCode is a string of one, two or three characters. The first character is identical to
+  the normal format code used by Qt. In short, this means: 'e'/'E' scientific format, 'f' fixed
+  format, 'g'/'G' scientific or fixed, whichever is shorter.
   
   The second and third characters are optional and specific to QCustomPlot:\n
   If the first char was 'e' or 'g', numbers are/might be displayed in the scientific format, e.g.
@@ -888,12 +885,6 @@ void QCPAxis::setTickLabelSide(LabelSide side)
   If instead a cross should be shown (as is usual in the USA), the third char of \a formatCode can
   be set to 'c'. The inserted multiplication signs are the UTF-8 characters 215 (0xD7) for the
   cross and 183 (0xB7) for the dot.
-  
-  If the scale type (\ref setScaleType) is \ref stLogarithmic and the \a formatCode uses the 'b'
-  option (beautifully typeset decimal powers), the display usually is "1 [multiplication sign] 10
-  [superscript] n", which looks unnatural for logarithmic scaling (the "1 [multiplication sign]"
-  part). To only display the decimal power, set the number precision to zero with \ref
-  setNumberPrecision.
   
   Examples for \a formatCode:
   \li \c g normal format code behaviour. If number is small, fixed format is used, if number is large,
@@ -966,12 +957,6 @@ void QCPAxis::setNumberFormat(const QString &formatCode)
   Sets the precision of the tick label numbers. See QLocale::toString(double i, char f, int prec)
   for details. The effect of precisions are most notably for number Formats starting with 'e', see
   \ref setNumberFormat
-
-  If the scale type (\ref setScaleType) is \ref stLogarithmic and the number format (\ref
-  setNumberFormat) uses the 'b' format code (beautifully typeset decimal powers), the display
-  usually is "1 [multiplication sign] 10 [superscript] n", which looks unnatural for logarithmic
-  scaling (the redundant "1 [multiplication sign]" part). To only display the decimal power "10
-  [superscript] n", set \a precision to zero.
 */
 void QCPAxis::setNumberPrecision(int precision)
 {

@@ -165,18 +165,18 @@ public:
   QSharedPointer<QCPBarsDataContainer> data() const { return mDataContainer; }
   
   // setters:
+  void setData(QSharedPointer<QCPBarsDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setWidth(double width);
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
-  void setData(QSharedPointer<QCPBarsDataContainer> data);
-  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   
   // non-property methods:
-  void moveBelow(QCPBars *bars);
-  void moveAbove(QCPBars *bars);
   void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void addData(double key, double value);
+  void moveBelow(QCPBars *bars);
+  void moveAbove(QCPBars *bars);
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;

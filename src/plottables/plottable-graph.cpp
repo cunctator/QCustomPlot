@@ -206,6 +206,21 @@ QCPGraph::~QCPGraph()
 {
 }
 
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPGraphs may share the same data container safely.
+  Modifying the data in the container will then affect all graphs that share the container. Sharing
+  can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpgraph-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the graph's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpgraph-datasharing-2
+  
+  \see addData
+*/
 void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
 {
   mDataContainer = data;
@@ -216,6 +231,11 @@ void QCPGraph::setData(QSharedPointer<QCPGraphDataContainer> data)
   Replaces the current data with the provided points in \a keys and \a values. The provided
   vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData
 */
 void QCPGraph::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
@@ -311,10 +331,16 @@ void QCPGraph::setAdaptiveSampling(bool enabled)
 }
 
 /*! \overload
-  Adds the provided data points as \a key and \a value pairs to the current data.
   
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
+  Adds the provided points in \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
@@ -336,10 +362,11 @@ void QCPGraph::addData(const QVector<double> &keys, const QVector<double> &value
 }
 
 /*! \overload
+  
   Adds the provided data point as \a key and \a value to the current data.
   
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPGraph::addData(double key, double value)
 {

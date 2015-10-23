@@ -206,6 +206,21 @@ QCPCurve::~QCPCurve()
 {
 }
 
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPCurves may share the same data container safely.
+  Modifying the data in the container will then affect all curves that share the container. Sharing
+  can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcurve-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the curve's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcurve-datasharing-2
+  
+  \see addData
+*/
 void QCPCurve::setData(QSharedPointer<QCPCurveDataContainer> data)
 {
   mDataContainer = data;
@@ -213,9 +228,12 @@ void QCPCurve::setData(QSharedPointer<QCPCurveDataContainer> data)
 
 /*! \overload
   
-  Replaces the current data with the provided points in \a t, \a key and \a value tuples. The
-  provided vectors should have equal length. Otherwise the number of added points will be the size
-  of the smallest vector.
+  Replaces the current data with the provided points in \a t, \a keys and \a values. The provided
+  vectors should have equal length. Else, the number of added points will be the size of the
+  smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a t in ascending order, you can
+  set \a alreadySorted to true, to improve performance by saving a sorting run.
   
   \see addData
 */
@@ -225,10 +243,15 @@ void QCPCurve::setData(const QVector<double> &t, const QVector<double> &keys, co
   addData(t, keys, values, alreadySorted);
 }
 
+
 /*! \overload
   
-  Replaces the current data with the provided \a key and \a value pairs. The t parameter
-  of each data point will be set to the integer index of the respective key/value pair.
+  Replaces the current data with the provided points in \a keys and \a values. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  The t parameter of each data point will be set to the integer index of the respective key/value
+  pair.
   
   \see addData
 */
@@ -263,10 +286,16 @@ void QCPCurve::setLineStyle(QCPCurve::LineStyle style)
 }
 
 /*! \overload
-  Adds the provided data points as \a t, \a key and \a value tuples to the current data.
   
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
+  Adds the provided points in \a t, \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPCurve::addData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
@@ -289,14 +318,16 @@ void QCPCurve::addData(const QVector<double> &t, const QVector<double> &keys, co
 }
 
 /*! \overload
-
-  Adds the provided data points as \a key and \a value pairs to the current data.
-
-  The t parameter is generated automatically by increments of 1 for each point, starting at the
-  highest t of previously existing data or 0, if the curve data is empty.
   
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
+  Adds the provided points in \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  The t parameter of each data point will be set to the integer index of the respective key/value
+  pair.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPCurve::addData(const QVector<double> &keys, const QVector<double> &values)
 {
@@ -324,13 +355,10 @@ void QCPCurve::addData(const QVector<double> &keys, const QVector<double> &value
 }
 
 /*! \overload
-  Adds the provided data point as \a key and \a value to the current data.
+  Adds the provided data point as \a t, \a key and \a value to the current data.
   
-  The t parameter is generated automatically by increments of 1 for each point, starting at the
-  highest t of previously existing data or 0, if the curve data is empty.
-  
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPCurve::addData(double t, double key, double value)
 {
@@ -338,10 +366,14 @@ void QCPCurve::addData(double t, double key, double value)
 }
 
 /*! \overload
+  
   Adds the provided data point as \a key and \a value to the current data.
   
-  Alternatively, you can also access and modify the curve's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPCurveDataContainer.
+  The t parameter is generated automatically by increments of 1 for each point, starting at the
+  highest t of previously existing data or 0, if the curve data is empty.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPCurve::addData(double key, double value)
 {

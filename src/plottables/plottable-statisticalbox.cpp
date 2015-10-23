@@ -203,6 +203,17 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpstatisticalbox-creation-2
 */
 
+/* start documentation of inline functions */
+
+/*! \fn QSharedPointer<QCPStatisticalBoxDataContainer> QCPStatisticalBox::data() const
+  
+  Returns a shared pointer to the internal data storage of type \ref
+  QCPStatisticalBoxDataContainer. You may use it to directly manipulate the data, which may be more
+  convenient and faster than using the regular \ref setData or \ref addData methods.
+*/
+
+/* end documentation of inline functions */
+
 /*!
   Constructs a statistical box which uses \a keyAxis as its key axis ("x") and \a valueAxis as its
   value axis ("y"). \a keyAxis and \a valueAxis must reside in the same QCustomPlot instance and
@@ -229,11 +240,37 @@ QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   setSelectedBrush(Qt::NoBrush);
 }
 
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPStatisticalBoxes may share the same data container
+  safely. Modifying the data in the container will then affect all statistical boxes that share the
+  container. Sharing can be achieved by simply exchanging the data containers wrapped in shared
+  pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpstatisticalbox-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the statistical box data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpstatisticalbox-datasharing-2
+  
+  \see addData
+*/
 void QCPStatisticalBox::setData(QSharedPointer<QCPStatisticalBoxDataContainer> data)
 {
   mDataContainer = data;
 }
-
+/*! \overload
+  
+  Replaces the current data with the provided points in \a keys, \a minimum, \a lowerQuartile, \a
+  median, \a upperQuartile and \a maximum. The provided vectors should have equal length. Else, the
+  number of added points will be the size of the smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData
+*/
 void QCPStatisticalBox::setData(const QVector<double> &keys, const QVector<double> &minimum, const QVector<double> &lowerQuartile, const QVector<double> &median, const QVector<double> &upperQuartile, const QVector<double> &maximum, bool alreadySorted)
 {
   mDataContainer->clear();
@@ -304,11 +341,24 @@ void QCPStatisticalBox::setMedianPen(const QPen &pen)
 /*!
   Sets the appearance of the outlier data points.
 */
+
 void QCPStatisticalBox::setOutlierStyle(const QCPScatterStyle &style)
 {
   mOutlierStyle = style;
 }
 
+/*! \overload
+   
+  Adds the provided points in \a keys, \a minimum, \a lowerQuartile, \a median, \a upperQuartile and
+  \a maximum to the current data. The provided vectors should have equal length. Else, the number
+  of added points will be the size of the smallest vector.
+   
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+   
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+ */
 void QCPStatisticalBox::addData(const QVector<double> &keys, const QVector<double> &minimum, const QVector<double> &lowerQuartile, const QVector<double> &median, const QVector<double> &upperQuartile, const QVector<double> &maximum, bool alreadySorted)
 {
   if (keys.size() != minimum.size() || minimum.size() != lowerQuartile.size() || lowerQuartile.size() != median.size() ||
@@ -334,6 +384,14 @@ void QCPStatisticalBox::addData(const QVector<double> &keys, const QVector<doubl
   mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
+/*! \overload
+  
+  Adds the provided data point as \a key, \a minimum, \a lowerQuartile, \a median, \a upperQuartile
+  and \a maximum to the current data.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+*/
 void QCPStatisticalBox::addData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double> &outliers)
 {
   mDataContainer->add(QCPStatisticalBoxData(key, minimum, lowerQuartile, median, upperQuartile, maximum, outliers));

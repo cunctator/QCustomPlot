@@ -221,11 +221,21 @@ QCPFinancial::~QCPFinancial()
 {
 }
 
-/*!
-  TODO
-  \see timeSeriesToOhlc
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPFinancials may share the same data container safely.
+  Modifying the data in the container will then affect all financials that share the container.
+  Sharing can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the financial's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-2
+  
+  \see addData, timeSeriesToOhlc
 */
-
 void QCPFinancial::setData(QSharedPointer<QCPFinancialDataContainer> data)
 {
   mDataContainer = data;
@@ -233,10 +243,14 @@ void QCPFinancial::setData(QSharedPointer<QCPFinancialDataContainer> data)
 
 /*! \overload
   
-  Replaces the current data with the provided open/high/low/close data. The provided vectors should
-  have equal length. Else, the number of added points will be the size of the smallest vector.
+  Replaces the current data with the provided points in \a keys, \a open, \a high, \a low and \a
+  close. The provided vectors should have equal length. Else, the number of added points will be
+  the size of the smallest vector.
   
-  \see timeSeriesToOhlc
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData, timeSeriesToOhlc
 */
 void QCPFinancial::setData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
 {
@@ -334,10 +348,17 @@ void QCPFinancial::setPenNegative(const QPen &pen)
 
 /*! \overload
   
-  Adds the provided open/high/low/close data to the current data.
+  Adds the provided points in \a keys, \a open, \a high, \a low and \a close to the current data.
+  The provided vectors should have equal length. Else, the number of added points will be the size
+  of the smallest vector.
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialDataContainer.
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+  
+  \see timeSeriesToOhlc
 */
 void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
 {
@@ -363,11 +384,13 @@ void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &o
 
 /*! \overload
   
-  Adds the provided single data point given by \a key, \a open, \a high, \a low, and \a close to
-  the current data.
+  Adds the provided data point as \a key, \a open, \a high, \a low and \a close to the current
+  data.
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialDataContainer.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+  
+  \see timeSeriesToOhlc
 */
 void QCPFinancial::addData(double key, double open, double high, double low, double close)
 {

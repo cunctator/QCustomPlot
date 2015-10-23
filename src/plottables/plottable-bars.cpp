@@ -502,6 +502,13 @@ QCPBarsData::QCPBarsData(double key, double value) :
 
 /* start of documentation of inline functions */
 
+/*! \fn QSharedPointer<QCPBarsDataContainer> QCPBars::data() const
+  
+  Returns a shared pointer to the internal data storage of type \ref QCPBarsDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods.
+*/
+
 /*! \fn QCPBars *QCPBars::barBelow() const
   Returns the bars plottable that is directly below this bars plottable.
   If there is no such plottable, returns 0.
@@ -612,6 +619,21 @@ void QCPBars::setBaseValue(double baseValue)
   mBaseValue = baseValue;
 }
 
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPBars may share the same data container safely.
+  Modifying the data in the container will then affect all bars that share the container. Sharing
+  can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the bar's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-2
+  
+  \see addData
+*/
 void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
 {
   mDataContainer = data;
@@ -619,9 +641,14 @@ void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
 
 /*! \overload
   
-  Replaces the current data with the provided points in \a keys and \a values tuples. The provided
+  Replaces the current data with the provided points in \a keys and \a values. The provided
   vectors should have equal length. Else, the number of added points will be the size of the
   smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData
 */
 void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
@@ -696,10 +723,16 @@ void QCPBars::moveAbove(QCPBars *bars)
 }
 
 /*! \overload
-  Adds the provided data points as \a key and \a value pairs to the current data.
   
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
+  Adds the provided points in \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
@@ -723,8 +756,8 @@ void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values
 /*! \overload
   Adds the provided data point as \a key and \a value to the current data.
   
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
 void QCPBars::addData(double key, double value)
 {

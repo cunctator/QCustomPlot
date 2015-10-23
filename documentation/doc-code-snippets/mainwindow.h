@@ -33,6 +33,12 @@ public slots:
   void snippetQCPStatisticalBox();
   void snippetQCPFinancial();
   
+  void snippetQCPGraphDataSharing();
+  void snippetQCPCurveDataSharing();
+  void snippetQCPBarsDataSharing();
+  void snippetQCPStatisticalBoxDataSharing();
+  void snippetQCPFinancialDataSharing();
+  
   // website code methods:
   void websiteBasicPlottingBars();
   

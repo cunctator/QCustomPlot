@@ -1502,7 +1502,11 @@ bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::
     return false;
   }
   
-  mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
+  if (layer->index() > otherLayer->index())
+    mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
+  else if (layer->index() < otherLayer->index())
+    mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 0:-1));
+  
   updateLayerIndices();
   return true;
 }

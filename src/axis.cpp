@@ -427,6 +427,7 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mCachedMarginValid(false),
   mCachedMargin(0)
 {
+  setParent(parent);
   mGrid->setVisible(false);
   setAntialiased(false);
   setLayer(mParentPlot->currentLayer()); // it's actually on that layer already, but we want it in front of the grid, so we place it on there again

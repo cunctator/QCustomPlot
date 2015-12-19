@@ -2875,13 +2875,19 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
   
   // determine whether beautiful decimal powers should be used
   bool useBeautifulPowers = false;
-  int ePos = -1;
+  int ePos = -1; // first index of exponent part, text before that will be basePart, text until eLast will be expPart
+  int eLast = -1; // last index of exponent part, rest of text after this will be suffixPart
   if (substituteExponent)
   {
     ePos = text.indexOf(QLatin1Char('e'));
-    useBeautifulPowers = ePos > 0 && ePos < text.size()-1 &&
-        text.at(ePos-1).isDigit() &&
-        (text.at(ePos+1) == QLatin1Char('+') || text.at(ePos+1) == QLatin1Char('-') || text.at(ePos+1).isDigit());
+    if (ePos > 0 && text.at(ePos-1).isDigit())
+    {
+      eLast = ePos;
+      while (eLast+1 < text.size() && (text.at(eLast+1) == QLatin1Char('+') || text.at(eLast+1) == QLatin1Char('-') || text.at(eLast+1).isDigit()))
+        ++eLast;
+      if (eLast > ePos) // only if also to right of 'e' is a digit/+/- interpret it as beautifiable power
+        useBeautifulPowers = true;
+    }
   }
   
   // calculate text bounding rects and do string preparation for beautiful decimal powers:

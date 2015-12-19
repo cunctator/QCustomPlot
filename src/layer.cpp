@@ -276,10 +276,12 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   It is possible to provide 0 as \a plot. In that case, you should assign a parent plot at a later
   time with \ref initializeParentPlot.
   
-  The layerable's parent layerable is set to \a parentLayerable, if provided. Direct layerable parents
-  are mainly used to control visibility in a hierarchy of layerables. This means a layerable is
-  only drawn, if all its ancestor layerables are also visible. Note that \a parentLayerable does
-  not become the QObject-parent (for memory management) of this layerable, \a plot does.
+  The layerable's parent layerable is set to \a parentLayerable, if provided. Direct layerable
+  parents are mainly used to control visibility in a hierarchy of layerables. This means a
+  layerable is only drawn, if all its ancestor layerables are also visible. Note that \a
+  parentLayerable does not become the QObject-parent (for memory management) of this layerable, \a
+  plot does. It is not uncommon to set the QObject-parent to something else in the constructors of
+  QCPLayerable subclasses, to guarantee a working destruction hierarchy.
 */
 QCPLayerable::QCPLayerable(QCustomPlot *plot, QString targetLayer, QCPLayerable *parentLayerable) :
   QObject(plot),

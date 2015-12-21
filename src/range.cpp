@@ -216,17 +216,12 @@ bool QCPRange::contains(double value) const
 */
 bool QCPRange::validRange(double lower, double upper)
 {
-  /*
   return (lower > -maxRange &&
           upper < maxRange &&
           qAbs(lower-upper) > minRange &&
-          (lower < -minRange || lower > minRange) &&
-          (upper < -minRange || upper > minRange));
-          */
-  return (lower > -maxRange &&
-          upper < maxRange &&
-          qAbs(lower-upper) > minRange &&
-          qAbs(lower-upper) < maxRange);
+          qAbs(lower-upper) < maxRange &&
+          !(lower > 0 && qIsInf(upper/lower)) &&
+          !(upper < 0 && qIsInf(lower/upper)));
 }
 
 /*!
@@ -240,16 +235,10 @@ bool QCPRange::validRange(double lower, double upper)
 */
 bool QCPRange::validRange(const QCPRange &range)
 {
-  /*
   return (range.lower > -maxRange &&
           range.upper < maxRange &&
           qAbs(range.lower-range.upper) > minRange &&
           qAbs(range.lower-range.upper) < maxRange &&
-          (range.lower < -minRange || range.lower > minRange) &&
-          (range.upper < -minRange || range.upper > minRange));
-          */
-  return (range.lower > -maxRange &&
-          range.upper < maxRange &&
-          qAbs(range.lower-range.upper) > minRange &&
-          qAbs(range.lower-range.upper) < maxRange);
+          !(range.lower > 0 && qIsInf(range.upper/range.lower)) &&
+          !(range.upper < 0 && qIsInf(range.lower/range.upper)));
 }

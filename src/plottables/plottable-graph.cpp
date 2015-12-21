@@ -1272,8 +1272,8 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
       int i = 0;
       const int lineDataSize = lineData->size();
       while (i < lineDataSize)
-      {
-        if (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x())) // NaNs create a gap in the line
+     {
+        if (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x()) || qIsInf(lineData->at(i).y())) // NaNs create a gap in the line. Also filter Infs which make drawPolyline block
         {
           painter->drawPolyline(lineData->constData()+segmentStart, i-segmentStart); // i, because we don't want to include the current NaN point
           segmentStart = i+1;

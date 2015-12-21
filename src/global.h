@@ -52,7 +52,7 @@
 #  include <QPrintEngine>
 #else
 #  include <QtNumeric>
-#  include <QtPrintSupport>
+#  include <QtPrintSupport/QtPrintSupport>
 #endif
 // amalgamation: include end
 

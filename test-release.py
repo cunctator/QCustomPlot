@@ -50,7 +50,7 @@ def runExample(examplePath, executableName):
   os.chdir(workingDirectory)
 
 # main test loop:
-qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake511", "qmake520", "qmake532", "qmake540"]
+qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake511", "qmake520", "qmake532", "qmake540", "qmake550"]
 if (config.qt > 0):
   qmakeVersions = ["qmake"+str(config.qt)];
 for qmakecommand in qmakeVersions:

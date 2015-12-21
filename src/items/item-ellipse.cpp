@@ -122,7 +122,6 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   if (onlySelectable && !mSelectable)
     return -1;
   
-  double result = -1;
   QPointF p1 = topLeft->pixelPoint();
   QPointF p2 = bottomRight->pixelPoint();
   QPointF center((p1+p2)/2.0);
@@ -133,7 +132,7 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   
   // distance to border:
   double c = 1.0/qSqrt(x*x/(a*a)+y*y/(b*b));
-  result = qAbs(c-1)*qSqrt(x*x+y*y);
+  double result = qAbs(c-1)*qSqrt(x*x+y*y);
   // filled ellipse, allow click inside to count as hit:
   if (result > mParentPlot->selectionTolerance()*0.99 && mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0)
   {

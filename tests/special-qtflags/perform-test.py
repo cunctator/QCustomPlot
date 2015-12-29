@@ -32,7 +32,7 @@ shutil.copy2("../../qcustomplot.h", "./")
 subprocess.call("./make-no-keywords-compatible.py qcustomplot.h qcustomplot.cpp", shell=True)
     
 # main test loop:
-qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake511", "qmake520", "qmake532", "qmake540", "qmake550"]
+qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake502", "qmake511", "qmake520", "qmake521", "qmake532", "qmake540", "qmake542", "qmake550", "qmake551"]
 for qmakecommand in qmakeVersions:
   try:
     qmakeproc = subprocess.Popen([qmakecommand, "-v"], stdout=subprocess.PIPE)

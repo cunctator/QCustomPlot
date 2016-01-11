@@ -32,6 +32,7 @@
 #include "../layer.h"
 #include "../layout.h"
 #include "../lineending.h"
+#include "axisticker.h"
 
 class QCPPainter;
 class QCustomPlot;
@@ -41,7 +42,6 @@ class QCPAxisPainterPrivate;
 class QCPAbstractPlottable;
 class QCPGraph;
 class QCPAbstractItem;
-class QCPAxisTicker;
 
 class QCP_LIB_DECL QCPGrid :public QCPLayerable
 {

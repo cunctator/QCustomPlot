@@ -31,7 +31,6 @@
 #include "../plottables/plottable-graph.h"
 #include "../item.h"
 #include "../layoutelements/layoutelement-axisrect.h"
-#include "axisticker.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

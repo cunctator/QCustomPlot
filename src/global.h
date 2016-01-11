@@ -29,6 +29,7 @@
 // amalgamation: include begin
 #include <QObject>
 #include <QPointer>
+#include <QSharedPointer>
 #include <QWidget>
 #include <QPainter>
 #include <QPaintEvent>

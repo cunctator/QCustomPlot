@@ -242,7 +242,7 @@ int QCPAxisTicker::getSubTickCount(double tickStep)
         case 9: result = 4; break; // 9.5 -> 1.9 substep
       }
     }
-    // if mantissa fraction isnt 0.0 or 0.5, don't bother finding good sub tick marks, leave default
+    // if mantissa fraction isn't 0.0 or 0.5, don't bother finding good sub tick marks, leave default
   }
   
   return result;

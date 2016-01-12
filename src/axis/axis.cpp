@@ -1878,7 +1878,7 @@ int QCPAxis::calculateMargin()
   if (mCachedMarginValid)
     return mCachedMargin;
   
-  // run through similar steps as QCPAxis::draw, and caluclate margin needed to fit axis and its labels
+  // run through similar steps as QCPAxis::draw, and calculate margin needed to fit axis and its labels
   int margin = 0;
   
   QVector<double> tickPositions; // the final coordToPixel transformed vector passed to QCPAxisPainter

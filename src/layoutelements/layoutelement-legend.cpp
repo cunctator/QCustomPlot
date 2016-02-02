@@ -374,9 +374,9 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
 /* end of documentation of signals */
 
 /*!
-  Constructs a new QCPLegend instance with \a parentPlot as the containing plot and default values.
+  Constructs a new QCPLegend instance with default values.
   
-  Note that by default, QCustomPlot already contains a legend ready to be used as
+  Note that by default, QCustomPlot already contains a legend ready to be used as \ref
   QCustomPlot::legend
 */
 QCPLegend::QCPLegend()

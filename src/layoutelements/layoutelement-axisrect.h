@@ -130,6 +130,7 @@ protected:
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
   virtual void draw(QCPPainter *painter);
   virtual int calculateAutoMargin(QCP::MarginSide side);
+  virtual void layoutChanged();
   // events:
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseMoveEvent(QMouseEvent *event);

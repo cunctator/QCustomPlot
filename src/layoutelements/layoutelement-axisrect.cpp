@@ -333,6 +333,19 @@ QCPAxis *QCPAxisRect::addAxis(QCPAxis::AxisType type, QCPAxis *axis)
     newAxis->setUpperEnding(QCPLineEnding(QCPLineEnding::esHalfBar, 6, 10, invert));
   }
   mAxes[type].append(newAxis);
+  
+  // reset convenience axis pointers on parent QCustomPlot if they are unset:
+  if (mParentPlot && mParentPlot->axisRectCount() > 0 && mParentPlot->axisRect(0) == this)
+  {
+    switch (type)
+    {
+      case QCPAxis::atBottom: { if (!mParentPlot->xAxis) mParentPlot->xAxis = newAxis; break; }
+      case QCPAxis::atLeft: { if (!mParentPlot->yAxis) mParentPlot->yAxis = newAxis; break; }
+      case QCPAxis::atTop: { if (!mParentPlot->xAxis2) mParentPlot->xAxis2 = newAxis; break; }
+      case QCPAxis::atRight: { if (!mParentPlot->yAxis2) mParentPlot->yAxis2 = newAxis; break; }
+    }
+  }
+  
   return newAxis;
 }
 
@@ -883,6 +896,31 @@ int QCPAxisRect::calculateAutoMargin(QCP::MarginSide side)
     return axesList.last()->offset() + axesList.last()->calculateMargin();
   else
     return 0;
+}
+
+/*! \internal
+  
+  Reacts to a change in layout to potentially set the convenience axis pointers \ref
+  QCustomPlot::xAxis, \ref QCustomPlot::yAxis, etc. of the parent QCustomPlot to the respective
+  axes of this axis rect. This is only done if the respective convenience pointer is currently zero
+  and if there is no QCPAxisRect at position (0, 0) of the plot layout.
+  
+  This automation makes it simpler to replace the main axis rect with a newly created one, without
+  the need to manually reset the convenience pointers.
+*/
+void QCPAxisRect::layoutChanged()
+{
+  if (mParentPlot && mParentPlot->axisRectCount() > 0 && mParentPlot->axisRect(0) == this)
+  {
+    if (axisCount(QCPAxis::atBottom) > 0 && !mParentPlot->xAxis)
+      mParentPlot->xAxis = axis(QCPAxis::atBottom);
+    if (axisCount(QCPAxis::atLeft) > 0 && !mParentPlot->yAxis)
+      mParentPlot->yAxis = axis(QCPAxis::atLeft);
+    if (axisCount(QCPAxis::atTop) > 0 && !mParentPlot->xAxis2)
+      mParentPlot->xAxis2 = axis(QCPAxis::atTop);
+    if (axisCount(QCPAxis::atRight) > 0 && !mParentPlot->yAxis2)
+      mParentPlot->yAxis2 = axis(QCPAxis::atRight);
+  }
 }
 
 /*! \internal

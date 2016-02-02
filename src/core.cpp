@@ -277,6 +277,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis
@@ -290,6 +295,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::xAxis2
@@ -305,6 +315,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis2
@@ -320,6 +335,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPLegend *QCustomPlot::legend
@@ -335,6 +355,11 @@
   QCPAxisRect::insetLayout "inset layout", and must then also be accessed via the inset layout. If
   the default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointer becomes 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /* end of documentation of public members */

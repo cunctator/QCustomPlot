@@ -193,6 +193,52 @@ void TestQCPAxisRect::axisRectRemovalConsequencesToItems()
   mPlot->replot();
 }
 
+void TestQCPAxisRect::axisRectRemovalConveniencePointers()
+{
+  QVERIFY(mPlot->plotLayout()->removeAt(0));
+  mPlot->plotLayout()->simplify();
+  QCOMPARE(mPlot->plotLayout()->elementCount(), 0);
+  
+  QCOMPARE(mPlot->xAxis, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis, (QCPAxis*)0);
+  QCOMPARE(mPlot->xAxis2, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis2, (QCPAxis*)0);
+  QCOMPARE(mPlot->legend, (QCPLegend*)0);
+  
+  QCPAxisRect *axRect = new QCPAxisRect(mPlot, false);
+  mPlot->plotLayout()->addElement(0, 0, axRect);
+  QCOMPARE(mPlot->xAxis, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis, (QCPAxis*)0);
+  QCOMPARE(mPlot->xAxis2, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis2, (QCPAxis*)0);
+  
+  QCPAxis *ab = axRect->addAxis(QCPAxis::atBottom);
+  QCOMPARE(mPlot->xAxis, ab);
+  QCOMPARE(mPlot->yAxis, (QCPAxis*)0);
+  QCOMPARE(mPlot->xAxis2, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis2, (QCPAxis*)0);
+  QCPAxis *al = axRect->addAxis(QCPAxis::atLeft);
+  QCOMPARE(mPlot->xAxis, ab);
+  QCOMPARE(mPlot->yAxis, al);
+  QCOMPARE(mPlot->xAxis2, (QCPAxis*)0);
+  QCOMPARE(mPlot->yAxis2, (QCPAxis*)0);
+  QCPAxis *at = axRect->addAxis(QCPAxis::atTop);
+  QCOMPARE(mPlot->xAxis, ab);
+  QCOMPARE(mPlot->yAxis, al);
+  QCOMPARE(mPlot->xAxis2, at);
+  QCOMPARE(mPlot->yAxis2, (QCPAxis*)0);
+  QCPAxis *ar = axRect->addAxis(QCPAxis::atRight);
+  QCOMPARE(mPlot->xAxis, ab);
+  QCOMPARE(mPlot->yAxis, al);
+  QCOMPARE(mPlot->xAxis2, at);
+  QCOMPARE(mPlot->yAxis2, ar);
+  
+  QCOMPARE(mPlot->legend, (QCPLegend*)0);
+  QCPLegend *leg = new QCPLegend();
+  axRect->insetLayout()->addElement(leg, Qt::AlignRight|Qt::AlignTop);
+  QCOMPARE(mPlot->legend, leg);
+}
+
 
 
 

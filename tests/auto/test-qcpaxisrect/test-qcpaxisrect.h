@@ -14,6 +14,7 @@ private slots:
   void axisRemovalConsequencesToItems();
   void axisRectRemovalConsequencesToPlottables();
   void axisRectRemovalConsequencesToItems();
+  void axisRectRemovalConveniencePointers();
   
 private:
   QCustomPlot *mPlot;

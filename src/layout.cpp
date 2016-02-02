@@ -578,6 +578,21 @@ int QCPLayoutElement::calculateAutoMargin(QCP::MarginSide side)
   return qMax(QCP::getMarginValue(mMargins, side), QCP::getMarginValue(mMinimumMargins, side));
 }
 
+/*! \internal
+  
+  This virtual method is called when this layout element was moved to a different QCPLayout, or
+  when this layout element has changed its logical position (e.g. row and/or column) within the
+  same QCPLayout. Subclasses may use this to react accordingly.
+  
+  Since this method is called after the completion of the move, you can access the new parent
+  layout via \ref layout().
+  
+  The default implementation does nothing.
+*/
+void QCPLayoutElement::layoutChanged()
+{
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPLayout
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -828,6 +843,7 @@ void QCPLayout::adoptElement(QCPLayoutElement *el)
     el->setParent(this);
     if (!el->parentPlot())
       el->initializeParentPlot(mParentPlot);
+    el->layoutChanged();
   } else
     qDebug() << Q_FUNC_INFO << "Null element passed";
 }

@@ -131,6 +131,7 @@ protected:
   
   // introduced virtual methods:
   virtual int calculateAutoMargin(QCP::MarginSide side);
+  virtual void layoutChanged();
   // events:
   virtual void mousePressEvent(QMouseEvent *event) {Q_UNUSED(event)}
   virtual void mouseMoveEvent(QMouseEvent *event) {Q_UNUSED(event)}

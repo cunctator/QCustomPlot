@@ -135,9 +135,9 @@ protected:
   virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const;
   virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
+  virtual void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const;
   
   // non-virtual methods:
-  void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const;
   void getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const;
   void getScatterPlotData(QVector<QCPGraphData> *scatterData) const;
   void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;

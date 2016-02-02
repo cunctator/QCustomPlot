@@ -31,6 +31,16 @@ if subprocess.call("git clean -dxf", shell=True) != 0:
 # amalgamate sources:
 printinfo("Amalgamating sources...")
 subprocess.call("./run-amalgamate.sh", shell=True)
+
+# look for undocumented methods via script:
+printinfo("Checking for undocumented methods...")
+if subprocess.call("./find-undocumented.py qcustomplot.cpp", shell=True) != 0:
+  printerror("Undocumented methods found in amalgamated sources!");
+# look for non-ascii characters in code files via script:
+printinfo("Checking for non-ascii characters...")
+if subprocess.call("./find-nonascii.py", shell=True) != 0:
+  printerror("Non-ASCII characters found in codebase!");
+
 # generate documentation images:
 printinfo("Generating documentation images...")
 os.chdir("./documentation/doc-image-generator")

@@ -483,7 +483,13 @@ void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBo
 */
 void QCPStatisticalBox::getVisibleDataBounds(QCPStatisticalBoxDataContainer::const_iterator &begin, QCPStatisticalBoxDataContainer::const_iterator &end) const
 {
-  if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
+  if (!mKeyAxis)
+  {
+    qDebug() << Q_FUNC_INFO << "invalid key axis";
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
+    return;
+  }
   begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of box to include partially visible data points
   end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of box to include partially visible data points
 }

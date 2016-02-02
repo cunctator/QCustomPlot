@@ -1121,7 +1121,13 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
 */
 void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const
 {
-  if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
+  if (!mKeyAxis)
+  {
+    qDebug() << Q_FUNC_INFO << "invalid key axis";
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
+    return;
+  }
   begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
   end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
 }

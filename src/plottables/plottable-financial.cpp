@@ -823,7 +823,13 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
 */
 void QCPFinancial::getVisibleDataBounds(QCPFinancialDataContainer::const_iterator &begin, QCPFinancialDataContainer::const_iterator &end) const
 {
-  if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
+  if (!mKeyAxis)
+  {
+    qDebug() << Q_FUNC_INFO << "invalid key axis";
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
+    return;
+  }
   begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of ohlc/candlestick to include partially visible data points
   end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
 }

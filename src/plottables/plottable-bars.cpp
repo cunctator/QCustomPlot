@@ -818,7 +818,13 @@ void QCPBars::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 */
 void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const
 {
-  if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
+  if (!mKeyAxis)
+  {
+    qDebug() << Q_FUNC_INFO << "invalid key axis";
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
+    return;
+  }
   if (mDataContainer->isEmpty())
   {
     begin = mDataContainer->constEnd();

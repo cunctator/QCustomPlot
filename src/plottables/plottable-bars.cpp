@@ -918,6 +918,8 @@ QPolygonF QCPBars::getBarPolygon(double key, double value) const
 */
 void QCPBars::getPixelWidth(double key, double &lower, double &upper) const
 {
+  lower = 0;
+  upper = 0;
   switch (mWidthType)
   {
     case wtAbsolute:

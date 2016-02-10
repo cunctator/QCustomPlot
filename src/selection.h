@@ -23,48 +23,67 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_H
-#define QCP_H
+#ifndef QCP_SELECTION_H
+#define QCP_SELECTION_H
 
 #include "global.h"
-#include "qcpvector2d.h"
-#include "painter.h"
-#include "layer.h"
-#include "layout.h"
-#include "axis/range.h"
-#include "selection.h"
-#include "axis/axis.h"
-#include "axis/axisticker.h"
-#include "axis/axistickerdatetime.h"
-#include "axis/axistickertime.h"
-#include "axis/axistickerfixed.h"
-#include "axis/axistickertext.h"
-#include "axis/axistickerpi.h"
-#include "axis/axistickerlog.h"
-#include "plottable.h"
-#include "datacontainer.h"
-#include "item.h"
-#include "lineending.h"
-#include "core.h"
-#include "colorgradient.h"
-#include "plottables/plottable-graph.h"
-#include "plottables/plottable-curve.h"
-#include "plottables/plottable-bars.h"
-#include "plottables/plottable-statisticalbox.h"
-#include "plottables/plottable-colormap.h"
-#include "plottables/plottable-financial.h"
-#include "items/item-straightline.h"
-#include "items/item-line.h"
-#include "items/item-curve.h"
-#include "items/item-rect.h"
-#include "items/item-text.h"
-#include "items/item-ellipse.h"
-#include "items/item-pixmap.h"
-#include "items/item-tracer.h"
-#include "items/item-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
-#include "layoutelements/layoutelement-colorscale.h"
 
-#endif // QCP_H
+class QCP_LIB_DECL QCPDataRange
+{
+public:
+  QCPDataRange();
+  
+  // getters:
+  int begin() const { return mBegin; }
+  int end() const { return mEnd; }
+  int length() const { return mEnd-mBegin; }
+  
+  // setters:
+  void setBegin(int begin);
+  void setEnd(int end);
+  
+  // non-property methods:
+  bool isValid() const;
+  bool isEmpty() const { return length() == 0; }
+  
+private:
+  // property members:
+  int mBegin, mEnd;
+  
+  // non-virtual methods:
+
+};
+
+class QCP_LIB_DECL QCPDataSelection
+{
+public:
+  enum SelectionType {
+    stWhole
+    ,stSingleData
+    ,stDataRange
+    ,stMultipleDataRanges
+  };
+  
+  explicit QCPDataSelection();
+  
+  // getters:
+  int dataRangeCount() const { return mDataRanges.size(); }
+  QCPDataRange dataRange(int index=0) const;
+  QList<QCPDataRange> dataRanges() const { return mDataRanges; }
+  
+  // setters:
+  
+  // non-property methods:
+  void enforceType(SelectionType type);
+  
+private:
+  // property members:
+  QList<QCPDataRange> mDataRanges;
+  
+  inline static bool lessThanDataRangeBegin(const QCPDataRange &a, const QCPDataRange &b) { return a.begin() < b.begin(); }
+};
+Q_DECLARE_METATYPE(QCPDataSelection)
+
+
+#endif // QCP_SELECTION_H
+

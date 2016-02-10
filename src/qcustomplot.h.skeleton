@@ -34,6 +34,7 @@
 //amalgamation: add painter.h
 //amalgamation: add layer.h
 //amalgamation: add axis/range.h
+//amalgamation: add selection.h
 //amalgamation: add layout.h
 //amalgamation: add lineending.h
 //amalgamation: add axis/axisticker.h

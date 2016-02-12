@@ -116,6 +116,7 @@ enum AntialiasedElement { aeAxes           = 0x0001 ///< <tt>0x0001</tt> Axis ba
                           ,aeScatters      = 0x0080 ///< <tt>0x0080</tt> Scatter symbols of plottables (excluding scatter symbols of type ssPixmap)
                           ,aeFills         = 0x0100 ///< <tt>0x0100</tt> Borders of fills (e.g. under or between graphs)
                           ,aeZeroLine      = 0x0200 ///< <tt>0x0200</tt> Zero-lines, see \ref QCPGrid::setZeroLinePen
+                          ,aeOther         = 0x8000 ///< <tt>0x8000</tt> Other elements that don't fit into any of the existing categories
                           ,aeAll           = 0xFFFF ///< <tt>0xFFFF</tt> All elements
                           ,aeNone          = 0x0000 ///< <tt>0x0000</tt> No elements
                         };

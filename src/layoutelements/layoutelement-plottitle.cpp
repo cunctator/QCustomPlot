@@ -184,7 +184,7 @@ void QCPPlotTitle::setSelected(bool selected)
 /* inherits documentation from base class */
 void QCPPlotTitle::applyDefaultAntialiasingHint(QCPPainter *painter) const
 {
-  applyAntialiasingHint(painter, mAntialiased, QCP::aeNone);
+  applyAntialiasingHint(painter, mAntialiased, QCP::aeOther);
 }
 
 /* inherits documentation from base class */

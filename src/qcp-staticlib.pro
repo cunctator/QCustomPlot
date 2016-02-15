@@ -66,7 +66,8 @@ layoutelements/layoutelement-axisrect.h \
     axis/axistickerpi.h \
     axis/axistickerlog.h \
     datacontainer.h \
-    selection.h
+    selection.h \
+    selectionrect.h
 
 SOURCES += \
 painter.cpp \
@@ -107,7 +108,8 @@ layoutelements/layoutelement-axisrect.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp \
     datacontainer.cpp \
-    selection.cpp
+    selection.cpp \
+    selectionrect.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

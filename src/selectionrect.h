@@ -23,53 +23,57 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCUSTOMPLOT_H
-#define QCUSTOMPLOT_H
+#ifndef QCP_SELECTIONRECT_H
+#define QCP_SELECTIONRECT_H
 
-//amalgamation: place header includes
+#include "global.h"
+#include "layer.h"
+#include "selection.h"
+#include "axis/range.h"
 
-//amalgamation: place forward declarations
-//amalgamation: add global.h
-//amalgamation: add qcpvector2d.h
-//amalgamation: add painter.h
-//amalgamation: add layer.h
-//amalgamation: add axis/range.h
-//amalgamation: add selection.h
-//amalgamation: add selectionrect.h
-//amalgamation: add layout.h
-//amalgamation: add lineending.h
-//amalgamation: add axis/axisticker.h
-//amalgamation: add axis/axistickerdatetime.h
-//amalgamation: add axis/axistickertime.h
-//amalgamation: add axis/axistickerfixed.h
-//amalgamation: add axis/axistickertext.h
-//amalgamation: add axis/axistickerpi.h
-//amalgamation: add axis/axistickerlog.h
-//amalgamation: add axis/axis.h
-//amalgamation: add plottable.h
-//amalgamation: add datacontainer.h
-//amalgamation: add item.h
-//amalgamation: add core.h
-//amalgamation: add colorgradient.h
-//amalgamation: add layoutelements/layoutelement-axisrect.h
-//amalgamation: add layoutelements/layoutelement-legend.h
-//amalgamation: add layoutelements/layoutelement-plottitle.h
-//amalgamation: add layoutelements/layoutelement-colorscale.h
-//amalgamation: add plottables/plottable-graph.h
-//amalgamation: add plottables/plottable-curve.h
-//amalgamation: add plottables/plottable-bars.h
-//amalgamation: add plottables/plottable-statisticalbox.h
-//amalgamation: add plottables/plottable-colormap.h
-//amalgamation: add plottables/plottable-financial.h
-//amalgamation: add items/item-straightline.h
-//amalgamation: add items/item-line.h
-//amalgamation: add items/item-curve.h
-//amalgamation: add items/item-rect.h
-//amalgamation: add items/item-text.h
-//amalgamation: add items/item-ellipse.h
-//amalgamation: add items/item-pixmap.h
-//amalgamation: add items/item-tracer.h
-//amalgamation: add items/item-bracket.h
+class QCPAxis;
 
-#endif // QCUSTOMPLOT_H
+class QCP_LIB_DECL QCPSelectionRect : public QCPLayerable
+{
+  Q_OBJECT
+public:
+  explicit QCPSelectionRect(QCustomPlot *parentPlot);
+  ~QCPSelectionRect();
+  
+  // getters:
+  QRect rect() const { return mRect; }
+  QCPRange range(const QCPAxis *axis) const;
+  QPen pen() const { return mPen; }
+  QBrush brush() const { return mBrush; }
+  bool isActive() const { return mActive; }
+  
+  // setters:
+  void setPen(const QPen &pen);
+  void setBrush(const QBrush &brush);
+  
+signals:
+  void started();
+  void changed(QRect rect);
+  void finished(QRect rect, bool accepted);
+  
+protected:
+  // property members:
+  QRect mRect;
+  QPen mPen;
+  QBrush mBrush;
+  // non-property members:
+  bool mActive;
+  
+  // introduced virtual methods (TODO: change to "reimplemented" when QCPLayerable gets mouse/key events):
+  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseMoveEvent(QMouseEvent *event);
+  virtual void mouseReleaseEvent(QMouseEvent *event);
+  virtual void keyPressEvent(QKeyEvent *event);
+  
+  // reimplemented virtual methods
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
+  virtual void draw(QCPPainter *painter);
+  
+};
 
+#endif // QCP_SELECTIONRECT_H

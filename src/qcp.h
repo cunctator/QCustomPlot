@@ -33,6 +33,7 @@
 #include "layout.h"
 #include "axis/range.h"
 #include "selection.h"
+#include "selectionrect.h"
 #include "axis/axis.h"
 #include "axis/axisticker.h"
 #include "axis/axistickerdatetime.h"

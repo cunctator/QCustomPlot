@@ -31,6 +31,7 @@
 //amalgamation: add layer.cpp
 //amalgamation: add axis/range.cpp
 //amalgamation: add selection.cpp
+//amalgamation: add selectionrect.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
 //amalgamation: add axis/axisticker.cpp

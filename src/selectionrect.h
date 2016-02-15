@@ -28,7 +28,6 @@
 
 #include "global.h"
 #include "layer.h"
-#include "selection.h"
 #include "axis/range.h"
 
 class QCPAxis;
@@ -50,6 +49,9 @@ public:
   // setters:
   void setPen(const QPen &pen);
   void setBrush(const QBrush &brush);
+  
+  // non-property methods:
+  Q_SLOT void cancel();
   
 signals:
   void started();
@@ -74,6 +76,7 @@ protected:
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
   virtual void draw(QCPPainter *painter);
   
+  friend class QCustomPlot;
 };
 
 #endif // QCP_SELECTIONRECT_H

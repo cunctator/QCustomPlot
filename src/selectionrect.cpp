@@ -47,6 +47,7 @@ QCPSelectionRect::QCPSelectionRect(QCustomPlot *parentPlot) :
 
 QCPSelectionRect::~QCPSelectionRect()
 {
+  cancel();
 }
 
 QCPRange QCPSelectionRect::range(const QCPAxis *axis) const
@@ -72,6 +73,15 @@ void QCPSelectionRect::setPen(const QPen &pen)
 void QCPSelectionRect::setBrush(const QBrush &brush)
 {
   mBrush = brush;
+}
+
+void QCPSelectionRect::cancel()
+{
+  if (mActive)
+  {
+    mActive = false;
+    emit finished(mRect, false);
+  }
 }
 
 void QCPSelectionRect::mousePressEvent(QMouseEvent *event)

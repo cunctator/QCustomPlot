@@ -154,6 +154,17 @@ enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges ar
                  };
 Q_DECLARE_FLAGS(Interactions, Interaction)
 
+/*!
+  Defines the function of the selection rect.
+  
+  \see QCustomPlot::selectionRect
+*/
+enum SelectionRectMode { srmNone        ///< TODO
+                         ,srmZoom       ///<
+                         ,srmSelectData ///<
+                         ,srmCustom     ///<
+                       };
+
 /*! \internal
   
   Returns whether the specified \a value is considered an invalid data value for plottables (i.e.

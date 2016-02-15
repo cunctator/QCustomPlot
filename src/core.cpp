@@ -387,6 +387,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mCurrentLayer(0),
   mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
   mMultiSelectModifier(Qt::ControlModifier),
+  mSelectionRectMode(QCP::srmNone),
   mPaintBuffer(size()),
   mMouseEventElement(0),
   mReplotting(false)
@@ -703,6 +704,13 @@ void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
 void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
 {
   mMultiSelectModifier = modifier;
+}
+
+void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
+{
+  if (mSelectionRect && mode == QCP::srmNone)
+    mSelectionRect->cancel();
+  mSelectionRectMode = mode;
 }
 
 /*!

@@ -91,7 +91,8 @@ public:
   bool noAntialiasingOnDrag() const { return mNoAntialiasingOnDrag; }
   QCP::PlottingHints plottingHints() const { return mPlottingHints; }
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
-
+  QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
+  
   // setters:
   void setViewport(const QRect &rect);
   void setBackground(const QPixmap &pm);
@@ -111,6 +112,7 @@ public:
   void setPlottingHints(const QCP::PlottingHints &hints);
   void setPlottingHint(QCP::PlottingHint hint, bool enabled=true);
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
+  void setSelectionRectMode(QCP::SelectionRectMode mode);
   
   // non-property methods:
   // plottable interface:
@@ -222,6 +224,7 @@ protected:
   QCPLayer *mCurrentLayer;
   QCP::PlottingHints mPlottingHints;
   Qt::KeyboardModifier mMultiSelectModifier;
+  QCP::SelectionRectMode mSelectionRectMode;
   
   // non-property members:
   QPixmap mPaintBuffer;

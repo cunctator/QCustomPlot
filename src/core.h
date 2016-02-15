@@ -38,6 +38,7 @@ class QCPGraph;
 class QCPPlotTitle;
 class QCPLegend;
 class QCPAbstractLegendItem;
+class QCPSelectionRect;
 
 class QCP_LIB_DECL QCustomPlot : public QWidget
 {
@@ -92,6 +93,7 @@ public:
   QCP::PlottingHints plottingHints() const { return mPlottingHints; }
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
   QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
+  QCPSelectionRect *selectionRect() const { return mSelectionRect; }
   
   // setters:
   void setViewport(const QRect &rect);
@@ -113,6 +115,7 @@ public:
   void setPlottingHint(QCP::PlottingHint hint, bool enabled=true);
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
   void setSelectionRectMode(QCP::SelectionRectMode mode);
+  void setSelectionRect(QCPSelectionRect *selectionRect);
   
   // non-property methods:
   // plottable interface:
@@ -225,6 +228,7 @@ protected:
   QCP::PlottingHints mPlottingHints;
   Qt::KeyboardModifier mMultiSelectModifier;
   QCP::SelectionRectMode mSelectionRectMode;
+  QCPSelectionRect *mSelectionRect;
   
   // non-property members:
   QPixmap mPaintBuffer;

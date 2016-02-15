@@ -36,6 +36,7 @@
 #include "plottable.h"
 #include "plottables/plottable-graph.h"
 #include "item.h"
+#include "selectionrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCustomPlot
@@ -388,6 +389,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
   mMultiSelectModifier(Qt::ControlModifier),
   mSelectionRectMode(QCP::srmNone),
+  mSelectionRect(0),
   mPaintBuffer(size()),
   mMouseEventElement(0),
   mReplotting(false)
@@ -405,6 +407,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mLayers.append(new QCPLayer(this, QLatin1String("main")));
   mLayers.append(new QCPLayer(this, QLatin1String("axes")));
   mLayers.append(new QCPLayer(this, QLatin1String("legend")));
+  mLayers.append(new QCPLayer(this, QLatin1String("overlay")));
   updateLayerIndices();
   setCurrentLayer(QLatin1String("main"));
   
@@ -434,6 +437,10 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2->grid()->setLayer(QLatin1String("grid"));
   yAxis2->grid()->setLayer(QLatin1String("grid"));
   legend->setLayer(QLatin1String("legend"));
+  
+  // create selection rect instance:
+  mSelectionRect = new QCPSelectionRect(this);
+  mSelectionRect->setLayer("overlay");
   
   setViewport(rect()); // needs to be called after mPlotLayout has been created
   
@@ -711,6 +718,13 @@ void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
   if (mSelectionRect && mode == QCP::srmNone)
     mSelectionRect->cancel();
   mSelectionRectMode = mode;
+}
+
+void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
+{
+  if (mSelectionRect)
+    delete mSelectionRect;
+  mSelectionRect = selectionRect;
 }
 
 /*!
@@ -2021,8 +2035,11 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
 
 /*! \internal
   
-  Event handler for when a mouse button is pressed. Emits the mousePress signal. Then determines
-  the affected layout element and forwards the event to it.
+  Event handler for when a mouse button is pressed. Emits the mousePress signal.
+
+  If the current \ref setSelectionRectMode is not \ref QCP::srmNone, passes the event to the
+  selection rect. Otherwise determines the layout element under the cursor and forwards the event
+  to it.
   
   \see mouseMoveEvent, mouseReleaseEvent
 */
@@ -2031,10 +2048,17 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   emit mousePress(event);
   mMousePressPos = event->pos(); // need this to determine in releaseEvent whether it was a click (no position change between press and release)
   
-  // call event of affected layout element:
-  mMouseEventElement = layoutElementAt(event->pos());
-  if (mMouseEventElement)
-    mMouseEventElement->mousePressEvent(event);
+  if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
+  {
+    // activate selection rect:
+    mSelectionRect->mousePressEvent(event);
+  } else
+  {
+    // no selection rect interaction, so forward event to layout element under the cursor:
+    mMouseEventElement = layoutElementAt(event->pos());
+    if (mMouseEventElement)
+      mMouseEventElement->mousePressEvent(event);
+  }
   
   QWidget::mousePressEvent(event);
 }
@@ -2043,18 +2067,28 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   
   Event handler for when the cursor is moved. Emits the \ref mouseMove signal.
 
-  If a layout element has mouse capture focus (a mousePressEvent happened on top of the layout
-  element before), the mouseMoveEvent is forwarded to that element.
+  If the selection rect (\ref setSelectionRect) is currently active, the event is forwarded to it
+  in order to update the rect geometry.
+  
+  Otherwise, if a layout element has mouse capture focus (a mousePressEvent happened on top of the
+  layout element before), the mouseMoveEvent is forwarded to that element.
   
   \see mousePressEvent, mouseReleaseEvent
 */
 void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 {
   emit mouseMove(event);
-
-  // call event of affected layout element:
-  if (mMouseEventElement)
-    mMouseEventElement->mouseMoveEvent(event);
+  
+  if (mSelectionRect && mSelectionRect->isActive())
+  {
+    // update selection rect:
+    mSelectionRect->mouseMoveEvent(event);
+  } else
+  {
+    // call event of affected layout element:
+    if (mMouseEventElement)
+      mMouseEventElement->mouseMoveEvent(event);
+  }
   
   QWidget::mouseMoveEvent(event);
 }
@@ -2080,6 +2114,9 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
   
   if ((mMousePressPos-event->pos()).manhattanLength() < 5) // determine whether it was a click operation
   {
+    if (mSelectionRect && mSelectionRect->isActive()) // a click shouldn't successfully finish the selection rect, so cancel it here
+      mSelectionRect->cancel();
+    
     if (event->button() == Qt::LeftButton)
     {
       // handle selection mechanism:
@@ -2134,11 +2171,18 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       emit titleClick(event, pt);
   }
   
-  // call event of affected layout element:
-  if (mMouseEventElement)
+  if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is cancelled there
   {
-    mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    // finish selection rect, the appropriate action will be taken via signal-slot connection:
+    mSelectionRect->mouseReleaseEvent(event);
+  } else
+  {
+    // call event of affected layout element:
+    if (mMouseEventElement)
+    {
+      mMouseEventElement->mouseReleaseEvent(event);
+      mMouseEventElement = 0;
+    }
   }
   
   if (doReplot || noAntialiasingOnDrag())

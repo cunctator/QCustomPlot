@@ -2046,7 +2046,9 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
 void QCustomPlot::mousePressEvent(QMouseEvent *event)
 {
   emit mousePress(event);
-  mMousePressPos = event->pos(); // need this to determine in releaseEvent whether it was a click (no position change between press and release)
+  // save some state to tell in releaseEvent whether it was a click:
+  mMouseHasMoved = false;
+  mMousePressPos = event->pos();
   
   if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
   {
@@ -2078,6 +2080,9 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
 void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 {
   emit mouseMove(event);
+  
+  if (!mMouseHasMoved && (mMousePressPos-event->pos()).manhattanLength() > 3)
+    mMouseHasMoved = true; // moved too far from mouse press position, don't handle as click on mouse release
   
   if (mSelectionRect && mSelectionRect->isActive())
   {
@@ -2112,7 +2117,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
   emit mouseRelease(event);
   bool doReplot = false;
   
-  if ((mMousePressPos-event->pos()).manhattanLength() < 5) // determine whether it was a click operation
+  if (!mMouseHasMoved) // mouse hasn't moved (much) between press and release, so handle as click
   {
     if (mSelectionRect && mSelectionRect->isActive()) // a click shouldn't successfully finish the selection rect, so cancel it here
       mSelectionRect->cancel();

@@ -233,6 +233,7 @@ protected:
   // non-property members:
   QPixmap mPaintBuffer;
   QPoint mMousePressPos;
+  bool mMouseHasMoved;
   QPointer<QCPLayoutElement> mMouseEventElement;
   bool mReplotting;
   

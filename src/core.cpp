@@ -715,8 +715,24 @@ void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
 
 void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
 {
-  if (mSelectionRect && mode == QCP::srmNone)
-    mSelectionRect->cancel();
+  if (mSelectionRect)
+  {
+    if (mode == QCP::srmNone)
+      mSelectionRect->cancel(); // when switching to none, we immediately want to abort a potentially active selection rect
+    
+    // disconnect old connections:
+    if (mSelectionRectMode == QCP::srmSelectData)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+    
+    // establish new ones:
+    if (mode == QCP::srmSelectData)
+      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+    else if (mode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+  }
+  
   mSelectionRectMode = mode;
 }
 
@@ -724,7 +740,17 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 {
   if (mSelectionRect)
     delete mSelectionRect;
+  
   mSelectionRect = selectionRect;
+  
+  if (mSelectionRect)
+  {
+    // establish connections with new selection rect:
+    if (mSelectionRectMode == QCP::srmSelectData)
+      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+  }
 }
 
 /*!

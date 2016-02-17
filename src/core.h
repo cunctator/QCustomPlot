@@ -254,6 +254,9 @@ protected:
   virtual void legendRemoved(QCPLegend *legend);
   
   // non-virtual methods:
+  Q_SLOT void processRectSelection(QRect rect);
+  Q_SLOT void processRectZoom(QRect rect);
+  Q_SLOT void processPointSelection(QMouseEvent *event);
   bool registerPlottable(QCPAbstractPlottable *plottable);
   bool registerGraph(QCPGraph *graph);
   bool registerItem(QCPAbstractItem* item);

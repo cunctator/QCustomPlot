@@ -2115,49 +2115,14 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 {
   emit mouseRelease(event);
-  bool doReplot = false;
+  bool doReplot = false; // TODO: remove?
   
   if (!mMouseHasMoved) // mouse hasn't moved (much) between press and release, so handle as click
   {
-    if (mSelectionRect && mSelectionRect->isActive()) // a click shouldn't successfully finish the selection rect, so cancel it here
+    if (mSelectionRect && mSelectionRect->isActive()) // a simple click shouldn't successfully finish a selection rect, so cancel it here
       mSelectionRect->cancel();
-    
     if (event->button() == Qt::LeftButton)
-    {
-      // handle selection mechanism:
-      QVariant details;
-      QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
-      bool selectionStateChanged = false;
-      bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
-      // deselect all other layerables if not additive selection:
-      if (!additive)
-      {
-        foreach (QCPLayer *layer, mLayers)
-        {
-          foreach (QCPLayerable *layerable, layer->children())
-          {
-            if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
-            {
-              bool selChanged = false;
-              layerable->deselectEvent(&selChanged);
-              selectionStateChanged |= selChanged;
-            }
-          }
-        }
-      }
-      if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
-      {
-        // a layerable was actually clicked, call its selectEvent:
-        bool selChanged = false;
-        clickedLayerable->selectEvent(event, additive, details, &selChanged);
-        selectionStateChanged |= selChanged;
-      }
-      if (selectionStateChanged)
-      {
-        doReplot = true;
-        emit selectionChangedByUser();
-      }
-    }
+      processPointSelection(event);
     
     // emit specialized object click signals:
     QVariant details;
@@ -2190,7 +2155,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     }
   }
   
-  if (doReplot || noAntialiasingOnDrag())
+  if (doReplot || noAntialiasingOnDrag()) // TODO: remove?
     replot();
   
   QWidget::mouseReleaseEvent(event);
@@ -2325,6 +2290,52 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 {
   if (this->legend == legend)
     this->legend = 0;
+}
+
+void QCustomPlot::processRectSelection(QRect rect)
+{
+  // TODO
+}
+
+void QCustomPlot::processRectZoom(QRect rect)
+{
+  // TODO
+}
+
+void QCustomPlot::processPointSelection(QMouseEvent *event)
+{
+  QVariant details;
+  QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
+  bool selectionStateChanged = false;
+  bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
+  // deselect all other layerables if not additive selection:
+  if (!additive)
+  {
+    foreach (QCPLayer *layer, mLayers)
+    {
+      foreach (QCPLayerable *layerable, layer->children())
+      {
+        if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
+        {
+          bool selChanged = false;
+          layerable->deselectEvent(&selChanged);
+          selectionStateChanged |= selChanged;
+        }
+      }
+    }
+  }
+  if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
+  {
+    // a layerable was actually clicked, call its selectEvent:
+    bool selChanged = false;
+    clickedLayerable->selectEvent(event, additive, details, &selChanged);
+    selectionStateChanged |= selChanged;
+  }
+  if (selectionStateChanged)
+  {
+    //doReplot = true; // TODO -> cause replot of selection-changed objects
+    emit selectionChangedByUser();
+  }
 }
 
 /*! \internal

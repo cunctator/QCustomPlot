@@ -2051,7 +2051,7 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
   {
     // activate selection rect:
-    mSelectionRect->mousePressEvent(event);
+    mSelectionRect->startSelection(event);
   } else
   {
     // no selection rect interaction, so forward event to layout element under the cursor:
@@ -2082,7 +2082,7 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
   if (mSelectionRect && mSelectionRect->isActive())
   {
     // update selection rect:
-    mSelectionRect->mouseMoveEvent(event);
+    mSelectionRect->moveSelection(event);
   } else
   {
     // call event of affected layout element:
@@ -2174,7 +2174,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
   if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is cancelled there
   {
     // finish selection rect, the appropriate action will be taken via signal-slot connection:
-    mSelectionRect->mouseReleaseEvent(event);
+    mSelectionRect->endSelection(event);
   } else
   {
     // call event of affected layout element:

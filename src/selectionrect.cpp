@@ -80,28 +80,28 @@ void QCPSelectionRect::cancel()
   if (mActive)
   {
     mActive = false;
-    emit finished(mRect, false);
+    emit cancelled(mRect);
   }
 }
 
-void QCPSelectionRect::mousePressEvent(QMouseEvent *event)
+void QCPSelectionRect::startSelection(QMouseEvent *event)
 {
   mActive = true;
   mRect = QRect(event->pos(), event->pos());
   emit started();
 }
 
-void QCPSelectionRect::mouseMoveEvent(QMouseEvent *event)
+void QCPSelectionRect::moveSelection(QMouseEvent *event)
 {
   mRect.setBottomRight(event->pos());
   emit changed(mRect);
 }
 
-void QCPSelectionRect::mouseReleaseEvent(QMouseEvent *event)
+void QCPSelectionRect::endSelection(QMouseEvent *event)
 {
   mRect.setBottomRight(event->pos());
   mActive = false;
-  emit finished(mRect, true);
+  emit accepted(mRect);
 }
 
 void QCPSelectionRect::keyPressEvent(QKeyEvent *event)
@@ -109,7 +109,7 @@ void QCPSelectionRect::keyPressEvent(QKeyEvent *event)
   if (event->key() == Qt::Key_Escape && mActive)
   {
     mActive = false;
-    emit finished(mRect, false);
+    emit cancelled(mRect);
   }
 }
 

@@ -56,7 +56,8 @@ public:
 signals:
   void started();
   void changed(QRect rect);
-  void finished(QRect rect, bool accepted);
+  void cancelled(QRect rect);
+  void accepted(QRect rect);
   
 protected:
   // property members:
@@ -66,10 +67,10 @@ protected:
   // non-property members:
   bool mActive;
   
-  // introduced virtual methods (TODO: change to "reimplemented" when QCPLayerable gets mouse/key events):
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
+  // introduced virtual methods:
+  virtual void startSelection(QMouseEvent *event);
+  virtual void moveSelection(QMouseEvent *event);
+  virtual void endSelection(QMouseEvent *event);
   virtual void keyPressEvent(QKeyEvent *event);
   
   // reimplemented virtual methods

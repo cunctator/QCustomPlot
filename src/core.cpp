@@ -386,13 +386,14 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mBackgroundScaled(true),
   mBackgroundScaledMode(Qt::KeepAspectRatioByExpanding),
   mCurrentLayer(0),
-  mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
+  mPlottingHints(QCP::phCacheLabels|QCP::phImmediateRefresh),
   mMultiSelectModifier(Qt::ControlModifier),
   mSelectionRectMode(QCP::srmNone),
   mSelectionRect(0),
   mPaintBuffer(size()),
   mMouseEventElement(0),
-  mReplotting(false)
+  mReplotting(false),
+  mReplotQueued(false)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -444,7 +445,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   
   setViewport(rect()); // needs to be called after mPlotLayout has been created
   
-  replot();
+  replot(rpQueuedReplot);
 }
 
 QCustomPlot::~QCustomPlot()
@@ -1705,9 +1706,20 @@ void QCustomPlot::deselectAll()
 */
 void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
 {
+  if (refreshPriority == QCustomPlot::rpQueuedReplot)
+  {
+    if (!mReplotQueued)
+    {
+      mReplotQueued = true;
+      QTimer::singleShot(0, this, SLOT(replot(QCustomPlot::RefreshPriority)));
+    }
+    return;
+  }
+  
   if (mReplotting) // incase signals loop back to replot slot
     return;
   mReplotting = true;
+  mReplotQueued = false;
   emit beforeReplot();
   
   mPaintBuffer.fill(mBackgroundBrush.style() == Qt::SolidPattern ? mBackgroundBrush.color() : Qt::transparent);
@@ -1720,7 +1732,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
       painter.fillRect(mViewport, mBackgroundBrush);
     draw(&painter);
     painter.end();
-    if ((refreshPriority == rpHint && mPlottingHints.testFlag(QCP::phForceRepaint)) || refreshPriority==rpImmediate)
+    if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
       repaint();
     else
       update();
@@ -2012,7 +2024,7 @@ void QCustomPlot::resizeEvent(QResizeEvent *event)
   // resize and repaint the buffer:
   mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
-  replot(rpQueued); // queued update is important here, to prevent painting issues in some contexts
+  replot(rpQueuedRefresh); // queued refresh is important here, to prevent painting issues in some contexts (e.g. MDI subwindow)
 }
 
 /*! \internal
@@ -2141,7 +2153,6 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 {
   emit mouseRelease(event);
-  bool doReplot = false; // TODO: remove?
   
   if (!mMouseHasMoved) // mouse hasn't moved (much) between press and release, so handle as click
   {
@@ -2181,8 +2192,8 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     }
   }
   
-  if (doReplot || noAntialiasingOnDrag()) // TODO: remove?
-    replot();
+  if (noAntialiasingOnDrag())
+    replot(rpQueuedReplot);
   
   QWidget::mouseReleaseEvent(event);
 }
@@ -2359,8 +2370,8 @@ void QCustomPlot::processPointSelection(QMouseEvent *event)
   }
   if (selectionStateChanged)
   {
-    //doReplot = true; // TODO -> cause replot of selection-changed objects
     emit selectionChangedByUser();
+    replot(rpQueuedReplot);
   }
 }
 

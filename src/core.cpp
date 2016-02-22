@@ -2126,6 +2126,7 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
   {
     // update selection rect:
     mSelectionRect->moveSelection(event);
+    replot(rpQueuedReplot); // TODO: replace by selective replot of "overlay" layer
   } else
   {
     // call event of affected layout element:

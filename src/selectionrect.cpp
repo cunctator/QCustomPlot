@@ -120,8 +120,11 @@ void QCPSelectionRect::applyDefaultAntialiasingHint(QCPPainter *painter) const
 
 void QCPSelectionRect::draw(QCPPainter *painter)
 {
-  painter->setPen(mPen);
-  painter->setBrush(mBrush);
-  painter->drawRect(mRect);
+  if (mActive)
+  {
+    painter->setPen(mPen);
+    painter->setBrush(mBrush);
+    painter->drawRect(mRect);
+  }
 }
 

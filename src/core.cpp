@@ -391,6 +391,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mSelectionRectMode(QCP::srmNone),
   mSelectionRect(0),
   mPaintBuffer(size()),
+  mMouseHasMoved(false),
   mMouseEventElement(0),
   mReplotting(false),
   mReplotQueued(false)

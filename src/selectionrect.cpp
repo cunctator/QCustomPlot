@@ -41,7 +41,8 @@
 QCPSelectionRect::QCPSelectionRect(QCustomPlot *parentPlot) :
   QCPLayerable(parentPlot),
   mPen(QBrush(Qt::gray), 0, Qt::DashLine),
-  mBrush(Qt::NoBrush)
+  mBrush(Qt::NoBrush),
+  mActive(false)
 {
 }
 

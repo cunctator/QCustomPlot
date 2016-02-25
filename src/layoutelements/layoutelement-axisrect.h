@@ -84,6 +84,8 @@ public:
   bool removeAxis(QCPAxis *axis);
   QCPLayoutInset *insetLayout() const { return mInsetLayout; }
   
+  void zoom(const QRectF &pixelRect);
+  void zoom(const QRectF &pixelRect, const QList<QCPAxis*> &affectedAxes);
   void setupFullAxesBox(bool connectRanges=false);
   QList<QCPAbstractPlottable*> plottables() const;
   QList<QCPGraph*> graphs() const;

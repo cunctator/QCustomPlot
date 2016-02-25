@@ -399,6 +399,45 @@ bool QCPAxisRect::removeAxis(QCPAxis *axis)
 }
 
 /*!
+  Zooms in (or out) to the passed rectangular region \a pixelRect, given in pixel coordinates.
+
+  All axes of this axis rect will have their range zoomed accordingly. If you only wish to zoom
+  specific axes, use the overloaded version of this method.
+  
+  \see QCustomPlot::setSelectionRectMode
+*/
+void QCPAxisRect::zoom(const QRectF &pixelRect)
+{
+  zoom(pixelRect, axes());
+}
+
+/*! \overload
+  
+  Zooms in (or out) to the passed rectangular region \a pixelRect, given in pixel coordinates.
+  
+  Only the axes passed in \a affectedAxes will have their ranges zoomed accordingly.
+  
+  \see QCustomPlot::setSelectionRectMode
+*/
+void QCPAxisRect::zoom(const QRectF &pixelRect, const QList<QCPAxis*> &affectedAxes)
+{
+  foreach (QCPAxis *axis, affectedAxes)
+  {
+    if (!axis)
+    {
+      qDebug() << Q_FUNC_INFO << "a passed axis was zero";
+      continue;
+    }
+    QCPRange pixelRange;
+    if (axis->orientation() == Qt::Horizontal)
+      pixelRange = QCPRange(pixelRect.left(), pixelRect.right());
+    else
+      pixelRange = QCPRange(pixelRect.top(), pixelRect.bottom());
+    axis->setRange(axis->pixelToCoord(pixelRange.lower), axis->pixelToCoord(pixelRange.upper));
+  }
+}
+
+/*!
   Convenience function to create an axis on each side that doesn't have any axes yet and set their
   visibility to true. Further, the top/right axes are assigned the following properties of the
   bottom/left axes:

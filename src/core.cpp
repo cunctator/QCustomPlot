@@ -2088,15 +2088,21 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   // save some state to tell in releaseEvent whether it was a click:
   mMouseHasMoved = false;
   mMousePressPos = event->pos();
+  QCPLayoutElement *pressedElement = layoutElementAt(event->pos());
   
   if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
   {
     // activate selection rect:
-    mSelectionRect->startSelection(event);
+    if (mSelectionRectMode == QCP::srmZoom)
+    {
+      if (qobject_cast<QCPAxisRect*>(pressedElement)) // in zoom mode only activate selection rect if on an axis rect
+        mSelectionRect->startSelection(event);
+    } else // in all other modes just start the selection rect
+      mSelectionRect->startSelection(event);
   } else
   {
     // no selection rect interaction, so forward event to layout element under the cursor:
-    mMouseEventElement = layoutElementAt(event->pos());
+    mMouseEventElement = pressedElement;
     if (mMouseEventElement)
       mMouseEventElement->mousePressEvent(event);
   }
@@ -2338,7 +2344,13 @@ void QCustomPlot::processRectSelection(QRect rect)
 
 void QCustomPlot::processRectZoom(QRect rect)
 {
-  // TODO
+  if (QCPAxisRect *axisRect = qobject_cast<QCPAxisRect*>(layoutElementAt(rect.topLeft())))
+  {
+    QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxis(Qt::Horizontal) << axisRect->rangeZoomAxis(Qt::Vertical);
+    affectedAxes.removeAll(static_cast<QCPAxis*>(0));
+    axisRect->zoom(QRectF(rect), affectedAxes);
+    replot(rpQueuedReplot);
+  }
 }
 
 void QCustomPlot::processPointSelection(QMouseEvent *event)

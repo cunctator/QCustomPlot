@@ -254,11 +254,11 @@ protected:
   virtual void draw(QCPPainter *painter);
   virtual void axisRemoved(QCPAxis *axis);
   virtual void legendRemoved(QCPLegend *legend);
+  Q_SLOT virtual void processRectSelection(QRect rect);
+  Q_SLOT virtual void processRectZoom(QRect rect);
+  Q_SLOT virtual void processPointSelection(QMouseEvent *event);
   
   // non-virtual methods:
-  Q_SLOT void processRectSelection(QRect rect);
-  Q_SLOT void processRectZoom(QRect rect);
-  Q_SLOT void processPointSelection(QMouseEvent *event);
   bool registerPlottable(QCPAbstractPlottable *plottable);
   bool registerGraph(QCPGraph *graph);
   bool registerItem(QCPAbstractItem* item);

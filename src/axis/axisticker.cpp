@@ -340,6 +340,8 @@ QVector<QString> QCPAxisTicker::createLabelVector(const QVector<double> &ticks, 
   
   Removes tick coordinates from \a ticks which lie outside the specified \a range. If \a
   keepOneOutlier is true, it preserves one tick just outside the range on both sides, if present.
+  
+  The passed \a ticks must be sorted in ascending order.
 */
 void QCPAxisTicker::trimTicks(const QCPRange &range, QVector<double> &ticks, bool keepOneOutlier) const
 {
@@ -381,7 +383,7 @@ void QCPAxisTicker::trimTicks(const QCPRange &range, QVector<double> &ticks, boo
   
   Returns the coordinate contained in \a candidates which is closest to the provided \a target.
   
-  This method assumes \a candidates is not empty.
+  This method assumes \a candidates is not empty and sorted in ascending order.
 */
 double QCPAxisTicker::pickClosest(double target, const QVector<double> &candidates) const
 {

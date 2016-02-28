@@ -56,7 +56,7 @@ public:
 signals:
   void started();
   void changed(QRect rect);
-  void cancelled(QRect rect);
+  void canceled(QRect rect);
   void accepted(QRect rect);
   
 protected:

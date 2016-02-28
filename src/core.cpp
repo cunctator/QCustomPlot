@@ -2186,7 +2186,7 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       emit titleClick(event, pt);
   }
   
-  if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is cancelled there
+  if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is canceled there
   {
     // finish selection rect, the appropriate action will be taken via signal-slot connection:
     mSelectionRect->endSelection(event);

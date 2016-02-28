@@ -81,7 +81,7 @@ void QCPSelectionRect::cancel()
   if (mActive)
   {
     mActive = false;
-    emit cancelled(mRect);
+    emit canceled(mRect);
   }
 }
 
@@ -110,7 +110,7 @@ void QCPSelectionRect::keyPressEvent(QKeyEvent *event)
   if (event->key() == Qt::Key_Escape && mActive)
   {
     mActive = false;
-    emit cancelled(mRect);
+    emit canceled(mRect);
   }
 }
 

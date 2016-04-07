@@ -57,13 +57,6 @@ private:
 class QCP_LIB_DECL QCPDataSelection
 {
 public:
-  enum SelectionType {
-    stWhole
-    ,stSingleData
-    ,stDataRange
-    ,stMultipleDataRanges
-  };
-  
   explicit QCPDataSelection();
   
   // getters:
@@ -74,7 +67,7 @@ public:
   // setters:
   
   // non-property methods:
-  void enforceType(SelectionType type);
+  void enforceType(QCP::SelectionType type);
   
 private:
   // property members:

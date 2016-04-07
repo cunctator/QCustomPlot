@@ -83,7 +83,7 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
   }
 }
 
-void QCPDataSelection::enforceType(SelectionType type)
+void QCPDataSelection::enforceType(QCP::SelectionType type)
 {
   // remove any empty ranges:
   for (int i=mDataRanges.size()-1; i>=0; --i)
@@ -112,13 +112,13 @@ void QCPDataSelection::enforceType(SelectionType type)
   // enforce type:
   switch (type)
   {
-    case QCPDataSelection::stWhole:
+    case QCP::stWhole:
     {
       // whole selection isn't defined by data range, so don't change anything
       // TODO: really? (if we were to enforce whole here, QCPDataSelection would need to know the data size and keep it updated)
       break;
     }
-    case QCPDataSelection::stSingleData:
+    case QCP::stSingleData:
     {
       // reduce all data ranges to the single first data point:
       if (mDataRanges.size() > 1)
@@ -127,7 +127,7 @@ void QCPDataSelection::enforceType(SelectionType type)
         mDataRanges.first().setEnd(mDataRanges.first().begin()+1);
       break;
     }
-    case QCPDataSelection::stDataRange:
+    case QCP::stDataRange:
     {
       if (mDataRanges.size() > 1)
       {
@@ -138,7 +138,7 @@ void QCPDataSelection::enforceType(SelectionType type)
       }
       break;
     }
-    case QCPDataSelection::stMultipleDataRanges:
+    case QCP::stMultipleDataRanges:
     {
       // this is the selection type that allows all concievable combinations of ranges, so do nothing
       break;

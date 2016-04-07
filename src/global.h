@@ -165,6 +165,18 @@ enum SelectionRectMode { srmNone        ///< TODO
                          ,srmCustom     ///<
                        };
 
+/*!
+  Defines the different ways a plottable can be selected
+  
+  \see QCPAbstractPlottable::setSelectableParts
+*/
+enum SelectionType { stNone                ///< The plottable is not selectable
+                     ,stWhole              ///< The plottable is selectable as a whole
+                     ,stSingleData         ///< One individual data point can be selected at a time
+                     ,stDataRange          ///< Multiple contiguous data points (a data range) can be selected
+                     ,stMultipleDataRanges ///< Any combination of data points/ranges can be selected
+                    };
+
 /*! \internal
   
   Returns whether the specified \a value is considered an invalid data value for plottables (i.e.

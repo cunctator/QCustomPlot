@@ -159,10 +159,10 @@ Q_DECLARE_FLAGS(Interactions, Interaction)
   
   \see QCustomPlot::selectionRect
 */
-enum SelectionRectMode { srmNone        ///< TODO
-                         ,srmZoom       ///<
-                         ,srmSelectData ///<
-                         ,srmCustom     ///<
+enum SelectionRectMode { srmNone    ///< TODO
+                         ,srmZoom   ///<
+                         ,srmSelect ///<
+                         ,srmCustom ///<
                        };
 
 /*!

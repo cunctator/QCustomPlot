@@ -33,6 +33,9 @@ class QCP_LIB_DECL QCPDataRange
 public:
   QCPDataRange();
   
+  bool operator==(const QCPDataRange& other) const { return mBegin == other.mBegin && mEnd == other.mEnd; }
+  bool operator!=(const QCPDataRange& other) const { return !(*this == other); }
+  
   // getters:
   int begin() const { return mBegin; }
   int end() const { return mEnd; }
@@ -53,11 +56,17 @@ private:
   // non-virtual methods:
 
 };
+Q_DECLARE_TYPEINFO(QCPDataRange, Q_MOVABLE_TYPE);
 
 class QCP_LIB_DECL QCPDataSelection
 {
 public:
   explicit QCPDataSelection();
+  
+  bool operator==(const QCPDataSelection& other) const;
+  bool operator!=(const QCPDataSelection& other) const { return !(*this == other); }
+  QCPDataSelection &operator+=(const QCPDataSelection& other);
+  friend inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataSelection& b);
   
   // getters:
   int dataRangeCount() const { return mDataRanges.size(); }
@@ -67,6 +76,8 @@ public:
   // setters:
   
   // non-property methods:
+  bool isEmpty() const { return mDataRanges.isEmpty(); }
+  void simplify();
   void enforceType(QCP::SelectionType type);
   
 private:
@@ -76,6 +87,38 @@ private:
   inline static bool lessThanDataRangeBegin(const QCPDataRange &a, const QCPDataRange &b) { return a.begin() < b.begin(); }
 };
 Q_DECLARE_METATYPE(QCPDataSelection)
+
+/*!
+  Joins two selections
+*/
+inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataSelection& b)
+{
+  QCPDataSelection result(a);
+  result += b;
+  return result;
+}
+
+/* qdebug output stream operator, no doc needed */
+inline QDebug operator<< (QDebug d, const QCPDataRange &dataRange)
+{
+    d.nospace() << "[" << dataRange.begin() << ".." << dataRange.end()-1 << "]";
+    return d.space();
+}
+
+/* qdebug output stream operator, no doc needed */
+inline QDebug operator<< (QDebug d, const QCPDataSelection &selection)
+{
+    d.nospace() << "QCPDataSelection(";
+    for (int i=0; i<selection.dataRangeCount(); ++i)
+    {
+      if (i != 0)
+        d << ", ";
+      d << selection.dataRange(i);
+    }
+    d << ")";
+    return d.space();
+}
+
 
 
 #endif // QCP_SELECTION_H

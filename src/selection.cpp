@@ -71,6 +71,25 @@ QCPDataSelection::QCPDataSelection()
 {
 }
 
+bool QCPDataSelection::operator==(const QCPDataSelection &other) const
+{
+  if (mDataRanges.size() != other.mDataRanges.size())
+    return false;
+  for (int i=0; i<mDataRanges.size(); ++i)
+  {
+    if (mDataRanges.at(i) != other.mDataRanges.at(i))
+      return false;
+  }
+  return true;
+}
+
+QCPDataSelection &QCPDataSelection::operator+=(const QCPDataSelection &other)
+{
+  mDataRanges << other.mDataRanges;
+  simplify();
+  return *this;
+}
+
 QCPDataRange QCPDataSelection::dataRange(int index) const
 {
   if (index >= 0 && index < mDataRanges.size())
@@ -83,7 +102,7 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
   }
 }
 
-void QCPDataSelection::enforceType(QCP::SelectionType type)
+void QCPDataSelection::simplify()
 {
   // remove any empty ranges:
   for (int i=mDataRanges.size()-1; i>=0; --i)
@@ -108,10 +127,18 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     } else
       ++i;
   }
-  
-  // enforce type:
+}
+
+void QCPDataSelection::enforceType(QCP::SelectionType type)
+{
+  simplify();
   switch (type)
   {
+    case QCP::stNone:
+    {
+      mDataRanges.clear();
+      break;
+    }
     case QCP::stWhole:
     {
       // whole selection isn't defined by data range, so don't change anything

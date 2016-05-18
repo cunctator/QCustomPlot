@@ -862,21 +862,6 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
     painter->setPen(mainPen());
     painter->setBrush(Qt::NoBrush);
     
-    /* Draws polyline in batches, currently not used:
-    int p = 0;
-    while (p < lineData->size())
-    {
-      int batch = qMin(25, lineData->size()-p);
-      if (p != 0)
-      {
-        ++batch;
-        --p; // to draw the connection lines between two batches
-      }
-      painter->drawPolyline(lineData->constData()+p, batch);
-      p += batch;
-    }
-    */
-    
     // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
     if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
         painter->pen().style() == Qt::SolidLine &&

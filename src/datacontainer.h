@@ -28,6 +28,7 @@
 
 #include "global.h"
 #include "axis/range.h"
+#include "selection.h"
 
 template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
@@ -71,6 +72,8 @@ public:
   QCPDataContainer::const_iterator findEndAboveKey(double key) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
+  QCPDataRange dataRange() const { return QCPDataRange(0, size()); }
+  void limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const;
   
 protected:
   // property members:

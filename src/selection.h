@@ -32,6 +32,7 @@ class QCP_LIB_DECL QCPDataRange
 {
 public:
   QCPDataRange();
+  QCPDataRange(int begin, int end);
   
   bool operator==(const QCPDataRange& other) const { return mBegin == other.mBegin && mEnd == other.mEnd; }
   bool operator!=(const QCPDataRange& other) const { return !(*this == other); }
@@ -48,6 +49,7 @@ public:
   // non-property methods:
   bool isValid() const;
   bool isEmpty() const { return length() == 0; }
+  QCPDataRange bounded(const QCPDataRange &otherRange) const;
   
 private:
   // property members:

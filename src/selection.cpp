@@ -41,6 +41,12 @@ QCPDataRange::QCPDataRange() :
 {
 }
 
+QCPDataRange::QCPDataRange(int begin, int end) :
+  mBegin(begin),
+  mEnd(end)
+{
+}
+
 void QCPDataRange::setBegin(int begin)
 {
   mBegin = begin;
@@ -54,6 +60,30 @@ void QCPDataRange::setEnd(int end)
 bool QCPDataRange::isValid() const
 {
   return (mEnd >= mBegin) && (mBegin >= 0);
+}
+
+QCPDataRange QCPDataRange::bounded(const QCPDataRange &otherRange) const
+{
+  // TODO: testcase, sanity check
+  QCPDataRange result(*this);
+  
+  if (otherRange.isEmpty()) // bound to an empty range, just return otherRange directly (preserving begin index of otherRange)
+  {
+    result = otherRange;
+  } else
+  {
+    if (result.begin() < otherRange.begin())
+      result.setBegin(otherRange.begin());
+    else if (result.begin() > otherRange.end()-1) // note that otherRange is not empty here, so .end()-1 is safe
+      result.setBegin(otherRange.end()-1);
+    
+    if (result.end() < result.begin()) // may happen if begin was corrected above
+      result.setEnd(result.begin());
+    else if (result.end() > otherRange.end())
+      result.setEnd(otherRange.end());
+  }
+  
+  return result;
 }
 
 

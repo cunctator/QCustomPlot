@@ -52,7 +52,7 @@ public:
   
   double key, open, high, low, close;
 };
-Q_DECLARE_TYPEINFO(QCPFinancialData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPFinancialData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPFinancialDataContainer

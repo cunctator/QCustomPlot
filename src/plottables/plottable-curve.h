@@ -52,7 +52,7 @@ public:
   
   double t, key, value;
 };
-Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPCurveData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPCurveDataContainer

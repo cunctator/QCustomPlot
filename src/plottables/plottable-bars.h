@@ -114,7 +114,7 @@ public:
   
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPBarsData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPBarsDataContainer

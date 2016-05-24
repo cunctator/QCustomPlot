@@ -52,7 +52,7 @@ public:
   
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPGraphData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPGraphDataContainer

@@ -176,8 +176,6 @@ protected:
   const QPointF coordsToPixels(double key, double value) const;
   void pixelsToCoords(double x, double y, double &key, double &value) const;
   void pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const;
-  QPen mainPen() const;
-  QBrush mainBrush() const;
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
 
@@ -188,5 +186,6 @@ private:
   friend class QCPAxis;
   friend class QCPPlottableLegendItem;
 };
+
 
 #endif // QCP_PLOTTABLE_H

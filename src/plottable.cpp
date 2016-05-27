@@ -715,26 +715,6 @@ void QCPAbstractPlottable::pixelsToCoords(const QPointF &pixelPos, double &key, 
 
 /*! \internal
 
-  Returns the pen that should be used for drawing lines of the plottable. Returns mPen when the
-  graph is not selected and mSelectedPen when it is.
-*/
-QPen QCPAbstractPlottable::mainPen() const
-{
-  return mSelected ? mSelectedPen : mPen;
-}
-
-/*! \internal
-
-  Returns the brush that should be used for drawing fills of the plottable. Returns mBrush when the
-  graph is not selected and mSelectedBrush when it is.
-*/
-QBrush QCPAbstractPlottable::mainBrush() const
-{
-  return mSelected ? mSelectedBrush : mBrush;
-}
-
-/*! \internal
-
   A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
   before drawing plottable lines.
 

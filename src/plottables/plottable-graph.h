@@ -131,19 +131,19 @@ protected:
   
   // introduced virtual methods:
   virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const;
+  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData, const QCPScatterStyle &style) const;
   virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
   virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const;
+  virtual void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
   
   // non-virtual methods:
-  void getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const;
-  void getScatterPlotData(QVector<QCPGraphData> *scatterData) const;
-  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
+  void getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getScatterPlotData(QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
+  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const;
   void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const;
   void addFillBasePoints(QVector<QPointF> *lineData) const;
   void removeFillBasePoints(QVector<QPointF> *lineData) const;

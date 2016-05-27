@@ -399,32 +399,61 @@ void QCPGraph::draw(QCPPainter *painter)
   if (!mScatterStyle.isNone())
     scatterData = new QVector<QCPGraphData>;
   
-  // fill vectors with data appropriate to plot style:
-  getPlotData(lineData, scatterData);
-  
-  // check data validity if flag set:
-#ifdef QCUSTOMPLOT_CHECK_DATA
-  QCPGraphDataContainer::const_iterator it;
-  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    if (QCP::isInvalidData(it->key, it->value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
-  }
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    // fill vectors with data appropriate to plot style:
+    getPlotData(lineData, scatterData, allSegments.at(i));
+    
+    // check data validity if flag set:
+#ifdef QCUSTOMPLOT_CHECK_DATA
+    QCPGraphDataContainer::const_iterator it;
+    for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+    {
+      if (QCP::isInvalidData(it->key, it->value))
+        qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
+    }
 #endif
-
-  // draw fill of graph:
-  if (mLineStyle != lsNone)
+    
+    // draw fill of graph:
+    if (isSelectedSegment && mSelectionDecorator)
+      mSelectionDecorator->applyBrush(painter);
+    else
+      painter->setBrush(mBrush);
+    painter->setPen(Qt::NoPen);
     drawFill(painter, lineData);
+    
+    // draw line:
+    if (mLineStyle != lsNone)
+    {
+      if (isSelectedSegment && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
+      else
+        painter->setPen(mPen);
+      painter->setBrush(Qt::NoBrush);
+      if (mLineStyle == lsImpulse)
+        drawImpulsePlot(painter, lineData);
+      else
+        drawLinePlot(painter, lineData); // also step plots can be drawn as a line plot
+    }
+    
+    // draw scatters:
+    if (scatterData)
+    {
+      if (isSelectedSegment && mSelectionDecorator)
+        drawScatterPlot(painter, scatterData, mSelectionDecorator->getFinalScatterStyle(mScatterStyle));
+      else
+        drawScatterPlot(painter, scatterData, mScatterStyle);
+    }
+  }
   
-  // draw line:
-  if (mLineStyle == lsImpulse)
-    drawImpulsePlot(painter, lineData);
-  else if (mLineStyle != lsNone)
-    drawLinePlot(painter, lineData); // also step plots can be drawn as a line plot
-  
-  // draw scatters:
-  if (scatterData)
-    drawScatterPlot(painter, scatterData);
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
   
   // free allocated line and point vectors:
   delete lineData;
@@ -482,19 +511,22 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   scatter symbols accordingly. If no scatters need to be drawn, i.e. the scatter style's shape is
   \ref QCPScatterStyle::ssNone, pass 0 as \a scatterData, and this step will be skipped.
   
+  \a dataRange specifies the beginning and ending data indices that will be taken into account for
+  conversion to lines and scatters.
+  
   \see getScatterPlotData, getLinePlotData, getStepLeftPlotData, getStepRightPlotData,
   getStepCenterPlotData, getImpulsePlotData
 */
-void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   switch(mLineStyle)
   {
-    case lsNone: getScatterPlotData(scatterData); break;
-    case lsLine: getLinePlotData(lineData, scatterData); break;
-    case lsStepLeft: getStepLeftPlotData(lineData, scatterData); break;
-    case lsStepRight: getStepRightPlotData(lineData, scatterData); break;
-    case lsStepCenter: getStepCenterPlotData(lineData, scatterData); break;
-    case lsImpulse: getImpulsePlotData(lineData, scatterData); break;
+    case lsNone: getScatterPlotData(scatterData, dataRange); break;
+    case lsLine: getLinePlotData(lineData, scatterData, dataRange); break;
+    case lsStepLeft: getStepLeftPlotData(lineData, scatterData, dataRange); break;
+    case lsStepRight: getStepRightPlotData(lineData, scatterData, dataRange); break;
+    case lsStepCenter: getStepCenterPlotData(lineData, scatterData, dataRange); break;
+    case lsImpulse: getImpulsePlotData(lineData, scatterData, dataRange); break;
   }
 }
 
@@ -509,9 +541,9 @@ void QCPGraph::getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *sc
   
   \see drawScatterPlot
 */
-void QCPGraph::getScatterPlotData(QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getScatterPlotData(QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
-  getPreparedData(0, scatterData);
+  getPreparedData(0, scatterData, dataRange);
 }
 
 /*! \internal
@@ -525,7 +557,7 @@ void QCPGraph::getScatterPlotData(QVector<QCPGraphData> *scatterData) const
   
   \see drawLinePlot
 */
-void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -533,7 +565,7 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraph
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
   QVector<QCPGraphData> lineData;
-  getPreparedData(&lineData, scatterData);
+  getPreparedData(&lineData, scatterData, dataRange);
   linePixelData->reserve(lineData.size()+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size());
   
@@ -566,7 +598,7 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraph
   
   \see drawLinePlot
 */
-void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -574,7 +606,7 @@ void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPG
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
   QVector<QCPGraphData> lineData;
-  getPreparedData(&lineData, scatterData);
+  getPreparedData(&lineData, scatterData, dataRange);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
   
@@ -619,7 +651,7 @@ void QCPGraph::getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPG
   
   \see drawLinePlot
 */
-void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -627,7 +659,7 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCP
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
   QVector<QCPGraphData> lineData;
-  getPreparedData(&lineData, scatterData);
+  getPreparedData(&lineData, scatterData, dataRange);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
   
@@ -672,7 +704,7 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCP
   
   \see drawLinePlot
 */
-void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -680,7 +712,7 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QC
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as lineData"; return; }
   
   QVector<QCPGraphData> lineData;
-  getPreparedData(&lineData, scatterData);
+  getPreparedData(&lineData, scatterData, dataRange);
   linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
   // calculate steps from lineData and transform to pixel coordinates:
@@ -737,7 +769,7 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QC
   
   \see drawImpulsePlot
 */
-void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -745,7 +777,7 @@ void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGr
   if (!linePixelData) { qDebug() << Q_FUNC_INFO << "null pointer passed as linePixelData"; return; }
   
   QVector<QCPGraphData> lineData;
-  getPreparedData(&lineData, scatterData);
+  getPreparedData(&lineData, scatterData, dataRange);
   linePixelData->resize(lineData.size()*2); // no need to reserve 2 extra points because impulse plot has no fill
   
   // transform lineData points to pixels:
@@ -792,22 +824,18 @@ void QCPGraph::getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGr
 void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   if (mLineStyle == lsImpulse) return; // fill doesn't make sense for impulse plot
-  if (mainBrush().style() == Qt::NoBrush || mainBrush().color().alpha() == 0) return;
+  if (painter->brush().style() == Qt::NoBrush || painter->brush().color().alpha() == 0) return;
   
   applyFillAntialiasingHint(painter);
   if (!mChannelFillGraph)
   {
     // draw base fill under graph, fill goes all the way to the zero-value-line:
     addFillBasePoints(lineData);
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(mainBrush());
     painter->drawPolygon(QPolygonF(*lineData));
     removeFillBasePoints(lineData);
   } else
   {
     // draw channel fill between this graph and mChannelFillGraph:
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(mainBrush());
     painter->drawPolygon(getChannelFillPolygon(lineData));
   }
 }
@@ -821,7 +849,7 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
   
   \see drawLinePlot, drawImpulsePlot
 */
-void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData, const QCPScatterStyle &style) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -829,17 +857,17 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatt
   
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
-  mScatterStyle.applyTo(painter, mPen);
+  style.applyTo(painter, mPen);
   if (keyAxis->orientation() == Qt::Vertical)
   {
     for (int i=0; i<scatterData->size(); ++i)
       if (!qIsNaN(scatterData->at(i).value))
-        mScatterStyle.drawShape(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key));
+        style.drawShape(painter, valueAxis->coordToPixel(scatterData->at(i).value), keyAxis->coordToPixel(scatterData->at(i).key));
   } else
   {
     for (int i=0; i<scatterData->size(); ++i)
       if (!qIsNaN(scatterData->at(i).value))
-        mScatterStyle.drawShape(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value));
+        style.drawShape(painter, keyAxis->coordToPixel(scatterData->at(i).key), valueAxis->coordToPixel(scatterData->at(i).value));
   }
 }
 
@@ -855,12 +883,9 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatt
 void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   // draw line of graph:
-  if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
+  if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
-    painter->setPen(mainPen());
-    painter->setBrush(Qt::NoBrush);
-    
     // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
     if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
         painter->pen().style() == Qt::SolidLine &&
@@ -891,7 +916,7 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
       int i = 0;
       const int lineDataSize = lineData->size();
       while (i < lineDataSize)
-     {
+      {
         if (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x()) || qIsInf(lineData->at(i).y())) // NaNs create a gap in the line. Also filter Infs which make drawPolyline block
         {
           painter->drawPolyline(lineData->constData()+segmentStart, i-segmentStart); // i, because we don't want to include the current NaN point
@@ -915,14 +940,15 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
 void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const
 {
   // draw impulses:
-  if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
+  if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
-    QPen pen = mainPen();
-    pen.setCapStyle(Qt::FlatCap); // so impulse line doesn't reach beyond zero-line
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
+    QPen oldPen = painter->pen();
+    QPen newPen = painter->pen();
+    newPen.setCapStyle(Qt::FlatCap); // so impulse line doesn't reach beyond zero-line
+    painter->setPen(newPen);
     painter->drawLines(*lineData);
+    painter->setPen(oldPen);
   }
 }
 
@@ -930,7 +956,7 @@ void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) 
   
   Returns the \a lineData and \a scatterData that need to be plotted for this graph taking into
   consideration the current axis ranges and, if \ref setAdaptiveSampling is enabled, local point
-  densities.
+  densities. The considered data can be restricted by \a dataRange.
   
   0 may be passed as \a lineData or \a scatterData to indicate that the respective dataset isn't
   needed. For example, if the scatter style (\ref setScatterStyle) is \ref QCPScatterStyle::ssNone, \a
@@ -938,7 +964,7 @@ void QCPGraph::drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) 
   
   This method is used by the various "get(...)PlotData" methods to get the basic working set of data.
 */
-void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const
+void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData, const QCPDataRange &dataRange) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
@@ -946,6 +972,10 @@ void QCPGraph::getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraph
   // get visible data range:
   QCPGraphDataContainer::const_iterator lower, upperEnd;
   getVisibleDataBounds(lower, upperEnd);
+  // limit lower/upperEnd to dataRange:
+  if (!dataRange.isValid() || dataRange.isEmpty())
+    return;
+  mDataContainer->limitIteratorsToDataRange(lower, upperEnd, dataRange);
   if (lower == upperEnd)
     return;
   
@@ -1344,7 +1374,7 @@ const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *lineData
   
   if (lineData->isEmpty()) return QPolygonF();
   QVector<QPointF> otherData;
-  mChannelFillGraph.data()->getPlotData(&otherData, 0);
+  mChannelFillGraph.data()->getPlotData(&otherData, 0, QCPDataRange(0, dataCount()));
   if (otherData.isEmpty()) return QPolygonF();
   QVector<QPointF> thisData;
   thisData.reserve(lineData->size()+otherData.size()); // because we will join both vectors at end of this function
@@ -1551,7 +1581,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
   {
     // no line displayed, only calculate distance to scatter points:
     QVector<QCPGraphData> scatterData;
-    getScatterPlotData(&scatterData);
+    getScatterPlotData(&scatterData, QCPDataRange(0, dataCount()));
     if (scatterData.size() > 0)
     {
       double minDistSqr = std::numeric_limits<double>::max();
@@ -1568,7 +1598,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint) const
   {
     // line displayed, calculate distance to line segments:
     QVector<QPointF> lineData;
-    getPlotData(&lineData, 0); // unlike with getScatterPlotData we get pixel coordinates here
+    getPlotData(&lineData, 0, QCPDataRange(0, dataCount())); // unlike with getScatterPlotData we get pixel coordinates here
     if (lineData.size() > 1) // at least one line segment, compare distance to line segments
     {
       double minDistSqr = std::numeric_limits<double>::max();

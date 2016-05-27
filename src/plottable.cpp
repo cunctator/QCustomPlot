@@ -61,6 +61,16 @@ void QCPSelectionDecorator::setBrush(const QBrush &brush)
   mBrush = brush;
 }
 
+void QCPSelectionDecorator::setScatterStyle(const QCPScatterStyle &scatterStyle)
+{
+  mScatterStyle = scatterStyle;
+}
+
+void QCPSelectionDecorator::setIgnoreScatterShape(bool ignore)
+{
+  mIgnoreScatterShape = ignore;
+}
+
 void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
 {
   painter->setPen(mPen);
@@ -69,6 +79,19 @@ void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
 void QCPSelectionDecorator::applyBrush(QCPPainter *painter) const
 {
   painter->setBrush(mBrush);
+}
+
+QCPScatterStyle QCPSelectionDecorator::getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const
+{
+  QCPScatterStyle result(mScatterStyle);
+  if (mIgnoreScatterShape)
+    result.setShape(unselectedStyle.shape());
+  // if style shall inherit pen from plottable (has no own pen defined), give it the selected pen
+  // explicitly, so it doesn't use the unselected pen when used in the plottable:
+  if (!result.isPenDefined())
+    result.setPen(mPen);
+  
+  return result;
 }
 
 void QCPSelectionDecorator::drawDecoration(QCPPainter *painter, QCPDataSelection selection)

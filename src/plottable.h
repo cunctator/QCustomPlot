@@ -48,14 +48,19 @@ public:
   // getters:
   QPen pen() const { return mPen; }
   QBrush brush() const { return mBrush; }
+  QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  bool ignoreScatterShape() const { return mIgnoreScatterShape; }
   
   // setters:
   void setPen(const QPen &pen);
   void setBrush(const QBrush &brush);
+  void setScatterStyle(const QCPScatterStyle &scatterStyle);
+  void setIgnoreScatterShape(bool ignore);
   
   // non-virtual methods:
   void applyPen(QCPPainter *painter) const;
   void applyBrush(QCPPainter *painter) const;
+  QCPScatterStyle getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const;
   
   // introduced virtual methods:
   virtual void drawDecoration(QCPPainter *painter, QCPDataSelection selection);
@@ -64,6 +69,8 @@ protected:
   // property members:
   QPen mPen;
   QBrush mBrush;
+  QCPScatterStyle mScatterStyle;
+  bool mIgnoreScatterShape;
   // non-property members:
   QCPAbstractPlottable *mPlottable;
   

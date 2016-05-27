@@ -42,6 +42,7 @@
 #include "axis/axistickertext.h"
 #include "axis/axistickerpi.h"
 #include "axis/axistickerlog.h"
+#include "scatterstyle.h"
 #include "plottable.h"
 #include "plottable1d.h"
 #include "datacontainer.h"

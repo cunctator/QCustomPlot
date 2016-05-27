@@ -32,6 +32,7 @@
 #include "layer.h"
 #include "axis/axis.h"
 #include "selection.h"
+#include "scatterstyle.h"
 
 class QCPPainter;
 class QCPAbstractPlottable;

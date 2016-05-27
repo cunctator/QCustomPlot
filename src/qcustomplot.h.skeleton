@@ -46,6 +46,7 @@
 //amalgamation: add axis/axistickerpi.h
 //amalgamation: add axis/axistickerlog.h
 //amalgamation: add axis/axis.h
+//amalgamation: add scatterstyle.h
 //amalgamation: add plottable.h
 //amalgamation: add plottable1d.h
 //amalgamation: add datacontainer.h

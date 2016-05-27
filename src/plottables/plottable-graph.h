@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -66,7 +66,7 @@ Q_DECLARE_TYPEINFO(QCPGraphData, Q_PRIMITIVE_TYPE);
 */
 typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 
-class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable1D<QCPGraphData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -118,7 +118,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPGraphDataContainer> mDataContainer;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
   QPointer<QCPGraph> mChannelFillGraph;

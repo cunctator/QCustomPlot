@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -67,7 +67,7 @@ Q_DECLARE_TYPEINFO(QCPCurveData, Q_PRIMITIVE_TYPE);
 */
 typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
-class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable1D<QCPCurveData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -109,7 +109,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPCurveDataContainer> mDataContainer;
   QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   

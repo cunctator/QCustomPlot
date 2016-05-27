@@ -185,8 +185,7 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPCurveDataContainer)
+  QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis)
 {
   // modify inherited properties from abstract plottable:
   mPen.setColor(Qt::blue);

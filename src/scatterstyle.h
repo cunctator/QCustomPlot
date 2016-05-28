@@ -35,6 +35,24 @@ class QCP_LIB_DECL QCPScatterStyle
   Q_GADGET
 public:
   /*!
+    Represents the properties of a scatter style instance. For example this enum is used to specify
+    which properties of \ref QCPSelectionDecorator::setScatterStyle will be changed from the
+    default scatter style when highlighting selected data points.
+    
+    Specific scatter properties can be transferred between QCPScatterStyle instances via \ref
+    setFromOther.
+  */
+  enum ScatterProperty {  spNone  = 0x00  ///< <tt>0x00</tt> None
+                         ,spPen   = 0x01  ///< <tt>0x01</tt> The pen property, see \ref setPen
+                         ,spBrush = 0x02  ///< <tt>0x02</tt> The brush property, see \ref setBrush
+                         ,spSize  = 0x04  ///< <tt>0x04</tt> The size property, see \ref setSize
+                         ,spShape = 0x08  ///< <tt>0x08</tt> The shape property, see \ref setShape
+                         ,spAll   = 0xFF  ///< <tt>0xFF</tt> All properties
+                       };
+  Q_FLAGS(ScatterProperty ScatterProperties)
+  Q_DECLARE_FLAGS(ScatterProperties, ScatterProperty)
+
+  /*!
     Defines the shape used for scatter points.
 
     On plottables/items that draw scatters, the sizes of these visualizations (with exception of
@@ -79,6 +97,7 @@ public:
   QPainterPath customPath() const { return mCustomPath; }
 
   // setters:
+  void setFromOther(const QCPScatterStyle &other, ScatterProperties properties);
   void setSize(double size);
   void setShape(ScatterShape shape);
   void setPen(const QPen &pen);

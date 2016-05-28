@@ -221,6 +221,28 @@ QCPScatterStyle::QCPScatterStyle(const QPainterPath &customPath, const QPen &pen
 {
 }
 
+void QCPScatterStyle::setFromOther(const QCPScatterStyle &other, ScatterProperties properties)
+{
+  if (properties.testFlag(spPen))
+  {
+    setPen(other.pen());
+    if (!other.isPenDefined())
+      undefinePen();
+  }
+  if (properties.testFlag(spBrush))
+    setBrush(other.brush());
+  if (properties.testFlag(spSize))
+    setSize(other.size());
+  if (properties.testFlag(spShape))
+  {
+    setShape(other.shape());
+    if (other.shape() == ssPixmap)
+      setPixmap(other.pixmap());
+    else if (other.shape() == ssCustom)
+      setCustomPath(other.customPath());
+  }
+}
+
 /*!
   Sets the size (pixel diameter) of the drawn scatter points to \a size.
   

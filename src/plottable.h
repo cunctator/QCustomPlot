@@ -49,13 +49,13 @@ public:
   QPen pen() const { return mPen; }
   QBrush brush() const { return mBrush; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
-  bool ignoreScatterShape() const { return mIgnoreScatterShape; }
+  QCPScatterStyle::ScatterProperties usedScatterProperties() const { return mUsedScatterProperties; }
   
   // setters:
   void setPen(const QPen &pen);
   void setBrush(const QBrush &brush);
-  void setScatterStyle(const QCPScatterStyle &scatterStyle);
-  void setIgnoreScatterShape(bool ignore);
+  void setScatterStyle(const QCPScatterStyle &scatterStyle, QCPScatterStyle::ScatterProperties usedProperties=QCPScatterStyle::spPen);
+  void setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties);
   
   // non-virtual methods:
   void applyPen(QCPPainter *painter) const;
@@ -70,7 +70,7 @@ protected:
   QPen mPen;
   QBrush mBrush;
   QCPScatterStyle mScatterStyle;
-  bool mIgnoreScatterShape;
+  QCPScatterStyle::ScatterProperties mUsedScatterProperties;
   // non-property members:
   QCPAbstractPlottable *mPlottable;
   

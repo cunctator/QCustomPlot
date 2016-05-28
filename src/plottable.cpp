@@ -43,6 +43,8 @@
 QCPSelectionDecorator::QCPSelectionDecorator() :
   mPen(Qt::blue),
   mBrush(Qt::NoBrush),
+  mScatterStyle(QCPScatterStyle::ssNone, Qt::blue, 6.0),
+  mUsedScatterProperties(QCPScatterStyle::spPen),
   mPlottable(0)
 {
 }
@@ -61,14 +63,15 @@ void QCPSelectionDecorator::setBrush(const QBrush &brush)
   mBrush = brush;
 }
 
-void QCPSelectionDecorator::setScatterStyle(const QCPScatterStyle &scatterStyle)
+void QCPSelectionDecorator::setScatterStyle(const QCPScatterStyle &scatterStyle, QCPScatterStyle::ScatterProperties usedProperties)
 {
   mScatterStyle = scatterStyle;
+  setUsedScatterProperties(usedProperties);
 }
 
-void QCPSelectionDecorator::setIgnoreScatterShape(bool ignore)
+void QCPSelectionDecorator::setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties)
 {
-  mIgnoreScatterShape = ignore;
+  mUsedScatterProperties = properties;
 }
 
 void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
@@ -83,11 +86,12 @@ void QCPSelectionDecorator::applyBrush(QCPPainter *painter) const
 
 QCPScatterStyle QCPSelectionDecorator::getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const
 {
-  QCPScatterStyle result(mScatterStyle);
-  if (mIgnoreScatterShape)
-    result.setShape(unselectedStyle.shape());
-  // if style shall inherit pen from plottable (has no own pen defined), give it the selected pen
-  // explicitly, so it doesn't use the unselected pen when used in the plottable:
+  QCPScatterStyle result(unselectedStyle);
+  result.setFromOther(mScatterStyle, mUsedScatterProperties);
+  
+  // if style shall inherit pen from plottable (has no own pen defined), give it the selected
+  // plottable pen explicitly, so it doesn't use the unselected plottable pen when used in the
+  // plottable:
   if (!result.isPenDefined())
     result.setPen(mPen);
   

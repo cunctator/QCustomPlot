@@ -95,10 +95,12 @@
   
   Returns whether a pen has been defined for this scatter style.
   
-  The pen is undefined if a constructor is called that does not carry \a pen as parameter. Those are
-  \ref QCPScatterStyle() and \ref QCPScatterStyle(ScatterShape shape, double size). If the pen is
-  left undefined, the scatter color will be inherited from the plottable that uses this scatter
-  style.
+  The pen is undefined if a constructor is called that does not carry \a pen as parameter. Those
+  are \ref QCPScatterStyle() and \ref QCPScatterStyle(ScatterShape shape, double size). If the pen
+  is undefined, the pen of the respective plottable will be used for drawing scatters.
+  
+  If a pen was defined for this scatter style instance, and you now wish to undefine the pen, call
+  \ref undefinePen.
   
   \see setPen
 */
@@ -246,7 +248,8 @@ void QCPScatterStyle::setShape(QCPScatterStyle::ScatterShape shape)
   Sets the pen that will be used to draw scatter points to \a pen.
   
   If the pen was previously undefined (see \ref isPenDefined), the pen is considered defined after
-  a call to this function, even if \a pen is <tt>Qt::NoPen</tt>.
+  a call to this function, even if \a pen is <tt>Qt::NoPen</tt>. If you have defined a pen
+  previously by calling this function and now wish to undefine the pen, call \ref undefinePen.
   
   \see setBrush
 */
@@ -289,6 +292,16 @@ void QCPScatterStyle::setCustomPath(const QPainterPath &customPath)
 {
   setShape(ssCustom);
   mCustomPath = customPath;
+}
+
+/*!
+  Sets this scatter style to have an undefined pen (see \ref isPenDefined).
+  
+  A call to \ref setPen will define a pen.
+*/
+void QCPScatterStyle::undefinePen()
+{
+  mPenDefined = false;
 }
 
 /*!

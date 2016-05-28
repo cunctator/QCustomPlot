@@ -89,6 +89,7 @@ public:
   // non-property methods:
   bool isNone() const { return mShape == ssNone; }
   bool isPenDefined() const { return mPenDefined; }
+  void undefinePen();
   void applyTo(QCPPainter *painter, const QPen &defaultPen) const;
   void drawShape(QCPPainter *painter, QPointF pos) const;
   void drawShape(QCPPainter *painter, double x, double y) const;

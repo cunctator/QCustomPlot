@@ -120,7 +120,7 @@ protected:
   
   // introduced virtual methods:
   virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
   void getCurveData(QVector<QPointF> *lineData) const;

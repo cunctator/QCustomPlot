@@ -523,14 +523,14 @@ void QCPCurve::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   Draws scatter symbols at every data point passed in \a pointData. scatter symbols are independent of
   the line style and are always drawn if scatter shape is not \ref QCPScatterStyle::ssNone.
 */
-void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const
+void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData, const QCPScatterStyle &style) const
 {
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
-  mScatterStyle.applyTo(painter, mPen);
+  style.applyTo(painter, mPen);
   for (int i=0; i<pointData->size(); ++i)
     if (!qIsNaN(pointData->at(i).x()) && !qIsNaN(pointData->at(i).y()))
-      mScatterStyle.drawShape(painter,  pointData->at(i));
+      style.drawShape(painter,  pointData->at(i));
 }
 
 /*! \internal

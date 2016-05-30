@@ -395,9 +395,7 @@ void QCPGraph::draw(QCPPainter *painter)
   
   // allocate line and (if necessary) point vectors:
   QVector<QPointF> *lineData = new QVector<QPointF>;
-  QVector<QCPGraphData> *scatterData = 0;
-  if (!mScatterStyle.isNone())
-    scatterData = new QVector<QCPGraphData>;
+  QVector<QCPGraphData> *scatterData = new QVector<QCPGraphData>;
   
   // loop over and draw segments of unselected/selected data:
   QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
@@ -406,8 +404,12 @@ void QCPGraph::draw(QCPPainter *painter)
   for (int i=0; i<allSegments.size(); ++i)
   {
     bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPScatterStyle finalScatterStyle = mScatterStyle;
+    if (isSelectedSegment && mSelectionDecorator)
+      finalScatterStyle = mSelectionDecorator->getFinalScatterStyle(mScatterStyle);
+    
     // fill vectors with data appropriate to plot style:
-    getPlotData(lineData, scatterData, allSegments.at(i));
+    getPlotData(lineData, finalScatterStyle.isNone() ? 0 : scatterData, allSegments.at(i));
     
     // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
@@ -442,13 +444,8 @@ void QCPGraph::draw(QCPPainter *painter)
     }
     
     // draw scatters:
-    if (scatterData)
-    {
-      if (isSelectedSegment && mSelectionDecorator)
-        drawScatterPlot(painter, scatterData, mSelectionDecorator->getFinalScatterStyle(mScatterStyle));
-      else
-        drawScatterPlot(painter, scatterData, mScatterStyle);
-    }
+    if (!finalScatterStyle.isNone())
+      drawScatterPlot(painter, scatterData, finalScatterStyle);
   }
   
   // draw other selection decoration that isn't just line/scatter pens and brushes:
@@ -457,8 +454,7 @@ void QCPGraph::draw(QCPPainter *painter)
   
   // free allocated line and point vectors:
   delete lineData;
-  if (scatterData)
-    delete scatterData;
+  delete scatterData;
 }
 
 /* inherits documentation from base class */

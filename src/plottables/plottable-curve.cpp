@@ -404,81 +404,62 @@ void QCPCurve::draw(QCPPainter *painter)
   // allocate line vector:
   QVector<QPointF> *lineData = new QVector<QPointF>;
   
-  // fill with curve data:
-  getCurveData(lineData);
-  
-  // check data validity if flag set:
-#ifdef QCUSTOMPLOT_CHECK_DATA
-  for (QCPCurveDataContainer::const_iterator it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    if (QCP::isInvalidData(it->t) ||
-        QCP::isInvalidData(it->key, it->value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
-  }
-#endif
-  
-  // draw curve fill:
-  if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
-  {
-    applyFillAntialiasingHint(painter);
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(mainBrush());
-    painter->drawPolygon(QPolygonF(*lineData));
-  }
-  
-  // draw curve line:
-  if (mLineStyle != lsNone && mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
-  {
-    applyDefaultAntialiasingHint(painter);
-    painter->setPen(mainPen());
-    painter->setBrush(Qt::NoBrush);
-    // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
-    if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
-        painter->pen().style() == Qt::SolidLine &&
-        !painter->modes().testFlag(QCPPainter::pmVectorized) &&
-        !painter->modes().testFlag(QCPPainter::pmNoCaching))
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    
+    // fill with curve data:
+    QPen finalCurvePen = mPen; // determine the final pen already here, because the line optimization depends on its stroke width
+    if (isSelectedSegment && mSelectionDecorator)
+      finalCurvePen = mSelectionDecorator->pen();
+    
+    QCPScatterStyle finalScatterStyle = mScatterStyle; // determine the final scatter style already here, because the line optimization depends on its size
+    if (isSelectedSegment && mSelectionDecorator)
+      finalScatterStyle = mSelectionDecorator->getFinalScatterStyle(mScatterStyle);
+    
+    getCurveData(lineData, allSegments.at(i), qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
+    
+    // check data validity if flag set:
+  #ifdef QCUSTOMPLOT_CHECK_DATA
+    for (QCPCurveDataContainer::const_iterator it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
     {
-      int i = 0;
-      bool lastIsNan = false;
-      const int lineDataSize = lineData->size();
-      while (i < lineDataSize && (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x()))) // make sure first point is not NaN
-        ++i;
-      ++i; // because drawing works in 1 point retrospect
-      while (i < lineDataSize)
-      {
-        if (!qIsNaN(lineData->at(i).y()) && !qIsNaN(lineData->at(i).x())) // NaNs create a gap in the line
-        {
-          if (!lastIsNan)
-            painter->drawLine(lineData->at(i-1), lineData->at(i));
-          else
-            lastIsNan = false;
-        } else
-          lastIsNan = true;
-        ++i;
-      }
-    } else
-    {
-      int segmentStart = 0;
-      int i = 0;
-      const int lineDataSize = lineData->size();
-      while (i < lineDataSize)
-      {
-        if (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x())) // NaNs create a gap in the line
-        {
-          painter->drawPolyline(lineData->constData()+segmentStart, i-segmentStart); // i, because we don't want to include the current NaN point
-          segmentStart = i+1;
-        }
-        ++i;
-      }
-      // draw last segment:
-      painter->drawPolyline(lineData->constData()+segmentStart, lineDataSize-segmentStart);
+      if (QCP::isInvalidData(it->t) ||
+          QCP::isInvalidData(it->key, it->value))
+        qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "invalid." << "Plottable name:" << name();
     }
+  #endif
+    
+    // draw curve fill:
+    applyFillAntialiasingHint(painter);
+    if (isSelectedSegment && mSelectionDecorator)
+      mSelectionDecorator->applyBrush(painter);
+    else
+      painter->setBrush(mBrush);
+    painter->setPen(Qt::NoPen);
+    if (painter->brush().style() != Qt::NoBrush && painter->brush().color().alpha() != 0)
+      painter->drawPolygon(QPolygonF(*lineData));
+    
+    // draw curve line:
+    if (mLineStyle != lsNone)
+    {
+      painter->setPen(finalCurvePen);
+      painter->setBrush(Qt::NoBrush);
+      drawCurveLine(painter, lineData);
+    }
+    
+    // draw scatters:
+    if (!finalScatterStyle.isNone())
+      drawScatterPlot(painter, lineData, finalScatterStyle);
   }
   
-  // draw scatters:
-  if (!mScatterStyle.isNone())
-    drawScatterPlot(painter, lineData);
-  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
+    
   // free allocated line data:
   delete lineData;
 }

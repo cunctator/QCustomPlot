@@ -123,7 +123,7 @@ protected:
   virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
-  void getCurveData(QVector<QPointF> *lineData) const;
+  void getCurveData(QVector<QPointF> *lineData, const QCPDataRange &dataRange, double penWidth) const;
   int getRegion(double x, double y, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;

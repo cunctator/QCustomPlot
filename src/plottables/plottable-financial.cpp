@@ -203,8 +203,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   but use QCustomPlot::removePlottable() instead.
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPFinancialDataContainer),
+  QCPAbstractPlottable1D<QCPFinancialData>(keyAxis, valueAxis),
   mChartStyle(csOhlc),
   mWidth(0.5),
   mTwoColored(false),
@@ -481,17 +480,35 @@ QCPFinancialDataContainer QCPFinancial::timeSeriesToOhlc(const QVector<double> &
 void QCPFinancial::draw(QCPPainter *painter)
 {
   // get visible data range:
-  QCPFinancialDataContainer::const_iterator lower, upperEnd;
-  getVisibleDataBounds(lower, upperEnd);
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
   
-  // draw visible data range according to configured style:
-  switch (mChartStyle)
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    case QCPFinancial::csOhlc:
-      drawOhlcPlot(painter, lower, upperEnd); break;
-    case QCPFinancial::csCandlestick:
-      drawCandlestickPlot(painter, lower, upperEnd); break;
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPFinancialDataContainer::const_iterator begin = visibleBegin;
+    QCPFinancialDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
+    
+    // draw data segment according to configured style:
+    switch (mChartStyle)
+    {
+      case QCPFinancial::csOhlc:
+        drawOhlcPlot(painter, begin, end, isSelectedSegment); break;
+      case QCPFinancial::csCandlestick:
+        drawCandlestickPlot(painter, begin, end, isSelectedSegment); break;
+    }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */
@@ -580,25 +597,22 @@ QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csOhlc.
 */
-void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end)
+void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it->close >= it->open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
+        painter->setPen(mPen);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -614,13 +628,12 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it->close >= it->open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
+        painter->setPen(mPen);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -641,41 +654,29 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csCandlestick.
 */
-void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end)
+void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  QBrush boxBrush;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it->close >= it->open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -691,28 +692,19 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it->close >= it->open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);

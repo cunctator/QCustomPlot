@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../datacontainer.h"
 
 class QCPPainter;
@@ -128,7 +128,7 @@ Q_DECLARE_TYPEINFO(QCPBarsData, Q_PRIMITIVE_TYPE);
 */
 typedef QCPDataContainer<QCPBarsData> QCPBarsDataContainer;
 
-class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable1D<QCPBarsData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -183,7 +183,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPBarsDataContainer> mDataContainer;
   double mWidth;
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;

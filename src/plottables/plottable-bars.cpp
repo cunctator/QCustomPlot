@@ -536,8 +536,7 @@ QCPBarsData::QCPBarsData(double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPBarsDataContainer),
+  QCPAbstractPlottable1D<QCPBarsData>(keyAxis, valueAxis),
   mWidth(0.75),
   mWidthType(wtPlotCoords),
   mBarsGroup(0),
@@ -794,33 +793,58 @@ void QCPBars::draw(QCPPainter *painter)
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (mDataContainer->isEmpty()) return;
   
-  QCPBarsDataContainer::const_iterator it, lower, upperEnd;
-  getVisibleDataBounds(lower, upperEnd);
-  for (it = lower; it != upperEnd; ++it)
+  QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    // check data validity if flag set:
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPBarsDataContainer::const_iterator begin = visibleBegin;
+    QCPBarsDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
+    
+    for (QCPBarsDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-    if (QCP::isInvalidData(it->key, it->value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
+      if (QCP::isInvalidData(it->key, it->value))
+        qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
 #endif
-    QPolygonF barPolygon = getBarPolygon(it->key, it->value);
-    // draw bar fill:
-    if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
-    {
-      applyFillAntialiasingHint(painter);
+      QPolygonF barPolygon = getBarPolygon(it->key, it->value);
+      // draw bar fill:
+      if (isSelectedSegment && mSelectionDecorator)
+        mSelectionDecorator->applyBrush(painter);
+      else
+        painter->setBrush(mBrush);
       painter->setPen(Qt::NoPen);
-      painter->setBrush(mainBrush());
-      painter->drawPolygon(barPolygon);
-    }
-    // draw bar line:
-    if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
-    {
-      applyDefaultAntialiasingHint(painter);
-      painter->setPen(mainPen());
+      if (painter->brush().style() != Qt::NoBrush && painter->brush().color().alpha() != 0)
+      {
+        applyFillAntialiasingHint(painter);
+        painter->drawPolygon(barPolygon);
+      }
+      // draw bar line:
+      if (isSelectedSegment && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
+      else
+        painter->setPen(mPen);
       painter->setBrush(Qt::NoBrush);
-      painter->drawPolyline(barPolygon);
+      if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
+      {
+        applyDefaultAntialiasingHint(painter);
+        painter->drawPolyline(barPolygon);
+      }
     }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */

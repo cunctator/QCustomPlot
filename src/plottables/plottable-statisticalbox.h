@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -77,7 +77,7 @@ Q_DECLARE_TYPEINFO(QCPStatisticalBoxData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPStatisticalBoxData> QCPStatisticalBoxDataContainer;
 
-class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable1D<QCPStatisticalBoxData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -119,7 +119,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPStatisticalBoxDataContainer> mDataContainer;
   double mWidth;
   double mWhiskerWidth;
   QPen mWhiskerPen, mWhiskerBarPen, mMedianPen;

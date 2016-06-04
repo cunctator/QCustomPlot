@@ -225,8 +225,7 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   delete it manually but use QCustomPlot::removePlottable() instead.
 */
 QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPStatisticalBoxDataContainer),
+  QCPAbstractPlottable1D<QCPStatisticalBoxData>(keyAxis, valueAxis),
   mWidth(0.5),
   mWhiskerWidth(0.2),
   mWhiskerPen(Qt::black, 0, Qt::DashLine, Qt::FlatCap),
@@ -447,23 +446,51 @@ void QCPStatisticalBox::draw(QCPPainter *painter)
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QCPStatisticalBoxDataContainer::const_iterator lower, upperEnd;
-  getVisibleDataBounds(lower, upperEnd);
-  for (QCPStatisticalBoxDataContainer::const_iterator it = lower; it != upperEnd; ++it)
+  QCPStatisticalBoxDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    // check data validity if flag set:
-#   ifdef QCUSTOMPLOT_CHECK_DATA
-    if (QCP::isInvalidData(it->key, it->minimum) ||
-        QCP::isInvalidData(it->lowerQuartile, it->median) ||
-        QCP::isInvalidData(it->upperQuartile, it->maximum))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range has invalid data." << "Plottable name:" << name();
-    for (int i=0; i<it->outliers.size(); ++i)
-      if (QCP::isInvalidData(it->outliers.at(i)))
-        qDebug() << Q_FUNC_INFO << "Data point outlier at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
-#   endif
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPStatisticalBoxDataContainer::const_iterator begin = visibleBegin;
+    QCPStatisticalBoxDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
     
-    drawStatisticalBox(painter, it);
+    for (QCPStatisticalBoxDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // check data validity if flag set:
+# ifdef QCUSTOMPLOT_CHECK_DATA
+      if (QCP::isInvalidData(it->key, it->minimum) ||
+          QCP::isInvalidData(it->lowerQuartile, it->median) ||
+          QCP::isInvalidData(it->upperQuartile, it->maximum))
+        qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range has invalid data." << "Plottable name:" << name();
+      for (int i=0; i<it->outliers.size(); ++i)
+        if (QCP::isInvalidData(it->outliers.at(i)))
+          qDebug() << Q_FUNC_INFO << "Data point outlier at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
+# endif
+      
+      if (isSelectedSegment && mSelectionDecorator)
+      {
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
+      } else
+      {
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
+      }
+      drawStatisticalBox(painter, it);
+    }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */
@@ -504,8 +531,6 @@ void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBo
   // draw quartile box:
   applyDefaultAntialiasingHint(painter);
   const QRectF quartileBox = getQuartileBox(it);
-  painter->setPen(mainPen());
-  painter->setBrush(mainBrush());
   painter->drawRect(quartileBox);
   // draw median line with cliprect set to quartile box:
   painter->save();

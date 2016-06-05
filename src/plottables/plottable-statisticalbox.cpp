@@ -234,9 +234,7 @@ QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mOutlierStyle(QCPScatterStyle::ssCircle, Qt::blue, 6)
 {
   setPen(QPen(Qt::black));
-  setSelectedPen(QPen(Qt::blue, 2.5));
   setBrush(Qt::NoBrush);
-  setSelectedBrush(Qt::NoBrush);
 }
 
 /*! \overload

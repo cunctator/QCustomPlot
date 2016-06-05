@@ -41,7 +41,7 @@
 */
 
 QCPSelectionDecorator::QCPSelectionDecorator() :
-  mPen(Qt::blue),
+  mPen(QColor(80, 80, 255), 2.5),
   mBrush(Qt::NoBrush),
   mScatterStyle(QCPScatterStyle::ssNone, Qt::blue, 6.0),
   mUsedScatterProperties(QCPScatterStyle::spPen),
@@ -170,21 +170,21 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
     <td>QPen \b mPen</td>
     <td>The generic pen of the plottable. You should use this pen for the most prominent data representing lines in the plottable (e.g QCPGraph uses this pen for its graph lines and scatters)</td>
   </tr><tr>
-    <td>QPen \b mSelectedPen</td>
-    <td>The generic pen that should be used when the plottable is selected (hint: \ref mainPen gives you the right pen, depending on selection state).</td>
-  </tr><tr>
     <td>QBrush \b mBrush</td>
     <td>The generic brush of the plottable. You should use this brush for the most prominent fillable structures in the plottable (e.g. QCPGraph uses this brush to control filling under the graph)</td>
-  </tr><tr>
-    <td>QBrush \b mSelectedBrush</td>
-    <td>The generic brush that should be used when the plottable is selected (hint: \ref mainBrush gives you the right brush, depending on selection state).</td>
   </tr><tr>
     <td>QPointer<QCPAxis>\b mKeyAxis, \b mValueAxis</td>
     <td>The key and value axes this plottable is attached to. Call their QCPAxis::coordToPixel functions to translate coordinates to pixels in either the key or value dimension.
         Make sure to check whether the pointer is null before using it. If one of the axes is null, don't draw the plottable.</td>
   </tr><tr>
-    <td>bool \b mSelected</td>
-    <td>indicates whether the plottable is selected or not.</td>
+    <td>\ref QCPSelectionDecorator \b mSelectionDecorator</td>
+    <td>The currently set selection decorator which specifies how selected data of the plottable shall be drawn and decorated.</td>
+  </tr><tr>
+    <td>\ref QCP::SelectionType \b mSelectable</td>
+    <td>In which composition, if at all, this plottable's data may be selected.</td>
+  </tr><tr>
+    <td>\ref QCPDataSelection \b mSelection</td>
+    <td>Holds the current selection state of the plottable's data, i.e. the selected data ranges (\ref QCPDataRange).</td>
   </tr>
   </table>
 */
@@ -270,9 +270,7 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mAntialiasedFill(true),
   mAntialiasedScatters(true),
   mPen(Qt::black),
-  mSelectedPen(Qt::black),
   mBrush(Qt::NoBrush),
-  mSelectedBrush(Qt::NoBrush),
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
   mSelectable(QCP::stWhole),
@@ -341,17 +339,6 @@ void QCPAbstractPlottable::setPen(const QPen &pen)
 }
 
 /*!
-  When the plottable is selected, this pen is used to draw basic lines instead of the normal
-  pen set via \ref setPen.
-
-  \see setSelected, setSelectable, setSelectedBrush, selectTest
-*/
-void QCPAbstractPlottable::setSelectedPen(const QPen &pen)
-{
-  mSelectedPen = pen;
-}
-
-/*!
   The brush is used to draw basic fills of the plottable representation in the
   plot. The Fill can be a color, gradient or texture, see the usage of QBrush.
   
@@ -363,17 +350,6 @@ void QCPAbstractPlottable::setSelectedPen(const QPen &pen)
 void QCPAbstractPlottable::setBrush(const QBrush &brush)
 {
   mBrush = brush;
-}
-
-/*!
-  When the plottable is selected, this brush is used to draw fills instead of the normal
-  brush set via \ref setBrush.
-
-  \see setSelected, setSelectable, setSelectedPen, selectTest
-*/
-void QCPAbstractPlottable::setSelectedBrush(const QBrush &brush)
-{
-  mSelectedBrush = brush;
 }
 
 /*!
@@ -774,23 +750,29 @@ void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const 
 {
   Q_UNUSED(event)
   Q_UNUSED(details)
+  
+  // TODO: decode details which carries QCPDataSelection, then enforce type, then set as new selection. Think about additivity,
+  // probably use add operator of QCPDataSelection.
+  
   if (mSelectable)
   {
-    bool selBefore = mSelected;
-    setSelected(additive ? !mSelected : true);
+    QCPDataSelection selectionBefore = mSelection;
+    //setSelected(additive ? !mSelectedPart : true);
     if (selectionStateChanged)
-      *selectionStateChanged = mSelected != selBefore;
+      *selectionStateChanged = mSelection != selectionBefore;
   }
 }
 
 /* inherits documentation from base class */
 void QCPAbstractPlottable::deselectEvent(bool *selectionStateChanged)
 {
+  // TODO: clear mSelection
+  
   if (mSelectable)
   {
-    bool selBefore = mSelected;
-    setSelected(false);
+    QCPDataSelection selectionBefore = mSelection;
+    //setSelected(false);
     if (selectionStateChanged)
-      *selectionStateChanged = mSelected != selBefore;
+      *selectionStateChanged = mSelection != selectionBefore;
   }
 }

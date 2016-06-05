@@ -193,8 +193,6 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
 
   setPen(QPen(Qt::blue, 0));
   setBrush(Qt::NoBrush);
-  setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
-  setSelectedBrush(Qt::NoBrush);
   
   setLineStyle(lsLine);
   setChannelFillGraph(0);

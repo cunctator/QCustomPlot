@@ -88,9 +88,7 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(bool antialiasedFill READ antialiasedFill WRITE setAntialiasedFill)
   Q_PROPERTY(bool antialiasedScatters READ antialiasedScatters WRITE setAntialiasedScatters)
   Q_PROPERTY(QPen pen READ pen WRITE setPen)
-  Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   Q_PROPERTY(QBrush brush READ brush WRITE setBrush)
-  Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   Q_PROPERTY(QCPAxis* keyAxis READ keyAxis WRITE setKeyAxis)
   Q_PROPERTY(QCPAxis* valueAxis READ valueAxis WRITE setValueAxis)
   Q_PROPERTY(QCP::SelectionType selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
@@ -106,9 +104,7 @@ public:
   bool antialiasedFill() const { return mAntialiasedFill; }
   bool antialiasedScatters() const { return mAntialiasedScatters; }
   QPen pen() const { return mPen; }
-  QPen selectedPen() const { return mSelectedPen; }
   QBrush brush() const { return mBrush; }
-  QBrush selectedBrush() const { return mSelectedBrush; }
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
   QCP::SelectionType selectable() const { return mSelectable; }
@@ -121,9 +117,7 @@ public:
   void setAntialiasedFill(bool enabled);
   void setAntialiasedScatters(bool enabled);
   void setPen(const QPen &pen);
-  void setSelectedPen(const QPen &pen);
   void setBrush(const QBrush &brush);
-  void setSelectedBrush(const QBrush &brush);
   void setKeyAxis(QCPAxis *axis);
   void setValueAxis(QCPAxis *axis);
   Q_SLOT void setSelectable(QCP::SelectionType selectable);
@@ -150,8 +144,8 @@ protected:
   // property members:
   QString mName;
   bool mAntialiasedFill, mAntialiasedScatters;
-  QPen mPen, mSelectedPen;
-  QBrush mBrush, mSelectedBrush;
+  QPen mPen;
+  QBrush mBrush;
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
   QCP::SelectionType mSelectable;
   QCPDataSelection mSelection;

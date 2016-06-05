@@ -192,10 +192,6 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPen.setStyle(Qt::SolidLine);
   mBrush.setColor(Qt::blue);
   mBrush.setStyle(Qt::NoBrush);
-  mSelectedPen = mPen;
-  mSelectedPen.setWidthF(2.5);
-  mSelectedPen.setColor(QColor(80, 80, 255)); // lighter than Qt::blue of mPen
-  mSelectedBrush = mBrush;
   
   setScatterStyle(QCPScatterStyle());
   setLineStyle(lsLine);

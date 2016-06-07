@@ -31,6 +31,7 @@
 #include "axis/range.h"
 #include "layer.h"
 #include "axis/axis.h"
+#include "selection.h"
 
 class QCPPainter;
 
@@ -47,8 +48,8 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   Q_PROPERTY(QCPAxis* keyAxis READ keyAxis WRITE setKeyAxis)
   Q_PROPERTY(QCPAxis* valueAxis READ valueAxis WRITE setValueAxis)
-  Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
-  Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
+  Q_PROPERTY(QCP::SelectionType selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
+  Q_PROPERTY(bool selected READ selected NOTIFY selectionChanged)
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
@@ -63,8 +64,9 @@ public:
   QBrush selectedBrush() const { return mSelectedBrush; }
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
-  bool selectable() const { return mSelectable; }
-  bool selected() const { return mSelected; }
+  QCP::SelectionType selectable() const { return mSelectable; }
+  bool selected() const { return !mSelection.isEmpty(); }
+  QCPDataSelection selection() const { return mSelection; }
   
   // setters:
   void setName(const QString &name);
@@ -76,8 +78,8 @@ public:
   void setSelectedBrush(const QBrush &brush);
   void setKeyAxis(QCPAxis *axis);
   void setValueAxis(QCPAxis *axis);
-  Q_SLOT void setSelectable(bool selectable);
-  Q_SLOT void setSelected(bool selected);
+  Q_SLOT void setSelectable(QCP::SelectionType selectable);
+  Q_SLOT void setSelection(QCPDataSelection selection);
 
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
@@ -91,7 +93,8 @@ public:
   
 signals:
   void selectionChanged(bool selected);
-  void selectableChanged(bool selectable);
+  void selectionChanged(QCPDataSelection selection);
+  void selectableChanged(QCP::SelectionType selectable);
   
 protected:
   // property members:
@@ -100,7 +103,8 @@ protected:
   QPen mPen, mSelectedPen;
   QBrush mBrush, mSelectedBrush;
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
-  bool mSelectable, mSelected;
+  QCP::SelectionType mSelectable;
+  QCPDataSelection mSelection;
   
   // reimplemented virtual methods:
   virtual QRect clipRect() const;

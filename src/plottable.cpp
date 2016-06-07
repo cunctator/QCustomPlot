@@ -188,8 +188,7 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mSelectedBrush(Qt::NoBrush),
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
-  mSelectable(true),
-  mSelected(false)
+  mSelectable(QCP::stWhole)
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
@@ -311,28 +310,12 @@ void QCPAbstractPlottable::setValueAxis(QCPAxis *axis)
   mValueAxis = axis;
 }
 
-/*!
-  Sets whether the user can (de-)select this plottable by clicking on the QCustomPlot surface.
-  (When \ref QCustomPlot::setInteractions contains iSelectPlottables.)
-  
-  However, even when \a selectable was set to false, it is possible to set the selection manually,
-  by calling \ref setSelected directly.
-  
-  \see setSelected
-*/
-void QCPAbstractPlottable::setSelectable(bool selectable)
-{
-  if (mSelectable != selectable)
-  {
-    mSelectable = selectable;
-    emit selectableChanged(mSelectable);
-  }
-}
 
 /*!
+  TODO rewrite (old text from setSelected)
   Sets whether this plottable is selected or not. When selected, it uses a different pen and brush
   to draw its lines and fills, see \ref setSelectedPen and \ref setSelectedBrush.
-
+  
   The entire selection mechanism for plottables is handled automatically when \ref
   QCustomPlot::setInteractions contains iSelectPlottables. You only need to call this function when
   you wish to change the selection state manually.
@@ -343,12 +326,38 @@ void QCPAbstractPlottable::setSelectable(bool selectable)
   
   \see setSelectable, selectTest
 */
-void QCPAbstractPlottable::setSelected(bool selected)
+
+void QCPAbstractPlottable::setSelection(QCPDataSelection selection)
 {
-  if (mSelected != selected)
+  selection.enforceType(mSelectable);
+  if (mSelection != selection)
   {
-    mSelected = selected;
-    emit selectionChanged(mSelected);
+    mSelection = selection;
+    emit selectionChanged(selected());
+    emit selectionChanged(mSelection);
+  }
+}
+
+/*!
+  Sets whether and to which granularity this plottable can be selected. A selection can happen
+  either by clicking on the QCustomPlot surface (When \ref QCustomPlot::setInteractions contains
+  iSelectPlottables), or programmatically by calling \ref setSelection.
+  
+  \see setSelection
+*/
+void QCPAbstractPlottable::setSelectable(QCP::SelectionType selectable)
+{
+  if (mSelectable != selectable)
+  {
+    mSelectable = selectable;
+    QCPDataSelection oldSelection = mSelection;
+    mSelection.enforceType(mSelectable);
+    emit selectableChanged(mSelectable);
+    if (mSelection != oldSelection)
+    {
+      emit selectionChanged(selected());
+      emit selectionChanged(mSelection);
+    }
   }
 }
 

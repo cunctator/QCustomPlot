@@ -2093,11 +2093,7 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
   {
     // activate selection rect:
-    if (mSelectionRectMode == QCP::srmZoom)
-    {
-      if (qobject_cast<QCPAxisRect*>(pressedElement)) // in zoom mode only activate selection rect if on an axis rect
-        mSelectionRect->startSelection(event);
-    } else // in all other modes just start the selection rect
+    if (mSelectionRectMode != QCP::srmZoom || qobject_cast<QCPAxisRect*>(pressedElement)) // in zoom mode only activate selection rect if on an axis rect
       mSelectionRect->startSelection(event);
   } else
   {

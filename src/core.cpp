@@ -2339,7 +2339,20 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 
 void QCustomPlot::processRectSelection(QRect rect)
 {
-  // TODO
+  QCPLayoutElement *affectedElement = layoutElementAt(rect.topLeft());
+  if (QCPAxisRect *affectedAxisRect = qobject_cast<QCPAxisRect*>(affectedElement))
+  {
+    foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
+    {
+      QVariant details;
+      if (plottable->selectTest(QRectF(rect), true, &details) > 0)
+      {
+        // TODO: save to QList<QPair<QCPAbstractPlottable*, QVariant> >
+      }
+    }
+    // TODO: process pair-list depending on iMultiSelect and call according selectEvents on plottables
+  }
+  replot(rpQueuedReplot);
 }
 
 void QCustomPlot::processRectZoom(QRect rect)

@@ -1030,13 +1030,13 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   }
   qDebug() << "create" << timer.nsecsElapsed()/1e6 << "ms";
   customPlot->rescaleAxes();
-  customPlot->replot(QCustomPlot::rpImmediate);
+  customPlot->replot(QCustomPlot::rpImmediateRefresh);
   
   timer.start();
   customPlot->clearPlottables();
   qDebug() << "remove" << timer.nsecsElapsed()/1e6 << "ms";
   
-  customPlot->replot(QCustomPlot::rpImmediate);
+  customPlot->replot(QCustomPlot::rpImmediateRefresh);
   
   // create next set right away:
   for (int n=0; n<10; ++n)
@@ -1050,7 +1050,7 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     g->setData(data);
   }
   customPlot->rescaleAxes();
-  customPlot->replot(QCustomPlot::rpImmediate);
+  customPlot->replot(QCustomPlot::rpImmediateRefresh);
 }
 
 void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)

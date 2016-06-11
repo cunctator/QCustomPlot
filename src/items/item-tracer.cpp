@@ -340,7 +340,7 @@ void QCPItemTracer::updatePosition()
           position->setCoords(last->key, last->value);
         else
         {
-          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBeginBelowKey(mGraphKey);
+          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBegin(mGraphKey);
           if (it != mGraph->data()->constEnd()) // mGraphKey is not exactly on last iterator, but somewhere between iterators
           {
             QCPGraphDataContainer::const_iterator prevIt = it;

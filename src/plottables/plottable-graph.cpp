@@ -1123,8 +1123,8 @@ void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin
     end = mDataContainer->constEnd();
     return;
   }
-  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
-  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
+  begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEnd(mKeyAxis.data()->range().upper);
 }
 
 /*! \internal

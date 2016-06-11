@@ -887,8 +887,8 @@ void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, 
   }
   
   // get visible data range as QMap iterators
-  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
-  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
+  begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEnd(mKeyAxis.data()->range().upper);
   double lowerPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().lower);
   double upperPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().upper);
   bool isVisible = false;
@@ -1033,8 +1033,8 @@ double QCPBars::getStackedBaseValue(double key, bool positive) const
     double epsilon = qAbs(key)*1e-6; // should be safe even when changed to use float at some point
     if (key == 0)
       epsilon = 1e-6;
-    QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBeginBelowKey(key-epsilon);
-    QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEndAboveKey(key+epsilon);
+    QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBegin(key-epsilon);
+    QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEnd(key+epsilon);
     while (it != itEnd)
     {
       if (it->key > key-epsilon && it->key < key+epsilon)

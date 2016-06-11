@@ -425,46 +425,51 @@ void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation
 }
 
 /*!
-  Returns an iterator to the data point with a (sort-)key that is just below \a key. This can be
-  used in conjunction with \ref findEndAboveKey to iterate over data points within a given key
-  range, including the bounding data points that are just below and above the specified range.
+  Returns an iterator to the data point with a (sort-)key that is equal to, just below, or just
+  above \a key. If \a expandedRange is true, the data point just below \a key will be considered,
+  otherwise the one just above.
   
-  If there are no data points below \a key, the data point with the smallest key is returned.
+  This can be used in conjunction with \ref findEnd to iterate over data points within a given key
+  range, including or excluding the bounding data points that are just beyond the specified range.
+  
+  If \a expandedRange is true but there are no data points below \a key, the data point with the smallest key is returned.
   
   If the container is empty, returns \ref constEnd.
   
-  \see findEndAboveKey
+  \see findEnd
 */
 template <class DataType>
-typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBeginBelowKey(double key) const
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBegin(double sortKey, bool expandedRange) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
-  if (it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
+  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
+  if (expandedRange && it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
     --it;
   return it;
 }
 
 /*!
-  Returns an iterator pointing to the element after the data point with a (sort-)key that is just
-  above \a key. This can be used in conjunction with \ref findBeginBelowKey to iterate over data
-  points within a given key range, including the bounding data points that are just below and above
-  the specified range.
+  Returns an iterator to the element after the data point with a (sort-)key that is equal to, just
+  above or just below \a key. If \a expandedRange is true, the data point just above \a key will be
+  considered, otherwise the one just below.
+  
+  This can be used in conjunction with \ref findBegin to iterate over data points within a given
+  key range, including the bounding data points that are just below and above the specified range.
   
   If there are no data points above \a key, or if the container is empty, \ref constEnd is returned.
   
-  \see findEndBelowKey
+  \see findBegin
 */
 template <class DataType>
-typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEndAboveKey(double key) const
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEnd(double sortKey, bool expandedRange) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
-  if (it != constEnd())
+  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
+  if (expandedRange && it != constEnd())
     ++it;
   return it;
 }

@@ -75,9 +75,10 @@ public:
   QCPDataRange dataRange(int index=0) const;
   QList<QCPDataRange> dataRanges() const { return mDataRanges; }
   
-  // setters:
-  
   // non-property methods:
+  void addDataRange(const QCPDataRange &dataRange, bool simplify=true);
+  void removeDataRange(const QCPDataRange &dataRange);
+  void clear();
   bool isEmpty() const { return mDataRanges.isEmpty(); }
   void simplify();
   void enforceType(QCP::SelectionType type);

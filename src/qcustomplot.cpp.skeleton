@@ -43,6 +43,7 @@
 //amalgamation: add axis/axistickerlog.cpp
 //amalgamation: add axis/axis.cpp
 //amalgamation: add plottable.cpp
+//amalgamation: add plottable1d.cpp
 //amalgamation: add datacontainer.cpp
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp

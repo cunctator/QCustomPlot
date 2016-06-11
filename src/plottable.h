@@ -35,6 +35,7 @@
 
 class QCPPainter;
 class QCPAbstractPlottable;
+class QCPPlottableInterface1D;
 
 class QCP_LIB_DECL QCPSelectionDecorator
 {
@@ -123,6 +124,7 @@ public:
 
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
+  virtual QCPPlottableInterface1D *interface1D() { return 0; }
   
   // non-property methods:
   void rescaleAxes(bool onlyEnlarge=false) const;

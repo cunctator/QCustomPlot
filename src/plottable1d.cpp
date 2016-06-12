@@ -108,6 +108,71 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
 }
 
 template <class DataType>
+QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &rect) const
+{
+  QCPDataSelection result;
+  
+  // convert rect given in pixels to ranges given in plot coordinates:
+  double key1, value1, key2, value2;
+  pixelsToCoords(rect.topLeft(), key1, value1);
+  pixelsToCoords(rect.bottomRight(), key2, value2);
+  QCPRange keyRange(key1, key2); // QCPRange normalizes internally so we don't have to care about whether key1 < key2
+  QCPRange valueRange(value1, value2);
+  
+  if (DataType::sortKeyIsMainKey())
+  {
+    // iterate over data points in key range and add contiguous batches of data to result:
+    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->findBegin(keyRange.lower, false);
+    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->findEnd(keyRange.upper, false);
+    if (begin == end)
+      return result;
+    
+    int currentSegmentBegin = -1; // -1 means we're currently not in a segment that's contained in rect
+    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+    {
+      if (currentSegmentBegin == -1)
+      {
+        if (valueRange.contains(it->mainValue())) // start segment
+          currentSegmentBegin = it-mDataContainer->constBegin();
+      } else if (!valueRange.contains(it->mainValue())) // segment just ended
+      {
+        result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
+        currentSegmentBegin = -1;
+      }
+    }
+    // process potential last segment:
+    if (currentSegmentBegin != -1)
+      result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
+  } else // we can't assume that data is sorted by main key, so have to use less optimized algorithm which also checks key coordinate
+  {
+    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
+    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
+    if (begin == end)
+      return result;
+    
+    int currentSegmentBegin = -1; // -1 means we're currently not in a segment that's contained in rect
+    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+    {
+      if (currentSegmentBegin == -1)
+      {
+        if (valueRange.contains(it->mainValue()) && keyRange.contains(it->mainKey())) // start segment
+          currentSegmentBegin = it-mDataContainer->constBegin();
+      } else if (!valueRange.contains(it->mainValue()) || !keyRange.contains(it->mainKey())) // segment just ended
+      {
+        result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
+        currentSegmentBegin = -1;
+      }
+    }
+    // process potential last segment:
+    if (currentSegmentBegin != -1)
+      result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
+  }
+  
+  result.simplify();
+  return result;
+}
+
+template <class DataType>
 void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
 {
   QCPDataSelection sel(selection());

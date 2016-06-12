@@ -40,7 +40,8 @@ public:
   // getters:
   int begin() const { return mBegin; }
   int end() const { return mEnd; }
-  int length() const { return mEnd-mBegin; }
+  int size() const { return mEnd-mBegin; }
+  int length() const { return size(); }
   
   // setters:
   void setBegin(int begin);
@@ -72,6 +73,7 @@ public:
   
   // getters:
   int dataRangeCount() const { return mDataRanges.size(); }
+  int dataPointCount() const;
   QCPDataRange dataRange(int index=0) const;
   QList<QCPDataRange> dataRanges() const { return mDataRanges; }
   

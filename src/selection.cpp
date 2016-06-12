@@ -120,6 +120,14 @@ QCPDataSelection &QCPDataSelection::operator+=(const QCPDataSelection &other)
   return *this;
 }
 
+int QCPDataSelection::dataPointCount() const
+{
+  int result = 0;
+  for (int i=0; i<mDataRanges.size(); ++i)
+    result += mDataRanges.at(i).length();
+  return result;
+}
+
 QCPDataRange QCPDataSelection::dataRange(int index) const
 {
   if (index >= 0 && index < mDataRanges.size())

@@ -50,7 +50,10 @@ public:
   // non-property methods:
   bool isValid() const;
   bool isEmpty() const { return length() == 0; }
-  QCPDataRange bounded(const QCPDataRange &otherRange) const;
+  QCPDataRange bounded(const QCPDataRange &other) const;
+  QCPDataRange intersection(const QCPDataRange &other) const;
+  bool intersects(const QCPDataRange &other) const;
+  bool contains(const QCPDataRange &other) const;
   
 private:
   // property members:
@@ -65,11 +68,22 @@ class QCP_LIB_DECL QCPDataSelection
 {
 public:
   explicit QCPDataSelection();
+  explicit QCPDataSelection(const QCPDataRange &range);
   
   bool operator==(const QCPDataSelection& other) const;
   bool operator!=(const QCPDataSelection& other) const { return !(*this == other); }
   QCPDataSelection &operator+=(const QCPDataSelection& other);
+  QCPDataSelection &operator+=(const QCPDataRange& other);
+  QCPDataSelection &operator-=(const QCPDataSelection& other);
+  QCPDataSelection &operator-=(const QCPDataRange& other);
   friend inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataSelection& b);
+  friend inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataSelection& b);
+  friend inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataRange& b);
+  friend inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataRange& b);
+  friend inline const QCPDataSelection operator-(const QCPDataSelection& a, const QCPDataSelection& b);
+  friend inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataSelection& b);
+  friend inline const QCPDataSelection operator-(const QCPDataSelection& a, const QCPDataRange& b);
+  friend inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataRange& b);
   
   // getters:
   int dataRangeCount() const { return mDataRanges.size(); }
@@ -79,7 +93,6 @@ public:
   
   // non-property methods:
   void addDataRange(const QCPDataRange &dataRange, bool simplify=true);
-  void removeDataRange(const QCPDataRange &dataRange);
   void clear();
   bool isEmpty() const { return mDataRanges.isEmpty(); }
   void simplify();
@@ -93,13 +106,84 @@ private:
 };
 Q_DECLARE_METATYPE(QCPDataSelection)
 
+
 /*!
-  Joins two selections
+  Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
 */
 inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataSelection& b)
 {
   QCPDataSelection result(a);
   result += b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+*/
+inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataSelection& b)
+{
+  QCPDataSelection result(a);
+  result += b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+*/
+inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataRange& b)
+{
+  QCPDataSelection result(a);
+  result += b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+*/
+inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataRange& b)
+{
+  QCPDataSelection result(a);
+  result += b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b.
+*/
+inline const QCPDataSelection operator-(const QCPDataSelection& a, const QCPDataSelection& b)
+{
+  QCPDataSelection result(a);
+  result -= b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b.
+*/
+inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataSelection& b)
+{
+  QCPDataSelection result(a);
+  result -= b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b. b
+*/
+inline const QCPDataSelection operator-(const QCPDataSelection& a, const QCPDataRange& b)
+{
+  QCPDataSelection result(a);
+  result -= b;
+  return result;
+}
+
+/*!
+  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b.
+*/
+inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataRange& b)
+{
+  QCPDataSelection result(a);
+  result -= b;
   return result;
 }
 

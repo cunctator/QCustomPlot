@@ -33,6 +33,7 @@
   \brief
   
 
+  TODO: mention or \see addition/subtraction operator for QCPDataRanges defined in QCPDataSelection
 */
 
 QCPDataRange::QCPDataRange() :
@@ -62,29 +63,39 @@ bool QCPDataRange::isValid() const
   return (mEnd >= mBegin) && (mBegin >= 0);
 }
 
-QCPDataRange QCPDataRange::bounded(const QCPDataRange &otherRange) const
+QCPDataRange QCPDataRange::bounded(const QCPDataRange &other) const
 {
-  // TODO: testcase, sanity check
-  QCPDataRange result(*this);
-  
-  if (otherRange.isEmpty()) // bound to an empty range, just return otherRange directly (preserving begin index of otherRange)
+  QCPDataRange result(intersection(other));
+  if (result.isEmpty()) // no intersection, preserve respective bounding side of otherRange as both begin and end of return value
   {
-    result = otherRange;
-  } else
-  {
-    if (result.begin() < otherRange.begin())
-      result.setBegin(otherRange.begin());
-    else if (result.begin() > otherRange.end()-1) // note that otherRange is not empty here, so .end()-1 is safe
-      result.setBegin(otherRange.end()-1);
-    
-    if (result.end() < result.begin()) // may happen if begin was corrected above
-      result.setEnd(result.begin());
-    else if (result.end() > otherRange.end())
-      result.setEnd(otherRange.end());
+    if (mEnd <= other.mBegin)
+      result = QCPDataRange(other.mBegin, other.mBegin);
+    else
+      result = QCPDataRange(other.mEnd, other.mEnd);
   }
-  
   return result;
 }
+
+QCPDataRange QCPDataRange::intersection(const QCPDataRange &other) const
+{
+  QCPDataRange result(qMax(mBegin, other.mBegin), qMin(mEnd, other.mEnd));
+  if (result.isValid())
+    return result;
+  else
+    return QCPDataRange();
+}
+
+bool QCPDataRange::intersects(const QCPDataRange &other) const
+{
+   return !( (mBegin > other.mBegin && mBegin >= other.mEnd) ||
+             (mEnd <= other.mBegin && mEnd < other.mEnd) );
+}
+
+bool QCPDataRange::contains(const QCPDataRange &other) const
+{
+  return mBegin <= other.mBegin && mEnd >= other.mEnd;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,6 +110,11 @@ QCPDataRange QCPDataRange::bounded(const QCPDataRange &otherRange) const
 
 QCPDataSelection::QCPDataSelection()
 {
+}
+
+QCPDataSelection::QCPDataSelection(const QCPDataRange &range)
+{
+  mDataRanges.append(range);
 }
 
 bool QCPDataSelection::operator==(const QCPDataSelection &other) const
@@ -117,6 +133,63 @@ QCPDataSelection &QCPDataSelection::operator+=(const QCPDataSelection &other)
 {
   mDataRanges << other.mDataRanges;
   simplify();
+  return *this;
+}
+
+QCPDataSelection &QCPDataSelection::operator+=(const QCPDataRange &other)
+{
+  addDataRange(other);
+  return *this;
+}
+
+QCPDataSelection &QCPDataSelection::operator-=(const QCPDataSelection &other)
+{
+  for (int i=0; i<other.dataRangeCount(); ++i)
+    *this -= other.dataRange(i);
+  
+  return *this;
+}
+
+QCPDataSelection &QCPDataSelection::operator-=(const QCPDataRange &other)
+{
+  if (other.isEmpty() || isEmpty())
+    return *this;
+  
+  simplify();
+  int i=0;
+  while (i < mDataRanges.size())
+  {
+    const int thisBegin = mDataRanges.at(i).begin();
+    const int thisEnd = mDataRanges.at(i).end();
+    if (thisBegin >= other.end())
+      break; // since data ranges are sorted after the simplify() call, no ranges which contain other will come after this
+    
+    if (thisEnd > other.begin()) // ranges which don't fulfill this are entirely before other and can be ignored
+    {
+      if (thisBegin >= other.begin()) // range leading segment is encompassed
+      {
+        if (thisEnd <= other.end()) // range fully encompassed, remove completely
+        {
+          mDataRanges.removeAt(i);
+          continue;
+        } else // only leading segment is encompassed, trim accordingly
+          mDataRanges[i].setBegin(other.end());
+      } else // leading segment is not encompassed
+      {
+        if (thisEnd <= other.end()) // only trailing segment is encompassed, trim accordingly
+        {
+          mDataRanges[i].setEnd(other.begin());
+        } else // other lies inside this range, so split range
+        {
+          mDataRanges[i].setEnd(other.begin());
+          mDataRanges.insert(i+1, QCPDataRange(other.end(), thisEnd));
+          break; // since data ranges are sorted (and don't overlap) after simplify() call, we're done here
+        }
+      }
+    }
+    ++i;
+  }
+  
   return *this;
 }
 
@@ -140,52 +213,16 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
   }
 }
 
+/*
+  Same as += operator but allows disabling immediate simplification which can improve performance if
+  adding a very large amount of data ranges successively.
+*/
+
 void QCPDataSelection::addDataRange(const QCPDataRange &dataRange, bool simplify)
 {
   mDataRanges.append(dataRange);
   if (simplify)
     this->simplify();
-}
-
-void QCPDataSelection::removeDataRange(const QCPDataRange &dataRange)
-{
-  if (dataRange.isEmpty())
-    return;
-  
-  simplify();
-  int i=0;
-  while (i < mDataRanges.size())
-  {
-    const int thisBegin = mDataRanges.at(i).begin();
-    const int thisEnd = mDataRanges.at(i).end();
-    if (thisBegin >= dataRange.end())
-      break; // since data ranges are sorted after the simplify() call, no ranges which contain dataRange will come after this
-    
-    if (thisEnd > dataRange.begin()) // ranges which don't fulfill this are entirely before dataRange and can be ignored
-    {
-      if (thisBegin >= dataRange.begin()) // range leading segment is encompassed
-      {
-        if (thisEnd <= dataRange.end()) // range fully encompassed, remove completely
-        {
-          mDataRanges.removeAt(i);
-          continue;
-        } else // only leading segment is encompassed, trim accordingly
-          mDataRanges[i].setBegin(dataRange.end());
-      } else // leading segment is not encompassed
-      {
-        if (thisEnd <= dataRange.end()) // only trailing segment is encompassed, trim accordingly
-        {
-          mDataRanges[i].setEnd(dataRange.begin());
-        } else // dataRange lies inside this range, so split range
-        {
-          mDataRanges[i].setEnd(dataRange.begin());
-          mDataRanges.insert(i+1, QCPDataRange(dataRange.end(), thisEnd));
-          break; // since data ranges are sorted (and don't overlap) after simplify() call, we're done here
-        }
-      }
-    }
-    ++i;
-  }
 }
 
 void QCPDataSelection::clear()

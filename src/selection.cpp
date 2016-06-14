@@ -239,10 +239,13 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     case QCP::stSingleData:
     {
       // reduce all data ranges to the single first data point:
-      if (mDataRanges.size() > 1)
-        mDataRanges = QList<QCPDataRange>() << mDataRanges.first();
-      if (mDataRanges.first().length() > 1)
-        mDataRanges.first().setEnd(mDataRanges.first().begin()+1);
+      if (!mDataRanges.isEmpty())
+      {
+        if (mDataRanges.size() > 1)
+          mDataRanges = QList<QCPDataRange>() << mDataRanges.first();
+        if (mDataRanges.first().length() > 1)
+          mDataRanges.first().setEnd(mDataRanges.first().begin()+1);
+      }
       break;
     }
     case QCP::stDataRange:

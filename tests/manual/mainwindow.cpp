@@ -1022,8 +1022,6 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   for (int n=0; n<50; ++n)
   {
     QCPGraph *g = customPlot->addGraph();
-    QPen p(Qt::blue, 0, Qt::SolidLine);
-    g->setSelectedPen(p);
     QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<82000; ++i)
       data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
@@ -1043,8 +1041,6 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   for (int n=0; n<10; ++n)
   {
     QCPGraph *g = customPlot->addGraph();
-    QPen p(Qt::blue, 0, Qt::SolidLine);
-    g->setSelectedPen(p);
     QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<5000; ++i)
       data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));

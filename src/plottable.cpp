@@ -749,15 +749,17 @@ void QCPAbstractPlottable::applyScattersAntialiasingHint(QCPPainter *painter) co
 void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
 {
   Q_UNUSED(event)
-  Q_UNUSED(details)
   
-  // TODO: decode details which carries QCPDataSelection, then enforce type, then set as new selection. Think about additivity,
-  // probably use add operator of QCPDataSelection.
-  
-  if (mSelectable)
+  if (mSelectable != QCP::stNone)
   {
+    QCPDataSelection newSelection = details.value<QCPDataSelection>();
     QCPDataSelection selectionBefore = mSelection;
-    //setSelected(additive ? !mSelectedPart : true);
+    if (additive)
+    {
+      // TODO: if newSelection fully contained in mSelection, set new selection to mSelection-newSelection instead
+      setSelection(mSelection+newSelection);
+    } else
+      setSelection(newSelection);
     if (selectionStateChanged)
       *selectionStateChanged = mSelection != selectionBefore;
   }
@@ -766,12 +768,10 @@ void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const 
 /* inherits documentation from base class */
 void QCPAbstractPlottable::deselectEvent(bool *selectionStateChanged)
 {
-  // TODO: clear mSelection
-  
-  if (mSelectable)
+  if (mSelectable != QCP::stNone)
   {
     QCPDataSelection selectionBefore = mSelection;
-    //setSelected(false);
+    setSelection(QCPDataSelection());
     if (selectionStateChanged)
       *selectionStateChanged = mSelection != selectionBefore;
   }

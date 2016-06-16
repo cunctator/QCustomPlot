@@ -67,6 +67,7 @@ protected:
   
   // helpers for subclasses:
   void getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const;
+  void drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const;
 
 private:
   Q_DISABLE_COPY(QCPAbstractPlottable1D)

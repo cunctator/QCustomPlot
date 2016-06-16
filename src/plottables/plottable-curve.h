@@ -119,6 +119,7 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
+  virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> *lineData) const;
   virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;
   
   // non-virtual methods:

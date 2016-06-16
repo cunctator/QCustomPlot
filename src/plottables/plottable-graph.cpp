@@ -886,47 +886,7 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) con
   if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
-    // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
-    if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
-        painter->pen().style() == Qt::SolidLine &&
-        !painter->modes().testFlag(QCPPainter::pmVectorized) &&
-        !painter->modes().testFlag(QCPPainter::pmNoCaching))
-    {
-      int i = 0;
-      bool lastIsNan = false;
-      const int lineDataSize = lineData->size();
-      while (i < lineDataSize && (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x()))) // make sure first point is not NaN
-        ++i;
-      ++i; // because drawing works in 1 point retrospect
-      while (i < lineDataSize)
-      {
-        if (!qIsNaN(lineData->at(i).y()) && !qIsNaN(lineData->at(i).x())) // NaNs create a gap in the line
-        {
-          if (!lastIsNan)
-            painter->drawLine(lineData->at(i-1), lineData->at(i));
-          else
-            lastIsNan = false;
-        } else
-          lastIsNan = true;
-        ++i;
-      }
-    } else
-    {
-      int segmentStart = 0;
-      int i = 0;
-      const int lineDataSize = lineData->size();
-      while (i < lineDataSize)
-      {
-        if (qIsNaN(lineData->at(i).y()) || qIsNaN(lineData->at(i).x()) || qIsInf(lineData->at(i).y())) // NaNs create a gap in the line. Also filter Infs which make drawPolyline block
-        {
-          painter->drawPolyline(lineData->constData()+segmentStart, i-segmentStart); // i, because we don't want to include the current NaN point
-          segmentStart = i+1;
-        }
-        ++i;
-      }
-      // draw last segment:
-      painter->drawPolyline(lineData->constData()+segmentStart, lineDataSize-segmentStart);
-    }
+    drawPolyline(painter, lineData);
   }
 }
 

@@ -1278,3 +1278,12 @@ QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain)
 {
   return mDataContainer->valueRange(foundRange, inSignDomain);
 }
+
+void QCPCurve::drawCurveLine(QCPPainter *painter, const QVector<QPointF> *lineData) const
+{
+  if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
+  {
+    applyDefaultAntialiasingHint(painter);
+    drawPolyline(painter, *lineData);
+  }
+}

@@ -54,10 +54,10 @@ public:
   Q_SLOT void cancel();
   
 signals:
-  void started();
-  void changed(QRect rect);
-  void canceled(QRect rect);
-  void accepted(QRect rect);
+  void started(QMouseEvent *event);
+  void changed(QRect rect, QMouseEvent *event);
+  void canceled(QRect rect, QInputEvent *event);
+  void accepted(QRect rect, QMouseEvent *event);
   
 protected:
   // property members:

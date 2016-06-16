@@ -724,15 +724,15 @@ void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
     
     // disconnect old connections:
     if (mSelectionRectMode == QCP::srmSelect)
-      disconnect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
     else if (mSelectionRectMode == QCP::srmZoom)
-      disconnect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
     
     // establish new ones:
     if (mode == QCP::srmSelect)
-      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
     else if (mode == QCP::srmZoom)
-      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
   }
   
   mSelectionRectMode = mode;
@@ -749,9 +749,9 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
   {
     // establish connections with new selection rect:
     if (mSelectionRectMode == QCP::srmSelect)
-      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectSelection(QRect)));
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
     else if (mSelectionRectMode == QCP::srmZoom)
-      connect(mSelectionRect, SIGNAL(accepted(QRect)), this, SLOT(processRectZoom(QRect)));
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
   }
 }
 
@@ -2333,33 +2333,88 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
     this->legend = 0;
 }
 
-void QCustomPlot::processRectSelection(QRect rect)
+void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
 {
-  QCPLayoutElement *affectedElement = layoutElementAt(rect.topLeft());
-  if (QCPAxisRect *affectedAxisRect = qobject_cast<QCPAxisRect*>(affectedElement))
+  bool selectionStateChanged = false;
+  
+  if (mInteractions.testFlag(QCP::iSelectPlottables))
   {
-    foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
+    QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
+    
+    QCPLayoutElement *affectedElement = layoutElementAt(rect.topLeft());
+    if (QCPAxisRect *affectedAxisRect = qobject_cast<QCPAxisRect*>(affectedElement))
     {
-      QVariant details;
-      if (plottable->selectTest(QRectF(rect), true, &details) > 0)
+      // determine plottables that were hit by the rect and thus are candidates for selection:
+      foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
       {
-        // TODO: save to QList<QPair<QCPAbstractPlottable*, QVariant> >
+        if (QCPPlottableInterface1D *plottableInterface = plottable->interface1D())
+        {
+          QCPDataSelection dataSel = plottableInterface->selectTestRect(QRectF(rect.normalized()));
+          if (!dataSel.isEmpty())
+            potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
+        }
+      }
+      
+      if (!mInteractions.testFlag(QCP::iMultiSelect))
+      {
+        // only leave plottable with most selected points in map, since we will only select a single plottable:
+        if (!potentialSelections.isEmpty())
+        {
+          QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::iterator it = potentialSelections.begin();
+          while (it != potentialSelections.end()-1) // erase all except last element
+            it = potentialSelections.erase(it);
+        }
+      }
+      
+      bool additive = event->modifiers().testFlag(mMultiSelectModifier);
+      // deselect all other layerables if not additive selection:
+      if (!additive)
+      {
+        // emit deselection except to those plottables who will be selected afterwards:
+        foreach (QCPLayer *layer, mLayers)
+        {
+          foreach (QCPLayerable *layerable, layer->children())
+          {
+            if ((potentialSelections.isEmpty() || potentialSelections.first().first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
+            {
+              bool selChanged = false;
+              layerable->deselectEvent(&selChanged);
+              selectionStateChanged |= selChanged;
+            }
+          }
+        }
+      }
+      
+      // go through selections in reverse (largest selection first) and emit select events:
+      QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::const_iterator it = potentialSelections.constEnd();
+      while (it != potentialSelections.constBegin())
+      {
+        --it;
+        if (mInteractions.testFlag(it.value().first->selectionCategory()))
+        {
+          bool selChanged = false;
+          it.value().first->selectEvent(event, additive, QVariant::fromValue(it.value().second), &selChanged);
+          selectionStateChanged |= selChanged;
+        }
       }
     }
-    // TODO: process pair-list depending on iMultiSelect and call according selectEvents on plottables
   }
-  replot(rpQueuedReplot);
+  
+  if (selectionStateChanged)
+    emit selectionChangedByUser();
+  replot(rpQueuedReplot); // always replot to make selection rect disappear
 }
 
-void QCustomPlot::processRectZoom(QRect rect)
+void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
 {
+  Q_UNUSED(event)
   if (QCPAxisRect *axisRect = qobject_cast<QCPAxisRect*>(layoutElementAt(rect.topLeft())))
   {
     QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxis(Qt::Horizontal) << axisRect->rangeZoomAxis(Qt::Vertical);
     affectedAxes.removeAll(static_cast<QCPAxis*>(0));
     axisRect->zoom(QRectF(rect), affectedAxes);
-    replot(rpQueuedReplot);
   }
+  replot(rpQueuedReplot); // always replot to make selection rect disappear
 }
 
 void QCustomPlot::processPointSelection(QMouseEvent *event)

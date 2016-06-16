@@ -255,8 +255,8 @@ protected:
   virtual void draw(QCPPainter *painter);
   virtual void axisRemoved(QCPAxis *axis);
   virtual void legendRemoved(QCPLegend *legend);
-  Q_SLOT virtual void processRectSelection(QRect rect);
-  Q_SLOT virtual void processRectZoom(QRect rect);
+  Q_SLOT virtual void processRectSelection(QRect rect, QMouseEvent *event);
+  Q_SLOT virtual void processRectZoom(QRect rect, QMouseEvent *event);
   Q_SLOT virtual void processPointSelection(QMouseEvent *event);
   
   // non-virtual methods:

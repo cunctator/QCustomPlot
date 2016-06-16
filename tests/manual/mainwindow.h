@@ -45,6 +45,8 @@ public:
   void setupBarsGroupTest(QCustomPlot *customPlot);
   void setupLargeDataSetDelete(QCustomPlot *customPlot);
   void setupMultiValueGraph(QCustomPlot *customPlot);
+  void setupDataSelectTest(QCustomPlot *customPlot);
+  
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   

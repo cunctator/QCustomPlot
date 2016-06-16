@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupBarsGroupTest(mCustomPlot);
   //setupLargeDataSetDelete(mCustomPlot);
   //setupMultiValueGraph(mCustomPlot);
+  //setupDataSelectTest(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -1070,6 +1071,49 @@ void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)
   
   customPlot->rescaleAxes();
   customPlot->replot();
+}
+
+void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
+{
+  qsrand(1);
+  customPlot->setSelectionRectMode(QCP::srmSelect);
+  
+  QCPGraph *g = customPlot->addGraph();
+  int n = 10000;
+  QVector<double> x, y;
+  x << -6;
+  y << 2;
+  for (int i=0; i<n/2; ++i)
+  {
+    x << i/(double)(n/2-1)*4-5;
+    if (qrand()%(n/25) == 0)
+      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    else
+      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + 5*qSin(x[i]);
+  }
+  x << 0.5;
+  y << 2;
+  for (int i=0; i<n/2; ++i)
+  {
+    x << i/(double)(n/2-1)*4+1;
+    if (qrand()%(n/25) == 0)
+      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    else
+      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + qSin(5*x[i]);
+  }
+  x << 6;
+  y << -1;
+  g->setData(x, y);
+  g->setScatterStyle(QCPScatterStyle::ssPlus);
+  g->setLineStyle(QCPGraph::lsLine);
+  g->selectionDecorator()->setPen(QPen(Qt::red));
+  g->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red));
+  g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spPen|QCPScatterStyle::spShape);
+  
+  //g->setBrush(QBrush(QColor(100, 0, 255, 90)));
+  //g->selectionDecorator()->setBrush(QBrush(QColor(255, 0, 50, 60)));
+  
+  customPlot->rescaleAxes();
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)

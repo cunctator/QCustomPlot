@@ -48,21 +48,6 @@ QCPDataRange::QCPDataRange(int begin, int end) :
 {
 }
 
-void QCPDataRange::setBegin(int begin)
-{
-  mBegin = begin;
-}
-
-void QCPDataRange::setEnd(int end)
-{
-  mEnd = end;
-}
-
-bool QCPDataRange::isValid() const
-{
-  return (mEnd >= mBegin) && (mBegin >= 0);
-}
-
 QCPDataRange QCPDataRange::bounded(const QCPDataRange &other) const
 {
   QCPDataRange result(intersection(other));

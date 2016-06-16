@@ -44,14 +44,15 @@ public:
   int length() const { return size(); }
   
   // setters:
-  void setBegin(int begin);
-  void setEnd(int end);
+  void setBegin(int begin) { mBegin = begin; }
+  void setEnd(int end)  { mEnd = end; }
   
   // non-property methods:
-  bool isValid() const;
+  bool isValid() const { return (mEnd >= mBegin) && (mBegin >= 0); }
   bool isEmpty() const { return length() == 0; }
   QCPDataRange bounded(const QCPDataRange &other) const;
   QCPDataRange intersection(const QCPDataRange &other) const;
+  QCPDataRange adjusted(int changeBegin, int changeEnd) const { return QCPDataRange(mBegin+changeBegin, mEnd+changeEnd); }
   bool intersects(const QCPDataRange &other) const;
   bool contains(const QCPDataRange &other) const;
   

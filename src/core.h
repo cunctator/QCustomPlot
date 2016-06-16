@@ -75,6 +75,7 @@ public:
                          ,rpRefreshHint     ///< Whether to use immediate or queued refresh depends on whether the plotting hint \ref QCP::phImmediateRefresh is set, see \ref setPlottingHints.
                          ,rpQueuedReplot    ///< Queues the entire replot for the next event loop iteration. This way multiple redundant replots can be avoided. The actual replot is then done with \ref rpRefreshHint priority.
                        };
+  Q_ENUMS(RefreshPriority)
   
   explicit QCustomPlot(QWidget *parent = 0);
   virtual ~QCustomPlot();

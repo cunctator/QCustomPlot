@@ -59,7 +59,6 @@ public:
     \ref ssDot and \ref ssPixmap) can be controlled with the \ref setSize function. Scatters are
     drawn with the pen and brush specified with \ref setPen and \ref setBrush.
   */
-  Q_ENUMS(ScatterShape)
   enum ScatterShape { ssNone       ///< no scatter symbols are drawn (e.g. in QCPGraph, data only represented with lines)
                       ,ssDot       ///< \enumimage{ssDot.png} a single pixel (use \ref ssDisc or \ref ssCircle if you want a round shape with a certain radius)
                       ,ssCross     ///< \enumimage{ssCross.png} a cross
@@ -79,6 +78,7 @@ public:
                       ,ssPixmap    ///< a custom pixmap specified by \ref setPixmap, centered on the data point coordinates
                       ,ssCustom    ///< custom painter operations are performed per scatter (As QPainterPath, see \ref setCustomPath)
                     };
+  Q_ENUMS(ScatterShape)
 
   QCPScatterStyle();
   QCPScatterStyle(ScatterShape shape, double size=6);
@@ -126,5 +126,8 @@ protected:
   bool mPenDefined;
 };
 Q_DECLARE_TYPEINFO(QCPScatterStyle, Q_MOVABLE_TYPE);
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCPScatterStyle::ScatterProperties)
+Q_DECLARE_METATYPE(QCPScatterStyle::ScatterProperty)
+Q_DECLARE_METATYPE(QCPScatterStyle::ScatterShape)
 
 #endif // QCP_SCATTERSTYLE_H

@@ -381,6 +381,7 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCPAxis::SelectableParts)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCPAxis::AxisTypes)
 Q_DECLARE_METATYPE(QCPAxis::SelectablePart)
+Q_DECLARE_METATYPE(QCPAxis::SelectableParts)
 
 
 class QCPAxisPainterPrivate

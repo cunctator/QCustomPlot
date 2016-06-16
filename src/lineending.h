@@ -87,5 +87,6 @@ protected:
   bool mInverted;
 };
 Q_DECLARE_TYPEINFO(QCPLineEnding, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(QCPLineEnding::EndingStyle)
 
 #endif // QCP_LINEENDING_H

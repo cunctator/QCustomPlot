@@ -398,7 +398,7 @@ void QCPCurve::draw(QCPPainter *painter)
   if (mDataContainer->isEmpty()) return;
   
   // allocate line vector:
-  QVector<QPointF> *lineData = new QVector<QPointF>;
+  QVector<QPointF> lines;
   
   // loop over and draw segments of unselected/selected data:
   QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
@@ -417,7 +417,7 @@ void QCPCurve::draw(QCPPainter *painter)
     if (isSelectedSegment && mSelectionDecorator)
       finalScatterStyle = mSelectionDecorator->getFinalScatterStyle(mScatterStyle);
     
-    getCurveData(lineData, allSegments.at(i), qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
+    lines = getCurveLines(allSegments.at(i), qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
     
     // check data validity if flag set:
   #ifdef QCUSTOMPLOT_CHECK_DATA
@@ -437,27 +437,24 @@ void QCPCurve::draw(QCPPainter *painter)
       painter->setBrush(mBrush);
     painter->setPen(Qt::NoPen);
     if (painter->brush().style() != Qt::NoBrush && painter->brush().color().alpha() != 0)
-      painter->drawPolygon(QPolygonF(*lineData));
+      painter->drawPolygon(QPolygonF(lines));
     
     // draw curve line:
     if (mLineStyle != lsNone)
     {
       painter->setPen(finalCurvePen);
       painter->setBrush(Qt::NoBrush);
-      drawCurveLine(painter, lineData);
+      drawCurveLine(painter, lines);
     }
     
     // draw scatters:
     if (!finalScatterStyle.isNone())
-      drawScatterPlot(painter, lineData, finalScatterStyle);
+      drawScatterPlot(painter, lines, finalScatterStyle);
   }
   
   // draw other selection decoration that isn't just line/scatter pens and brushes:
   if (mSelectionDecorator)
     mSelectionDecorator->drawDecoration(painter, selection());
-    
-  // free allocated line data:
-  delete lineData;
 }
 
 /* inherits documentation from base class */
@@ -500,14 +497,14 @@ void QCPCurve::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   Draws scatter symbols at every data point passed in \a pointData. scatter symbols are independent of
   the line style and are always drawn if scatter shape is not \ref QCPScatterStyle::ssNone.
 */
-void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData, const QCPScatterStyle &style) const
+void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &points, const QCPScatterStyle &style) const
 {
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
   style.applyTo(painter, mPen);
-  for (int i=0; i<pointData->size(); ++i)
-    if (!qIsNaN(pointData->at(i).x()) && !qIsNaN(pointData->at(i).y()))
-      style.drawShape(painter,  pointData->at(i));
+  for (int i=0; i<points.size(); ++i)
+    if (!qIsNaN(points.at(i).x()) && !qIsNaN(points.at(i).y()))
+      style.drawShape(painter,  points.at(i));
 }
 
 /*! \internal
@@ -530,11 +527,12 @@ void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *poin
   Methods that are also involved in the algorithm are: \ref getRegion, \ref getOptimizedPoint, \ref
   getOptimizedCornerPoints \ref mayTraverse, \ref getTraverse, \ref getTraverseCornerPoints.
 */
-void QCPCurve::getCurveData(QVector<QPointF> *lineData, const QCPDataRange &dataRange, double penWidth) const
+QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double penWidth) const
 {
+  QVector<QPointF> result;
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
   
   // add margins to rect to compensate for stroke width
   double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
@@ -549,7 +547,7 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData, const QCPDataRange &data
   QCPCurveDataContainer::const_iterator itEnd = mDataContainer->constEnd();
   mDataContainer->limitIteratorsToDataRange(itBegin, itEnd, dataRange);
   if (itBegin == itEnd)
-    return;
+    return result;
   QCPCurveDataContainer::const_iterator it = itBegin;
   QCPCurveDataContainer::const_iterator prevIt = itEnd-1;
   int prevRegion = getRegion(prevIt->key, prevIt->value, rectLeft, rectTop, rectRight, rectBottom);
@@ -564,9 +562,9 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData, const QCPDataRange &data
         QPointF crossA, crossB;
         if (prevRegion == 5) // we're coming from R, so add this point optimized
         {
-          lineData->append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, rectLeft, rectTop, rectRight, rectBottom));
+          result.append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, rectLeft, rectTop, rectRight, rectBottom));
           // in the situations 5->1/7/9/3 the segment may leave R and directly cross through two outer regions. In these cases we need to add an additional corner point
-          *lineData << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
         } else if (mayTraverse(prevRegion, currentRegion) &&
                    getTraverse(prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom, crossA, crossB))
         {
@@ -575,33 +573,33 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData, const QCPDataRange &data
           getTraverseCornerPoints(prevRegion, currentRegion, rectLeft, rectTop, rectRight, rectBottom, beforeTraverseCornerPoints, afterTraverseCornerPoints);
           if (it != itBegin)
           {
-            *lineData << beforeTraverseCornerPoints;
-            lineData->append(crossA);
-            lineData->append(crossB);
-            *lineData << afterTraverseCornerPoints;
+            result << beforeTraverseCornerPoints;
+            result.append(crossA);
+            result.append(crossB);
+            result << afterTraverseCornerPoints;
           } else
           {
-            lineData->append(crossB);
-            *lineData << afterTraverseCornerPoints;
+            result.append(crossB);
+            result << afterTraverseCornerPoints;
             trailingPoints << beforeTraverseCornerPoints << crossA ;
           }
         } else // doesn't cross R, line is just moving around in outside regions, so only need to add optimized point(s) at the boundary corner(s)
         {
-          *lineData << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
         }
       } else // segment does end in R, so we add previous point optimized and this point at original position
       {
         if (it == itBegin) // it is first point in curve and prevIt is last one. So save optimized point for adding it to the lineData in the end
           trailingPoints << getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
         else
-          lineData->append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom));
-        lineData->append(coordsToPixels(it->key, it->value));
+          result.append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom));
+        result.append(coordsToPixels(it->key, it->value));
       }
     } else // region didn't change
     {
       if (currentRegion == 5) // still in R, keep adding original points
       {
-        lineData->append(coordsToPixels(it->key, it->value));
+        result.append(coordsToPixels(it->key, it->value));
       } else // still outside R, no need to add anything
       {
         // see how this is not doing anything? That's the main optimization...
@@ -611,7 +609,8 @@ void QCPCurve::getCurveData(QVector<QPointF> *lineData, const QCPDataRange &data
     prevRegion = currentRegion;
     ++it;
   }
-  *lineData << trailingPoints;
+  result << trailingPoints;
+  return result;
 }
 
 /*! \internal
@@ -1243,16 +1242,14 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint) const
   }
   
   // calculate minimum distance to line segments:
-  QVector<QPointF> *lineData = new QVector<QPointF>;
-  getCurveData(lineData, QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
+  QVector<QPointF> lines = getCurveLines(QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
   double minDistSqr = std::numeric_limits<double>::max();
-  for (int i=0; i<lineData->size()-1; ++i)
+  for (int i=0; i<lines.size()-1; ++i)
   {
-    double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lineData->at(i), lineData->at(i+1));
+    double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lines.at(i), lines.at(i+1));
     if (currentDistSqr < minDistSqr)
       minDistSqr = currentDistSqr;
   }
-  delete lineData;
   return qSqrt(minDistSqr);
 }
 
@@ -1268,11 +1265,11 @@ QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain)
   return mDataContainer->valueRange(foundRange, inSignDomain);
 }
 
-void QCPCurve::drawCurveLine(QCPPainter *painter, const QVector<QPointF> *lineData) const
+void QCPCurve::drawCurveLine(QCPPainter *painter, const QVector<QPointF> &lines) const
 {
   if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
-    drawPolyline(painter, *lineData);
+    drawPolyline(painter, lines);
   }
 }

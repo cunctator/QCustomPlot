@@ -119,11 +119,11 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData, const QCPScatterStyle &style) const;
+  virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &points, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
-  void getCurveData(QVector<QPointF> *lineData, const QCPDataRange &dataRange, double penWidth) const;
+  QVector<QPointF> getCurveLines(const QCPDataRange &dataRange, double penWidth) const;
   int getRegion(double x, double y, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;

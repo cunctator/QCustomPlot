@@ -118,6 +118,7 @@ public:
   void addData(double key, double open, double high, double low, double close);
   
   // reimplemented virtual methods:
+  virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
   // static methods:
@@ -143,6 +144,7 @@ protected:
   double ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
   double candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
   void getVisibleDataBounds(QCPFinancialDataContainer::const_iterator &begin, QCPFinancialDataContainer::const_iterator &end) const;
+  QRectF selectionHitBox(QCPFinancialDataContainer::const_iterator it) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

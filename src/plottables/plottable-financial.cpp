@@ -395,6 +395,25 @@ void QCPFinancial::addData(double key, double open, double high, double low, dou
   mDataContainer->add(QCPFinancialData(key, open, high, low, close));
 }
 
+QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect) const
+{
+  QCPDataSelection result;
+  
+  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
+  if (mDataContainer->isEmpty()) return result;
+  
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPFinancialDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
+  {
+    if (rect.intersects(selectionHitBox(it)))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+  }
+  result.simplify();
+  return result;
+}
+
 /* inherits documentation from base class */
 double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
@@ -846,4 +865,20 @@ void QCPFinancial::getVisibleDataBounds(QCPFinancialDataContainer::const_iterato
   }
   begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of ohlc/candlestick to include partially visible data points
   end = mDataContainer->findEnd(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
+}
+
+QRectF QCPFinancial::selectionHitBox(QCPFinancialDataContainer::const_iterator it) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
+  
+  double keyPixel = keyAxis->coordToPixel(it->key);
+  double highPixel = valueAxis->coordToPixel(it->high);
+  double lowPixel = valueAxis->coordToPixel(it->low);
+  double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5);
+  if (keyAxis->orientation() == Qt::Horizontal)
+    return QRectF(keyPixel-keyWidthPixels, highPixel, keyWidthPixels*2, lowPixel-highPixel).normalized();
+  else
+    return QRectF(highPixel, keyPixel-keyWidthPixels, lowPixel-highPixel, keyWidthPixels*2).normalized();
 }

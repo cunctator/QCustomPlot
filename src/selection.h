@@ -98,6 +98,7 @@ public:
   bool isEmpty() const { return mDataRanges.isEmpty(); }
   void simplify();
   void enforceType(QCP::SelectionType type);
+  bool contains(const QCPDataSelection &other) const;
   
 private:
   // property members:

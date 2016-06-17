@@ -289,6 +289,22 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
   }
 }
 
+bool QCPDataSelection::contains(const QCPDataSelection &other) const
+{
+  if (other.isEmpty()) return false;
+  
+  int otherIndex = 0;
+  int thisIndex = 0;
+  while (thisIndex < mDataRanges.size() && otherIndex < other.mDataRanges.size())
+  {
+    if (mDataRanges.at(thisIndex).contains(other.mDataRanges.at(otherIndex)))
+      ++otherIndex;
+    else
+      ++thisIndex;
+  }
+  return thisIndex < mDataRanges.size(); // if thisIndex ran all the way to the end to find a containing range for the current otherIndex, other is not contained in this
+}
+
 
 
 

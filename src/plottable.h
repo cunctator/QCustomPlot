@@ -58,6 +58,7 @@ public:
   void setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties);
   
   // non-virtual methods:
+  void copyFrom(const QCPSelectionDecorator *other);
   void applyPen(QCPPainter *painter) const;
   void applyBrush(QCPPainter *painter) const;
   QCPScatterStyle getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const;

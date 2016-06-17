@@ -74,6 +74,13 @@ void QCPSelectionDecorator::setUsedScatterProperties(const QCPScatterStyle::Scat
   mUsedScatterProperties = properties;
 }
 
+void QCPSelectionDecorator::copyFrom(const QCPSelectionDecorator *other)
+{
+  setPen(other->pen());
+  setBrush(other->brush());
+  setScatterStyle(other->scatterStyle(), other->usedScatterProperties());
+}
+
 void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
 {
   painter->setPen(mPen);

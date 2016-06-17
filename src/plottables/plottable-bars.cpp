@@ -718,6 +718,26 @@ void QCPBars::moveAbove(QCPBars *bars)
   }
 }
 
+QCPDataSelection QCPBars::selectTestRect(const QRectF &rect) const
+{
+  QCPDataSelection result;
+  
+  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
+  if (mDataContainer->isEmpty()) return result;
+  
+  QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
+  {
+    const QRectF barRect(getBarPolygon(it->key, it->value).boundingRect());
+    if (rect.intersects(barRect))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+  }
+  result.simplify();
+  return result;
+}
+
 /*! \overload
   
   Adds the provided points in \a keys and \a values to the current data. The provided vectors

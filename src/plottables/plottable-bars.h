@@ -179,6 +179,7 @@ public:
   void moveAbove(QCPBars *bars);
   
   // reimplemented virtual methods:
+  virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:

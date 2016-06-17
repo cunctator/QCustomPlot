@@ -756,8 +756,10 @@ void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const 
     QCPDataSelection selectionBefore = mSelection;
     if (additive)
     {
-      // TODO: if newSelection fully contained in mSelection, set new selection to mSelection-newSelection instead
-      setSelection(mSelection+newSelection);
+      if (mSelection.contains(newSelection)) // if entire newSelection is already selected, toggle selection
+        setSelection(mSelection-newSelection);
+      else
+        setSelection(mSelection+newSelection);
     } else
       setSelection(newSelection);
     if (selectionStateChanged)

@@ -394,6 +394,25 @@ void QCPStatisticalBox::addData(double key, double minimum, double lowerQuartile
   mDataContainer->add(QCPStatisticalBoxData(key, minimum, lowerQuartile, median, upperQuartile, maximum, outliers));
 }
 
+QCPDataSelection QCPStatisticalBox::selectTestRect(const QRectF &rect) const
+{
+  QCPDataSelection result;
+  
+  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
+  if (mDataContainer->isEmpty()) return result;
+  
+  QCPStatisticalBoxDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPStatisticalBoxDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
+  {
+    if (rect.intersects(getQuartileBox(it)))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+  }
+  result.simplify();
+  return result;
+}
+
 /* inherits documentation from base class */
 double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {

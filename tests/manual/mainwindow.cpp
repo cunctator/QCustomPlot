@@ -1164,6 +1164,7 @@ void MainWindow::presetInteractive(QCustomPlot *customPlot)
   customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
   customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
   connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)), Qt::UniqueConnection);
+  connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectionRectChooser(QMouseEvent*)), Qt::UniqueConnection);
 }
 
 void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool circle, bool labelBelow)
@@ -1283,6 +1284,18 @@ void MainWindow::setupIntegerTickStepCase(QCustomPlot *customPlot)
   
   customPlot->xAxis->setTicker(ticker);
   customPlot->yAxis->setTicker(ticker);
+}
+
+void MainWindow::selectionRectChooser(QMouseEvent *event)
+{
+  if (event->button() == Qt::RightButton)
+  {
+    if (event->modifiers().testFlag(Qt::ShiftModifier))
+      mCustomPlot->setSelectionRectMode(QCP::srmZoom);
+    else
+      mCustomPlot->setSelectionRectMode(QCP::srmSelect);
+  } else
+    mCustomPlot->setSelectionRectMode(QCP::srmNone);
 }
 
 void MainWindow::tracerTestMouseMove(QMouseEvent *event)

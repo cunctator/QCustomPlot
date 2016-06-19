@@ -61,6 +61,7 @@ public:
   void setupIntegerTickStepCase(QCustomPlot *customPlot);
   
 public slots:
+  void selectionRectChooser(QMouseEvent *event);
   void tracerTestMouseMove(QMouseEvent *event);
   void selectTestColorMapRefresh();
   void mouseMoveRotateTickLabels(QMouseEvent *event);

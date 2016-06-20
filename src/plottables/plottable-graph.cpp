@@ -379,8 +379,16 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
-    return pointDistance(pos);
-  else
+  {
+    QCPGraphDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    double result = pointDistance(pos, closestDataPoint);
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+    }
+    return result;
+  } else
     return -1;
 }
 
@@ -1542,74 +1550,61 @@ int QCPGraph::findIndexAboveY(const QVector<QPointF> *data, double y) const
 
 /*! \internal
   
-  Calculates the (minimum) distance (in pixels) the graph's representation has from the given \a
-  pixelPoint in pixels. This is used to determine whether the graph was clicked or not, e.g. in
-  \ref selectTest.
+  Calculates the minimum distance in pixels the graph's representation has from the given \a
+  pixelPoint. This is used to determine whether the graph was clicked or not, e.g. in \ref
+  selectTest. The closest data point to \a pixelPoint is returned in \a closestData. Note that if
+  the graph has a line representation, the returned distance may be smaller than the distance to
+  the \a closestData point, since the distance to the graph line is also taken into account.
   
   If either the graph has no data or if the line style is \ref lsNone and the scatter style's shape
   is \ref QCPScatterStyle::ssNone (i.e. there is no visual representation of the graph), returns -1.0.
 */
-double QCPGraph::pointDistance(const QPointF &pixelPoint) const
+double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer::const_iterator &closestData) const
 {
+  closestData = mDataContainer->constEnd();
   if (mDataContainer->isEmpty())
     return -1.0;
   if (mLineStyle == lsNone && mScatterStyle.isNone())
     return -1.0;
   
-  // calculate minimum distances to graph representation:
-  if (mLineStyle == lsNone)
+  // calculate minimum distances to graph data points and find closestData iterator:
+  double minDistSqr = std::numeric_limits<double>::max();
+  // determine which key range comes into question, taking selection tolerance around pos into account:
+  double posKeyMin, posKeyMax, dummy;
+  pixelsToCoords(pixelPoint-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, dummy);
+  pixelsToCoords(pixelPoint+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, dummy);
+  if (posKeyMin > posKeyMax)
+    qSwap(posKeyMin, posKeyMax);
+  // iterate over found data points and then choose the one with the sortest distance to pos:
+  QCPGraphDataContainer::const_iterator begin = mDataContainer->findBegin(posKeyMin, true);
+  QCPGraphDataContainer::const_iterator end = mDataContainer->findEnd(posKeyMax, true);
+  for (QCPGraphDataContainer::const_iterator it=begin; it!=end; ++it)
   {
-    // no line displayed, only calculate distance to scatter points:
-    QVector<QPointF> scatterData;
-    getScatters(&scatterData, QCPDataRange(0, dataCount()));
-    if (scatterData.size() > 0)
+    const double currentDistSqr = QCPVector2D(coordsToPixels(it->key, it->value)-pixelPoint).lengthSquared();
+    if (currentDistSqr < minDistSqr)
     {
-      double minDistSqr = std::numeric_limits<double>::max();
-      for (int i=0; i<scatterData.size(); ++i)
-      {
-        double currentDistSqr = QCPVector2D(scatterData.at(i)-pixelPoint).lengthSquared();
-        if (currentDistSqr < minDistSqr)
-          minDistSqr = currentDistSqr;
-      }
-      return qSqrt(minDistSqr);
-    } else // no data available in view to calculate distance to
-      return -1.0;
-  } else
+      minDistSqr = currentDistSqr;
+      closestData = it;
+    }
+  }
+    
+  // calculate distance to graph line if there is one (if so, will probably be smaller than distance to closest data point):
+  if (mLineStyle != lsNone)
   {
     // line displayed, calculate distance to line segments:
     QVector<QPointF> lineData;
     getLines(&lineData, QCPDataRange(0, dataCount()));
-    if (lineData.size() > 1) // at least one line segment, compare distance to line segments
+    QCPVector2D p(pixelPoint);
+    const int step = mLineStyle==lsImpulse ? 2 : 1; // impulse plot differs from other line styles in that the lineData points are only pairwise connected
+    for (int i=0; i<lineData.size()-1; i+=step)
     {
-      double minDistSqr = std::numeric_limits<double>::max();
-      if (mLineStyle == lsImpulse)
-      {
-        // impulse plot differs from other line styles in that the lineData points are only pairwise connected:
-        QCPVector2D p(pixelPoint);
-        for (int i=0; i<lineData.size()-1; i+=2) // iterate pairs
-        {
-          double currentDistSqr = p.distanceSquaredToLine(lineData.at(i), lineData.at(i+1));
-          if (currentDistSqr < minDistSqr)
-            minDistSqr = currentDistSqr;
-        }
-      } else
-      {
-        // all other line plots (line and step) connect points directly:
-        QCPVector2D p(pixelPoint);
-        for (int i=0; i<lineData.size()-1; ++i)
-        {
-          double currentDistSqr = p.distanceSquaredToLine(lineData.at(i), lineData.at(i+1));
-          if (currentDistSqr < minDistSqr)
-            minDistSqr = currentDistSqr;
-        }
-      }
-      return qSqrt(minDistSqr);
-    } else if (lineData.size() > 0) // only single data point, calculate distance to that point
-    {
-      return QCPVector2D(lineData.at(0)-pixelPoint).length();
-    } else // no data available in view to calculate distance to
-      return -1.0;
+      const double currentDistSqr = p.distanceSquaredToLine(lineData.at(i), lineData.at(i+1));
+      if (currentDistSqr < minDistSqr)
+        minDistSqr = currentDistSqr;
+    }
   }
+  
+  return qSqrt(minDistSqr);
 }
 
 /*! \internal

@@ -156,7 +156,7 @@ protected:
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;
   int findIndexAboveY(const QVector<QPointF> *data, double y) const;
-  double pointDistance(const QPointF &pixelPoint) const;
+  double pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer::const_iterator &closestData) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

@@ -60,7 +60,7 @@ public:
   virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
   
   // virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   virtual QCPPlottableInterface1D *interface1D() { return this; }
   
 protected:

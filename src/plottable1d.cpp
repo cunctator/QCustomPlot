@@ -173,6 +173,74 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
 }
 
 template <class DataType>
+double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
+{
+  if ((onlySelectable && mSelectable != QCP::stNone) || mDataContainer->isEmpty())
+    return -1;
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
+  
+  QCPDataSelection selectionResult;
+  double minDistSqr = std::numeric_limits<double>::max();
+  int minDistIndex = mDataContainer->size();
+  
+  if (DataType::sortKeyIsMainKey())
+  {
+    // determine which key range comes into question, taking selection tolerance around pos into account:
+    double posKeyMin, posKeyMax, dummy;
+    pixelsToCoords(pos-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, dummy);
+    pixelsToCoords(pos+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, dummy);
+    if (posKeyMin > posKeyMax)
+      qSwap(posKeyMin, posKeyMax);
+    // iterate over found data points and then choose the one with the sortest distance to pos:
+    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->findBegin(posKeyMin, true);
+    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->findEnd(posKeyMax, true);
+    if (begin == end)
+      return -1;
+    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+    {
+      const double currentDistSqr = QCPVector2D(coordsToPixels(it->mainKey(), it->mainValue())-pos).lengthSquared();
+      if (currentDistSqr < minDistSqr)
+      {
+        minDistSqr = currentDistSqr;
+        minDistIndex = it-mDataContainer->constBegin();
+      }
+    }
+    if (minDistIndex != mDataContainer->size())
+      selectionResult.addDataRange(QCPDataRange(minDistIndex, minDistIndex+1), false);
+  } else // we can't assume that data is sorted by main key, so have to use less optimized algorithm which also checks key coordinate
+  {
+    QCPRange keyRange(mKeyAxis->range());
+    QCPRange valueRange(mValueAxis->range());
+    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
+    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
+    if (begin == end)
+      return -1;
+    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+    {
+      const double mainKey = it->mainKey();
+      const double mainValue = it->mainValue();
+      if (keyRange.contains(mainKey) && valueRange.contains(mainValue)) // make sure data point is inside visible range, for slight speedup
+      {
+        const double currentDistSqr = QCPVector2D(coordsToPixels(mainKey, mainValue)-pos).lengthSquared();
+        if (currentDistSqr < minDistSqr)
+        {
+          minDistSqr = currentDistSqr;
+          minDistIndex = it-mDataContainer->constBegin();
+        }
+      }
+    }
+    if (minDistIndex != mDataContainer->size())
+      selectionResult.addDataRange(QCPDataRange(minDistIndex, minDistIndex+1), false);
+  }
+  
+  selectionResult.simplify();
+  if (details)
+    details->setValue(selectionResult);
+  return qSqrt(minDistSqr);
+}
+
+template <class DataType>
 void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
 {
   QCPDataSelection sel(selection());

@@ -193,8 +193,8 @@ signals:
   void mouseRelease(QMouseEvent *event);
   void mouseWheel(QWheelEvent *event);
   
-  void plottableClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
-  void plottableDoubleClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
+  void plottableClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
+  void plottableDoubleClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
   void itemClick(QCPAbstractItem *item, QMouseEvent *event);
   void itemDoubleClick(QCPAbstractItem *item, QMouseEvent *event);
   void axisClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event);

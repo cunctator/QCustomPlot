@@ -2046,8 +2046,12 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   
   // emit specialized object double click signals:
   if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-    emit plottableDoubleClick(ap, event);
-  else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
+  {
+    int dataIndex = 0;
+    if (!details.value<QCPDataSelection>().isEmpty())
+      dataIndex = details.value<QCPDataSelection>().dataRange().begin();
+    emit plottableDoubleClick(ap, dataIndex, event);
+  } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
     emit axisDoubleClick(ax, details.value<QCPAxis::SelectablePart>(), event);
   else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
     emit itemDoubleClick(ai, event);
@@ -2169,8 +2173,12 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     QVariant details;
     QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details); // for these signals, selectability is ignored, that's why we call this again with onlySelectable set to false
     if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-      emit plottableClick(ap, event);
-    else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
+    {
+      int dataIndex = 0;
+      if (!details.value<QCPDataSelection>().isEmpty())
+        dataIndex = details.value<QCPDataSelection>().dataRange().begin();
+      emit plottableClick(ap, dataIndex, event);
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
       emit axisClick(ax, details.value<QCPAxis::SelectablePart>(), event);
     else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
       emit itemClick(ai, event);

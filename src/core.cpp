@@ -2571,7 +2571,8 @@ void QCustomPlot::updateLayerIndices() const
   layerable. This is useful if the respective layerable shall be given a subsequent
   QCPLayerable::selectEvent (like in \ref mouseReleaseEvent). \a selectionDetails usually contains
   information about which part of the layerable was hit, in multi-part layerables (e.g.
-  QCPAxis::SelectablePart).
+  QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
+  QCPDataSelection instance with the single data point which is closest to \a pos.
 */
 QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails) const
 {

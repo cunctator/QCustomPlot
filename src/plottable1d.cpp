@@ -118,55 +118,32 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
   pixelsToCoords(rect.bottomRight(), key2, value2);
   QCPRange keyRange(key1, key2); // QCPRange normalizes internally so we don't have to care about whether key1 < key2
   QCPRange valueRange(value1, value2);
-  
-  if (DataType::sortKeyIsMainKey())
+  typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
+  typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
+  if (DataType::sortKeyIsMainKey()) // we can assume that data is sorted by main key, so can reduce the searched key interval:
   {
-    // iterate over data points in key range and add contiguous batches of data to result:
-    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->findBegin(keyRange.lower, false);
-    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->findEnd(keyRange.upper, false);
-    if (begin == end)
-      return result;
-    
-    int currentSegmentBegin = -1; // -1 means we're currently not in a segment that's contained in rect
-    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
-    {
-      if (currentSegmentBegin == -1)
-      {
-        if (valueRange.contains(it->mainValue())) // start segment
-          currentSegmentBegin = it-mDataContainer->constBegin();
-      } else if (!valueRange.contains(it->mainValue())) // segment just ended
-      {
-        result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
-        currentSegmentBegin = -1;
-      }
-    }
-    // process potential last segment:
-    if (currentSegmentBegin != -1)
-      result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
-  } else // we can't assume that data is sorted by main key, so have to use less optimized algorithm which also checks key coordinate
-  {
-    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
-    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
-    if (begin == end)
-      return result;
-    
-    int currentSegmentBegin = -1; // -1 means we're currently not in a segment that's contained in rect
-    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
-    {
-      if (currentSegmentBegin == -1)
-      {
-        if (valueRange.contains(it->mainValue()) && keyRange.contains(it->mainKey())) // start segment
-          currentSegmentBegin = it-mDataContainer->constBegin();
-      } else if (!valueRange.contains(it->mainValue()) || !keyRange.contains(it->mainKey())) // segment just ended
-      {
-        result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
-        currentSegmentBegin = -1;
-      }
-    }
-    // process potential last segment:
-    if (currentSegmentBegin != -1)
-      result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
+    begin = mDataContainer->findBegin(keyRange.lower, false);
+    end = mDataContainer->findEnd(keyRange.upper, false);
   }
+  if (begin == end)
+    return result;
+  
+  int currentSegmentBegin = -1; // -1 means we're currently not in a segment that's contained in rect
+  for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+  {
+    if (currentSegmentBegin == -1)
+    {
+      if (valueRange.contains(it->mainValue()) && keyRange.contains(it->mainKey())) // start segment
+        currentSegmentBegin = it-mDataContainer->constBegin();
+    } else if (!valueRange.contains(it->mainValue()) || !keyRange.contains(it->mainKey())) // segment just ended
+    {
+      result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
+      currentSegmentBegin = -1;
+    }
+  }
+  // process potential last segment:
+  if (currentSegmentBegin != -1)
+    result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
   
   result.simplify();
   return result;
@@ -175,7 +152,7 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
-  if ((onlySelectable && mSelectable != QCP::stNone) || mDataContainer->isEmpty())
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
     return -1;
   if (!mKeyAxis || !mValueAxis)
     return -1;
@@ -184,7 +161,9 @@ double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onl
   double minDistSqr = std::numeric_limits<double>::max();
   int minDistIndex = mDataContainer->size();
   
-  if (DataType::sortKeyIsMainKey())
+  typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
+  typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
+  if (DataType::sortKeyIsMainKey()) // we can assume that data is sorted by main key, so can reduce the searched key interval:
   {
     // determine which key range comes into question, taking selection tolerance around pos into account:
     double posKeyMin, posKeyMax, dummy;
@@ -192,47 +171,29 @@ double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onl
     pixelsToCoords(pos+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, dummy);
     if (posKeyMin > posKeyMax)
       qSwap(posKeyMin, posKeyMax);
-    // iterate over found data points and then choose the one with the sortest distance to pos:
-    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->findBegin(posKeyMin, true);
-    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->findEnd(posKeyMax, true);
-    if (begin == end)
-      return -1;
-    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+    begin = mDataContainer->findBegin(posKeyMin, true);
+    end = mDataContainer->findEnd(posKeyMax, true);
+  }
+  if (begin == end)
+    return -1;
+  QCPRange keyRange(mKeyAxis->range());
+  QCPRange valueRange(mValueAxis->range());
+  for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
+  {
+    const double mainKey = it->mainKey();
+    const double mainValue = it->mainValue();
+    if (keyRange.contains(mainKey) && valueRange.contains(mainValue)) // make sure data point is inside visible range, for speedup in cases where sort key isn't main key and we iterate over all points
     {
-      const double currentDistSqr = QCPVector2D(coordsToPixels(it->mainKey(), it->mainValue())-pos).lengthSquared();
+      const double currentDistSqr = QCPVector2D(coordsToPixels(mainKey, mainValue)-pos).lengthSquared();
       if (currentDistSqr < minDistSqr)
       {
         minDistSqr = currentDistSqr;
         minDistIndex = it-mDataContainer->constBegin();
       }
     }
-    if (minDistIndex != mDataContainer->size())
-      selectionResult.addDataRange(QCPDataRange(minDistIndex, minDistIndex+1), false);
-  } else // we can't assume that data is sorted by main key, so have to use less optimized algorithm which also checks key coordinate
-  {
-    QCPRange keyRange(mKeyAxis->range());
-    QCPRange valueRange(mValueAxis->range());
-    typename QCPDataContainer<DataType>::const_iterator begin = mDataContainer->constBegin();
-    typename QCPDataContainer<DataType>::const_iterator end = mDataContainer->constEnd();
-    if (begin == end)
-      return -1;
-    for (typename QCPDataContainer<DataType>::const_iterator it=begin; it!=end; ++it)
-    {
-      const double mainKey = it->mainKey();
-      const double mainValue = it->mainValue();
-      if (keyRange.contains(mainKey) && valueRange.contains(mainValue)) // make sure data point is inside visible range, for slight speedup
-      {
-        const double currentDistSqr = QCPVector2D(coordsToPixels(mainKey, mainValue)-pos).lengthSquared();
-        if (currentDistSqr < minDistSqr)
-        {
-          minDistSqr = currentDistSqr;
-          minDistIndex = it-mDataContainer->constBegin();
-        }
-      }
-    }
-    if (minDistIndex != mDataContainer->size())
-      selectionResult.addDataRange(QCPDataRange(minDistIndex, minDistIndex+1), false);
   }
+  if (minDistIndex != mDataContainer->size())
+    selectionResult.addDataRange(QCPDataRange(minDistIndex, minDistIndex+1), false);
   
   selectionResult.simplify();
   if (details)

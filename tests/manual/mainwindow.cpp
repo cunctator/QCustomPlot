@@ -1105,9 +1105,18 @@ void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
   g->selectionDecorator()->setPen(QPen(Qt::red));
   g->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red));
   g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spPen|QCPScatterStyle::spShape);
+  g->setSelectable(QCP::stMultipleDataRanges);
   
   //g->setBrush(QBrush(QColor(100, 0, 255, 90)));
   //g->selectionDecorator()->setBrush(QBrush(QColor(255, 0, 50, 60)));
+  
+  QCPCurve *curve = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  curve->addData(QVector<double>() << 1 << 2 << 3 << 4 << 3 << 2 << 1, QVector<double>() << 5 << 4 << 7 << 8 << 2 << 1 << 1);
+  curve->setScatterStyle(QCPScatterStyle::ssPlus);
+  curve->selectionDecorator()->setPen(QPen(Qt::red));
+  curve->selectionDecorator()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red));
+  curve->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spPen|QCPScatterStyle::spShape);
+  curve->setSelectable(QCP::stMultipleDataRanges);
   
   customPlot->rescaleAxes();
 }

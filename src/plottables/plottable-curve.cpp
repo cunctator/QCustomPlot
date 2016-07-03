@@ -400,7 +400,7 @@ void QCPCurve::draw(QCPPainter *painter)
   if (mDataContainer->isEmpty()) return;
   
   // allocate line vector:
-  QVector<QPointF> lines;
+  QVector<QPointF> lines, scatters;
   
   // loop over and draw segments of unselected/selected data:
   QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
@@ -419,7 +419,8 @@ void QCPCurve::draw(QCPPainter *painter)
     if (isSelectedSegment && mSelectionDecorator)
       finalScatterStyle = mSelectionDecorator->getFinalScatterStyle(mScatterStyle);
     
-    lines = getCurveLines(allSegments.at(i), qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
+    QCPDataRange lineDataRange = isSelectedSegment ? allSegments.at(i) : allSegments.at(i).adjusted(-1, 1); // unselected segments extend lines to bordering selected data point (safe to exceed total data bounds in first/last segment, getCurveLines takes care)
+    lines = getCurveLines(lineDataRange, qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
     
     // check data validity if flag set:
   #ifdef QCUSTOMPLOT_CHECK_DATA
@@ -451,7 +452,10 @@ void QCPCurve::draw(QCPPainter *painter)
     
     // draw scatters:
     if (!finalScatterStyle.isNone())
-      drawScatterPlot(painter, lines, finalScatterStyle);
+    {
+      scatters = getCurveLines(allSegments.at(i), finalScatterStyle.size()*2); // TODO: not optimal to call this a second time (call for lines uses adjusted dataRange to draw lines between selected/unselected segments)
+      drawScatterPlot(painter, scatters, finalScatterStyle);
+    }
   }
   
   // draw other selection decoration that isn't just line/scatter pens and brushes:

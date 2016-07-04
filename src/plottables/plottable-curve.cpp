@@ -381,16 +381,22 @@ void QCPCurve::addData(double key, double value)
 /* inherits documentation from base class */
 double QCPCurve::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
-  // TODO -> adapt pointDistance like in QCPGraph, to return closest data point
-  
   if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
     return -1;
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
-    return pointDistance(pos);
-  else
+  {
+    QCPCurveDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    double result = pointDistance(pos, closestDataPoint);
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+    }
+    return result;
+  } else
     return -1;
 }
 
@@ -1232,30 +1238,56 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
   
   Calculates the (minimum) distance (in pixels) the curve's representation has from the given \a
   pixelPoint in pixels. This is used to determine whether the curve was clicked or not, e.g. in
-  \ref selectTest.
+  \ref selectTest. The closest data point to \a pixelPoint is returned in \a closestData. Note that
+  if the curve has a line representation, the returned distance may be smaller than the distance to
+  the \a closestData point, since the distance to the curve line is also taken into account.
+  
+  If either the curve has no data or if the line style is \ref lsNone and the scatter style's shape
+  is \ref QCPScatterStyle::ssNone (i.e. there is no visual representation of the curve), returns
+  -1.0.
 */
-double QCPCurve::pointDistance(const QPointF &pixelPoint) const
+double QCPCurve::pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer::const_iterator &closestData) const
 {
+  closestData = mDataContainer->constEnd();
   if (mDataContainer->isEmpty())
-  {
-    qDebug() << Q_FUNC_INFO << "requested point distance on curve" << mName << "without data";
-    return 500;
-  }
+    return -1.0;
+  if (mLineStyle == lsNone && mScatterStyle.isNone())
+    return -1.0;
+  
   if (mDataContainer->size() == 1)
   {
     QPointF dataPoint = coordsToPixels(mDataContainer->constBegin()->key, mDataContainer->constBegin()->value);
+    closestData = mDataContainer->constBegin();
     return QCPVector2D(dataPoint-pixelPoint).length();
   }
   
-  // calculate minimum distance to line segments:
-  QVector<QPointF> lines = getCurveLines(QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
+  // calculate minimum distances to curve data points and find closestData iterator:
   double minDistSqr = std::numeric_limits<double>::max();
-  for (int i=0; i<lines.size()-1; ++i)
+  // iterate over found data points and then choose the one with the sortest distance to pos:
+  QCPCurveDataContainer::const_iterator begin = mDataContainer->constBegin();
+  QCPCurveDataContainer::const_iterator end = mDataContainer->constEnd();
+  for (QCPCurveDataContainer::const_iterator it=begin; it!=end; ++it)
   {
-    double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lines.at(i), lines.at(i+1));
+    const double currentDistSqr = QCPVector2D(coordsToPixels(it->key, it->value)-pixelPoint).lengthSquared();
     if (currentDistSqr < minDistSqr)
+    {
       minDistSqr = currentDistSqr;
+      closestData = it;
+    }
   }
+  
+  // calculate distance to line if there is one (if so, will probably be smaller than distance to closest data point):
+  if (mLineStyle != lsNone)
+  {
+    QVector<QPointF> lines = getCurveLines(QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
+    for (int i=0; i<lines.size()-1; ++i)
+    {
+      double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lines.at(i), lines.at(i+1));
+      if (currentDistSqr < minDistSqr)
+        minDistSqr = currentDistSqr;
+    }
+  }
+  
   return qSqrt(minDistSqr);
 }
 

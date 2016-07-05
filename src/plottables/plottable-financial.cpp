@@ -426,19 +426,26 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPFinancialDataContainer::const_iterator lower, upperEnd;
-    getVisibleDataBounds(lower, upperEnd);
-    if (lower == upperEnd)
-      return -1;
+    QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+    QCPFinancialDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    getVisibleDataBounds(visibleBegin, visibleEnd);
     // perform select test according to configured style:
+    double result = -1;
     switch (mChartStyle)
     {
       case QCPFinancial::csOhlc:
-        return ohlcSelectTest(pos, lower, upperEnd); break;
+        result = ohlcSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
       case QCPFinancial::csCandlestick:
-        return candlestickSelectTest(pos, lower, upperEnd); break;
+        result = candlestickSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
     }
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+    }
+    return result;
   }
+  
   return -1;
 }
 
@@ -742,34 +749,43 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
   
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csOhlc. It only tests against the data points between \a begin and \a end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const
+double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataContainer::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
       double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it->high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(it->low)));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
       double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it->high), keyPixel), QCPVector2D(valueAxis->coordToPixel(it->low), keyPixel));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);
@@ -780,18 +796,21 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataCo
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csCandlestick. It only tests against the data points between \a begin and \a
   end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const
+double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataContainer::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
@@ -811,11 +830,14 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
@@ -835,7 +857,10 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);

@@ -500,7 +500,10 @@ void QCPStatisticalBox::draw(QCPPainter *painter)
         painter->setPen(mPen);
         painter->setBrush(mBrush);
       }
-      drawStatisticalBox(painter, it);
+      QCPScatterStyle finalOutlierStyle = mOutlierStyle;
+      if (isSelectedSegment && mSelectionDecorator)
+        finalOutlierStyle = mSelectionDecorator->getFinalScatterStyle(mOutlierStyle);
+      drawStatisticalBox(painter, it, finalOutlierStyle);
     }
   }
   
@@ -542,7 +545,7 @@ QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSi
   return mDataContainer->valueRange(foundRange, inSignDomain);
 }
 
-void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it) const
+void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const
 {
   // draw quartile box:
   applyDefaultAntialiasingHint(painter);
@@ -561,9 +564,9 @@ void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBo
   painter->drawLines(getWhiskerBarLines(it));
   // draw outliers:
   applyScattersAntialiasingHint(painter);
-  mOutlierStyle.applyTo(painter, mPen);
+  outlierStyle.applyTo(painter, mPen);
   for (int i=0; i<it->outliers.size(); ++i)
-    mOutlierStyle.drawShape(painter, coordsToPixels(it->key, it->outliers.at(i)));
+    outlierStyle.drawShape(painter, coordsToPixels(it->key, it->outliers.at(i)));
 }
 
 /*!  \internal

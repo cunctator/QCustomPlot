@@ -425,19 +425,20 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
   if (mKeyAxis->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPStatisticalBoxDataContainer::const_iterator lower, upperEnd;
-    getVisibleDataBounds(lower, upperEnd);
-    if (lower == upperEnd)
-      return -1;
-    
+    QCPStatisticalBoxDataContainer::const_iterator visibleBegin, visibleEnd;
+    QCPStatisticalBoxDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    getVisibleDataBounds(visibleBegin, visibleEnd);
     double minDistSqr = std::numeric_limits<double>::max();
-    for (QCPStatisticalBoxDataContainer::const_iterator it = lower; it != upperEnd; ++it)
+    for (QCPStatisticalBoxDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
     {
       if (getQuartileBox(it).contains(pos)) // quartile box
       {
         double currentDistSqr = mParentPlot->selectionTolerance()*0.99 * mParentPlot->selectionTolerance()*0.99;
         if (currentDistSqr < minDistSqr)
+        {
           minDistSqr = currentDistSqr;
+          closestDataPoint = it;
+        }
       } else // whiskers
       {
         const QVector<QLineF> whiskerBackbones(getWhiskerBackboneLines(it));
@@ -445,9 +446,17 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
         {
           double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(whiskerBackbones.at(i));
           if (currentDistSqr < minDistSqr)
+          {
             minDistSqr = currentDistSqr;
+            closestDataPoint = it;
+          }
         }
       }
+    }
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return qSqrt(minDistSqr);
   }

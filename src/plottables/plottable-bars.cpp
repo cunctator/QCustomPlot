@@ -557,6 +557,43 @@ QCPBars::~QCPBars()
     connectBars(mBarBelow.data(), mBarAbove.data()); // take this bar out of any stacking
 }
 
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPBars may share the same data container safely.
+  Modifying the data in the container will then affect all bars that share the container. Sharing
+  can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the bar's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-2
+  
+  \see addData
+*/
+void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
+{
+  mDataContainer = data;
+}
+
+/*! \overload
+  
+  Replaces the current data with the provided points in \a keys and \a values. The provided
+  vectors should have equal length. Else, the number of added points will be the size of the
+  smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData
+*/
+void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  mDataContainer->clear();
+  addData(keys, values, alreadySorted);
+}
+
 /*!
   Sets the width of the bars.
 
@@ -617,39 +654,44 @@ void QCPBars::setBaseValue(double baseValue)
 
 /*! \overload
   
-  Replaces the current data container with the provided \a data container.
-  
-  Since a QSharedPointer is used, multiple QCPBars may share the same data container safely.
-  Modifying the data in the container will then affect all bars that share the container. Sharing
-  can be achieved by simply exchanging the data containers wrapped in shared pointers:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-1
-  
-  If you do not wish to share containers, but create a copy from an existing container, rather use
-  the \ref QCPDataContainer<DataType>::set method on the bar's data container directly:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-2
-  
-  \see addData
-*/
-void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
-{
-  mDataContainer = data;
-}
-
-/*! \overload
-  
-  Replaces the current data with the provided points in \a keys and \a values. The provided
-  vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
+  Adds the provided points in \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
   
   If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
   can set \a alreadySorted to true, to improve performance by saving a sorting run.
   
-  \see addData
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
-void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer->clear();
-  addData(keys, values, alreadySorted);
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPBarsData> tempData(n);
+  QVector<QCPBarsData>::iterator it = tempData.begin();
+  const QVector<QCPBarsData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
+  {
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
+}
+
+/*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+*/
+void QCPBars::addData(double key, double value)
+{
+  mDataContainer->add(QCPBarsData(key, value));
 }
 
 /*!
@@ -736,48 +778,6 @@ QCPDataSelection QCPBars::selectTestRect(const QRectF &rect) const
   }
   result.simplify();
   return result;
-}
-
-/*! \overload
-  
-  Adds the provided points in \a keys and \a values to the current data. The provided vectors
-  should have equal length. Else, the number of added points will be the size of the smallest
-  vector.
-  
-  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
-  can set \a alreadySorted to true, to improve performance by saving a sorting run.
-  
-  Alternatively, you can also access and modify the data directly via the \ref data method, which
-  returns a pointer to the internal data container.
-*/
-void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
-{
-  if (keys.size() != values.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
-  const int n = qMin(keys.size(), values.size());
-  QVector<QCPBarsData> tempData(n);
-  QVector<QCPBarsData>::iterator it = tempData.begin();
-  const QVector<QCPBarsData>::iterator itEnd = tempData.end();
-  int i = 0;
-  while (it != itEnd)
-  {
-    it->key = keys[i];
-    it->value = values[i];
-    ++it;
-    ++i;
-  }
-  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
-}
-
-/*! \overload
-  Adds the provided data point as \a key and \a value to the current data.
-  
-  Alternatively, you can also access and modify the data directly via the \ref data method, which
-  returns a pointer to the internal data container.
-*/
-void QCPBars::addData(double key, double value)
-{
-  mDataContainer->add(QCPBarsData(key, value));
 }
 
 /* inherits documentation from base class */

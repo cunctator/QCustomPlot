@@ -547,7 +547,7 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPen.setStyle(Qt::SolidLine);
   mBrush.setColor(QColor(40, 50, 255, 30));
   mBrush.setStyle(Qt::SolidPattern);
-  mSelectionDecorator->setBrush(mBrush);
+  mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }
 
 QCPBars::~QCPBars()

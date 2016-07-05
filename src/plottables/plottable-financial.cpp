@@ -212,7 +212,7 @@ QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPenPositive(QPen(QColor(10, 40, 180))),
   mPenNegative(QPen(QColor(180, 40, 10)))
 {
-  mSelectionDecorator->setBrush(QBrush(QColor(80, 80, 255)));
+  mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }
 
 QCPFinancial::~QCPFinancial()

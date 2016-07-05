@@ -1118,6 +1118,26 @@ void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
   curve->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spPen|QCPScatterStyle::spShape);
   curve->setSelectable(QCP::stMultipleDataRanges);
   
+  QCPStatisticalBox *statBox = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  statBox->addData(10, 1, 3, 3.5, 5, 7);
+  statBox->addData(11, 2, 3.5, 5, 6, 7.5, QVector<double>() << 0 << 0.5 << 7.9 << 9 << 11);
+  statBox->addData(12, 3, 4, 5, 6.5, 9);
+  statBox->setSelectable(QCP::stMultipleDataRanges);
+  
+  QCPBars *bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  bars->addData(13, 1);
+  bars->addData(14, 2);
+  bars->addData(15, 3);
+  bars->setSelectable(QCP::stMultipleDataRanges);
+  
+  QCPFinancial *financial = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  financial->addData(16, 1, 3, 0, 2.2);
+  financial->addData(17, 2, 3.5, 1.2, 3.2);
+  financial->addData(18, 3, 7, 2, 6);
+  financial->setTwoColored(true);
+  financial->setChartStyle(QCPFinancial::csCandlestick);
+  financial->setSelectable(QCP::stMultipleDataRanges);
+  
   customPlot->rescaleAxes();
 }
 

@@ -201,7 +201,7 @@ protected:
   virtual QPointF anchorPixelPoint(int anchorId) const;
   
   // non-virtual methods:
-  double rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const;
+  double rectDistance(const QRectF &rect, const QPointF &pos, bool filledRect) const;
   QCPItemPosition *createPosition(const QString &name);
   QCPItemAnchor *createAnchor(const QString &name, int anchorId);
   

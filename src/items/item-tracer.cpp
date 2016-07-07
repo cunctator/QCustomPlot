@@ -257,7 +257,7 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
       {
         QRectF rect = QRectF(center-QPointF(w, w), center+QPointF(w, w));
         bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
-        return rectSelectTest(rect, pos, filledRect);
+        return rectDistance(rect, pos, filledRect);
       }
       break;
     }

@@ -121,7 +121,7 @@ double QCPItemRect::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   
   QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint()).normalized();
   bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
-  return rectSelectTest(rect, pos, filledRect);
+  return rectDistance(rect, pos, filledRect);
 }
 
 /* inherits documentation from base class */

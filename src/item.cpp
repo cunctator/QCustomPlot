@@ -898,7 +898,7 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
   \subsection items-selection The selectTest function
   
   Your implementation of the \ref selectTest function may use the helpers \ref
-  QCPVector2D::distanceSquaredToLine and \ref rectSelectTest. With these, the implementation of the
+  QCPVector2D::distanceSquaredToLine and \ref rectDistance. With these, the implementation of the
   selection test becomes significantly simpler for most items. See the documentation of \ref
   selectTest for what the function parameters mean and what the function should return.
   
@@ -1162,10 +1162,10 @@ void QCPAbstractItem::applyDefaultAntialiasingHint(QCPPainter *painter) const
   specific items.
   
   For example, if your item consists of four rects, call this function four times, once for each
-  rect, in your \ref selectTest reimplementation. Finally, return the minimum of all four returned
-  values.
+  rect, in your \ref selectTest reimplementation. Finally, return the minimum (non -1) of all four
+  returned values.
 */
-double QCPAbstractItem::rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const
+double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, bool filledRect) const
 {
   double result = -1;
 

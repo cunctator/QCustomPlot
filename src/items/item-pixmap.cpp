@@ -126,7 +126,7 @@ double QCPItemPixmap::selectTest(const QPointF &pos, bool onlySelectable, QVaria
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return rectSelectTest(getFinalRect(), pos, true);
+  return rectDistance(getFinalRect(), pos, true);
 }
 
 /* inherits documentation from base class */

@@ -760,12 +760,13 @@ void QCPBars::moveAbove(QCPBars *bars)
   }
 }
 
-QCPDataSelection QCPBars::selectTestRect(const QRectF &rect) const
+QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;
-  
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
-  if (mDataContainer->isEmpty()) return result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
   
   QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
   getVisibleDataBounds(visibleBegin, visibleEnd);

@@ -395,12 +395,13 @@ void QCPFinancial::addData(double key, double open, double high, double low, dou
   mDataContainer->add(QCPFinancialData(key, open, high, low, close));
 }
 
-QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect) const
+QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;
-  
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
-  if (mDataContainer->isEmpty()) return result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
   
   QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
   getVisibleDataBounds(visibleBegin, visibleEnd);

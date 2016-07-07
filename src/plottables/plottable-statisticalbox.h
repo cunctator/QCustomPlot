@@ -115,7 +115,7 @@ public:
   void addData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double> &outliers=QVector<double>());
   
   // reimplemented virtual methods:
-  virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:

@@ -39,7 +39,7 @@ public:
   virtual double dataSortKey(int index) const = 0;
   virtual double dataMainValue(int index) const = 0;
   virtual QCPRange dataValueRange(int index) const = 0;
-  virtual QCPDataSelection selectTestRect(const QRectF &rect) const = 0;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const = 0;
 };
 
 template <class DataType>
@@ -57,7 +57,7 @@ public:
   virtual double dataSortKey(int index) const;
   virtual double dataMainValue(int index) const;
   virtual QCPRange dataValueRange(int index) const;
-  virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   
   // virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;

@@ -108,9 +108,13 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
 }
 
 template <class DataType>
-QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &rect) const
+QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
   
   // convert rect given in pixels to ranges given in plot coordinates:
   double key1, value1, key2, value2;

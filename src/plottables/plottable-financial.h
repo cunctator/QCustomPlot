@@ -118,7 +118,7 @@ public:
   void addData(double key, double open, double high, double low, double close);
   
   // reimplemented virtual methods:
-  virtual QCPDataSelection selectTestRect(const QRectF &rect) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
   // static methods:

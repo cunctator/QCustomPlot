@@ -2357,7 +2357,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
       {
         if (QCPPlottableInterface1D *plottableInterface = plottable->interface1D())
         {
-          QCPDataSelection dataSel = plottableInterface->selectTestRect(QRectF(rect.normalized()));
+          QCPDataSelection dataSel = plottableInterface->selectTestRect(QRectF(rect.normalized()), true);
           if (!dataSel.isEmpty())
             potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
         }

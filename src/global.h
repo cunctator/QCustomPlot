@@ -171,7 +171,7 @@ enum SelectionRectMode { srmNone    ///< TODO
   \see QCPAbstractPlottable::setSelectableParts
 */
 enum SelectionType { stNone                ///< The plottable is not selectable
-                     ,stWhole              ///< The plottable is selectable as a whole
+                     ,stWhole              ///< Selection behaves like \ref stMultipleDataRanges, but if there are any data points selected, the entire plottable is drawn as selected.
                      ,stSingleData         ///< One individual data point can be selected at a time
                      ,stDataRange          ///< Multiple contiguous data points (a data range) can be selected
                      ,stMultipleDataRanges ///< Any combination of data points/ranges can be selected

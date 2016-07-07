@@ -763,10 +763,19 @@ void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const 
     QCPDataSelection selectionBefore = mSelection;
     if (additive)
     {
-      if (mSelection.contains(newSelection)) // if entire newSelection is already selected, toggle selection
-        setSelection(mSelection-newSelection);
-      else
-        setSelection(mSelection+newSelection);
+      if (mSelectable == QCP::stWhole) // in whole selection mode, we toggle to no selection even if currently unselected point was hit
+      {
+        if (selected())
+          setSelection(QCPDataSelection());
+        else
+          setSelection(newSelection);
+      } else // in all other selection modes we toggle selections of homogeneously selected/unselected segments
+      {
+        if (mSelection.contains(newSelection)) // if entire newSelection is already selected, toggle selection
+          setSelection(mSelection-newSelection);
+        else
+          setSelection(mSelection+newSelection);
+      }
     } else
       setSelection(newSelection);
     if (selectionStateChanged)

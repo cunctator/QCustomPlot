@@ -254,8 +254,7 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     }
     case QCP::stWhole:
     {
-      // whole selection isn't defined by data range, so don't change anything
-      // TODO: really? (if we were to enforce whole here, QCPDataSelection would need to know the data size and keep it updated)
+      // whole selection isn't defined by data range, so don't change anything (is handled in plottable methods)
       break;
     }
     case QCP::stSingleData:

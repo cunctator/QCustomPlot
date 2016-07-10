@@ -59,11 +59,10 @@ public:
 private:
   // property members:
   int mBegin, mEnd;
-  
-  // non-virtual methods:
 
 };
 Q_DECLARE_TYPEINFO(QCPDataRange, Q_MOVABLE_TYPE);
+
 
 class QCP_LIB_DECL QCPDataSelection
 {

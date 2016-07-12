@@ -168,7 +168,7 @@ enum SelectionRectMode { srmNone    ///< TODO
 /*!
   Defines the different ways a plottable can be selected
   
-  \see QCPAbstractPlottable::setSelectableParts
+  \see QCPAbstractPlottable::setSelectable, QCPDataSelection::enforceType
 */
 enum SelectionType { stNone                ///< The plottable is not selectable
                      ,stWhole              ///< Selection behaves like \ref stMultipleDataRanges, but if there are any data points selected, the entire plottable is drawn as selected.

@@ -202,20 +202,81 @@ bool QCPDataRange::contains(const QCPDataRange &other) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPDataSelection
-  \brief
+  \brief Describes a data set by holding multiple QCPDataRange instances
   
-
+  QCPDataSelection manages multiple instances of QCPDataRange in order to represent any (possibly
+  disjoint) set of data selection.
+  
+  The data selection can be modified with addition and subtraction operators which take
+  QCPDataSelection and QCPDataRange instances, as well as methods such as \ref addDataRange and
+  \ref clear. Read access is provided by \ref dataRange, \ref dataRanges, \ref dataRangeCount, etc.
+  
+  The method \ref simplify is used to join directly adjacent or even overlapping QCPDataRange
+  instances. QCPDataSelection automatically simplifies when using the addition/subtraction
+  operators. The only case when \ref simplify is left to the user, is when calling \ref
+  addDataRange, with the parameter \a simplify explicitly set to false. This is useful if many data
+  ranges will be added to the selection successively and the overhead for simplifying after each
+  iteration shall be avoided. In this case, you should make sure to call \ref simplify after
+  completing the operation.
+  
+  Use \ref enforceType to bring the data selection into a state complying with the constraints for
+  selections defined in \ref QCP::SelectionType.
+  
+  %QCustomPlot's \ref dataselection "data selection mechanism" is based on QCPDataSelection and
+  QCPDataRange.
 */
 
+/* start documentation of inline functions */
+
+/*! \fn int QCPDataSelection::dataRangeCount() const
+  
+  Returns the number of ranges that make up the data selection. The ranges can be accessed by \ref
+  dataRange via their index.
+  
+  \see dataRange, dataPointCount
+*/
+
+/*! \fn QList<QCPDataRange> QCPDataSelection::dataRanges() const
+  
+  Returns all data ranges that make up the data selection. If the data selection is simplified (the
+  usual state of the selection, see \ref simplify), the ranges are sorted by ascending data point
+  index.
+  
+  \see dataRange
+*/
+
+/*! \fn bool QCPDataSelection::isEmpty() const
+  
+  Returns true if there are no data ranges, and thus no data points, in this QCPDataSelection
+  instance.
+  
+  \see dataRangeCount
+*/
+
+/* end documentation of inline functions */
+
+/*!
+  Creates an empty QCPDataSelection.
+*/
 QCPDataSelection::QCPDataSelection()
 {
 }
 
+/*!
+  Creates a QCPDataSelection containing the provided \a range.
+*/
 QCPDataSelection::QCPDataSelection(const QCPDataRange &range)
 {
   mDataRanges.append(range);
 }
 
+/*!
+  Returns true if this selection is identical (contains the same data ranges with the same begin
+  and end indices) to \a other.
+
+  Note that both data selections must be in simplified state (the usual state of the selection, see
+  \ref simplify) for this operator to return correct results.
+*/
 bool QCPDataSelection::operator==(const QCPDataSelection &other) const
 {
   if (mDataRanges.size() != other.mDataRanges.size())
@@ -228,6 +289,10 @@ bool QCPDataSelection::operator==(const QCPDataSelection &other) const
   return true;
 }
 
+/*!
+  Adds the data selection of \a other to this data selection, and then simplifies this data
+  selection (see \ref simplify).
+*/
 QCPDataSelection &QCPDataSelection::operator+=(const QCPDataSelection &other)
 {
   mDataRanges << other.mDataRanges;
@@ -235,12 +300,19 @@ QCPDataSelection &QCPDataSelection::operator+=(const QCPDataSelection &other)
   return *this;
 }
 
+/*!
+  Adds the data range \a other to this data selection, and then simplifies this data selection (see
+  \ref simplify).
+*/
 QCPDataSelection &QCPDataSelection::operator+=(const QCPDataRange &other)
 {
   addDataRange(other);
   return *this;
 }
 
+/*!
+  Removes all data point indices that are described by \a other from this data range.
+*/
 QCPDataSelection &QCPDataSelection::operator-=(const QCPDataSelection &other)
 {
   for (int i=0; i<other.dataRangeCount(); ++i)
@@ -249,6 +321,9 @@ QCPDataSelection &QCPDataSelection::operator-=(const QCPDataSelection &other)
   return *this;
 }
 
+/*!
+  Removes all data point indices that are described by \a other from this data range.
+*/
 QCPDataSelection &QCPDataSelection::operator-=(const QCPDataRange &other)
 {
   if (other.isEmpty() || isEmpty())
@@ -292,6 +367,10 @@ QCPDataSelection &QCPDataSelection::operator-=(const QCPDataRange &other)
   return *this;
 }
 
+/*!
+  Returns the total number of data points contained in all data ranges that make up this data
+  selection.
+*/
 int QCPDataSelection::dataPointCount() const
 {
   int result = 0;
@@ -300,6 +379,14 @@ int QCPDataSelection::dataPointCount() const
   return result;
 }
 
+/*!
+  Returns the data range with the specified \a index.
+  
+  If the data selection is simplified (the usual state of the selection, see \ref simplify), the
+  ranges are sorted by ascending data point index.
+  
+  \see dataRangeCount
+*/
 QCPDataRange QCPDataSelection::dataRange(int index) const
 {
   if (index >= 0 && index < mDataRanges.size())
@@ -312,11 +399,12 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
   }
 }
 
-/*
-  Same as += operator but allows disabling immediate simplification which can improve performance if
-  adding a very large amount of data ranges successively.
+/*!
+  Adds the given \a dataRange to this data selection. This is equivalent to the += operator but
+  allows disabling immediate simplification by setting \a simplify to false. This can improve
+  performance if adding a very large amount of data ranges successively. In this case, make sure to
+  call \ref simplify manually, after the operation.
 */
-
 void QCPDataSelection::addDataRange(const QCPDataRange &dataRange, bool simplify)
 {
   mDataRanges.append(dataRange);
@@ -324,11 +412,26 @@ void QCPDataSelection::addDataRange(const QCPDataRange &dataRange, bool simplify
     this->simplify();
 }
 
+/*!
+  Removes all data ranges. The data selection then contains no data points.
+  
+  \ref isEmpty
+*/
 void QCPDataSelection::clear()
 {
   mDataRanges.clear();
 }
 
+/*!
+  Sorts all data ranges by range begin index in ascending order, and then joins directly adjacent
+  or even overlapping ranges. This can reduce the number of individual data ranges in the
+  selection, and prevents possible double-counting when iterating over the data points held by the
+  data ranges.
+
+  This method is automatically called when using the addition/subtraction operators. The only case
+  when \ref simplify is left to the user, is when calling \ref addDataRange, with the parameter \a
+  simplify explicitly set to false.
+*/
 void QCPDataSelection::simplify()
 {
   // remove any empty ranges:
@@ -356,6 +459,16 @@ void QCPDataSelection::simplify()
   }
 }
 
+/*!
+  Makes sure this data selection conforms to the specified \a type selection type. Before the type
+  is enforced, \ref simplify is called.
+  
+  Depending on \a type, enforcing means adding new data points that were previously not part of the
+  selection, or removing data points from the selection. If the current selection already conforms
+  to \a type, the data selection is not changed.
+  
+  \see QCP::SelectionType
+*/
 void QCPDataSelection::enforceType(QCP::SelectionType type)
 {
   simplify();
@@ -402,6 +515,12 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
   }
 }
 
+/*!
+  Returns true if the data selection \a other is contained entirely in this data selection, i.e.
+  all data point indices that are in \a other are also in this data selection.
+  
+  \see QCPDataRange::contains
+*/
 bool QCPDataSelection::contains(const QCPDataSelection &other) const
 {
   if (other.isEmpty()) return false;

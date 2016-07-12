@@ -110,6 +110,7 @@ Q_DECLARE_METATYPE(QCPDataSelection)
 
 /*!
   Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+  The resulting data selection is already simplified (see \ref simplify).
 */
 inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataSelection& b)
 {
@@ -120,6 +121,7 @@ inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPData
 
 /*!
   Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+  The resulting data selection is already simplified (see \ref simplify).
 */
 inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataSelection& b)
 {
@@ -130,6 +132,7 @@ inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataSele
 
 /*!
   Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+  The resulting data selection is already simplified (see \ref simplify).
 */
 inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPDataRange& b)
 {
@@ -140,6 +143,7 @@ inline const QCPDataSelection operator+(const QCPDataSelection& a, const QCPData
 
 /*!
   Return a \ref QCPDataSelection with the data points in \a a joined with the data points in \a b.
+  The resulting data selection is already simplified (see \ref simplify).
 */
 inline const QCPDataSelection operator+(const QCPDataRange& a, const QCPDataRange& b)
 {
@@ -169,7 +173,7 @@ inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataSele
 }
 
 /*!
-  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b. b
+  Return a \ref QCPDataSelection with the data points which are in \a a but not in \a b.
 */
 inline const QCPDataSelection operator-(const QCPDataSelection& a, const QCPDataRange& b)
 {

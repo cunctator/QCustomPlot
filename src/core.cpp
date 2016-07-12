@@ -53,6 +53,14 @@
 
 /* start of documentation of inline functions */
 
+/*! \fn QCPSelectionRect *QCustomPlot::selectionRect() const
+  
+  Allows access to the currently used QCPSelectionRect instance (or subclass thereof), that is used
+  to handle and draw selection rect interactions (see \ref setSelectionRectMode).
+  
+  \see setSelectionRect
+*/
+
 /*! \fn QRect QCustomPlot::viewport() const
   
   Returns the viewport rect of this QCustomPlot instance. The viewport is the area the plot is
@@ -703,8 +711,8 @@ void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
 /*!
   Sets the keyboard modifier that will be recognized as multi-select-modifier.
   
-  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple objects
-  by clicking on them one after the other while holding down \a modifier.
+  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple
+  objects (or data points) by clicking on them one after the other while holding down \a modifier.
   
   By default the multi-select-modifier is set to Qt::ControlModifier.
   
@@ -715,6 +723,26 @@ void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
   mMultiSelectModifier = modifier;
 }
 
+/*!
+  Sets how QCustomPlot processes mouse click-and-drag interactions by the user.
+
+  If \a mode is \ref QCP::srmNone, the mouse drag is forwarded to the underlying objects. For
+  example, QCPAxisRect may process a mouse drag by dragging axis ranges, see \ref
+  QCPAxisRect::setRangeDrag. If \a mode is not \ref QCP::srmNone, the current selection rect (\ref
+  selectionRect) becomes activated and allows e.g. rect zooming and data point selection.
+  
+  If you wish to provide your user both with axis range dragging and data selection/range zooming,
+  use this method to switch between the modes just before the interaction is processed, e.g. in
+  reaction to the \ref mousePress or \ref mouseMove signals. For example you could check whether
+  the user is holding a certain keyboard modifier, and then decide which \a mode shall be set.
+  
+  If a selection rect interaction is currently active, and \a mode is set to \ref QCP::srmNone, the
+  interaction is canceled (\ref QCPSelectionRect::cancel). Switching between any of the other modes
+  will keep the selection rect active. Upon completion of the interaction, the behaviour is as
+  defined by the currently set \a mode, not the mode that was set when the interaction started.
+  
+  \see setInteractions, setSelectionRect, QCPSelectionRect
+*/
 void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
 {
   if (mSelectionRect)
@@ -738,6 +766,16 @@ void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
   mSelectionRectMode = mode;
 }
 
+/*!
+  Sets the \ref QCPSelectionRect instance that QCustomPlot will use if \a mode is not \ref
+  QCP::srmNone and the user performs a click-and-drag interaction. QCustomPlot takes ownership of
+  the passed \a selectionRect. It can be accessed later via \ref selectionRect.
+  
+  This method is useful if you wish to replace the default QCPSelectionRect instance with an
+  instance of a QCPSelectionRect subclass, to introduce custom behaviour of the selection rect.
+  
+  \see setSelectionRectMode
+*/
 void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 {
   if (mSelectionRect)

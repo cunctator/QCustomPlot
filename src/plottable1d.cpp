@@ -29,11 +29,90 @@
 #include "core.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPPlottableInterface1D
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPPlottableInterface1D
+  \brief Defines an abstract interface for one-dimensional plottables
+  
+  This class contains only pure virtual methods which define a common interface to the data
+  of one-dimensional plottables.
+  
+  It is used to add virtual methods to the template class \ref QCPAbstractPlottable1D (the
+  preferred base class for one-dimensional plottables), via multiple inheritance from \ref
+  QCPAbstractPlottable and \ref QCPPlottableInterface1D. If you have a \ref QCPAbstractPlottable
+  pointer, you can check whether it implements this interface by calling \ref
+  QCPAbstractPlottable::interface1D and testing it for a non-zero return value. If it indeed
+  implements this interface, you may use it to access the plottable's data without needing to
+  know the exact type of the plottable or its data point type.
+*/
+
+/* start documentation of pure virtual functions */
+
+/*! \fn virtual int QCPPlottableInterface1D::dataCount() const = 0;
+  
+  Returns the number of data points of the plottable.
+*/
+
+/*! \fn virtual QCPDataSelection QCPPlottableInterface1D::selectTestRect(const QRectF &rect, bool onlySelectable) const = 0;
+  
+  Returns a data selection containing all the data points of this plottable which are contained (or
+  hit by) \a rect. This is used mainly in the selection rect interaction for data selection (\ref
+  dataselection "data selection mechanism").
+  
+  If \a onlySelectable is true, an empty QCPDataSelection is returned if this plottable is not
+  selectable (i.e. if \ref QCPAbstractPlottable::setSelectable is \ref QCP::stNone).
+  
+  \note \a rect must be a normalized rect (positive or zero width and height). This is especially
+  important when using the rect of \ref QCPSelectionRect::accepted, which is not necessarily
+  normalized. Use <tt>QRect::normalized()</tt> when passing a rect which might not be normalized.
+*/
+
+/*! \fn virtual double QCPPlottableInterface1D::dataMainKey(int index) const = 0
+  
+  Returns the main key of the data point at the given \a index.
+  
+  What the main key is, is defined by the plottable's data type. See the \ref
+  qcpdatacontainer-datatype "QCPDataContainer DataType" documentation for details about this naming
+  convention.
+*/
+
+/*! \fn virtual double QCPPlottableInterface1D::dataSortKey(int index) const = 0
+  
+  Returns the sort key of the data point at the given \a index.
+  
+  What the sort key is, is defined by the plottable's data type. See the \ref
+  qcpdatacontainer-datatype "QCPDataContainer DataType" documentation for details about this naming
+  convention.
+*/
+
+/*! \fn virtual double QCPPlottableInterface1D::dataMainValue(int index) const = 0
+  
+  Returns the main value of the data point at the given \a index.
+  
+  What the main value is, is defined by the plottable's data type. See the \ref
+  qcpdatacontainer-datatype "QCPDataContainer DataType" documentation for details about this naming
+  convention.
+*/
+
+/*! \fn virtual QCPRange QCPPlottableInterface1D::dataValueRange(int index) const = 0
+  
+  Returns the value range of the data point at the given \a index.
+  
+  What the value range is, is defined by the plottable's data type. See the \ref
+  qcpdatacontainer-datatype "QCPDataContainer DataType" documentation for details about this naming
+  convention.
+*/
+
+/* end documentation of pure virtual functions */
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPAbstractPlottable1D
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPAbstractPlottable1D
-  \brief 
+  \brief A template base class for plottables with one-dimensional data
   
 */
 

@@ -160,7 +160,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   represented with a different pen and brush than negative changes (\a close < \a open). These can
   be configured with \ref setPenPositive, \ref setPenNegative, \ref setBrushPositive, and \ref
   setBrushNegative. In two-colored mode, the normal plottable pen/brush is ignored. Upon selection
-  however, the normal selected pen/brush (\ref setSelectedPen, \ref setSelectedBrush) is used,
+  however, the normal selected pen/brush (provided by the \ref selectionDecorator) is used,
   irrespective of whether the chart is single- or two-colored.
   
   \section usage Usage

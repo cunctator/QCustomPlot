@@ -239,11 +239,12 @@
   
   This signal is emitted after the user has changed the selection in the QCustomPlot, e.g. by
   clicking. It is not emitted when the selection state of an object has changed programmatically by
-  a direct call to setSelected() on an object or by calling \ref deselectAll.
+  a direct call to <tt>setSelected()</tt>/<tt>setSelection()</tt> on an object or by calling \ref
+  deselectAll.
   
-  In addition to this signal, selectable objects also provide individual signals, for example
-  QCPAxis::selectionChanged or QCPAbstractPlottable::selectionChanged. Note that those signals are
-  emitted even if the selection state is changed programmatically.
+  In addition to this signal, selectable objects also provide individual signals, for example \ref
+  QCPAxis::selectionChanged or \ref QCPAbstractPlottable::selectionChanged. Note that those signals
+  are emitted even if the selection state is changed programmatically.
   
   See the documentation of \ref setInteractions for details about the selection mechanism.
   
@@ -2379,6 +2380,23 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
     this->legend = 0;
 }
 
+/*! \internal
+  
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmSelect.
+
+  First, it determines which axis rect was the origin of the selection rect judging by the starting
+  point of the selection. Then it goes through the plottables (\ref QCPAbstractPlottable1D to be
+  precise) associated with that axis rect and finds the data points that are in \a rect. It does
+  this by querying their \ref QCPAbstractPlottable1D::selectTestRect method.
+  
+  Then, the actual selection is done by calling the plottables' \ref
+  QCPAbstractPlottable::selectEvent, placing the found selected data points in the \a details
+  parameter as <tt>QVariant(\ref QCPDataSelection)</tt>. All plottables that weren't touched by \a
+  rect receive a \ref QCPAbstractPlottable::deselectEvent.
+  
+  \see processRectZoom
+*/
 void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
 {
   bool selectionStateChanged = false;
@@ -2451,6 +2469,17 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   replot(rpQueuedReplot); // always replot to make selection rect disappear
 }
 
+/*! \internal
+  
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmZoom.
+
+  It determines which axis rect was the origin of the selection rect judging by the starting point
+  of the selection, and then zooms the axes defined via \ref QCPAxisRect::setRangeZoomAxes to the
+  provided \a rect (see \ref QCPAxisRect::zoom).
+  
+  \see processRectSelection
+*/
 void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
 {
   Q_UNUSED(event)
@@ -2463,6 +2492,16 @@ void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
   replot(rpQueuedReplot); // always replot to make selection rect disappear
 }
 
+/*! \internal
+  
+  This method is called when a simple left mouse click was detected on the QCustomPlot surface.
+
+  It first determines the layerable that was hit by the click, and then calls its \ref
+  QCPLayerable::selectEvent. All other layerables receive a QCPLayerable::deselectEvent (unless the
+  multi-select modifier was pressed, see \ref setMultiSelectModifier).
+        
+  \see processRectSelection, layerableAt, QCPLayerable::selectTest
+*/
 void QCustomPlot::processPointSelection(QMouseEvent *event)
 {
   QVariant details;

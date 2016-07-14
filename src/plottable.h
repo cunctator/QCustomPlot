@@ -58,12 +58,12 @@ public:
   void setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties);
   
   // non-virtual methods:
-  void copyFrom(const QCPSelectionDecorator *other);
   void applyPen(QCPPainter *painter) const;
   void applyBrush(QCPPainter *painter) const;
   QCPScatterStyle getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const;
   
   // introduced virtual methods:
+  virtual void copyFrom(const QCPSelectionDecorator *other);
   virtual void drawDecoration(QCPPainter *painter, QCPDataSelection selection);
   
 protected:
@@ -80,6 +80,7 @@ protected:
   
   friend class QCPAbstractPlottable;
 };
+
 
 class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
 {

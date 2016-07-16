@@ -32,10 +32,24 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPSelectionDecoratorBracket
-  \brief 
+  \brief A selection decorator which draws brackets around each selected data segment
   
+  Additionally to the regular highlighting of selected segments via color, fill and scatter style,
+  this \ref QCPSelectionDecorator subclass draws markers at the begin and end of each selected data
+  segment of the plottable.
+  
+  The shape of the markers can be controlled with \ref setBracketStyle, \ref setBracketWidth and
+  \ref setBracketHeight. The color/fill can be controlled with \ref setBracketPen and \ref
+  setBracketBrush.
+  
+  To introduce custom bracket styles, it is only necessary to sublcass \ref
+  QCPSelectionDecoratorBracket and reimplement \ref drawBracket. The rest will be managed by the
+  base class.
 */
 
+/*!
+  Creates a new QCPSelectionDecoratorBracket instance with default values.
+*/
 QCPSelectionDecoratorBracket::QCPSelectionDecoratorBracket() :
   mBracketPen(QPen(Qt::black)),
   mBracketBrush(Qt::NoBrush),
@@ -52,36 +66,74 @@ QCPSelectionDecoratorBracket::~QCPSelectionDecoratorBracket()
 {
 }
 
+/*!
+  Sets the pen that will be used to draw the brackets at the beginning and end of each selected
+  data segment.
+*/
 void QCPSelectionDecoratorBracket::setBracketPen(const QPen &pen)
 {
   mBracketPen = pen;
 }
 
+/*!
+  Sets the brush that will be used to draw the brackets at the beginning and end of each selected
+  data segment.
+*/
 void QCPSelectionDecoratorBracket::setBracketBrush(const QBrush &brush)
 {
   mBracketBrush = brush;
 }
 
+/*!
+  Sets the width of the drawn bracket. The width dimension is always parallel to the key axis of
+  the data, or the tangent direction of the current data slope, if \ref setTangentToData is
+  enabled.
+*/
 void QCPSelectionDecoratorBracket::setBracketWidth(int width)
 {
   mBracketWidth = width;
 }
 
+/*!
+  Sets the height of the drawn bracket. The height dimension is always perpendicular to the key axis
+  of the data, or the tangent direction of the current data slope, if \ref setTangentToData is
+  enabled.
+*/
 void QCPSelectionDecoratorBracket::setBracketHeight(int height)
 {
   mBracketHeight = height;
 }
 
+/*!
+  Sets the shape that the bracket/marker will have.
+  
+  \see setBracketWidth, setBracketHeight
+*/
 void QCPSelectionDecoratorBracket::setBracketStyle(QCPSelectionDecoratorBracket::BracketStyle style)
 {
   mBracketStyle = style;
 }
 
+/*!
+  Sets whether the brackets will be rotated such that they align with the slope of the data at the
+  position that they appear in.
+  
+  For noisy data, it might be more visually appealing to average the slope over multiple data
+  points. This can be configured via \ref setTangentAverage.
+*/
 void QCPSelectionDecoratorBracket::setTangentToData(bool enabled)
 {
   mTangentToData = enabled;
 }
 
+/*!
+  Controls over how many data points the slope shall be averaged, when brackets shall be aligned
+  with the data (if \ref setTangentToData is true).
+  
+  From the position of the bracket, \a pointCount points towards the selected data range will be
+  taken into account. The smallest value of \a pointCount is 1, which is effectively equivalent to
+  disabling \ref setTangentToData.
+*/
 void QCPSelectionDecoratorBracket::setTangentAverage(int pointCount)
 {
   mTangentAverage = pointCount;
@@ -89,6 +141,19 @@ void QCPSelectionDecoratorBracket::setTangentAverage(int pointCount)
     mTangentAverage = 1;
 }
 
+/*!
+  Draws the bracket shape with \a painter. The parameter \a direction is either -1 or 1 and
+  indicates whether the bracket shall point to the left or the right (i.e. is a closing or opening
+  bracket, respectively).
+  
+  The passed \a painter already contains all transformations that are necessary to position and
+  rotate the bracket appropriately. Painting operations can be performed as if drawing upright
+  brackets on flat data with horizontal key axis, with (0, 0) being the center of the bracket.
+  
+  If you wish to sublcass \ref QCPSelectionDecoratorBracket in order to provide custom bracket
+  shapes (see \ref QCPSelectionDecoratorBracket::bsUserStyle), this is the method you should
+  reimplement.
+*/
 void QCPSelectionDecoratorBracket::drawBracket(QCPPainter *painter, int direction) const
 {
   switch (mBracketStyle)
@@ -124,6 +189,14 @@ void QCPSelectionDecoratorBracket::drawBracket(QCPPainter *painter, int directio
   }
 }
 
+/*!
+  Draws the bracket decoration on the data points at the begin and end of each selected data
+  segment given in \a seletion.
+  
+  It uses the method \ref drawBracket to actually draw the shapes.
+  
+  \seebaseclassmethod
+*/
 void QCPSelectionDecoratorBracket::drawDecoration(QCPPainter *painter, QCPDataSelection selection)
 {
   if (!mPlottable || selection.isEmpty()) return;
@@ -163,6 +236,19 @@ void QCPSelectionDecoratorBracket::drawDecoration(QCPPainter *painter, QCPDataSe
   }
 }
 
+/*! \internal
+  
+  If \ref setTangentToData is enabled, brackets need to be rotated according to the data slope.
+  This method returns the angle in radians by which a bracket at the given \a dataIndex must be
+  rotated.
+  
+  The parameter \a direction must be set to either -1 or 1, representing whether it is an opening
+  or closing bracket. Since for slope calculation multiple data points are required, this defines
+  the direction in which the algorithm walks, starting at \a dataIndex, to average those data
+  points. (see \ref setTangentToData and \ref setTangentAverage)
+  
+  \a interface1d is the interface to the plottable's data which is used to query data coordinates.
+*/
 double QCPSelectionDecoratorBracket::getTangentAngle(const QCPPlottableInterface1D *interface1d, int dataIndex, int direction) const
 {
   if (!interface1d || dataIndex < 0 || dataIndex >= interface1d->dataCount())
@@ -205,6 +291,11 @@ double QCPSelectionDecoratorBracket::getTangentAngle(const QCPPlottableInterface
     return 0;
 }
 
+/*! \internal
+  
+  Returns the pixel coordinates of the data point at \a dataIndex, using \a interface1d to access
+  the data points.
+*/
 QPointF QCPSelectionDecoratorBracket::getPixelCoordinates(const QCPPlottableInterface1D *interface1d, int dataIndex) const
 {
   QCPAxis *keyAxis = mPlottable->keyAxis();

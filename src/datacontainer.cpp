@@ -37,27 +37,26 @@
   some methods as described in the \ref qcpdatacontainer-datatype "next section".
   
   The data is stored in a sorted fashion, which allows very quick lookups by the sorted key as well
-  as retrieval of ranges (see \ref findBeginBelowKey, \ref findEndAboveKey, \ref keyRange) using
-  binary search. The container uses a preallocation and a postallocation scheme, such that
-  appending and prepending data (with respect to the sort key) is very fast and minimizes
-  reallocations. If data is added which needs to be inserted between existing keys, the merge
-  usually can be done quickly too, using the fact that existing data is always sorted. The user can
-  further improve performance by specifying that added data is already itself sorted by key, if he
-  can guarantee that this is the case (see for example 
-  \ref add(const QVector<DataType> &data, bool alreadySorted)).
+  as retrieval of ranges (see \ref findBegin, \ref findEnd, \ref keyRange) using binary search. The
+  container uses a preallocation and a postallocation scheme, such that appending and prepending
+  data (with respect to the sort key) is very fast and minimizes reallocations. If data is added
+  which needs to be inserted between existing keys, the merge usually can be done quickly too,
+  using the fact that existing data is always sorted. The user can further improve performance by
+  specifying that added data is already itself sorted by key, if he can guarantee that this is the
+  case (see for example \ref add(const QVector<DataType> &data, bool alreadySorted)).
   
   The data can be accessed with the provided const iterators (\ref constBegin, \ref constEnd). If
   it is necessary to alter existing data in-place, the non-const iterators can be used (\ref begin,
   \ref end). Changing data members that are not the sort key (for most data types called \a key) is
   safe from the container's perspective.
   
-  Great care must be taken however if the sort key of existing data is modified through the
-  non-const iterators. For performance reasons, the iterators don't automatically cause a
-  re-sorting upon their manipulation. It is thus the responsibility of the user to leave the
-  container in a sorted state when finished with the data manipulation, before calling any other
-  methods on the container. A complete re-sort (e.g. after finishing all sort key manipulation) can
-  be done by calling \ref sort. Failing to do so can not be detected by the container efficiently
-  and will cause both rendering artifacts and potential data loss.
+  Great care must be taken however if the sort key is modified through the non-const iterators. For
+  performance reasons, the iterators don't automatically cause a re-sorting upon their
+  manipulation. It is thus the responsibility of the user to leave the container in a sorted state
+  when finished with the data manipulation, before calling any other methods on the container. A
+  complete re-sort (e.g. after finishing all sort key manipulation) can be done by calling \ref
+  sort. Failing to do so can not be detected by the container efficiently and will cause both
+  rendering artifacts and potential data loss.
   
   \section qcpdatacontainer-datatype Requirements for the DataType template parameter
   

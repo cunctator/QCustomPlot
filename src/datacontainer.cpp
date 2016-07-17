@@ -133,6 +133,12 @@
   description of this class.
 */
 
+/*! \fn QCPDataRange QCPDataContainer::dataRange() const
+
+  Returns a \ref QCPDataRange encompassing the entire data set of this container. This means the
+  begin index of the returned range is 0, and the end index is \ref size.
+*/
+
 /* end documentation of inline functions */
 
 /*!
@@ -680,9 +686,12 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
 }
 
 /*!
-  Document that it also is safe to call with dataRange that exceeds container bounds
-*/
+  Makes sure \a begin and \a end mark a data range that is both within the bounds of this data
+  container's data, as well as within the specified \a dataRange.
 
+  This function doesn't require for \a dataRange to be within the bounds of this data container's
+  valid range.
+*/
 template <class DataType>
 void QCPDataContainer<DataType>::limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const
 {

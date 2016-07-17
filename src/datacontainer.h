@@ -30,6 +30,11 @@
 #include "axis/range.h"
 #include "selection.h"
 
+/*! \relates QCPDataContainer
+  Returns whether the sort key of \a a is less than the sort key of \a b.
+
+  \see QCPDataContainer::sort
+*/
 template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
 

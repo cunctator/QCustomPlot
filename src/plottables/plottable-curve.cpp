@@ -173,6 +173,49 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
 */
 
 /* end of documentation of inline functions */
+/* start of documentation of template specializations */
+
+/*! \fn int QCPAbstractPlottable1D<QCPCurveData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
+  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
+*/
+
+/*! \fn int QCPAbstractPlottable1D<QCPCurveData>::dataCount() const
+  \copydoc QCPAbstractPlottable1D::dataCount
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPCurveData>::dataMainKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPCurveData>::dataSortKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataSortKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPCurveData>::dataMainValue(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainValue
+*/
+
+/*! \fn QCPRange QCPAbstractPlottable1D<QCPCurveData>::dataValueRange(int index) const
+  \copydoc QCPAbstractPlottable1D::dataValueRange
+*/
+
+/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPCurveData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
+  \copydoc QCPAbstractPlottable1D::selectTestRect
+*/
+
+/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPCurveData>::interface1D()
+  \copydoc QCPAbstractPlottable::interface1D
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPCurveData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
+  \copydoc QCPAbstractPlottable1D::getDataSegments
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPCurveData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
+  \copydoc QCPAbstractPlottable1D::drawPolyline
+*/
+
+/* end of documentation of template specializations */
 
 /*!
   Constructs a curve which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value

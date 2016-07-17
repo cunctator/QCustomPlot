@@ -113,9 +113,32 @@
 
 /*! \class QCPAbstractPlottable1D
   \brief A template base class for plottables with one-dimensional data
-  
+
+  This template class derives from \ref QCPAbstractPlottable and from the abstract interface \ref
+  QCPPlottableInterface1D. It serves as a base class for all one-dimensional data (i.e. data with
+  one key dimension), such as \ref QCPGraph and QCPCurve.
+
+  The template parameter \a DataType is the type of the data points of this plottable (e.g. \ref
+  QCPGraphData or \ref QCPCurveData). The main purpose of this base class is to provide the member
+  \a mDataContainer (a shared pointer to a \ref QCPDataContainer "QCPDataContainer<DataType>") and
+  implement the according virtual methods of the \ref QCPPlottableInterface1D, such that most
+  subclassed plottables don't need to worry about this anymore.
+
+  Further, it provides a convenience method for retrieving selected/unselected data segments via
+  \ref getDataSegments. This is useful when subclasses implement their \ref draw method and need to
+  draw selected segments with a different pen/brush than unselected segments (also see \ref
+  QCPSelectionDecorator).
+
+  This class implements basic functionality of \ref QCPAbstractPlottable::selectTest and \ref
+  QCPPlottableInterface1D::selectTestRect, assuming point-like data points, based on the 1D data
+  interface. In spite of that, most plottable subclasses will want to reimplement those methods
+  again, to provide a more accurate hit test based on their specific data visualization geometry.
 */
 
+/*!
+  Forwards \a keyAxis and \a valueAxis to the \ref QCPAbstractPlottable::QCPAbstractPlottable
+  "QCPAbstractPlottable" constructor and allocates the \a mDataContainer.
+*/
 template <class DataType>
 QCPAbstractPlottable1D<DataType>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
@@ -128,12 +151,14 @@ QCPAbstractPlottable1D<DataType>::~QCPAbstractPlottable1D()
 {
 }
 
+/* inherits documentation from base class */
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::dataCount() const
 {
   return mDataContainer->size();
 }
 
+/* inherits documentation from base class */
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataMainKey(int index) const
 {
@@ -147,6 +172,7 @@ double QCPAbstractPlottable1D<DataType>::dataMainKey(int index) const
   }
 }
 
+/* inherits documentation from base class */
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataSortKey(int index) const
 {
@@ -160,6 +186,7 @@ double QCPAbstractPlottable1D<DataType>::dataSortKey(int index) const
   }
 }
 
+/* inherits documentation from base class */
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataMainValue(int index) const
 {
@@ -173,6 +200,7 @@ double QCPAbstractPlottable1D<DataType>::dataMainValue(int index) const
   }
 }
 
+/* inherits documentation from base class */
 template <class DataType>
 QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
 {
@@ -186,6 +214,13 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
   }
 }
 
+/*!
+  Implements a rect-selection algorithm assuming the data (accessed via the 1D data interface) is
+  point-like. Most subclasses will want to reimplement this method again, to provide a more
+  accurate hit test based on the true data visualization geometry.
+
+  \seebaseclassmethod
+*/
 template <class DataType>
 QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
@@ -232,6 +267,13 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
   return result;
 }
 
+/*!
+  Implements a point-selection algorithm assuming the data (accessed via the 1D data interface) is
+  point-like. Most subclasses will want to reimplement this method again, to provide a more
+  accurate hit test based on the true data visualization geometry.
+
+  \seebaseclassmethod
+*/
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
@@ -284,6 +326,16 @@ double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onl
   return qSqrt(minDistSqr);
 }
 
+/*!
+  Splits all data into selected and unselected segments and outputs them via \a selectedSegments
+  and \a unselectedSegments, respectively.
+
+  This is useful when subclasses implement their \ref draw method and need to draw selected
+  segments with a different pen/brush than unselected segments (also see \ref
+  QCPSelectionDecorator).
+
+  \see setSelection
+*/
 template <class DataType>
 void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
 {
@@ -320,6 +372,16 @@ void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &sele
   }
 }
 
+/*!
+  A helper method which draws a line with the passed \a painter, according to the pixel data in \a
+  lineData. NaN points create gaps in the line, as expected from QCustomPlot's plottables (this is
+  the main difference to QPainter's regular drawPolyline, which handles NaNs by lagging or
+  crashing).
+
+  Further it uses a faster line drawing technique based on \ref QCPPainter::drawLine rather than \c
+  QPainter::drawPolyline if the configured \ref QCustomPlot::setPlottingHints() and \a painter
+  style allows.
+*/
 template <class DataType>
 void QCPAbstractPlottable1D<DataType>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
 {

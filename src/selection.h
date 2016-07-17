@@ -192,14 +192,20 @@ inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataRang
   return result;
 }
 
-/* qdebug output stream operator, no doc needed */
+/*! \relates QCPDataRange
+
+  Prints \a dataRange in a human readable format to the qDebug output.
+*/
 inline QDebug operator<< (QDebug d, const QCPDataRange &dataRange)
 {
     d.nospace() << "[" << dataRange.begin() << ".." << dataRange.end()-1 << "]";
     return d.space();
 }
 
-/* qdebug output stream operator, no doc needed */
+/*! \relates QCPDataSelection
+
+  Prints \a selection in a human readable format to the qDebug output.
+*/
 inline QDebug operator<< (QDebug d, const QCPDataSelection &selection)
 {
     d.nospace() << "QCPDataSelection(";

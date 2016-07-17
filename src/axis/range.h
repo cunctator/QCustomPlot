@@ -92,7 +92,10 @@ Q_DECLARE_TYPEINFO(QCPRange, Q_MOVABLE_TYPE);
 
 /* end documentation of inline functions */
 
-/* qdebug output stream operator, no doc needed */
+/*! \relates QCPRange
+
+  Prints \a range in a human readable format to the qDebug output.
+*/
 inline QDebug operator<< (QDebug d, const QCPRange &range)
 {
     d.nospace() << "QCPRange(" << range.lower << ", " << range.upper << ")";

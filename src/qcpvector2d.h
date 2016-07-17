@@ -86,7 +86,10 @@ inline const QCPVector2D operator+(const QCPVector2D &vec1, const QCPVector2D &v
 inline const QCPVector2D operator-(const QCPVector2D &vec1, const QCPVector2D &vec2) { return QCPVector2D(vec1.mX-vec2.mX, vec1.mY-vec2.mY); }
 inline const QCPVector2D operator-(const QCPVector2D &vec) { return QCPVector2D(-vec.mX, -vec.mY); }
 
-/* qdebug output stream operator, no doc needed */
+/*! \relates QCPVector2D
+
+  Prints \a vec in a human readable format to the qDebug output.
+*/
 inline QDebug operator<< (QDebug d, const QCPVector2D &vec)
 {
     d.nospace() << "QCPVector2D(" << vec.x() << ", " << vec.y() << ")";

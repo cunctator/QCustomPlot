@@ -303,6 +303,22 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
   setSelectionDecorator.
 */
 
+/*! \fn bool QCPAbstractPlottable::selected() const
+  
+  Returns true if there are any data points of the plottable currently selected. Use \a selection()
+  to retrieve the current \ref QCPDataSelection.
+*/
+
+/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable::interface1D()
+  
+  If this plottable is a one-dimensional plottable, i.e. it implements the \ref
+  QCPPlottableInterface1D, returns the \a this pointer with that type. Otherwise (e.g. in the case
+  of a \ref QCPColorMap) returns zero.
+  
+  You can use this method to gain read access to data coordinates while holding a pointer to the
+  abstract base class only.
+*/
+
 /* end of documentation of inline functions */
 /* start of documentation of pure virtual functions */
 

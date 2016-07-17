@@ -130,10 +130,10 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
+  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lines) const;
   virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scatters, const QCPScatterStyle &style) const;
   virtual void drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
-  virtual void drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lineData) const;
+  virtual void drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
   
   virtual void getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
   virtual void getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
@@ -147,11 +147,11 @@ protected:
   QVector<QPointF> dataToStepRightLines(const QVector<QCPGraphData> &data) const;
   QVector<QPointF> dataToStepCenterLines(const QVector<QCPGraphData> &data) const;
   QVector<QPointF> dataToImpulseLines(const QVector<QCPGraphData> &data) const;
-  void addFillBasePoints(QVector<QPointF> *lineData) const;
-  void removeFillBasePoints(QVector<QPointF> *lineData) const;
+  void addFillBasePoints(QVector<QPointF> *lines) const;
+  void removeFillBasePoints(QVector<QPointF> *lines) const;
   QPointF lowerFillBasePoint(double lowerKey) const;
   QPointF upperFillBasePoint(double upperKey) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lines) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;

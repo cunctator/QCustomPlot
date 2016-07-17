@@ -497,27 +497,24 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 
 /*! \internal
 
-  This function branches out to the line style specific "get(...)PlotData" functions, according to
-  the line style of the graph.
-  
-  \a lineData will be filled with raw points that will be drawn with the according draw functions,
-  e.g. \ref drawLinePlot and \ref drawImpulsePlot. These aren't necessarily the original data
-  points, since for step plots for example, additional points are needed for drawing lines that
-  make up steps. If the line style of the graph is \ref lsNone, the \a lineData vector will be left
-  untouched.
-  
-  \a scatterData will be filled with the original data points so \ref drawScatterPlot can draw the
-  scatter symbols accordingly. If no scatters need to be drawn, i.e. the scatter style's shape is
-  \ref QCPScatterStyle::ssNone, pass 0 as \a scatterData, and this step will be skipped.
-  
-  \a dataRange specifies the beginning and ending data indices that will be taken into account for
-  conversion to lines and scatters. In this function, the specified range may exceed the total data
-  bounds. In this case a correspondingly trimmed data range will be considered.
-  
-  \see getScatterPlotData, getLinePlotData, getStepLeftPlotData, getStepRightPlotData,
-  getStepCenterPlotData, getImpulsePlotData
-*/
+  This method retrieves an optimized set of data points via \ref getOptimizedLineData, an branches
+  out to the line style specific functions such as \ref dataToLines, \ref dataToStepLeftLines, etc.
+  according to the line style of the graph.
 
+  \a lines will be filled with points in pixel coordinates, that can be drawn with the according
+  draw functions like \ref drawLinePlot and \ref drawImpulsePlot. The points returned in \a lines
+  aren't necessarily the original data points. For example, step line styles require additional
+  points to form the steps when drawn. If the line style of the graph is \ref lsNone, the \a
+  lines vector will be empty.
+
+  \a dataRange specifies the beginning and ending data indices that will be taken into account for
+  conversion. In this function, the specified range may exceed the total data bounds without harm:
+  a correspondingly trimmed data range will be used. This takes the burden off the user of this
+  function to check for valid indices in \a dataRange, e.g. when extending ranges coming from \ref
+  getDataSegments.
+
+  \see getScatters
+*/
 void QCPGraph::getLines(QVector<QPointF> *lines, const QCPDataRange &dataRange) const
 {
   if (!lines) return;
@@ -544,6 +541,18 @@ void QCPGraph::getLines(QVector<QPointF> *lines, const QCPDataRange &dataRange) 
   }
 }
 
+/*! \internal
+
+  This method retrieves an optimized set of data points via \ref getOptimizedScatterData and then
+  converts them to pixel coordinates. The resulting points are returned in \a scatters, and can be
+  passed to \ref drawScatterPlot.
+
+  \a dataRange specifies the beginning and ending data indices that will be taken into account for
+  conversion. In this function, the specified range may exceed the total data bounds without harm:
+  a correspondingly trimmed data range will be used. This takes the burden off the user of this
+  function to check for valid indices in \a dataRange, e.g. when extending ranges coming from \ref
+  getDataSegments.
+*/
 void QCPGraph::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange) const
 {
   if (!scatters) return;
@@ -586,17 +595,15 @@ void QCPGraph::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
 }
 
 /*! \internal
-  
-  Places the raw data points needed for a normal linearly connected graph in \a linePixelData.
 
-  As for all plot data retrieval functions, \a scatterData just contains all unaltered data (scatter)
-  points that are visible for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. the scatter style's shape is \ref QCPScatterStyle::ssNone), pass 0 as \a
-  scatterData, and the function will skip filling the vector.
+  Takes raw data points in plot coordinates as \a data, and returns a vector containing pixel
+  coordinate points which are suitable for drawing the line style \ref lsLine.
   
-  \see drawLinePlot
+  The source of \a data is usually \ref getOptimizedLineData, and this method is called in \a
+  getLines if the line style is set accordingly.
+
+  \see dataToStepLeftLines, dataToStepRightLines, dataToStepCenterLines, dataToImpulseLines, getLines, drawLinePlot
 */
-
 QVector<QPointF> QCPGraph::dataToLines(const QVector<QCPGraphData> &data) const
 {
   QVector<QPointF> result;
@@ -626,18 +633,16 @@ QVector<QPointF> QCPGraph::dataToLines(const QVector<QCPGraphData> &data) const
   return result;
 }
 
-/*!
-  \internal
-  Places the raw data points needed for a step plot with left oriented steps in \a lineData.
+/*! \internal
 
-  As for all plot data retrieval functions, \a scatterData just contains all unaltered data (scatter)
-  points that are visible for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. the scatter style's shape is \ref QCPScatterStyle::ssNone), pass 0 as \a
-  scatterData, and the function will skip filling the vector.
+  Takes raw data points in plot coordinates as \a data, and returns a vector containing pixel
+  coordinate points which are suitable for drawing the line style \ref lsStepLeft.
   
-  \see drawLinePlot
-*/
+  The source of \a data is usually \ref getOptimizedLineData, and this method is called in \a
+  getLines if the line style is set accordingly.
 
+  \see dataToLines, dataToStepRightLines, dataToStepCenterLines, dataToImpulseLines, getLines, drawLinePlot
+*/
 QVector<QPointF> QCPGraph::dataToStepLeftLines(const QVector<QCPGraphData> &data) const
 {
   QVector<QPointF> result;
@@ -679,18 +684,16 @@ QVector<QPointF> QCPGraph::dataToStepLeftLines(const QVector<QCPGraphData> &data
   return result;
 }
 
-/*!
-  \internal
-  Places the raw data points needed for a step plot with right oriented steps in \a lineData.
+/*! \internal
 
-  As for all plot data retrieval functions, \a scatterData just contains all unaltered data (scatter)
-  points that are visible for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. the scatter style's shape is \ref QCPScatterStyle::ssNone), pass 0 as \a
-  scatterData, and the function will skip filling the vector.
+  Takes raw data points in plot coordinates as \a data, and returns a vector containing pixel
+  coordinate points which are suitable for drawing the line style \ref lsStepRight.
   
-  \see drawLinePlot
-*/
+  The source of \a data is usually \ref getOptimizedLineData, and this method is called in \a
+  getLines if the line style is set accordingly.
 
+  \see dataToLines, dataToStepLeftLines, dataToStepCenterLines, dataToImpulseLines, getLines, drawLinePlot
+*/
 QVector<QPointF> QCPGraph::dataToStepRightLines(const QVector<QCPGraphData> &data) const
 {
   QVector<QPointF> result;
@@ -732,18 +735,16 @@ QVector<QPointF> QCPGraph::dataToStepRightLines(const QVector<QCPGraphData> &dat
   return result;
 }
 
-/*!
-  \internal
-  Places the raw data points needed for a step plot with centered steps in \a lineData.
+/*! \internal
 
-  As for all plot data retrieval functions, \a scatterData just contains all unaltered data (scatter)
-  points that are visible for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. the scatter style's shape is \ref QCPScatterStyle::ssNone), pass 0 as \a
-  scatterData, and the function will skip filling the vector.
+  Takes raw data points in plot coordinates as \a data, and returns a vector containing pixel
+  coordinate points which are suitable for drawing the line style \ref lsStepCenter.
   
-  \see drawLinePlot
-*/
+  The source of \a data is usually \ref getOptimizedLineData, and this method is called in \a
+  getLines if the line style is set accordingly.
 
+  \see dataToLines, dataToStepLeftLines, dataToStepRightLines, dataToImpulseLines, getLines, drawLinePlot
+*/
 QVector<QPointF> QCPGraph::dataToStepCenterLines(const QVector<QCPGraphData> &data) const
 {
   QVector<QPointF> result;
@@ -797,18 +798,16 @@ QVector<QPointF> QCPGraph::dataToStepCenterLines(const QVector<QCPGraphData> &da
   return result;
 }
 
-/*!
-  \internal
-  Places the raw data points needed for an impulse plot in \a lineData.
+/*! \internal
 
-  As for all plot data retrieval functions, \a scatterData just contains all unaltered data (scatter)
-  points that are visible for drawing scatter points, if necessary. If drawing scatter points is
-  disabled (i.e. the scatter style's shape is \ref QCPScatterStyle::ssNone), pass 0 as \a
-  scatterData, and the function will skip filling the vector.
+  Takes raw data points in plot coordinates as \a data, and returns a vector containing pixel
+  coordinate points which are suitable for drawing the line style \ref lsImpulse.
   
-  \see drawImpulsePlot
-*/
+  The source of \a data is usually \ref getOptimizedLineData, and this method is called in \a
+  getLines if the line style is set accordingly.
 
+  \see dataToLines, dataToStepLeftLines, dataToStepRightLines, dataToStepCenterLines, getLines, drawImpulsePlot
+*/
 QVector<QPointF> QCPGraph::dataToImpulseLines(const QVector<QCPGraphData> &data) const
 {
   QVector<QPointF> result;
@@ -848,19 +847,22 @@ QVector<QPointF> QCPGraph::dataToImpulseLines(const QVector<QCPGraphData> &data)
 }
 
 /*! \internal
-  
-  Draws the fill of the graph with the specified brush.
 
-  If the fill is a normal fill towards the zero-value-line, only the \a lineData is required (and
-  two extra points at the zero-value-line, which are added by \ref addFillBasePoints and removed by
-  \ref removeFillBasePoints after the fill drawing is done).
+  Draws the fill of the graph using the specified \a painter, with the currently set brush.
   
-  If the fill is a channel fill between this QCPGraph and another QCPGraph (mChannelFillGraph), the
-  more complex polygon is calculated with the \ref getChannelFillPolygon function.
-  
-  \see drawLinePlot
+  \a lines contains the points of the graph line, in pixel coordinates.
+
+  If the fill is a normal fill towards the zero-value-line, only the points in \a lines are
+  required and two extra points at the zero-value-line, which are added by \ref addFillBasePoints
+  and removed by \ref removeFillBasePoints after the fill drawing is done.
+
+  On the other hand if the fill is a channel fill between this QCPGraph and another QCPGraph (\a
+  mChannelFillGraph), the more complex polygon is calculated with the \ref getChannelFillPolygon
+  function, and then drawn.
+
+  \see drawLinePlot, drawImpulsePlot, drawScatterPlot
 */
-void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
+void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lines) const
 {
   if (mLineStyle == lsImpulse) return; // fill doesn't make sense for impulse plot
   if (painter->brush().style() == Qt::NoBrush || painter->brush().color().alpha() == 0) return;
@@ -869,26 +871,23 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const
   if (!mChannelFillGraph)
   {
     // draw base fill under graph, fill goes all the way to the zero-value-line:
-    addFillBasePoints(lineData);
-    painter->drawPolygon(QPolygonF(*lineData));
-    removeFillBasePoints(lineData);
+    addFillBasePoints(lines);
+    painter->drawPolygon(QPolygonF(*lines));
+    removeFillBasePoints(lines);
   } else
   {
     // draw channel fill between this graph and mChannelFillGraph:
-    painter->drawPolygon(getChannelFillPolygon(lineData));
+    painter->drawPolygon(getChannelFillPolygon(lines));
   }
 }
 
 /*! \internal
-  
-  Draws scatter symbols at every data point passed in \a scatterData. scatter symbols are independent
-  of the line style and are always drawn if the scatter style's shape is not \ref
-  QCPScatterStyle::ssNone. Hence, the \a scatterData vector is outputted by all "get(...)PlotData"
-  functions, together with the (line style dependent) line data.
-  
+
+  Draws scatter symbols at every point passed in \a scatters, given in pixel coordinates. The
+  scatters will be drawn with \a painter and have the appearance as specified in \a style.
+
   \see drawLinePlot, drawImpulsePlot
 */
-
 void QCPGraph::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scatters, const QCPScatterStyle &style) const
 {
   applyScattersAntialiasingHint(painter);
@@ -899,17 +898,12 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scat
 
 /*!  \internal
   
-  Draws line graphs from the provided data. It connects all points in \a lineData, which was
-  created by one of the "get(...)PlotData" functions for line styles that require simple line
-  connections between the point vector they create. These are for example \ref getLinePlotData,
-  \ref getStepLeftPlotData, \ref getStepRightPlotData and \ref getStepCenterPlotData.
+  Draws lines between the points in \a lines, given in pixel coordinates.
   
-  \see drawScatterPlot, drawImpulsePlot
+  \see drawScatterPlot, drawImpulsePlot, QCPAbstractPlottable1D::drawPolyline
 */
-
 void QCPGraph::drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) const
 {
-  // draw line of graph:
   if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
@@ -918,16 +912,15 @@ void QCPGraph::drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) 
 }
 
 /*! \internal
-  
-  Draws impulses from the provided data, i.e. it connects all line pairs in \a lineData, which was
-  created by \ref getImpulsePlotData.
-  
-  \see drawScatterPlot, drawLinePlot
-*/
 
-void QCPGraph::drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lineData) const
+  Draws impulses from the provided data, i.e. it connects all line pairs in \a lines, given in
+  pixel coordinates. The \a lines necessary for impulses are generated by \ref dataToImpulseLines
+  from the regular graph data points.
+
+  \see drawLinePlot, drawScatterPlot
+*/
+void QCPGraph::drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lines) const
 {
-  // draw impulses:
   if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
   {
     applyDefaultAntialiasingHint(painter);
@@ -935,24 +928,23 @@ void QCPGraph::drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &line
     QPen newPen = painter->pen();
     newPen.setCapStyle(Qt::FlatCap); // so impulse line doesn't reach beyond zero-line
     painter->setPen(newPen);
-    painter->drawLines(lineData);
+    painter->drawLines(lines);
     painter->setPen(oldPen);
   }
 }
 
 /*! \internal
-  
-  Returns the \a lineData and \a scatterData that need to be plotted for this graph taking into
-  consideration the current axis ranges and, if \ref setAdaptiveSampling is enabled, local point
-  densities. The considered data can be restricted by \a dataRange.
-  
-  0 may be passed as \a lineData or \a scatterData to indicate that the respective dataset isn't
-  needed. For example, if the scatter style (\ref setScatterStyle) is \ref QCPScatterStyle::ssNone, \a
-  scatterData should be 0 to prevent unnecessary calculations.
-  
-  This method is used by the various "get(...)PlotData" methods to get the basic working set of data.
-*/
 
+  Returns via \a lineData the data points that need to be visualized for this graph when plotting
+  graph lines, taking into consideration the currently visible axis ranges and, if \ref
+  setAdaptiveSampling is enabled, local point densities. The considered data can be restricted
+  further by \a begin and \a end, e.g. to only plot a certain segment of the data (see \ref
+  getDataSegments).
+
+  This method is used by \ref getLines to retrieve the basic working set of data.
+
+  \see getOptimizedScatterData
+*/
 void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const
 {
   if (!lineData) return;
@@ -1037,6 +1029,18 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   }
 }
 
+/*! \internal
+
+  Returns via \a scatterData the data points that need to be visualized for this graph when
+  plotting scatter points, taking into consideration the currently visible axis ranges and, if \ref
+  setAdaptiveSampling is enabled, local point densities. The considered data can be restricted
+  further by \a begin and \a end, e.g. to only plot a certain segment of the data (see \ref
+  getDataSegments).
+
+  This method is used by \ref getScatters to retrieve the basic working set of data.
+
+  \see getOptimizedLineData
+*/
 void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const
 {
   if (!scatterData) return;
@@ -1142,6 +1146,15 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
   }
 }
 
+/*!
+  This method outputs the currently visible data range via \a begin and \a end. The returned range
+  will also never exceed \a rangeRestriction.
+
+  This method takes into account that the drawing of data lines at the axis rect border always
+  requires the points just outside the visible axis range. So \a begin and \a end may actually
+  indicate a range that contains one additional data point to the left and right of the visible
+  axis range.
+*/
 void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end, const QCPDataRange &rangeRestriction) const
 {
   if (rangeRestriction.isEmpty())
@@ -1163,49 +1176,49 @@ void QCPGraph::getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin
 
 /*! \internal
   
-  The line data vector generated by e.g. getLinePlotData contains only the line that connects the
-  data points. If the graph needs to be filled, two additional points need to be added at the
+  The line vector generated by e.g. \ref getLines describes only the line that connects the data
+  points. If the graph needs to be filled, two additional points need to be added at the
   value-zero-line in the lower and upper key positions of the graph. This function calculates these
   points and adds them to the end of \a lineData. Since the fill is typically drawn before the line
   stroke, these added points need to be removed again after the fill is done, with the
   removeFillBasePoints function.
-  
-  The expanding of \a lineData by two points will not cause unnecessary memory reallocations,
-  because the data vector generation functions (getLinePlotData etc.) reserve two extra points when
-  they allocate memory for \a lineData.
+
+  The expanding of \a lines by two points will not cause unnecessary memory reallocations, because
+  the data vector generation functions (e.g. \ref getLines) reserve two extra points when they
+  allocate memory for \a lines.
   
   \see removeFillBasePoints, lowerFillBasePoint, upperFillBasePoint
 */
-void QCPGraph::addFillBasePoints(QVector<QPointF> *lineData) const
+void QCPGraph::addFillBasePoints(QVector<QPointF> *lines) const
 {
   if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-  if (!lineData) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
-  if (lineData->isEmpty()) return;
+  if (!lines) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
+  if (lines->isEmpty()) return;
   
   // append points that close the polygon fill at the key axis:
   if (mKeyAxis.data()->orientation() == Qt::Vertical)
   {
-    *lineData << upperFillBasePoint(lineData->last().y());
-    *lineData << lowerFillBasePoint(lineData->first().y());
+    *lines << upperFillBasePoint(lines->last().y());
+    *lines << lowerFillBasePoint(lines->first().y());
   } else
   {
-    *lineData << upperFillBasePoint(lineData->last().x());
-    *lineData << lowerFillBasePoint(lineData->first().x());
+    *lines << upperFillBasePoint(lines->last().x());
+    *lines << lowerFillBasePoint(lines->first().x());
   }
 }
 
 /*! \internal
   
-  removes the two points from \a lineData that were added by \ref addFillBasePoints.
+  removes the two points from \a lines that were added by \ref addFillBasePoints.
   
   \see addFillBasePoints, lowerFillBasePoint, upperFillBasePoint
 */
-void QCPGraph::removeFillBasePoints(QVector<QPointF> *lineData) const
+void QCPGraph::removeFillBasePoints(QVector<QPointF> *lines) const
 {
-  if (!lineData) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
-  if (lineData->isEmpty()) return;
+  if (!lines) { qDebug() << Q_FUNC_INFO << "passed null as lineData"; return; }
+  if (lines->isEmpty()) return;
   
-  lineData->remove(lineData->size()-2, 2);
+  lines->remove(lines->size()-2, 2);
 }
 
 /*! \internal
@@ -1340,14 +1353,17 @@ QPointF QCPGraph::upperFillBasePoint(double upperKey) const
 
 /*! \internal
   
-  Generates the polygon needed for drawing channel fills between this graph (data passed via \a
-  lineData) and the graph specified by mChannelFillGraph (data generated by calling its \ref
-  getPlotData function). May return an empty polygon if the key ranges have no overlap or fill
-  target graph and this graph don't have same orientation (i.e. both key axes horizontal or both
-  key axes vertical). For increased performance (due to implicit sharing), keep the returned
-  QPolygonF const.
+  Generates the polygon needed for drawing channel fills between this graph and the graph specified
+  in \a mChannelFillGraph (see \ref setChannelFillGraph). The data points representing the line of
+  this graph in pixel coordinates must be passed in \a lines, the corresponding points of the other
+  graph are generated by calling its \ref getLines method.
+
+  This method may return an empty polygon if the key ranges of the two graphs have no overlap of if
+  they don't have the same orientation (e.g. one key axis vertical, the other horizontal). For
+  increased performance (due to implicit sharing), it is recommended to keep the returned QPolygonF
+  const.
 */
-const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *lineData) const
+const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *lines) const
 {
   if (!mChannelFillGraph)
     return QPolygonF();
@@ -1360,14 +1376,14 @@ const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *lineData
   if (mChannelFillGraph.data()->mKeyAxis.data()->orientation() != keyAxis->orientation())
     return QPolygonF(); // don't have same axis orientation, can't fill that (Note: if keyAxis fits, valueAxis will fit too, because it's always orthogonal to keyAxis)
   
-  if (lineData->isEmpty()) return QPolygonF();
+  if (lines->isEmpty()) return QPolygonF();
   QVector<QPointF> otherData;
   mChannelFillGraph.data()->getLines(&otherData, QCPDataRange(0, mChannelFillGraph.data()->dataCount()));
   if (otherData.isEmpty()) return QPolygonF();
   QVector<QPointF> thisData;
-  thisData.reserve(lineData->size()+otherData.size()); // because we will join both vectors at end of this function
-  for (int i=0; i<lineData->size(); ++i) // don't use the vector<<(vector),  it squeezes internally, which ruins the performance tuning with reserve()
-    thisData << lineData->at(i);
+  thisData.reserve(lines->size()+otherData.size()); // because we will join both vectors at end of this function
+  for (int i=0; i<lines->size(); ++i) // don't use the vector<<(vector),  it squeezes internally, which ruins the performance tuning with reserve()
+    thisData << lines->at(i);
   
   // pointers to be able to swap them, depending which data range needs cropping:
   QVector<QPointF> *staticData = &thisData;

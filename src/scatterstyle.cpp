@@ -221,6 +221,9 @@ QCPScatterStyle::QCPScatterStyle(const QPainterPath &customPath, const QPen &pen
 {
 }
 
+/*!
+  Copies the specified \a properties from the \a other scatter style to this scatter style.
+*/
 void QCPScatterStyle::setFromOther(const QCPScatterStyle &other, ScatterProperties properties)
 {
   if (properties.testFlag(spPen))
@@ -317,8 +320,9 @@ void QCPScatterStyle::setCustomPath(const QPainterPath &customPath)
 }
 
 /*!
-  Sets this scatter style to have an undefined pen (see \ref isPenDefined).
-  
+  Sets this scatter style to have an undefined pen (see \ref isPenDefined for what an undefined pen
+  implies).
+
   A call to \ref setPen will define a pen.
 */
 void QCPScatterStyle::undefinePen()

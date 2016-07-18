@@ -35,11 +35,11 @@ class QCP_LIB_DECL QCPScatterStyle
   Q_GADGET
 public:
   /*!
-    Represents the properties of a scatter style instance. For example this enum is used to specify
-    which properties of \ref QCPSelectionDecorator::setScatterStyle will be changed from the
-    default scatter style when highlighting selected data points.
-    
-    Specific scatter properties can be transferred between QCPScatterStyle instances via \ref
+    Represents the various properties of a scatter style instance. For example, this enum is used
+    to specify which properties of \ref QCPSelectionDecorator::setScatterStyle will be used when
+    highlighting selected data points.
+
+    Specific scatter properties can be transferred between \ref QCPScatterStyle instances via \ref
     setFromOther.
   */
   enum ScatterProperty {  spNone  = 0x00  ///< <tt>0x00</tt> None

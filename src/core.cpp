@@ -586,14 +586,14 @@ void QCustomPlot::setAutoAddPlottableToLegend(bool on)
   QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeZoom, \ref QCPAxisRect::setRangeDragAxes,
   \ref QCPAxisRect::setRangeZoomAxes.
   
-  <b>Plottable selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref QCP::iSelectPlottables is
-  set, the user may select plottables (graphs, curves, bars,...) by clicking on them or in their
-  vicinity (\ref setSelectionTolerance). Whether the user can actually select a plottable can
-  further be restricted with the \ref QCPAbstractPlottable::setSelectable function on the specific
-  plottable. To find out whether a specific plottable is selected, call
-  QCPAbstractPlottable::selected(). To retrieve a list of all currently selected plottables, call
-  \ref selectedPlottables. If you're only interested in QCPGraphs, you may use the convenience
-  function \ref selectedGraphs.
+  <b>Plottable data selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref
+  QCP::iSelectPlottables is set, the user may select plottables (graphs, curves, bars,...) and
+  their data by clicking on them or in their vicinity (\ref setSelectionTolerance). Whether the
+  user can actually select a plottable and its data can further be restricted with the \ref
+  QCPAbstractPlottable::setSelectable method on the specific plottable. For details, see the
+  special page about the \ref dataselection "data selection mechanism". To retrieve a list of all
+  currently selected plottables, call \ref selectedPlottables. If you're only interested in
+  QCPGraphs, you may use the convenience function \ref selectedGraphs.
   
   <b>Item selection</b> is controlled by \ref QCP::iSelectItems. If \ref QCP::iSelectItems is set, the user
   may select items (QCPItemLine, QCPItemText,...) by clicking on them or in their vicinity. To find

@@ -47,11 +47,11 @@
 //amalgamation: add axis/axistickerlog.h
 //amalgamation: add axis/axis.h
 //amalgamation: add scatterstyle.h
-//amalgamation: add plottable.h
-//amalgamation: add plottable1d.h
 //amalgamation: add datacontainer.h
+//amalgamation: add plottable.h
 //amalgamation: add item.h
 //amalgamation: add core.h
+//amalgamation: add plottable1d.h
 //amalgamation: add colorgradient.h
 //amalgamation: add selectiondecorator-bracket.h
 //amalgamation: add layoutelements/layoutelement-axisrect.h

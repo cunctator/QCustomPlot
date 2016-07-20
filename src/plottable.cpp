@@ -32,6 +32,66 @@
 #include "layoutelements/layoutelement-legend.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPSelectionDecorator
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPSelectionDecorator
+  \brief 
+  
+*/
+
+QCPSelectionDecorator::QCPSelectionDecorator() :
+  mPen(Qt::blue),
+  mBrush(Qt::NoBrush),
+  mPlottable(0)
+{
+}
+
+QCPSelectionDecorator::~QCPSelectionDecorator()
+{
+}
+
+void QCPSelectionDecorator::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+void QCPSelectionDecorator::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
+{
+  painter->setPen(mPen);
+}
+
+void QCPSelectionDecorator::applyBrush(QCPPainter *painter) const
+{
+  painter->setBrush(mBrush);
+}
+
+void QCPSelectionDecorator::drawDecoration(QCPPainter *painter, QCPDataSelection selection)
+{
+  Q_UNUSED(painter)
+  Q_UNUSED(selection)
+}
+
+bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottable)
+{
+  if (!mPlottable)
+  {
+    mPlottable = plottable;
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "This selection decorator is already registered with plottable:" << reinterpret_cast<quintptr>(mPlottable);
+    return false;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPAbstractPlottable
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +248,8 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mSelectedBrush(Qt::NoBrush),
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
-  mSelectable(QCP::stWhole)
+  mSelectable(QCP::stWhole),
+  mSelectionDecorator(0)
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
@@ -196,6 +257,16 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
     qDebug() << Q_FUNC_INFO << "keyAxis and valueAxis must be orthogonal to each other.";
   
   mParentPlot->registerPlottable(this);
+  setSelectionDecorator(new QCPSelectionDecorator);
+}
+
+QCPAbstractPlottable::~QCPAbstractPlottable()
+{
+  if (mSelectionDecorator)
+  {
+    delete mSelectionDecorator;
+    mSelectionDecorator = 0;
+  }
 }
 
 /*!
@@ -335,6 +406,23 @@ void QCPAbstractPlottable::setSelection(QCPDataSelection selection)
     mSelection = selection;
     emit selectionChanged(selected());
     emit selectionChanged(mSelection);
+  }
+}
+
+void QCPAbstractPlottable::setSelectionDecorator(QCPSelectionDecorator *decorator)
+{
+  if (decorator)
+  {
+    if (decorator->registerWithPlottable(this))
+    {
+      if (mSelectionDecorator) // delete old decorator if necessary
+        delete mSelectionDecorator;
+      mSelectionDecorator = decorator;
+    }
+  } else if (mSelectionDecorator) // just clear decorator
+  {
+    delete mSelectionDecorator;
+    mSelectionDecorator = 0;
   }
 }
 

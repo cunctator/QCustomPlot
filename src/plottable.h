@@ -34,6 +34,42 @@
 #include "selection.h"
 
 class QCPPainter;
+class QCPAbstractPlottable;
+
+class QCP_LIB_DECL QCPSelectionDecorator
+{
+  Q_GADGET
+public:
+  QCPSelectionDecorator();
+  virtual ~QCPSelectionDecorator();
+  
+  // getters:
+  QPen pen() const { return mPen; }
+  QBrush brush() const { return mBrush; }
+  
+  // setters:
+  void setPen(const QPen &pen);
+  void setBrush(const QBrush &brush);
+  
+  // non-virtual methods:
+  void applyPen(QCPPainter *painter) const;
+  void applyBrush(QCPPainter *painter) const;
+  
+  // introduced virtual methods:
+  virtual void drawDecoration(QCPPainter *painter, QCPDataSelection selection);
+  
+protected:
+  // property members:
+  QPen mPen;
+  QBrush mBrush;
+  // non-property members:
+  QCPAbstractPlottable *mPlottable;
+  
+  // introduced virtual methods:
+  virtual bool registerWithPlottable(QCPAbstractPlottable *plottable);
+  
+  friend class QCPAbstractPlottable;
+};
 
 class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
 {
@@ -50,9 +86,11 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(QCPAxis* valueAxis READ valueAxis WRITE setValueAxis)
   Q_PROPERTY(QCP::SelectionType selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
   Q_PROPERTY(bool selected READ selected NOTIFY selectionChanged)
+  Q_PROPERTY(QCPSelectionDecorator* selectionDecorator READ selectionDecorator WRITE setSelectionDecorator)
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
+  virtual ~QCPAbstractPlottable();
   
   // getters:
   QString name() const { return mName; }
@@ -67,6 +105,7 @@ public:
   QCP::SelectionType selectable() const { return mSelectable; }
   bool selected() const { return !mSelection.isEmpty(); }
   QCPDataSelection selection() const { return mSelection; }
+  QCPSelectionDecorator *selectionDecorator() const { return mSelectionDecorator; }
   
   // setters:
   void setName(const QString &name);
@@ -80,6 +119,7 @@ public:
   void setValueAxis(QCPAxis *axis);
   Q_SLOT void setSelectable(QCP::SelectionType selectable);
   Q_SLOT void setSelection(QCPDataSelection selection);
+  void setSelectionDecorator(QCPSelectionDecorator *decorator);
 
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
@@ -105,6 +145,7 @@ protected:
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
   QCP::SelectionType mSelectable;
   QCPDataSelection mSelection;
+  QCPSelectionDecorator *mSelectionDecorator;
   
   // reimplemented virtual methods:
   virtual QRect clipRect() const;

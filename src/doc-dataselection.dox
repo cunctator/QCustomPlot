@@ -1,0 +1,51 @@
+/*! \page dataselection Data Selection Mechanism
+  
+  In QCustomPlot, each plottable can be selected by the user, or programmatically. If the user shall
+  be able to select data in any way, the interaction flag \ref QCP::iSelectPlottables must be set
+  in \ref QCustomPlot::setInteractions.
+  
+  \section dataselection-granularity Data selection granularity
+  
+  The selection granularity can be controlled via \ref QCPAbstractPlottable::setSelectable, by
+  specifying an according \ref QCP::SelectionType. For example, when using \ref
+  QCP::stMultipleDataRanges, the user will have full freedom over which data points he selects and
+  which not. On the other hand if we use \ref QCP::stDataRange, the selection mechanism will
+  enforce that the selected data is always one contiguous range. So if the user selects two distant
+  data points (while holding the multi-select modifier, usually \c Ctrl), all data points in
+  between those two points will also become selected.
+  
+  These images show the effect of the different selection types, when the indicated selection rect
+  was dragged:
+    
+  <center>
+  <table>
+  <tr>
+    <td>\image html selectiontype-none.png stNone</td>
+    <td>\image html selectiontype-whole.png stWhole</td>
+    <td>\image html selectiontype-singledata.png stSingleData</td>
+    <td>\image html selectiontype-datarange.png stDataRange</td>
+    <td>\image html selectiontype-multipledataranges.png stMultipleDataRanges</td>
+  </tr>
+  </table>
+  </center>
+
+  \section dataselection-selectionmodes Selection by click and selection rect
+  
+  The user can select data points in two ways:
+  
+  The first method is to click on the data points with the mouse cursor. In this case, if the user
+  wants to select multiple data points one after the other, he has to press and hold the
+  multi-select modifier (\ref QCustomPlot::setMultiSelectModifier), and \ref QCP::iMultiSelect must
+  be set in \ref QCustomPlot::setInteractions.
+  
+  The other method is by dragging a selection rect over the data points that shall be selected.
+  This is possible if \ref QCustomPlot::setSelectionRectMode is set to \ref QCP::srmSelect. Note
+  that while the selection rect mode is set (is not \ref QCP::srmNone), mouse dragging will not be
+  forwarded to underlying layout elements. This also means that axis ranges can't be dragged with
+  the mouse anymore. If you wish to provide your user both with axis range dragging and data
+  selection/range zooming, use \ref QCustomPlot::setSelectionRectMode to switch between the modes
+  just before the interaction is processed, e.g. in reaction to the \ref QCustomPlot::mousePress or
+  \ref QCustomPlot::mouseMove signals. For example you could check whether the user is holding a
+  certain keyboard modifier, and then decide which mode shall be set.
+  
+*/

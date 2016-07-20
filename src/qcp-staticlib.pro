@@ -123,4 +123,5 @@ OTHER_FILES += \
     doc-layoutsystem.dox \
     doc-mainpage.dox \
     doc-specialqtflags.dox \
-    doc-performance.dox
+    doc-performance.dox \
+    doc-dataselection.dox

@@ -49,6 +49,7 @@
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp
 //amalgamation: add colorgradient.cpp
+//amalgamation: add selectiondecorator-bracket.cpp
 //amalgamation: add layoutelements/layoutelement-axisrect.cpp
 //amalgamation: add layoutelements/layoutelement-legend.cpp
 //amalgamation: add layoutelements/layoutelement-plottitle.cpp

@@ -53,6 +53,7 @@
 //amalgamation: add item.h
 //amalgamation: add core.h
 //amalgamation: add colorgradient.h
+//amalgamation: add selectiondecorator-bracket.h
 //amalgamation: add layoutelements/layoutelement-axisrect.h
 //amalgamation: add layoutelements/layoutelement-legend.h
 //amalgamation: add layoutelements/layoutelement-plottitle.h

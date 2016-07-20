@@ -69,7 +69,8 @@ layoutelements/layoutelement-axisrect.h \
     selection.h \
     selectionrect.h \
     plottable1d.h \
-    scatterstyle.h
+    scatterstyle.h \
+    selectiondecorator-bracket.h
 
 SOURCES += \
 painter.cpp \
@@ -113,7 +114,8 @@ layoutelements/layoutelement-axisrect.cpp \
     selection.cpp \
     selectionrect.cpp \
     plottable1d.cpp \
-    scatterstyle.cpp
+    scatterstyle.cpp \
+    selectiondecorator-bracket.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

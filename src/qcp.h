@@ -50,6 +50,7 @@
 #include "lineending.h"
 #include "core.h"
 #include "colorgradient.h"
+#include "selectiondecorator-bracket.h"
 #include "plottables/plottable-graph.h"
 #include "plottables/plottable-curve.h"
 #include "plottables/plottable-bars.h"

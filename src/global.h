@@ -166,7 +166,20 @@ enum SelectionRectMode { srmNone    ///< The selection rect is disabled, and all
                        };
 
 /*!
-  Defines the different ways a plottable can be selected
+  Defines the different ways a plottable can be selected. These images show the effect of the
+  different selection types, when the indicated selection rect was dragged:
+  
+  <center>
+  <table>
+  <tr>
+    <td>\image html selectiontype-none.png stNone</td>
+    <td>\image html selectiontype-whole.png stWhole</td>
+    <td>\image html selectiontype-singledata.png stSingleData</td>
+    <td>\image html selectiontype-datarange.png stDataRange</td>
+    <td>\image html selectiontype-multipledataranges.png stMultipleDataRanges</td>
+  </tr>
+  </table>
+  </center>
   
   \see QCPAbstractPlottable::setSelectable, QCPDataSelection::enforceType
 */

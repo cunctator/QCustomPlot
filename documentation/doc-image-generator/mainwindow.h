@@ -21,6 +21,8 @@ public:
   ~MainWindow();
   
 public slots:
+  void run();
+  
   // image generators:
   void genScatterStyles();
   void genItemPixmap();

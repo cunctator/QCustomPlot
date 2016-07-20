@@ -4,30 +4,32 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
+  customPlot(0),
   defaultBrush(QColor(80, 215, 10, 70))
 {
   ui->setupUi(this);
-  setGeometry(300, 300, 500, 500);
   
   dir.setPath(qApp->applicationDirPath());
   dir.mkdir("images");
   if (!dir.cd("images"))
-  {
     QMessageBox::critical(this, "Error", tr("Couldn't create and access image directory:\n%1").arg(dir.filePath("images")));
-  } else
+  else
+    QTimer::singleShot(100, this, SLOT(run()));
+}
+
+void MainWindow::run()
+{
+  // invoke all methods of MainWindow that start with "gen":
+  for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
   {
-    // invoke all methods of MainWindow that start with "gen":
-    for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
-    {
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-      if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
+    if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
 #else
-      if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
+    if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
 #endif
-      {
-        if (!this->metaObject()->method(i).invoke(this))
-          qDebug() << "Failed to invoke doc-image-generator method" << i;
-      }
+    {
+      if (!this->metaObject()->method(i).invoke(this))
+        qDebug() << "Failed to invoke doc-image-generator method" << i;
     }
   }
   QTimer::singleShot(0, qApp, SLOT(quit()));
@@ -1330,8 +1332,14 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
 
 void MainWindow::resetPlot(bool clearAxes)
 {
-  customPlot = new QCustomPlot(this);
-  setCentralWidget(customPlot);
+  if (customPlot)
+  {
+    delete customPlot;
+    customPlot = 0;
+  }
+  customPlot = new QCustomPlot(0);
+  customPlot->show();
+  qApp->processEvents();
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);
@@ -1341,4 +1349,5 @@ void MainWindow::resetPlot(bool clearAxes)
     customPlot->axisRect()->setAutoMargins(QCP::msNone);
     customPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
   }
+  customPlot->replot();
 }

@@ -924,6 +924,52 @@ void MainWindow::genQCPBarsGroup()
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
 }
 
+void MainWindow::genQCPSelectionType()
+{
+  resetPlot(true);
+  const int imageWidth = 180;
+  const int imageHeight = 110;
+  customPlot->setSelectionRectMode(QCP::srmSelect);
+  customPlot->setInteractions(QCP::iSelectPlottables);
+  customPlot->setGeometry(0, 0, imageWidth, imageHeight);
+  customPlot->xAxis->setRange(-0.05, 2.005);
+  customPlot->yAxis->setRange(0, 2.0);
+  
+  qsrand(1);
+  QCPGraph *g = customPlot->addGraph();
+  g->setPen(QPen(QColor(160, 160, 160)));
+  g->setScatterStyle(QCPScatterStyle::ssDisc);
+  g->selectionDecorator()->setPen(QPen(QColor(255, 0, 160)));
+  g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spNone);
+  for (int i=0; i<50; ++i)
+    g->addData(i/25.0, 0.6+qSin(i/15.0*M_PI)*0.6+qrand()/(double)RAND_MAX*0.4);
+  
+  QCPItemRect *rectItem = new QCPItemRect(customPlot);
+  rectItem->topLeft->setCoords(0.33, 1.8);
+  rectItem->bottomRight->setCoords(1.66, 0.7);
+  rectItem->setPen(customPlot->selectionRect()->pen());
+  rectItem->setBrush(customPlot->selectionRect()->brush());
+  rectItem->setAntialiased(false);
+  QRect rect(rectItem->topLeft->pixelPoint().toPoint(), rectItem->bottomRight->pixelPoint().toPoint());
+  QMouseEvent fakeEvent(QEvent::MouseButtonRelease, customPlot->axisRect()->center(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  
+  g->setSelectable(QCP::stNone);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-none.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stWhole);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-whole.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stSingleData);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-singledata.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stDataRange);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-datarange.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stMultipleDataRanges);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-multipledataranges.png"), imageWidth, imageHeight);
+}
+
 void MainWindow::genQCPColorMap_Interpolate()
 {
   resetPlot(false);

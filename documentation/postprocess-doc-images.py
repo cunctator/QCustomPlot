@@ -75,6 +75,11 @@ fileList += [(8   ,"html/ssPlusSquare.png")]
 fileList += [(8   ,"html/ssCrossCircle.png")]
 fileList += [(8   ,"html/ssPlusCircle.png")]
 fileList += [(8   ,"html/ssPeace.png")]
+fileList += [(16  ,"html/selectiontype-none.png")]
+fileList += [(16  ,"html/selectiontype-whole.png")]
+fileList += [(16  ,"html/selectiontype-singledata.png")]
+fileList += [(16  ,"html/selectiontype-datarange.png")]
+fileList += [(16  ,"html/selectiontype-multipledataranges.png")]
 
 # Doxygen images:
 fileList += [(16  , f) for f in glob.glob("html/class*__inherit__graph.png")]

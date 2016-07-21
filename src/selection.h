@@ -98,6 +98,8 @@ public:
   void simplify();
   void enforceType(QCP::SelectionType type);
   bool contains(const QCPDataSelection &other) const;
+  QCPDataSelection intersection(const QCPDataRange &other) const;
+  QCPDataSelection intersection(const QCPDataSelection &other) const;
   
 private:
   // property members:

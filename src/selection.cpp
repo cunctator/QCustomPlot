@@ -164,6 +164,8 @@ QCPDataRange QCPDataRange::bounded(const QCPDataRange &other) const
   range share no intersection, the returned data range will be empty with begin and end set to 0.
   (\ref bounded would return a range with begin and end set to one of the boundaries of \a other,
   depending on which side this range is on.)
+  
+  \see QCPDataSelection::intersection
 */
 QCPDataRange QCPDataRange::intersection(const QCPDataRange &other) const
 {
@@ -535,6 +537,36 @@ bool QCPDataSelection::contains(const QCPDataSelection &other) const
       ++thisIndex;
   }
   return thisIndex < mDataRanges.size(); // if thisIndex ran all the way to the end to find a containing range for the current otherIndex, other is not contained in this
+}
+
+/*!
+  Returns a data selection containing the points which are both in this data selection and in the
+  data range \a other.
+
+  A common use case is to limit an unknown data selection to the valid range of a data container,
+  using \ref QCPDataContainer::dataRange as \a other. One can then safely iterate over the returned
+  data selection without exceeding the data container's bounds.
+*/
+QCPDataSelection QCPDataSelection::intersection(const QCPDataRange &other) const
+{
+  QCPDataSelection result;
+  for (int i=0; i<mDataRanges.size(); ++i)
+    result.addDataRange(mDataRanges.at(i).intersection(other), false);
+  result.simplify();
+  return result;
+}
+
+/*!
+  Returns a data selection containing the points which are both in this data selection and in the
+  data selection \a other.
+*/
+QCPDataSelection QCPDataSelection::intersection(const QCPDataSelection &other) const
+{
+  QCPDataSelection result;
+  for (int i=0; i<other.dataRangeCount(); ++i)
+    result += intersection(other.dataRange(i));
+  result.simplify();
+  return result;
 }
 
 

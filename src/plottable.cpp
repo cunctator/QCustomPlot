@@ -305,8 +305,16 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
 
 /*! \fn bool QCPAbstractPlottable::selected() const
   
-  Returns true if there are any data points of the plottable currently selected. Use \a selection()
+  Returns true if there are any data points of the plottable currently selected. Use \ref selection
   to retrieve the current \ref QCPDataSelection.
+*/
+
+/*! \fn QCPDataSelection QCPAbstractPlottable::selection() const
+  
+  Returns a \ref QCPDataSelection encompassing all the data points that are currently selected on
+  this plottable.
+  
+  \see selected, setSelection, setSelectable
 */
 
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable::interface1D()

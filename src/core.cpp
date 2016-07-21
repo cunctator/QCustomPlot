@@ -997,7 +997,7 @@ int QCustomPlot::plottableCount() const
   
   There is a convenience function if you're only interested in selected graphs, see \ref selectedGraphs.
   
-  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
@@ -1180,7 +1180,7 @@ int QCustomPlot::graphCount() const
   If you are not only interested in selected graphs but other plottables like QCPCurve, QCPBars,
   etc., use \ref selectedPlottables.
   
-  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {

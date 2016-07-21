@@ -198,7 +198,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QCPVector2D &pos, const QCPV
   QCPVector2D lengthVec = dir.normalized() * mLength*(mInverted ? -1 : 1);
   if (lengthVec.isNull())
     lengthVec = QCPVector2D(1, 0);
-  QCPVector2D widthVec = dir.normalized().perpendicular() * mWidth*0.5;
+  QCPVector2D widthVec = dir.normalized().perpendicular() * mWidth*0.5*(mInverted ? -1 : 1);
   
   QPen penBackup = painter->pen();
   QBrush brushBackup = painter->brush();

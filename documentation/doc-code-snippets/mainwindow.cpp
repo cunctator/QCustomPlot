@@ -290,6 +290,30 @@ void MainWindow::snippetQCPFinancialDataSharing()
   //! [qcpfinancial-datasharing-2]
 }
 
+void MainWindow::snippetQCPDataSelectionIterating()
+{
+  QCPGraph *graph = customPlot->addGraph();
+  for (int i=0; i<100; ++i)
+    graph->addData(i, i);
+  graph->setSelection(QCPDataRange(10, 15) + QCPDataRange(20, 40) + QCPDataRange(60, 80));
+  //! [qcpdataselection-iterating-1]
+  QCPDataSelection selection = graph->selection();
+  double sum = 0;
+  foreach (QCPDataRange dataRange, selection.dataRanges())
+  {
+    QCPGraphDataContainer::const_iterator begin = graph->data()->constBegin() + dataRange.begin(); // get range begin iterator from index
+    QCPGraphDataContainer::const_iterator end = graph->data()->constBegin() + dataRange.end(); // get range end iterator from index
+    for (QCPGraphDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // iterator "it" will go through all selected data points, as an example, we calculate the value average
+      sum += it->value;
+    }
+  }
+  double average = sum/selection.dataPointCount();
+  //! [qcpdataselection-iterating-1]
+  Q_UNUSED(average)
+}
+
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);

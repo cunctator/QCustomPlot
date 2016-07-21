@@ -38,6 +38,7 @@ public slots:
   void snippetQCPBarsDataSharing();
   void snippetQCPStatisticalBoxDataSharing();
   void snippetQCPFinancialDataSharing();
+  void snippetQCPDataSelectionIterating();
   
   // website code methods:
   void websiteBasicPlottingBars();

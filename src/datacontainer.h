@@ -28,7 +28,13 @@
 
 #include "global.h"
 #include "axis/range.h"
+#include "selection.h"
 
+/*! \relates QCPDataContainer
+  Returns whether the sort key of \a a is less than the sort key of \a b.
+
+  \see QCPDataContainer::sort
+*/
 template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
 
@@ -67,10 +73,12 @@ public:
   QCPDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
   QCPDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
   QCPDataContainer::iterator end() { return mData.end(); }
-  QCPDataContainer::const_iterator findBeginBelowKey(double key) const;
-  QCPDataContainer::const_iterator findEndAboveKey(double key) const;
+  QCPDataContainer::const_iterator findBegin(double sortKey, bool expandedRange=true) const;
+  QCPDataContainer::const_iterator findEnd(double sortKey, bool expandedRange=true) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
+  QCPDataRange dataRange() const { return QCPDataRange(0, size()); }
+  void limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const;
   
 protected:
   // property members:

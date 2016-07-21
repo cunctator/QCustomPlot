@@ -34,42 +34,44 @@
 
 /*! \class QCPLayer
   \brief A layer that may contain objects, to control the rendering order
-  
+
   The Layering system of QCustomPlot is the mechanism to control the rendering order of the
   elements inside the plot.
-  
+
   It is based on the two classes QCPLayer and QCPLayerable. QCustomPlot holds an ordered list of
   one or more instances of QCPLayer (see QCustomPlot::addLayer, QCustomPlot::layer,
   QCustomPlot::moveLayer, etc.). When replotting, QCustomPlot goes through the list of layers
   bottom to top and successively draws the layerables of the layers.
-  
+
   A QCPLayer contains an ordered list of QCPLayerable instances. QCPLayerable is an abstract base
   class from which almost all visible objects derive, like axes, grids, graphs, items, etc.
-  
-  Initially, QCustomPlot has five layers: "background", "grid", "main", "axes" and "legend" (in
-  that order). The top two layers "axes" and "legend" contain the default axes and legend, so they
-  will be drawn on top. In the middle, there is the "main" layer. It is initially empty and set as
-  the current layer (see QCustomPlot::setCurrentLayer). This means, all new plottables, items etc.
-  are created on this layer by default. Then comes the "grid" layer which contains the QCPGrid
-  instances (which belong tightly to QCPAxis, see \ref QCPAxis::grid). The Axis rect background
-  shall be drawn behind everything else, thus the default QCPAxisRect instance is placed on the
-  "background" layer. Of course, the layer affiliation of the individual objects can be changed as
-  required (\ref QCPLayerable::setLayer).
-  
+
+  Initially, QCustomPlot has six layers: "background", "grid", "main", "axes", "legend" and
+  "overlay" (in that order). On top is the "overlay" layer, which only contains the QCustomPlot's
+  selection rect (\ref QCustomPlot::selectionRect). The next two layers "axes" and "legend" contain
+  the default axes and legend, so they will be drawn above plottables. In the middle, there is the
+  "main" layer. It is initially empty and set as the current layer (see
+  QCustomPlot::setCurrentLayer). This means, all new plottables, items etc. are created on this
+  layer by default. Then comes the "grid" layer which contains the QCPGrid instances (which belong
+  tightly to QCPAxis, see \ref QCPAxis::grid). The Axis rect background shall be drawn behind
+  everything else, thus the default QCPAxisRect instance is placed on the "background" layer. Of
+  course, the layer affiliation of the individual objects can be changed as required (\ref
+  QCPLayerable::setLayer).
+
   Controlling the ordering of objects is easy: Create a new layer in the position you want it to
   be, e.g. above "main", with QCustomPlot::addLayer. Then set the current layer with
   QCustomPlot::setCurrentLayer to that new layer and finally create the objects normally. They will
   be placed on the new layer automatically, due to the current layer setting. Alternatively you
   could have also ignored the current layer setting and just moved the objects with
   QCPLayerable::setLayer to the desired layer after creating them.
-  
+
   It is also possible to move whole layers. For example, If you want the grid to be shown in front
   of all plottables/items on the "main" layer, just move it above "main" with
   QCustomPlot::moveLayer.
-  
+
   The rendering order within one layer is simply by order of creation or insertion. The item
   created last (or added last to the layer), is drawn on top of all other objects on that layer.
-  
+
   When a layer is deleted, the objects on it are not deleted with it, but fall on the layer below
   the deleted layer, see QCustomPlot::removeLayer.
 */

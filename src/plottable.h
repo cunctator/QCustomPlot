@@ -31,8 +31,56 @@
 #include "axis/range.h"
 #include "layer.h"
 #include "axis/axis.h"
+#include "selection.h"
+#include "scatterstyle.h"
 
 class QCPPainter;
+class QCPAbstractPlottable;
+class QCPPlottableInterface1D;
+
+class QCP_LIB_DECL QCPSelectionDecorator
+{
+  Q_GADGET
+public:
+  QCPSelectionDecorator();
+  virtual ~QCPSelectionDecorator();
+  
+  // getters:
+  QPen pen() const { return mPen; }
+  QBrush brush() const { return mBrush; }
+  QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  QCPScatterStyle::ScatterProperties usedScatterProperties() const { return mUsedScatterProperties; }
+  
+  // setters:
+  void setPen(const QPen &pen);
+  void setBrush(const QBrush &brush);
+  void setScatterStyle(const QCPScatterStyle &scatterStyle, QCPScatterStyle::ScatterProperties usedProperties=QCPScatterStyle::spPen);
+  void setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties);
+  
+  // non-virtual methods:
+  void applyPen(QCPPainter *painter) const;
+  void applyBrush(QCPPainter *painter) const;
+  QCPScatterStyle getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const;
+  
+  // introduced virtual methods:
+  virtual void copyFrom(const QCPSelectionDecorator *other);
+  virtual void drawDecoration(QCPPainter *painter, QCPDataSelection selection);
+  
+protected:
+  // property members:
+  QPen mPen;
+  QBrush mBrush;
+  QCPScatterStyle mScatterStyle;
+  QCPScatterStyle::ScatterProperties mUsedScatterProperties;
+  // non-property members:
+  QCPAbstractPlottable *mPlottable;
+  
+  // introduced virtual methods:
+  virtual bool registerWithPlottable(QCPAbstractPlottable *plottable);
+  
+  friend class QCPAbstractPlottable;
+};
+
 
 class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
 {
@@ -42,45 +90,45 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(bool antialiasedFill READ antialiasedFill WRITE setAntialiasedFill)
   Q_PROPERTY(bool antialiasedScatters READ antialiasedScatters WRITE setAntialiasedScatters)
   Q_PROPERTY(QPen pen READ pen WRITE setPen)
-  Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   Q_PROPERTY(QBrush brush READ brush WRITE setBrush)
-  Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   Q_PROPERTY(QCPAxis* keyAxis READ keyAxis WRITE setKeyAxis)
   Q_PROPERTY(QCPAxis* valueAxis READ valueAxis WRITE setValueAxis)
-  Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
-  Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
+  Q_PROPERTY(QCP::SelectionType selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
+  Q_PROPERTY(bool selected READ selected NOTIFY selectionChanged)
+  Q_PROPERTY(QCPSelectionDecorator* selectionDecorator READ selectionDecorator WRITE setSelectionDecorator)
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
+  virtual ~QCPAbstractPlottable();
   
   // getters:
   QString name() const { return mName; }
   bool antialiasedFill() const { return mAntialiasedFill; }
   bool antialiasedScatters() const { return mAntialiasedScatters; }
   QPen pen() const { return mPen; }
-  QPen selectedPen() const { return mSelectedPen; }
   QBrush brush() const { return mBrush; }
-  QBrush selectedBrush() const { return mSelectedBrush; }
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
-  bool selectable() const { return mSelectable; }
-  bool selected() const { return mSelected; }
+  QCP::SelectionType selectable() const { return mSelectable; }
+  bool selected() const { return !mSelection.isEmpty(); }
+  QCPDataSelection selection() const { return mSelection; }
+  QCPSelectionDecorator *selectionDecorator() const { return mSelectionDecorator; }
   
   // setters:
   void setName(const QString &name);
   void setAntialiasedFill(bool enabled);
   void setAntialiasedScatters(bool enabled);
   void setPen(const QPen &pen);
-  void setSelectedPen(const QPen &pen);
   void setBrush(const QBrush &brush);
-  void setSelectedBrush(const QBrush &brush);
   void setKeyAxis(QCPAxis *axis);
   void setValueAxis(QCPAxis *axis);
-  Q_SLOT void setSelectable(bool selectable);
-  Q_SLOT void setSelected(bool selected);
+  Q_SLOT void setSelectable(QCP::SelectionType selectable);
+  Q_SLOT void setSelection(QCPDataSelection selection);
+  void setSelectionDecorator(QCPSelectionDecorator *decorator);
 
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
+  virtual QCPPlottableInterface1D *interface1D() { return 0; }
   
   // non-property methods:
   void rescaleAxes(bool onlyEnlarge=false) const;
@@ -91,16 +139,19 @@ public:
   
 signals:
   void selectionChanged(bool selected);
-  void selectableChanged(bool selectable);
+  void selectionChanged(QCPDataSelection selection);
+  void selectableChanged(QCP::SelectionType selectable);
   
 protected:
   // property members:
   QString mName;
   bool mAntialiasedFill, mAntialiasedScatters;
-  QPen mPen, mSelectedPen;
-  QBrush mBrush, mSelectedBrush;
+  QPen mPen;
+  QBrush mBrush;
   QPointer<QCPAxis> mKeyAxis, mValueAxis;
-  bool mSelectable, mSelected;
+  QCP::SelectionType mSelectable;
+  QCPDataSelection mSelection;
+  QCPSelectionDecorator *mSelectionDecorator;
   
   // reimplemented virtual methods:
   virtual QRect clipRect() const;
@@ -121,8 +172,6 @@ protected:
   const QPointF coordsToPixels(double key, double value) const;
   void pixelsToCoords(double x, double y, double &key, double &value) const;
   void pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const;
-  QPen mainPen() const;
-  QBrush mainBrush() const;
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
 
@@ -133,5 +182,6 @@ private:
   friend class QCPAxis;
   friend class QCPPlottableLegendItem;
 };
+
 
 #endif // QCP_PLOTTABLE_H

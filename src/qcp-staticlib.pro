@@ -65,7 +65,12 @@ layoutelements/layoutelement-axisrect.h \
     axis/axistickertext.h \
     axis/axistickerpi.h \
     axis/axistickerlog.h \
-    datacontainer.h
+    datacontainer.h \
+    selection.h \
+    selectionrect.h \
+    plottable1d.h \
+    scatterstyle.h \
+    selectiondecorator-bracket.h
 
 SOURCES += \
 painter.cpp \
@@ -105,7 +110,12 @@ layoutelements/layoutelement-axisrect.cpp \
     axis/axistickertext.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp \
-    datacontainer.cpp
+    datacontainer.cpp \
+    selection.cpp \
+    selectionrect.cpp \
+    plottable1d.cpp \
+    scatterstyle.cpp \
+    selectiondecorator-bracket.cpp
 
 OTHER_FILES += \
     ../changelog.txt \
@@ -113,4 +123,5 @@ OTHER_FILES += \
     doc-layoutsystem.dox \
     doc-mainpage.dox \
     doc-specialqtflags.dox \
-    doc-performance.dox
+    doc-performance.dox \
+    doc-dataselection.dox

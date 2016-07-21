@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../datacontainer.h"
 
 class QCPPainter;
@@ -114,7 +114,7 @@ public:
   
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPBarsData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPBarsDataContainer
@@ -128,7 +128,7 @@ Q_DECLARE_TYPEINFO(QCPBarsData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPBarsData> QCPBarsDataContainer;
 
-class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable1D<QCPBarsData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -165,25 +165,25 @@ public:
   QSharedPointer<QCPBarsDataContainer> data() const { return mDataContainer; }
   
   // setters:
+  void setData(QSharedPointer<QCPBarsDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setWidth(double width);
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
-  void setData(QSharedPointer<QCPBarsDataContainer> data);
-  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   
   // non-property methods:
-  void moveBelow(QCPBars *bars);
-  void moveAbove(QCPBars *bars);
   void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void addData(double key, double value);
+  void moveBelow(QCPBars *bars);
+  void moveAbove(QCPBars *bars);
   
   // reimplemented virtual methods:
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:
   // property members:
-  QSharedPointer<QCPBarsDataContainer> mDataContainer;
   double mWidth;
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;

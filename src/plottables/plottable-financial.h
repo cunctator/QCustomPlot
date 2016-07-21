@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -52,7 +52,7 @@ public:
   
   double key, open, high, low, close;
 };
-Q_DECLARE_TYPEINFO(QCPFinancialData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPFinancialData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPFinancialDataContainer
@@ -66,7 +66,7 @@ Q_DECLARE_TYPEINFO(QCPFinancialData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPFinancialData> QCPFinancialDataContainer;
 
-class QCP_LIB_DECL QCPFinancial : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPFinancial : public QCPAbstractPlottable1D<QCPFinancialData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -118,6 +118,7 @@ public:
   void addData(double key, double open, double high, double low, double close);
   
   // reimplemented virtual methods:
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
   // static methods:
@@ -125,7 +126,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPFinancialDataContainer> mDataContainer;
   ChartStyle mChartStyle;
   double mWidth;
   bool mTwoColored;
@@ -139,11 +139,12 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // non-virtual methods:
-  void drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end);
-  void drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end);
-  double ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
-  double candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const;
+  void drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected);
+  void drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected);
+  double ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const;
+  double candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const;
   void getVisibleDataBounds(QCPFinancialDataContainer::const_iterator &begin, QCPFinancialDataContainer::const_iterator &end) const;
+  QRectF selectionHitBox(QCPFinancialDataContainer::const_iterator it) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

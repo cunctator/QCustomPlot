@@ -753,16 +753,21 @@ void QCPColorMap::updateLegendIcon(Qt::TransformationMode transformMode, const Q
 double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if (onlySelectable && !mSelectable)
+  if ((onlySelectable && mSelectable == QCP::stNone) || mMapData->isEmpty())
     return -1;
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     double posKey, posValue;
     pixelsToCoords(pos, posKey, posValue);
     if (mMapData->keyRange().contains(posKey) && mMapData->valueRange().contains(posValue))
+    {
+      if (details)
+        details->setValue(QCPDataSelection(QCPDataRange(0, 1))); // temporary solution, to facilitate whole-plottable selection. Replace in future version with segmented 2D selection.
       return mParentPlot->selectionTolerance()*0.99;
+    }
   }
   return -1;
 }

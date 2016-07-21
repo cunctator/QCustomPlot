@@ -75,6 +75,11 @@ fileList += [(8   ,"html/ssPlusSquare.png")]
 fileList += [(8   ,"html/ssCrossCircle.png")]
 fileList += [(8   ,"html/ssPlusCircle.png")]
 fileList += [(8   ,"html/ssPeace.png")]
+fileList += [(16  ,"html/selectiontype-none.png")]
+fileList += [(16  ,"html/selectiontype-whole.png")]
+fileList += [(16  ,"html/selectiontype-singledata.png")]
+fileList += [(16  ,"html/selectiontype-datarange.png")]
+fileList += [(16  ,"html/selectiontype-multipledataranges.png")]
 
 # Doxygen images:
 fileList += [(16  , f) for f in glob.glob("html/class*__inherit__graph.png")]
@@ -88,7 +93,6 @@ fileList += [(16  ,"html/ftv2pnode.png")]
 fileList += [(16  ,"html/ftv2node.png")]
 fileList += [(16  ,"html/tab_s.png")]
 fileList += [(16  ,"html/bdwn.png")]
-fileList += [(16  ,"html/ftv2mo.png")]
 fileList += [(16  ,"html/ftv2mnode.png")]
 fileList += [(16  ,"html/sync_off.png")]
 fileList += [(16  ,"html/open.png")]
@@ -96,13 +100,11 @@ fileList += [(16  ,"html/bc_s.png")]
 fileList += [(16  ,"html/tab_h.png")]
 fileList += [(16  ,"html/tab_b.png")]
 fileList += [(16  ,"html/ftv2folderopen.png")]
-fileList += [(16  ,"html/ftv2cl.png")]
 fileList += [(16  ,"html/ftv2splitbar.png")]
 fileList += [(16  ,"html/ftv2mlastnode.png")]
 fileList += [(16  ,"html/tab_a.png")]
 fileList += [(16  ,"html/ftv2folderclosed.png")]
 fileList += [(16  ,"html/nav_h.png")]
-fileList += [(16  ,"html/ftv2ns.png")]
 fileList += [(16  ,"html/ftv2link.png")]
 fileList += [(16  ,"html/ftv2vertline.png")]
 fileList += [(16  ,"html/nav_g.png")]
@@ -112,6 +114,9 @@ fileList += [(2   ,"html/doxygen.png")]
 
 allPngFiles = glob.glob("html/*.png")
 for (colors, fileName) in fileList:
+  if not fileName in allPngFiles:
+    print "WARNING: couldn't find image \""+fileName+"\""
+    continue
   allPngFiles.remove(fileName)
   if colors > 0:
     print "compressing colors of '"+fileName+"'"

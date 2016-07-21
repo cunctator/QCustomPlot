@@ -23,52 +23,61 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_H
-#define QCP_H
+#ifndef QCP_SELECTIONRECT_H
+#define QCP_SELECTIONRECT_H
 
 #include "global.h"
-#include "qcpvector2d.h"
-#include "painter.h"
 #include "layer.h"
-#include "layout.h"
 #include "axis/range.h"
-#include "selection.h"
-#include "selectionrect.h"
-#include "axis/axis.h"
-#include "axis/axisticker.h"
-#include "axis/axistickerdatetime.h"
-#include "axis/axistickertime.h"
-#include "axis/axistickerfixed.h"
-#include "axis/axistickertext.h"
-#include "axis/axistickerpi.h"
-#include "axis/axistickerlog.h"
-#include "scatterstyle.h"
-#include "plottable.h"
-#include "plottable1d.h"
-#include "datacontainer.h"
-#include "item.h"
-#include "lineending.h"
-#include "core.h"
-#include "colorgradient.h"
-#include "selectiondecorator-bracket.h"
-#include "plottables/plottable-graph.h"
-#include "plottables/plottable-curve.h"
-#include "plottables/plottable-bars.h"
-#include "plottables/plottable-statisticalbox.h"
-#include "plottables/plottable-colormap.h"
-#include "plottables/plottable-financial.h"
-#include "items/item-straightline.h"
-#include "items/item-line.h"
-#include "items/item-curve.h"
-#include "items/item-rect.h"
-#include "items/item-text.h"
-#include "items/item-ellipse.h"
-#include "items/item-pixmap.h"
-#include "items/item-tracer.h"
-#include "items/item-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
-#include "layoutelements/layoutelement-colorscale.h"
 
-#endif // QCP_H
+class QCPAxis;
+
+class QCP_LIB_DECL QCPSelectionRect : public QCPLayerable
+{
+  Q_OBJECT
+public:
+  explicit QCPSelectionRect(QCustomPlot *parentPlot);
+  ~QCPSelectionRect();
+  
+  // getters:
+  QRect rect() const { return mRect; }
+  QCPRange range(const QCPAxis *axis) const;
+  QPen pen() const { return mPen; }
+  QBrush brush() const { return mBrush; }
+  bool isActive() const { return mActive; }
+  
+  // setters:
+  void setPen(const QPen &pen);
+  void setBrush(const QBrush &brush);
+  
+  // non-property methods:
+  Q_SLOT void cancel();
+  
+signals:
+  void started(QMouseEvent *event);
+  void changed(QRect rect, QMouseEvent *event);
+  void canceled(QRect rect, QInputEvent *event);
+  void accepted(QRect rect, QMouseEvent *event);
+  
+protected:
+  // property members:
+  QRect mRect;
+  QPen mPen;
+  QBrush mBrush;
+  // non-property members:
+  bool mActive;
+  
+  // introduced virtual methods:
+  virtual void startSelection(QMouseEvent *event);
+  virtual void moveSelection(QMouseEvent *event);
+  virtual void endSelection(QMouseEvent *event);
+  virtual void keyPressEvent(QKeyEvent *event);
+  
+  // reimplemented virtual methods
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
+  virtual void draw(QCPPainter *painter);
+  
+  friend class QCustomPlot;
+};
+
+#endif // QCP_SELECTIONRECT_H

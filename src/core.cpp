@@ -36,6 +36,7 @@
 #include "plottable.h"
 #include "plottables/plottable-graph.h"
 #include "item.h"
+#include "selectionrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCustomPlot
@@ -51,6 +52,14 @@
 */
 
 /* start of documentation of inline functions */
+
+/*! \fn QCPSelectionRect *QCustomPlot::selectionRect() const
+  
+  Allows access to the currently used QCPSelectionRect instance (or subclass thereof), that is used
+  to handle and draw selection rect interactions (see \ref setSelectionRectMode).
+  
+  \see setSelectionRect
+*/
 
 /*! \fn QRect QCustomPlot::viewport() const
   
@@ -230,11 +239,12 @@
   
   This signal is emitted after the user has changed the selection in the QCustomPlot, e.g. by
   clicking. It is not emitted when the selection state of an object has changed programmatically by
-  a direct call to setSelected() on an object or by calling \ref deselectAll.
+  a direct call to <tt>setSelected()</tt>/<tt>setSelection()</tt> on an object or by calling \ref
+  deselectAll.
   
-  In addition to this signal, selectable objects also provide individual signals, for example
-  QCPAxis::selectionChanged or QCPAbstractPlottable::selectionChanged. Note that those signals are
-  emitted even if the selection state is changed programmatically.
+  In addition to this signal, selectable objects also provide individual signals, for example \ref
+  QCPAxis::selectionChanged or \ref QCPAbstractPlottable::selectionChanged. Note that those signals
+  are emitted even if the selection state is changed programmatically.
   
   See the documentation of \ref setInteractions for details about the selection mechanism.
   
@@ -385,11 +395,15 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mBackgroundScaled(true),
   mBackgroundScaledMode(Qt::KeepAspectRatioByExpanding),
   mCurrentLayer(0),
-  mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
+  mPlottingHints(QCP::phCacheLabels|QCP::phImmediateRefresh),
   mMultiSelectModifier(Qt::ControlModifier),
+  mSelectionRectMode(QCP::srmNone),
+  mSelectionRect(0),
   mPaintBuffer(size()),
+  mMouseHasMoved(false),
   mMouseEventElement(0),
-  mReplotting(false)
+  mReplotting(false),
+  mReplotQueued(false)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -404,6 +418,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mLayers.append(new QCPLayer(this, QLatin1String("main")));
   mLayers.append(new QCPLayer(this, QLatin1String("axes")));
   mLayers.append(new QCPLayer(this, QLatin1String("legend")));
+  mLayers.append(new QCPLayer(this, QLatin1String("overlay")));
   updateLayerIndices();
   setCurrentLayer(QLatin1String("main"));
   
@@ -434,9 +449,13 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   yAxis2->grid()->setLayer(QLatin1String("grid"));
   legend->setLayer(QLatin1String("legend"));
   
+  // create selection rect instance:
+  mSelectionRect = new QCPSelectionRect(this);
+  mSelectionRect->setLayer("overlay");
+  
   setViewport(rect()); // needs to be called after mPlotLayout has been created
   
-  replot();
+  replot(rpQueuedReplot);
 }
 
 QCustomPlot::~QCustomPlot()
@@ -567,14 +586,14 @@ void QCustomPlot::setAutoAddPlottableToLegend(bool on)
   QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeZoom, \ref QCPAxisRect::setRangeDragAxes,
   \ref QCPAxisRect::setRangeZoomAxes.
   
-  <b>Plottable selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref QCP::iSelectPlottables is
-  set, the user may select plottables (graphs, curves, bars,...) by clicking on them or in their
-  vicinity (\ref setSelectionTolerance). Whether the user can actually select a plottable can
-  further be restricted with the \ref QCPAbstractPlottable::setSelectable function on the specific
-  plottable. To find out whether a specific plottable is selected, call
-  QCPAbstractPlottable::selected(). To retrieve a list of all currently selected plottables, call
-  \ref selectedPlottables. If you're only interested in QCPGraphs, you may use the convenience
-  function \ref selectedGraphs.
+  <b>Plottable data selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref
+  QCP::iSelectPlottables is set, the user may select plottables (graphs, curves, bars,...) and
+  their data by clicking on them or in their vicinity (\ref setSelectionTolerance). Whether the
+  user can actually select a plottable and its data can further be restricted with the \ref
+  QCPAbstractPlottable::setSelectable method on the specific plottable. For details, see the
+  special page about the \ref dataselection "data selection mechanism". To retrieve a list of all
+  currently selected plottables, call \ref selectedPlottables. If you're only interested in
+  QCPGraphs, you may use the convenience function \ref selectedGraphs.
   
   <b>Item selection</b> is controlled by \ref QCP::iSelectItems. If \ref QCP::iSelectItems is set, the user
   may select items (QCPItemLine, QCPItemText,...) by clicking on them or in their vicinity. To find
@@ -693,8 +712,8 @@ void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
 /*!
   Sets the keyboard modifier that will be recognized as multi-select-modifier.
   
-  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple objects
-  by clicking on them one after the other while holding down \a modifier.
+  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple
+  objects (or data points) by clicking on them one after the other while holding down \a modifier.
   
   By default the multi-select-modifier is set to Qt::ControlModifier.
   
@@ -703,6 +722,76 @@ void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
 void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
 {
   mMultiSelectModifier = modifier;
+}
+
+/*!
+  Sets how QCustomPlot processes mouse click-and-drag interactions by the user.
+
+  If \a mode is \ref QCP::srmNone, the mouse drag is forwarded to the underlying objects. For
+  example, QCPAxisRect may process a mouse drag by dragging axis ranges, see \ref
+  QCPAxisRect::setRangeDrag. If \a mode is not \ref QCP::srmNone, the current selection rect (\ref
+  selectionRect) becomes activated and allows e.g. rect zooming and data point selection.
+  
+  If you wish to provide your user both with axis range dragging and data selection/range zooming,
+  use this method to switch between the modes just before the interaction is processed, e.g. in
+  reaction to the \ref mousePress or \ref mouseMove signals. For example you could check whether
+  the user is holding a certain keyboard modifier, and then decide which \a mode shall be set.
+  
+  If a selection rect interaction is currently active, and \a mode is set to \ref QCP::srmNone, the
+  interaction is canceled (\ref QCPSelectionRect::cancel). Switching between any of the other modes
+  will keep the selection rect active. Upon completion of the interaction, the behaviour is as
+  defined by the currently set \a mode, not the mode that was set when the interaction started.
+  
+  \see setInteractions, setSelectionRect, QCPSelectionRect
+*/
+void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
+{
+  if (mSelectionRect)
+  {
+    if (mode == QCP::srmNone)
+      mSelectionRect->cancel(); // when switching to none, we immediately want to abort a potentially active selection rect
+    
+    // disconnect old connections:
+    if (mSelectionRectMode == QCP::srmSelect)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+    
+    // establish new ones:
+    if (mode == QCP::srmSelect)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+  }
+  
+  mSelectionRectMode = mode;
+}
+
+/*!
+  Sets the \ref QCPSelectionRect instance that QCustomPlot will use if \a mode is not \ref
+  QCP::srmNone and the user performs a click-and-drag interaction. QCustomPlot takes ownership of
+  the passed \a selectionRect. It can be accessed later via \ref selectionRect.
+  
+  This method is useful if you wish to replace the default QCPSelectionRect instance with an
+  instance of a QCPSelectionRect subclass, to introduce custom behaviour of the selection rect.
+  
+  \see setSelectionRectMode
+*/
+void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
+{
+  if (mSelectionRect)
+    delete mSelectionRect;
+  
+  mSelectionRect = selectionRect;
+  
+  if (mSelectionRect)
+  {
+    // establish connections with new selection rect:
+    if (mSelectionRectMode == QCP::srmSelect)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+  }
 }
 
 /*!
@@ -908,7 +997,7 @@ int QCustomPlot::plottableCount() const
   
   There is a convenience function if you're only interested in selected graphs, see \ref selectedGraphs.
   
-  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
@@ -1091,7 +1180,7 @@ int QCustomPlot::graphCount() const
   If you are not only interested in selected graphs but other plottables like QCPCurve, QCPBars,
   etc., use \ref selectedPlottables.
   
-  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {
@@ -1657,9 +1746,20 @@ void QCustomPlot::deselectAll()
 */
 void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
 {
+  if (refreshPriority == QCustomPlot::rpQueuedReplot)
+  {
+    if (!mReplotQueued)
+    {
+      mReplotQueued = true;
+      QTimer::singleShot(0, this, SLOT(replot(QCustomPlot::RefreshPriority)));
+    }
+    return;
+  }
+  
   if (mReplotting) // incase signals loop back to replot slot
     return;
   mReplotting = true;
+  mReplotQueued = false;
   emit beforeReplot();
   
   mPaintBuffer.fill(mBackgroundBrush.style() == Qt::SolidPattern ? mBackgroundBrush.color() : Qt::transparent);
@@ -1672,7 +1772,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
       painter.fillRect(mViewport, mBackgroundBrush);
     draw(&painter);
     painter.end();
-    if ((refreshPriority == rpHint && mPlottingHints.testFlag(QCP::phForceRepaint)) || refreshPriority==rpImmediate)
+    if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
       repaint();
     else
       update();
@@ -1827,8 +1927,8 @@ bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
   objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
   this function.
 
-  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush
-  &brush) with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
+  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush &brush)
+  with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
 
   PNG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
   -1 to use the default setting.
@@ -1964,7 +2064,7 @@ void QCustomPlot::resizeEvent(QResizeEvent *event)
   // resize and repaint the buffer:
   mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
-  replot(rpQueued); // queued update is important here, to prevent painting issues in some contexts
+  replot(rpQueuedRefresh); // queued refresh is important here, to prevent painting issues in some contexts (e.g. MDI subwindow)
 }
 
 /*! \internal
@@ -1985,8 +2085,12 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   
   // emit specialized object double click signals:
   if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-    emit plottableDoubleClick(ap, event);
-  else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
+  {
+    int dataIndex = 0;
+    if (!details.value<QCPDataSelection>().isEmpty())
+      dataIndex = details.value<QCPDataSelection>().dataRange().begin();
+    emit plottableDoubleClick(ap, dataIndex, event);
+  } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
     emit axisDoubleClick(ax, details.value<QCPAxis::SelectablePart>(), event);
   else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
     emit itemDoubleClick(ai, event);
@@ -2013,20 +2117,34 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
 
 /*! \internal
   
-  Event handler for when a mouse button is pressed. Emits the mousePress signal. Then determines
-  the affected layout element and forwards the event to it.
+  Event handler for when a mouse button is pressed. Emits the mousePress signal.
+
+  If the current \ref setSelectionRectMode is not \ref QCP::srmNone, passes the event to the
+  selection rect. Otherwise determines the layout element under the cursor and forwards the event
+  to it.
   
   \see mouseMoveEvent, mouseReleaseEvent
 */
 void QCustomPlot::mousePressEvent(QMouseEvent *event)
 {
   emit mousePress(event);
-  mMousePressPos = event->pos(); // need this to determine in releaseEvent whether it was a click (no position change between press and release)
+  // save some state to tell in releaseEvent whether it was a click:
+  mMouseHasMoved = false;
+  mMousePressPos = event->pos();
+  QCPLayoutElement *pressedElement = layoutElementAt(event->pos());
   
-  // call event of affected layout element:
-  mMouseEventElement = layoutElementAt(event->pos());
-  if (mMouseEventElement)
-    mMouseEventElement->mousePressEvent(event);
+  if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
+  {
+    // activate selection rect:
+    if (mSelectionRectMode != QCP::srmZoom || qobject_cast<QCPAxisRect*>(pressedElement)) // in zoom mode only activate selection rect if on an axis rect
+      mSelectionRect->startSelection(event);
+  } else
+  {
+    // no selection rect interaction, so forward event to layout element under the cursor:
+    mMouseEventElement = pressedElement;
+    if (mMouseEventElement)
+      mMouseEventElement->mousePressEvent(event);
+  }
   
   QWidget::mousePressEvent(event);
 }
@@ -2035,18 +2153,32 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   
   Event handler for when the cursor is moved. Emits the \ref mouseMove signal.
 
-  If a layout element has mouse capture focus (a mousePressEvent happened on top of the layout
-  element before), the mouseMoveEvent is forwarded to that element.
+  If the selection rect (\ref setSelectionRect) is currently active, the event is forwarded to it
+  in order to update the rect geometry.
+  
+  Otherwise, if a layout element has mouse capture focus (a mousePressEvent happened on top of the
+  layout element before), the mouseMoveEvent is forwarded to that element.
   
   \see mousePressEvent, mouseReleaseEvent
 */
 void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 {
   emit mouseMove(event);
-
-  // call event of affected layout element:
-  if (mMouseEventElement)
-    mMouseEventElement->mouseMoveEvent(event);
+  
+  if (!mMouseHasMoved && (mMousePressPos-event->pos()).manhattanLength() > 3)
+    mMouseHasMoved = true; // moved too far from mouse press position, don't handle as click on mouse release
+  
+  if (mSelectionRect && mSelectionRect->isActive())
+  {
+    // update selection rect:
+    mSelectionRect->moveSelection(event);
+    replot(rpQueuedReplot); // TODO: replace by selective replot of "overlay" layer
+  } else
+  {
+    // call event of affected layout element:
+    if (mMouseEventElement)
+      mMouseEventElement->mouseMoveEvent(event);
+  }
   
   QWidget::mouseMoveEvent(event);
 }
@@ -2068,53 +2200,24 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 {
   emit mouseRelease(event);
-  bool doReplot = false;
   
-  if ((mMousePressPos-event->pos()).manhattanLength() < 5) // determine whether it was a click operation
+  if (!mMouseHasMoved) // mouse hasn't moved (much) between press and release, so handle as click
   {
+    if (mSelectionRect && mSelectionRect->isActive()) // a simple click shouldn't successfully finish a selection rect, so cancel it here
+      mSelectionRect->cancel();
     if (event->button() == Qt::LeftButton)
-    {
-      // handle selection mechanism:
-      QVariant details;
-      QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
-      bool selectionStateChanged = false;
-      bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
-      // deselect all other layerables if not additive selection:
-      if (!additive)
-      {
-        foreach (QCPLayer *layer, mLayers)
-        {
-          foreach (QCPLayerable *layerable, layer->children())
-          {
-            if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
-            {
-              bool selChanged = false;
-              layerable->deselectEvent(&selChanged);
-              selectionStateChanged |= selChanged;
-            }
-          }
-        }
-      }
-      if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
-      {
-        // a layerable was actually clicked, call its selectEvent:
-        bool selChanged = false;
-        clickedLayerable->selectEvent(event, additive, details, &selChanged);
-        selectionStateChanged |= selChanged;
-      }
-      if (selectionStateChanged)
-      {
-        doReplot = true;
-        emit selectionChangedByUser();
-      }
-    }
+      processPointSelection(event);
     
     // emit specialized object click signals:
     QVariant details;
     QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details); // for these signals, selectability is ignored, that's why we call this again with onlySelectable set to false
     if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-      emit plottableClick(ap, event);
-    else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
+    {
+      int dataIndex = 0;
+      if (!details.value<QCPDataSelection>().isEmpty())
+        dataIndex = details.value<QCPDataSelection>().dataRange().begin();
+      emit plottableClick(ap, dataIndex, event);
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
       emit axisClick(ax, details.value<QCPAxis::SelectablePart>(), event);
     else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
       emit itemClick(ai, event);
@@ -2126,15 +2229,22 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       emit titleClick(event, pt);
   }
   
-  // call event of affected layout element:
-  if (mMouseEventElement)
+  if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is canceled there
   {
-    mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    // finish selection rect, the appropriate action will be taken via signal-slot connection:
+    mSelectionRect->endSelection(event);
+  } else
+  {
+    // call event of affected layout element:
+    if (mMouseEventElement)
+    {
+      mMouseEventElement->mouseReleaseEvent(event);
+      mMouseEventElement = 0;
+    }
   }
   
-  if (doReplot || noAntialiasingOnDrag())
-    replot();
+  if (noAntialiasingOnDrag())
+    replot(rpQueuedReplot);
   
   QWidget::mouseReleaseEvent(event);
 }
@@ -2213,8 +2323,8 @@ void QCustomPlot::draw(QCPPainter *painter)
   dependent on the \ref setBackgroundScaledMode), or when a differend axis background pixmap was
   set.
   
-  Note that this function does not draw a fill with the background brush (\ref setBackground(const
-  QBrush &brush)) beneath the pixmap.
+  Note that this function does not draw a fill with the background brush
+  (\ref setBackground(const QBrush &brush)) beneath the pixmap.
   
   \see setBackground, setBackgroundScaled, setBackgroundScaledMode
 */
@@ -2268,6 +2378,164 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 {
   if (this->legend == legend)
     this->legend = 0;
+}
+
+/*! \internal
+  
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmSelect.
+
+  First, it determines which axis rect was the origin of the selection rect judging by the starting
+  point of the selection. Then it goes through the plottables (\ref QCPAbstractPlottable1D to be
+  precise) associated with that axis rect and finds the data points that are in \a rect. It does
+  this by querying their \ref QCPAbstractPlottable1D::selectTestRect method.
+  
+  Then, the actual selection is done by calling the plottables' \ref
+  QCPAbstractPlottable::selectEvent, placing the found selected data points in the \a details
+  parameter as <tt>QVariant(\ref QCPDataSelection)</tt>. All plottables that weren't touched by \a
+  rect receive a \ref QCPAbstractPlottable::deselectEvent.
+  
+  \see processRectZoom
+*/
+void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
+{
+  bool selectionStateChanged = false;
+  
+  if (mInteractions.testFlag(QCP::iSelectPlottables))
+  {
+    QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
+    
+    QCPLayoutElement *affectedElement = layoutElementAt(rect.topLeft());
+    if (QCPAxisRect *affectedAxisRect = qobject_cast<QCPAxisRect*>(affectedElement))
+    {
+      // determine plottables that were hit by the rect and thus are candidates for selection:
+      foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
+      {
+        if (QCPPlottableInterface1D *plottableInterface = plottable->interface1D())
+        {
+          QCPDataSelection dataSel = plottableInterface->selectTestRect(QRectF(rect.normalized()), true);
+          if (!dataSel.isEmpty())
+            potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
+        }
+      }
+      
+      if (!mInteractions.testFlag(QCP::iMultiSelect))
+      {
+        // only leave plottable with most selected points in map, since we will only select a single plottable:
+        if (!potentialSelections.isEmpty())
+        {
+          QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::iterator it = potentialSelections.begin();
+          while (it != potentialSelections.end()-1) // erase all except last element
+            it = potentialSelections.erase(it);
+        }
+      }
+      
+      bool additive = event->modifiers().testFlag(mMultiSelectModifier);
+      // deselect all other layerables if not additive selection:
+      if (!additive)
+      {
+        // emit deselection except to those plottables who will be selected afterwards:
+        foreach (QCPLayer *layer, mLayers)
+        {
+          foreach (QCPLayerable *layerable, layer->children())
+          {
+            if ((potentialSelections.isEmpty() || potentialSelections.first().first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
+            {
+              bool selChanged = false;
+              layerable->deselectEvent(&selChanged);
+              selectionStateChanged |= selChanged;
+            }
+          }
+        }
+      }
+      
+      // go through selections in reverse (largest selection first) and emit select events:
+      QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::const_iterator it = potentialSelections.constEnd();
+      while (it != potentialSelections.constBegin())
+      {
+        --it;
+        if (mInteractions.testFlag(it.value().first->selectionCategory()))
+        {
+          bool selChanged = false;
+          it.value().first->selectEvent(event, additive, QVariant::fromValue(it.value().second), &selChanged);
+          selectionStateChanged |= selChanged;
+        }
+      }
+    }
+  }
+  
+  if (selectionStateChanged)
+    emit selectionChangedByUser();
+  replot(rpQueuedReplot); // always replot to make selection rect disappear
+}
+
+/*! \internal
+  
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmZoom.
+
+  It determines which axis rect was the origin of the selection rect judging by the starting point
+  of the selection, and then zooms the axes defined via \ref QCPAxisRect::setRangeZoomAxes to the
+  provided \a rect (see \ref QCPAxisRect::zoom).
+  
+  \see processRectSelection
+*/
+void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
+{
+  Q_UNUSED(event)
+  if (QCPAxisRect *axisRect = qobject_cast<QCPAxisRect*>(layoutElementAt(rect.topLeft())))
+  {
+    QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxis(Qt::Horizontal) << axisRect->rangeZoomAxis(Qt::Vertical);
+    affectedAxes.removeAll(static_cast<QCPAxis*>(0));
+    axisRect->zoom(QRectF(rect), affectedAxes);
+  }
+  replot(rpQueuedReplot); // always replot to make selection rect disappear
+}
+
+/*! \internal
+  
+  This method is called when a simple left mouse click was detected on the QCustomPlot surface.
+
+  It first determines the layerable that was hit by the click, and then calls its \ref
+  QCPLayerable::selectEvent. All other layerables receive a QCPLayerable::deselectEvent (unless the
+  multi-select modifier was pressed, see \ref setMultiSelectModifier).
+        
+  \see processRectSelection, layerableAt, QCPLayerable::selectTest
+*/
+void QCustomPlot::processPointSelection(QMouseEvent *event)
+{
+  QVariant details;
+  QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
+  bool selectionStateChanged = false;
+  bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
+  // deselect all other layerables if not additive selection:
+  if (!additive)
+  {
+    foreach (QCPLayer *layer, mLayers)
+    {
+      foreach (QCPLayerable *layerable, layer->children())
+      {
+        if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
+        {
+          bool selChanged = false;
+          layerable->deselectEvent(&selChanged);
+          selectionStateChanged |= selChanged;
+        }
+      }
+    }
+  }
+  if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
+  {
+    // a layerable was actually clicked, call its selectEvent:
+    bool selChanged = false;
+    clickedLayerable->selectEvent(event, additive, details, &selChanged);
+    selectionStateChanged |= selChanged;
+  }
+  if (selectionStateChanged)
+  {
+    emit selectionChangedByUser();
+    replot(rpQueuedReplot);
+  }
 }
 
 /*! \internal
@@ -2380,7 +2648,8 @@ void QCustomPlot::updateLayerIndices() const
   layerable. This is useful if the respective layerable shall be given a subsequent
   QCPLayerable::selectEvent (like in \ref mouseReleaseEvent). \a selectionDetails usually contains
   information about which part of the layerable was hit, in multi-part layerables (e.g.
-  QCPAxis::SelectablePart).
+  QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
+  QCPDataSelection instance with the single data point which is closest to \a pos.
 */
 QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails) const
 {

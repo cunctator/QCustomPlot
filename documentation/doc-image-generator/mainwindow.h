@@ -21,6 +21,8 @@ public:
   ~MainWindow();
   
 public slots:
+  void run();
+  
   // image generators:
   void genScatterStyles();
   void genItemPixmap();
@@ -50,6 +52,7 @@ public slots:
   void genQCPColorScale();
   void genQCPColorGradient();
   void genQCPBarsGroup();
+  void genQCPSelectionType();
   
   void genQCPColorMap_Interpolate();
   void genQCPColorMap_TightBoundary();

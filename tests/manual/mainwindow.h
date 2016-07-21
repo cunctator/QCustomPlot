@@ -45,6 +45,8 @@ public:
   void setupBarsGroupTest(QCustomPlot *customPlot);
   void setupLargeDataSetDelete(QCustomPlot *customPlot);
   void setupMultiValueGraph(QCustomPlot *customPlot);
+  void setupDataSelectTest(QCustomPlot *customPlot);
+  
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   
@@ -59,6 +61,7 @@ public:
   void setupIntegerTickStepCase(QCustomPlot *customPlot);
   
 public slots:
+  void selectionRectChooser(QMouseEvent *event);
   void tracerTestMouseMove(QMouseEvent *event);
   void selectTestColorMapRefresh();
   void mouseMoveRotateTickLabels(QMouseEvent *event);

@@ -225,6 +225,95 @@ void MainWindow::snippetQCPFinancial()
   //! [qcpfinancial-creation-2]
 }
 
+void MainWindow::snippetQCPGraphDataSharing()
+{
+  QCPGraph *graph1 = customPlot->addGraph();
+  QCPGraph *graph2 = customPlot->addGraph();
+  //! [qcpgraph-datasharing-1]
+  graph2->setData(graph1->data()); // graph1 and graph2 now share data container
+  //! [qcpgraph-datasharing-1]
+  
+  //! [qcpgraph-datasharing-2]
+  graph2->data()->set(*graph1->data()); // graph2 now has copy of graph1's data in its container
+  //! [qcpgraph-datasharing-2]
+}
+
+void MainWindow::snippetQCPCurveDataSharing()
+{
+  QCPCurve *curve1 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  QCPCurve *curve2 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpcurve-datasharing-1]
+  curve2->setData(curve1->data()); // curve1 and curve2 now share data container
+  //! [qcpcurve-datasharing-1]
+  
+  //! [qcpcurve-datasharing-2]
+  curve2->data()->set(*curve1->data()); // curve2 now has copy of curve1's data in its container
+  //! [qcpcurve-datasharing-2]
+}
+
+void MainWindow::snippetQCPBarsDataSharing()
+{
+  QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpbars-datasharing-1]
+  bars2->setData(bars1->data()); // bars1 and bars2 now share data container
+  //! [qcpbars-datasharing-1]
+  
+  //! [qcpbars-datasharing-2]
+  bars2->data()->set(*bars1->data()); // bars2 now has copy of bars1's data in its container
+  //! [qcpbars-datasharing-2]
+}
+
+void MainWindow::snippetQCPStatisticalBoxDataSharing()
+{
+  QCPStatisticalBox *statBox1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  QCPStatisticalBox *statBox2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpstatisticalbox-datasharing-1]
+  statBox2->setData(statBox1->data()); // statBox1 and statBox2 now share data container
+  //! [qcpstatisticalbox-datasharing-1]
+  
+  //! [qcpstatisticalbox-datasharing-2]
+  statBox2->data()->set(*statBox1->data()); // statBox2 now has copy of statBox1's data in its container
+  //! [qcpstatisticalbox-datasharing-2]
+}
+
+void MainWindow::snippetQCPFinancialDataSharing()
+{
+  QCPFinancial *financial1 = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  QCPFinancial *financial2 = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpfinancial-datasharing-1]
+  financial2->setData(financial1->data()); // financial1 and financial2 now share data container
+  //! [qcpfinancial-datasharing-1]
+  
+  //! [qcpfinancial-datasharing-2]
+  financial2->data()->set(*financial1->data()); // financial2 now has copy of financial1's data in its container
+  //! [qcpfinancial-datasharing-2]
+}
+
+void MainWindow::snippetQCPDataSelectionIterating()
+{
+  QCPGraph *graph = customPlot->addGraph();
+  for (int i=0; i<100; ++i)
+    graph->addData(i, i);
+  graph->setSelection(QCPDataRange(10, 15) + QCPDataRange(20, 40) + QCPDataRange(60, 80));
+  //! [qcpdataselection-iterating-1]
+  QCPDataSelection selection = graph->selection();
+  double sum = 0;
+  foreach (QCPDataRange dataRange, selection.dataRanges())
+  {
+    QCPGraphDataContainer::const_iterator begin = graph->data()->constBegin() + dataRange.begin(); // get range begin iterator from index
+    QCPGraphDataContainer::const_iterator end = graph->data()->constBegin() + dataRange.end(); // get range end iterator from index
+    for (QCPGraphDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // iterator "it" will go through all selected data points, as an example, we calculate the value average
+      sum += it->value;
+    }
+  }
+  double average = sum/selection.dataPointCount();
+  //! [qcpdataselection-iterating-1]
+  Q_UNUSED(average)
+}
+
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);

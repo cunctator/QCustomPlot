@@ -34,6 +34,8 @@
 //amalgamation: add painter.h
 //amalgamation: add layer.h
 //amalgamation: add axis/range.h
+//amalgamation: add selection.h
+//amalgamation: add selectionrect.h
 //amalgamation: add layout.h
 //amalgamation: add lineending.h
 //amalgamation: add axis/axisticker.h
@@ -44,11 +46,14 @@
 //amalgamation: add axis/axistickerpi.h
 //amalgamation: add axis/axistickerlog.h
 //amalgamation: add axis/axis.h
-//amalgamation: add plottable.h
+//amalgamation: add scatterstyle.h
 //amalgamation: add datacontainer.h
+//amalgamation: add plottable.h
 //amalgamation: add item.h
 //amalgamation: add core.h
+//amalgamation: add plottable1d.h
 //amalgamation: add colorgradient.h
+//amalgamation: add selectiondecorator-bracket.h
 //amalgamation: add layoutelements/layoutelement-axisrect.h
 //amalgamation: add layoutelements/layoutelement-legend.h
 //amalgamation: add layoutelements/layoutelement-plottitle.h

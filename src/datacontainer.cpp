@@ -37,27 +37,26 @@
   some methods as described in the \ref qcpdatacontainer-datatype "next section".
   
   The data is stored in a sorted fashion, which allows very quick lookups by the sorted key as well
-  as retrieval of ranges (see \ref findBeginBelowKey, \ref findEndAboveKey, \ref keyRange) using
-  binary search. The container uses a preallocation and a postallocation scheme, such that
-  appending and prepending data (with respect to the sort key) is very fast and minimizes
-  reallocations. If data is added which needs to be inserted between existing keys, the merge
-  usually can be done quickly too, using the fact that existing data is always sorted. The user can
-  further improve performance by specifying that added data is already itself sorted by key, if he
-  can guarantee that this is the case (see for example 
-  \ref add(const QVector<DataType> &data, bool alreadySorted)).
+  as retrieval of ranges (see \ref findBegin, \ref findEnd, \ref keyRange) using binary search. The
+  container uses a preallocation and a postallocation scheme, such that appending and prepending
+  data (with respect to the sort key) is very fast and minimizes reallocations. If data is added
+  which needs to be inserted between existing keys, the merge usually can be done quickly too,
+  using the fact that existing data is always sorted. The user can further improve performance by
+  specifying that added data is already itself sorted by key, if he can guarantee that this is the
+  case (see for example \ref add(const QVector<DataType> &data, bool alreadySorted)).
   
   The data can be accessed with the provided const iterators (\ref constBegin, \ref constEnd). If
   it is necessary to alter existing data in-place, the non-const iterators can be used (\ref begin,
   \ref end). Changing data members that are not the sort key (for most data types called \a key) is
   safe from the container's perspective.
   
-  Great care must be taken however if the sort key of existing data is modified through the
-  non-const iterators. For performance reasons, the iterators don't automatically cause a
-  re-sorting upon their manipulation. It is thus the responsibility of the user to leave the
-  container in a sorted state when finished with the data manipulation, before calling any other
-  methods on the container. A complete re-sort (e.g. after finishing all sort key manipulation) can
-  be done by calling \ref sort. Failing to do so can not be detected by the container efficiently
-  and will cause both rendering artifacts and potential data loss.
+  Great care must be taken however if the sort key is modified through the non-const iterators. For
+  performance reasons, the iterators don't automatically cause a re-sorting upon their
+  manipulation. It is thus the responsibility of the user to leave the container in a sorted state
+  when finished with the data manipulation, before calling any other methods on the container. A
+  complete re-sort (e.g. after finishing all sort key manipulation) can be done by calling \ref
+  sort. Failing to do so can not be detected by the container efficiently and will cause both
+  rendering artifacts and potential data loss.
   
   \section qcpdatacontainer-datatype Requirements for the DataType template parameter
   
@@ -79,7 +78,7 @@
   \li <tt>double mainKey() const</tt>\n Returns the variable of this data point considered the main
   key. This is commonly the variable that is used as the coordinate of this data point on the key
   axis of the plottable. This method is used for example when determining the automatic axis
-  rescaling of key axes (\ref QCPAxis::rescaleAxis).
+  rescaling of key axes (\ref QCPAxis::rescale).
   
   \li <tt>double mainValue() const</tt>\n Returns the variable of this data point considered the
   main value. This is commonly the variable that is used as the coordinate of this data point on
@@ -91,7 +90,7 @@
   multiple values at once (e.g QCPFinancialData with its \a high, \a low, \a open and \a close
   values at each \a key) this method should return the range those values span. This method is used
   for example when determining the automatic axis rescaling of value axes (\ref
-  QCPAxis::rescaleAxis).
+  QCPAxis::rescale).
 */
 
 /* start documentation of inline functions */
@@ -132,6 +131,12 @@
   You can manipulate the data points in-place through the non-const iterators, but great care must
   be taken when manipulating the sort key of a data point, see \ref sort, or the detailed
   description of this class.
+*/
+
+/*! \fn QCPDataRange QCPDataContainer::dataRange() const
+
+  Returns a \ref QCPDataRange encompassing the entire data set of this container. This means the
+  begin index of the returned range is 0, and the end index is \ref size.
 */
 
 /* end documentation of inline functions */
@@ -346,7 +351,7 @@ void QCPDataContainer<DataType>::remove(double sortKeyFrom, double sortKeyTo)
 /*! \overload
   
   Removes a single data point at \a sortKey. If the position is not known with absolute (binary)
-  precision, consider using \ref removeData(double sortKeyFrom, double sortKeyTo) with a small
+  precision, consider using \ref remove(double sortKeyFrom, double sortKeyTo) with a small
   fuzziness interval around the suspected position, depeding on the precision with which the
   (sort-)key is known.
   
@@ -425,46 +430,51 @@ void QCPDataContainer<DataType>::squeeze(bool preAllocation, bool postAllocation
 }
 
 /*!
-  Returns an iterator to the data point with a (sort-)key that is just below \a key. This can be
-  used in conjunction with \ref findEndAboveKey to iterate over data points within a given key
-  range, including the bounding data points that are just below and above the specified range.
+  Returns an iterator to the data point with a (sort-)key that is equal to, just below, or just
+  above \a key. If \a expandedRange is true, the data point just below \a key will be considered,
+  otherwise the one just above.
   
-  If there are no data points below \a key, the data point with the smallest key is returned.
+  This can be used in conjunction with \ref findEnd to iterate over data points within a given key
+  range, including or excluding the bounding data points that are just beyond the specified range.
+  
+  If \a expandedRange is true but there are no data points below \a key, the data point with the smallest key is returned.
   
   If the container is empty, returns \ref constEnd.
   
-  \see findEndAboveKey
+  \see findEnd
 */
 template <class DataType>
-typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBeginBelowKey(double key) const
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findBegin(double sortKey, bool expandedRange) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
-  if (it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
+  QCPDataContainer<DataType>::const_iterator it = std::lower_bound(constBegin(), constEnd(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
+  if (expandedRange && it != constBegin()) // also covers it == constEnd case, and we know --constEnd is valid because mData isn't empty
     --it;
   return it;
 }
 
 /*!
-  Returns an iterator pointing to the element after the data point with a (sort-)key that is just
-  above \a key. This can be used in conjunction with \ref findBeginBelowKey to iterate over data
-  points within a given key range, including the bounding data points that are just below and above
-  the specified range.
+  Returns an iterator to the element after the data point with a (sort-)key that is equal to, just
+  above or just below \a key. If \a expandedRange is true, the data point just above \a key will be
+  considered, otherwise the one just below.
+  
+  This can be used in conjunction with \ref findBegin to iterate over data points within a given
+  key range, including the bounding data points that are just below and above the specified range.
   
   If there are no data points above \a key, or if the container is empty, \ref constEnd is returned.
   
-  \see findEndBelowKey
+  \see findBegin
 */
 template <class DataType>
-typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEndAboveKey(double key) const
+typename QCPDataContainer<DataType>::const_iterator QCPDataContainer<DataType>::findEnd(double sortKey, bool expandedRange) const
 {
   if (isEmpty())
     return constEnd();
   
-  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType::fromSortKey(key), qcpLessThanSortKey<DataType>);
-  if (it != constEnd())
+  QCPDataContainer<DataType>::const_iterator it = std::upper_bound(constBegin(), constEnd(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
+  if (expandedRange && it != constEnd())
     ++it;
   return it;
 }
@@ -673,6 +683,22 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   
   foundRange = haveLower && haveUpper;
   return range;
+}
+
+/*!
+  Makes sure \a begin and \a end mark a data range that is both within the bounds of this data
+  container's data, as well as within the specified \a dataRange.
+
+  This function doesn't require for \a dataRange to be within the bounds of this data container's
+  valid range.
+*/
+template <class DataType>
+void QCPDataContainer<DataType>::limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const
+{
+  QCPDataRange iteratorRange(begin-constBegin(), end-constBegin());
+  iteratorRange = iteratorRange.bounded(dataRange.bounded(this->dataRange()));
+  begin = constBegin()+iteratorRange.begin();
+  end = constBegin()+iteratorRange.end();
 }
 
 /*! \internal

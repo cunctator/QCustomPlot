@@ -409,14 +409,6 @@ table.doxtable td {
   border-collapse: collapse;
   font-size: 90%;
 }
-table.doxtable td + td {
-  padding: 2px 1em 3px;
-  text-align: left;
-}
-table.doxtable td + td + td {
-  padding: 2px 2px 3px;
-  text-align: left;
-}
 dl.see {
 }
 dt {

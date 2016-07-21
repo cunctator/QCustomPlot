@@ -4,30 +4,32 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
+  customPlot(0),
   defaultBrush(QColor(80, 215, 10, 70))
 {
   ui->setupUi(this);
-  setGeometry(300, 300, 500, 500);
   
   dir.setPath(qApp->applicationDirPath());
   dir.mkdir("images");
   if (!dir.cd("images"))
-  {
     QMessageBox::critical(this, "Error", tr("Couldn't create and access image directory:\n%1").arg(dir.filePath("images")));
-  } else
+  else
+    QTimer::singleShot(100, this, SLOT(run()));
+}
+
+void MainWindow::run()
+{
+  // invoke all methods of MainWindow that start with "gen":
+  for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
   {
-    // invoke all methods of MainWindow that start with "gen":
-    for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
-    {
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-      if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
+    if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
 #else
-      if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
+    if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
 #endif
-      {
-        if (!this->metaObject()->method(i).invoke(this))
-          qDebug() << "Failed to invoke doc-image-generator method" << i;
-      }
+    {
+      if (!this->metaObject()->method(i).invoke(this))
+        qDebug() << "Failed to invoke doc-image-generator method" << i;
     }
   }
   QTimer::singleShot(0, qApp, SLOT(quit()));
@@ -922,6 +924,52 @@ void MainWindow::genQCPBarsGroup()
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
 }
 
+void MainWindow::genQCPSelectionType()
+{
+  resetPlot(true);
+  const int imageWidth = 180;
+  const int imageHeight = 110;
+  customPlot->setSelectionRectMode(QCP::srmSelect);
+  customPlot->setInteractions(QCP::iSelectPlottables);
+  customPlot->setGeometry(0, 0, imageWidth, imageHeight);
+  customPlot->xAxis->setRange(-0.05, 2.005);
+  customPlot->yAxis->setRange(0, 2.0);
+  
+  qsrand(1);
+  QCPGraph *g = customPlot->addGraph();
+  g->setPen(QPen(QColor(160, 160, 160)));
+  g->setScatterStyle(QCPScatterStyle::ssDisc);
+  g->selectionDecorator()->setPen(QPen(QColor(255, 0, 160)));
+  g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spNone);
+  for (int i=0; i<50; ++i)
+    g->addData(i/25.0, 0.6+qSin(i/15.0*M_PI)*0.6+qrand()/(double)RAND_MAX*0.4);
+  
+  QCPItemRect *rectItem = new QCPItemRect(customPlot);
+  rectItem->topLeft->setCoords(0.33, 1.8);
+  rectItem->bottomRight->setCoords(1.66, 0.7);
+  rectItem->setPen(customPlot->selectionRect()->pen());
+  rectItem->setBrush(customPlot->selectionRect()->brush());
+  rectItem->setAntialiased(false);
+  QRect rect(rectItem->topLeft->pixelPoint().toPoint(), rectItem->bottomRight->pixelPoint().toPoint());
+  QMouseEvent fakeEvent(QEvent::MouseButtonRelease, customPlot->axisRect()->center(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  
+  g->setSelectable(QCP::stNone);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-none.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stWhole);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-whole.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stSingleData);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-singledata.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stDataRange);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-datarange.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stMultipleDataRanges);
+  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  customPlot->savePng(dir.filePath("selectiontype-multipledataranges.png"), imageWidth, imageHeight);
+}
+
 void MainWindow::genQCPColorMap_Interpolate()
 {
   resetPlot(false);
@@ -1330,8 +1378,14 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
 
 void MainWindow::resetPlot(bool clearAxes)
 {
-  customPlot = new QCustomPlot(this);
-  setCentralWidget(customPlot);
+  if (customPlot)
+  {
+    delete customPlot;
+    customPlot = 0;
+  }
+  customPlot = new QCustomPlot(0);
+  customPlot->show();
+  qApp->processEvents();
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);
@@ -1341,4 +1395,5 @@ void MainWindow::resetPlot(bool clearAxes)
     customPlot->axisRect()->setAutoMargins(QCP::msNone);
     customPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
   }
+  customPlot->replot();
 }

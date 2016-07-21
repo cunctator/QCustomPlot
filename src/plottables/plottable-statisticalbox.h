@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -77,7 +77,7 @@ Q_DECLARE_TYPEINFO(QCPStatisticalBoxData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPStatisticalBoxData> QCPStatisticalBoxDataContainer;
 
-class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable1D<QCPStatisticalBoxData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -115,11 +115,11 @@ public:
   void addData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double> &outliers=QVector<double>());
   
   // reimplemented virtual methods:
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   
 protected:
   // property members:
-  QSharedPointer<QCPStatisticalBoxDataContainer> mDataContainer;
   double mWidth;
   double mWhiskerWidth;
   QPen mWhiskerPen, mWhiskerBarPen, mMedianPen;
@@ -132,7 +132,7 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it) const;
+  virtual void drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const;
   
   // non-virtual methods:
   void getVisibleDataBounds(QCPStatisticalBoxDataContainer::const_iterator &begin, QCPStatisticalBoxDataContainer::const_iterator &end) const;

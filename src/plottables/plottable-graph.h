@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -52,7 +52,7 @@ public:
   
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPGraphData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPGraphDataContainer
@@ -66,7 +66,7 @@ Q_DECLARE_TYPEINFO(QCPGraphData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 
-class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable1D<QCPGraphData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -118,7 +118,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPGraphDataContainer> mDataContainer;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
   QPointer<QCPGraph> mChannelFillGraph;
@@ -131,31 +130,33 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPGraphData> *scatterData) const;
-  virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void getPreparedData(QVector<QCPGraphData> *lineData, QVector<QCPGraphData> *scatterData) const;
+  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lines) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scatters, const QCPScatterStyle &style) const;
+  virtual void drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  virtual void drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  
+  virtual void getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
+  virtual void getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
   
   // non-virtual methods:
-  void getPlotData(QVector<QPointF> *lineData, QVector<QCPGraphData> *scatterData) const;
-  void getScatterPlotData(QVector<QCPGraphData> *scatterData) const;
-  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPGraphData> *scatterData) const;
-  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end) const;
-  void addFillBasePoints(QVector<QPointF> *lineData) const;
-  void removeFillBasePoints(QVector<QPointF> *lineData) const;
+  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end, const QCPDataRange &rangeRestriction) const;
+  void getLines(QVector<QPointF> *lines, const QCPDataRange &dataRange) const;
+  void getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange) const;
+  QVector<QPointF> dataToLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepLeftLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepRightLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepCenterLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToImpulseLines(const QVector<QCPGraphData> &data) const;
+  void addFillBasePoints(QVector<QPointF> *lines) const;
+  void removeFillBasePoints(QVector<QPointF> *lines) const;
   QPointF lowerFillBasePoint(double lowerKey) const;
   QPointF upperFillBasePoint(double upperKey) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lines) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;
   int findIndexAboveY(const QVector<QPointF> *data, double y) const;
-  double pointDistance(const QPointF &pixelPoint) const;
+  double pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer::const_iterator &closestData) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

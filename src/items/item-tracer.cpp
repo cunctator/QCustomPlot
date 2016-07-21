@@ -257,7 +257,7 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
       {
         QRectF rect = QRectF(center-QPointF(w, w), center+QPointF(w, w));
         bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
-        return rectSelectTest(rect, pos, filledRect);
+        return rectDistance(rect, pos, filledRect);
       }
       break;
     }
@@ -340,7 +340,7 @@ void QCPItemTracer::updatePosition()
           position->setCoords(last->key, last->value);
         else
         {
-          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBeginBelowKey(mGraphKey);
+          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBegin(mGraphKey);
           if (it != mGraph->data()->constEnd()) // mGraphKey is not exactly on last iterator, but somewhere between iterators
           {
             QCPGraphDataContainer::const_iterator prevIt = it;

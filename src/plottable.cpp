@@ -32,6 +32,181 @@
 #include "layoutelements/layoutelement-legend.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPSelectionDecorator
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPSelectionDecorator
+  \brief Controls how a plottable's data selection is drawn
+  
+  Each \ref QCPAbstractPlottable instance has one \ref QCPSelectionDecorator (accessible via \ref
+  QCPAbstractPlottable::selectionDecorator) and uses it when drawing selected segments of its data.
+  
+  The selection decorator controls both pen (\ref setPen) and brush (\ref setBrush), as well as the
+  scatter style (\ref setScatterStyle) if the plottable draws scatters. Since a \ref
+  QCPScatterStyle is itself composed of different properties such as color shape and size, the
+  decorator allows specifying exactly which of those properties shall be used for the selected data
+  point, via \ref setUsedScatterProperties.
+  
+  A \ref QCPSelectionDecorator subclass instance can be passed to a plottable via \ref
+  QCPAbstractPlottable::setSelectionDecorator, allowing greater customizability of the appearance
+  of selected segments.
+  
+  Use \ref copyFrom to easily transfer the settings of one decorator to another one. This is
+  especially useful since plottables take ownership of the passed selection decorator, and thus the
+  same decorator instance can not be passed to multiple plottables.
+  
+  Selection decorators can also themselves perform drawing operations by reimplementing \ref
+  drawDecoration, which is called by the plottable's draw method. The base class \ref
+  QCPSelectionDecorator does not make use of this however. For example, \ref
+  QCPSelectionDecoratorBracket draws brackets around selected data segments.
+*/
+
+/*!
+  Creates a new QCPSelectionDecorator instance with default values
+*/
+QCPSelectionDecorator::QCPSelectionDecorator() :
+  mPen(QColor(80, 80, 255), 2.5),
+  mBrush(Qt::NoBrush),
+  mScatterStyle(QCPScatterStyle::ssNone, Qt::blue, 6.0),
+  mUsedScatterProperties(QCPScatterStyle::spPen),
+  mPlottable(0)
+{
+}
+
+QCPSelectionDecorator::~QCPSelectionDecorator()
+{
+}
+
+/*!
+  Sets the pen that will be used by the parent plottable to draw selected data segments.
+*/
+void QCPSelectionDecorator::setPen(const QPen &pen)
+{
+  mPen = pen;
+}
+
+/*!
+  Sets the brush that will be used by the parent plottable to draw selected data segments.
+*/
+void QCPSelectionDecorator::setBrush(const QBrush &brush)
+{
+  mBrush = brush;
+}
+
+/*!
+  Sets the scatter style that will be used by the parent plottable to draw scatters in selected
+  data segments.
+  
+  \a usedProperties specifies which parts of the passed \a scatterStyle will be used by the
+  plottable. The used properties can also be changed via \ref setUsedScatterProperties.
+*/
+void QCPSelectionDecorator::setScatterStyle(const QCPScatterStyle &scatterStyle, QCPScatterStyle::ScatterProperties usedProperties)
+{
+  mScatterStyle = scatterStyle;
+  setUsedScatterProperties(usedProperties);
+}
+
+/*!
+  Use this method to define which properties of the scatter style (set via \ref setScatterStyle)
+  will be used for selected data segments. All properties of the scatter style that are not
+  specified in \a properties will remain as specified in the plottable's original scatter style.
+*/
+void QCPSelectionDecorator::setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties)
+{
+  mUsedScatterProperties = properties;
+}
+
+/*!
+  Sets the pen of \a painter to the pen of this selection decorator.
+  
+  \see applyBrush, getFinalScatterStyle
+*/
+void QCPSelectionDecorator::applyPen(QCPPainter *painter) const
+{
+  painter->setPen(mPen);
+}
+
+/*!
+  Sets the brush of \a painter to the brush of this selection decorator.
+  
+  \see applyPen, getFinalScatterStyle
+*/
+void QCPSelectionDecorator::applyBrush(QCPPainter *painter) const
+{
+  painter->setBrush(mBrush);
+}
+
+/*!
+  Returns the scatter style that the parent plottable shall use for selected scatter points. The
+  plottable's original (unselected) scatter style must be passed as \a unselectedStyle. Depending
+  on the setting of \ref setUsedScatterProperties, the returned scatter style is a mixture of this
+  selecion decorator's scatter style (\ref setScatterStyle), and \a unselectedStyle.
+  
+  \see applyPen, applyBrush, setScatterStyle
+*/
+QCPScatterStyle QCPSelectionDecorator::getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const
+{
+  QCPScatterStyle result(unselectedStyle);
+  result.setFromOther(mScatterStyle, mUsedScatterProperties);
+  
+  // if style shall inherit pen from plottable (has no own pen defined), give it the selected
+  // plottable pen explicitly, so it doesn't use the unselected plottable pen when used in the
+  // plottable:
+  if (!result.isPenDefined())
+    result.setPen(mPen);
+  
+  return result;
+}
+
+/*!
+  Copies all properties (e.g. color, fill, scatter style) of the \a other selection decorator to
+  this selection decorator.
+*/
+void QCPSelectionDecorator::copyFrom(const QCPSelectionDecorator *other)
+{
+  setPen(other->pen());
+  setBrush(other->brush());
+  setScatterStyle(other->scatterStyle(), other->usedScatterProperties());
+}
+
+/*!
+  This method is called by all plottables' draw methods to allow custom selection decorations to be
+  drawn. Use the passed \a painter to perform the drawing operations. \a selection carries the data
+  selection for which the decoration shall be drawn.
+  
+  The default base class implementation of \ref QCPSelectionDecorator has no special decoration, so
+  this method does nothing.
+*/
+void QCPSelectionDecorator::drawDecoration(QCPPainter *painter, QCPDataSelection selection)
+{
+  Q_UNUSED(painter)
+  Q_UNUSED(selection)
+}
+
+/*! \internal
+  
+  This method is called as soon as a selection decorator is associated with a plottable, by a call
+  to \ref QCPAbstractPlottable::setSelectionDecorator. This way the selection decorator can obtain a pointer to the plottable that uses it (e.g. to access
+  data points via the \ref QCPAbstractPlottable::interface1D interface).
+  
+  If the selection decorator was already added to a different plottable before, this method aborts
+  the registration and returns false.
+*/
+bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottable)
+{
+  if (!mPlottable)
+  {
+    mPlottable = plottable;
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "This selection decorator is already registered with plottable:" << reinterpret_cast<quintptr>(mPlottable);
+    return false;
+  }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPAbstractPlottable
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +215,10 @@
 
   It defines a very basic interface like name, pen, brush, visibility etc. Since this class is
   abstract, it can't be instantiated. Use one of the subclasses or create a subclass yourself to
-  create new ways of displaying data (see "Creating own plottables" below).
+  create new ways of displaying data (see "Creating own plottables" below). Plottables that display
+  one-dimensional data (i.e. data points have a single key dimension and one or multiple values at
+  each key) are based off of the template subclass \ref QCPAbstractPlottable1D, see details
+  there.
   
   All further specifics are in the subclasses, for example:
   \li A normal graph with possibly a line and/or scatter points \ref QCPGraph
@@ -53,8 +231,13 @@
   
   \section plottables-subclassing Creating own plottables
   
-  To create an own plottable, you implement a subclass of QCPAbstractPlottable. These are the pure
-  virtual functions, you must implement:
+  Subclassing directly from QCPAbstractPlottable is only recommended if you wish to display
+  two-dimensional data like \ref QCPColorMap, i.e. two logical key dimensions and one (or more)
+  data dimensions. If you want to display data with only one logical key dimension, you should
+  rather derive from \ref QCPAbstractPlottable1D.
+  
+  If subclassing QCPAbstractPlottable directly, these are the pure virtual functions you must
+  implement:
   \li \ref selectTest
   \li \ref draw
   \li \ref drawLegendIcon
@@ -81,27 +264,70 @@
     <td>The name of the plottable.</td>
   </tr><tr>
     <td>QPen \b mPen</td>
-    <td>The generic pen of the plottable. You should use this pen for the most prominent data representing lines in the plottable (e.g QCPGraph uses this pen for its graph lines and scatters)</td>
-  </tr><tr>
-    <td>QPen \b mSelectedPen</td>
-    <td>The generic pen that should be used when the plottable is selected (hint: \ref mainPen gives you the right pen, depending on selection state).</td>
+    <td>The generic pen of the plottable. You should use this pen for the most prominent data representing lines in the plottable
+        (e.g QCPGraph uses this pen for its graph lines and scatters)</td>
   </tr><tr>
     <td>QBrush \b mBrush</td>
-    <td>The generic brush of the plottable. You should use this brush for the most prominent fillable structures in the plottable (e.g. QCPGraph uses this brush to control filling under the graph)</td>
+    <td>The generic brush of the plottable. You should use this brush for the most prominent fillable structures in the plottable
+        (e.g. QCPGraph uses this brush to control filling under the graph)</td>
   </tr><tr>
-    <td>QBrush \b mSelectedBrush</td>
-    <td>The generic brush that should be used when the plottable is selected (hint: \ref mainBrush gives you the right brush, depending on selection state).</td>
+    <td>QPointer<\ref QCPAxis> \b mKeyAxis, \b mValueAxis</td>
+    <td>The key and value axes this plottable is attached to. Call their QCPAxis::coordToPixel functions to translate coordinates
+        to pixels in either the key or value dimension. Make sure to check whether the pointer is null before using it. If one of
+        the axes is null, don't draw the plottable.</td>
   </tr><tr>
-    <td>QPointer<QCPAxis>\b mKeyAxis, \b mValueAxis</td>
-    <td>The key and value axes this plottable is attached to. Call their QCPAxis::coordToPixel functions to translate coordinates to pixels in either the key or value dimension.
-        Make sure to check whether the pointer is null before using it. If one of the axes is null, don't draw the plottable.</td>
+    <td>\ref QCPSelectionDecorator \b mSelectionDecorator</td>
+    <td>The currently set selection decorator which specifies how selected data of the plottable shall be drawn and decorated.
+        When drawing your data, you must consult this decorator for the appropriate pen/brush before drawing unselected/selected data segments.
+        Finally, you should call its \ref QCPSelectionDecorator::drawDecoration method at the end of your \ref draw implementation.</td>
   </tr><tr>
-    <td>bool \b mSelected</td>
-    <td>indicates whether the plottable is selected or not.</td>
+    <td>\ref QCP::SelectionType \b mSelectable</td>
+    <td>In which composition, if at all, this plottable's data may be selected. Enforcing this setting on the data selection is done
+        by QCPAbstractPlottable automatically.</td>
+  </tr><tr>
+    <td>\ref QCPDataSelection \b mSelection</td>
+    <td>Holds the current selection state of the plottable's data, i.e. the selected data ranges (\ref QCPDataRange).</td>
   </tr>
   </table>
 */
 
+/* start of documentation of inline functions */
+
+/*! \fn QCPSelectionDecorator *QCPAbstractPlottable::selectionDecorator() const
+  
+  Provides access to the selection decorator of this plottable. The selection decorator controls
+  how selected data ranges are drawn (e.g. their pen color and fill), see \ref
+  QCPSelectionDecorator for details.
+  
+  If you wish to use an own \ref QCPSelectionDecorator subclass, pass an instance of it to \ref
+  setSelectionDecorator.
+*/
+
+/*! \fn bool QCPAbstractPlottable::selected() const
+  
+  Returns true if there are any data points of the plottable currently selected. Use \ref selection
+  to retrieve the current \ref QCPDataSelection.
+*/
+
+/*! \fn QCPDataSelection QCPAbstractPlottable::selection() const
+  
+  Returns a \ref QCPDataSelection encompassing all the data points that are currently selected on
+  this plottable.
+  
+  \see selected, setSelection, setSelectable
+*/
+
+/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable::interface1D()
+  
+  If this plottable is a one-dimensional plottable, i.e. it implements the \ref
+  QCPPlottableInterface1D, returns the \a this pointer with that type. Otherwise (e.g. in the case
+  of a \ref QCPColorMap) returns zero.
+  
+  You can use this method to gain read access to data coordinates while holding a pointer to the
+  abstract base class only.
+*/
+
+/* end of documentation of inline functions */
 /* start of documentation of pure virtual functions */
 
 /*! \fn void QCPAbstractPlottable::drawLegendIcon(QCPPainter *painter, const QRect &rect) const = 0
@@ -118,10 +344,10 @@
   \internal
   
   called by rescaleAxes functions to get the full data key bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref sdNegative or \ref sdPositive in order to restrict the
+  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
   returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref sdBoth (default). \a foundRange is an output
+  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
+  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
   parameter that indicates whether a range could be found or not. If this is false, you shouldn't
   use the returned range (e.g. no points in data).
 
@@ -135,10 +361,10 @@
   \internal
   
   called by rescaleAxes functions to get the full data value bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref sdNegative or \ref sdPositive in order to restrict the
+  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
   returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref sdBoth (default). \a foundRange is an output
+  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
+  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
   parameter that indicates whether a range could be found or not. If this is false, you shouldn't
   use the returned range (e.g. no points in data).
 
@@ -154,10 +380,22 @@
 /*! \fn void QCPAbstractPlottable::selectionChanged(bool selected)
   
   This signal is emitted when the selection state of this plottable has changed, either by user
-  interaction or by a direct call to \ref setSelected.
+  interaction or by a direct call to \ref setSelection. The parameter \a selected indicates whether
+  there are any points selected or not.
+  
+  \see selectionChanged(QCPDataSelection selection)
 */
 
-/*! \fn void QCPAbstractPlottable::selectableChanged(bool selectable);
+/*! \fn void QCPAbstractPlottable::selectionChanged(QCPDataSelection selection)
+  
+  This signal is emitted when the selection state of this plottable has changed, either by user
+  interaction or by a direct call to \ref setSelection. The parameter \a selection holds the
+  currently selected data ranges.
+  
+  \see selectionChanged(bool selected)
+*/
+
+/*! \fn void QCPAbstractPlottable::selectableChanged(QCP::SelectionType selectable);
   
   This signal is emitted when the selectability of this plottable has changed.
   
@@ -183,13 +421,11 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mAntialiasedFill(true),
   mAntialiasedScatters(true),
   mPen(Qt::black),
-  mSelectedPen(Qt::black),
   mBrush(Qt::NoBrush),
-  mSelectedBrush(Qt::NoBrush),
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
-  mSelectable(true),
-  mSelected(false)
+  mSelectable(QCP::stWhole),
+  mSelectionDecorator(0)
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
@@ -197,6 +433,16 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
     qDebug() << Q_FUNC_INFO << "keyAxis and valueAxis must be orthogonal to each other.";
   
   mParentPlot->registerPlottable(this);
+  setSelectionDecorator(new QCPSelectionDecorator);
+}
+
+QCPAbstractPlottable::~QCPAbstractPlottable()
+{
+  if (mSelectionDecorator)
+  {
+    delete mSelectionDecorator;
+    mSelectionDecorator = 0;
+  }
 }
 
 /*!
@@ -244,17 +490,6 @@ void QCPAbstractPlottable::setPen(const QPen &pen)
 }
 
 /*!
-  When the plottable is selected, this pen is used to draw basic lines instead of the normal
-  pen set via \ref setPen.
-
-  \see setSelected, setSelectable, setSelectedBrush, selectTest
-*/
-void QCPAbstractPlottable::setSelectedPen(const QPen &pen)
-{
-  mSelectedPen = pen;
-}
-
-/*!
   The brush is used to draw basic fills of the plottable representation in the
   plot. The Fill can be a color, gradient or texture, see the usage of QBrush.
   
@@ -266,17 +501,6 @@ void QCPAbstractPlottable::setSelectedPen(const QPen &pen)
 void QCPAbstractPlottable::setBrush(const QBrush &brush)
 {
   mBrush = brush;
-}
-
-/*!
-  When the plottable is selected, this brush is used to draw fills instead of the normal
-  brush set via \ref setBrush.
-
-  \see setSelected, setSelectable, setSelectedPen, selectTest
-*/
-void QCPAbstractPlottable::setSelectedBrush(const QBrush &brush)
-{
-  mSelectedBrush = brush;
 }
 
 /*!
@@ -311,44 +535,85 @@ void QCPAbstractPlottable::setValueAxis(QCPAxis *axis)
   mValueAxis = axis;
 }
 
-/*!
-  Sets whether the user can (de-)select this plottable by clicking on the QCustomPlot surface.
-  (When \ref QCustomPlot::setInteractions contains iSelectPlottables.)
-  
-  However, even when \a selectable was set to false, it is possible to set the selection manually,
-  by calling \ref setSelected directly.
-  
-  \see setSelected
-*/
-void QCPAbstractPlottable::setSelectable(bool selectable)
-{
-  if (mSelectable != selectable)
-  {
-    mSelectable = selectable;
-    emit selectableChanged(mSelectable);
-  }
-}
 
 /*!
-  Sets whether this plottable is selected or not. When selected, it uses a different pen and brush
-  to draw its lines and fills, see \ref setSelectedPen and \ref setSelectedBrush.
-
+  Sets which data ranges of this plottable are selected. Selected data ranges are drawn differently
+  (e.g. color) in the plot. This can be controlled via the selection decorator (see \ref
+  selectionDecorator).
+  
   The entire selection mechanism for plottables is handled automatically when \ref
   QCustomPlot::setInteractions contains iSelectPlottables. You only need to call this function when
-  you wish to change the selection state manually.
+  you wish to change the selection state programmatically.
   
-  This function can change the selection state even when \ref setSelectable was set to false.
+  Using \ref setSelectable you can further specify for each plottable whether and to which
+  granularity it is selectable. If \a selection is not compatible with the current \ref
+  QCP::SelectionType set via \ref setSelectable, the resulting selection will be adjusted
+  accordingly (see \ref QCPDataSelection::enforceType).
   
   emits the \ref selectionChanged signal when \a selected is different from the previous selection state.
   
   \see setSelectable, selectTest
 */
-void QCPAbstractPlottable::setSelected(bool selected)
+void QCPAbstractPlottable::setSelection(QCPDataSelection selection)
 {
-  if (mSelected != selected)
+  selection.enforceType(mSelectable);
+  if (mSelection != selection)
   {
-    mSelected = selected;
-    emit selectionChanged(mSelected);
+    mSelection = selection;
+    emit selectionChanged(selected());
+    emit selectionChanged(mSelection);
+  }
+}
+
+/*!
+  Use this method to set an own QCPSelectionDecorator (subclass) instance. This allows you to
+  customize the visual representation of selected data ranges further than by using the default
+  QCPSelectionDecorator.
+  
+  The plottable takes ownership of the \a decorator.
+  
+  The currently set decorator can be accessed via \ref selectionDecorator.
+*/
+void QCPAbstractPlottable::setSelectionDecorator(QCPSelectionDecorator *decorator)
+{
+  if (decorator)
+  {
+    if (decorator->registerWithPlottable(this))
+    {
+      if (mSelectionDecorator) // delete old decorator if necessary
+        delete mSelectionDecorator;
+      mSelectionDecorator = decorator;
+    }
+  } else if (mSelectionDecorator) // just clear decorator
+  {
+    delete mSelectionDecorator;
+    mSelectionDecorator = 0;
+  }
+}
+
+/*!
+  Sets whether and to which granularity this plottable can be selected.
+
+  A selection can happen by clicking on the QCustomPlot surface (When \ref
+  QCustomPlot::setInteractions contains \ref QCP::iSelectPlottables), by dragging a selection rect
+  (When \ref QCustomPlot::setSelectionRectMode is \ref QCP::srmSelect), or programmatically by
+  calling \ref setSelection.
+  
+  \see setSelection, QCP::SelectionType
+*/
+void QCPAbstractPlottable::setSelectable(QCP::SelectionType selectable)
+{
+  if (mSelectable != selectable)
+  {
+    mSelectable = selectable;
+    QCPDataSelection oldSelection = mSelection;
+    mSelection.enforceType(mSelectable);
+    emit selectableChanged(mSelectable);
+    if (mSelection != oldSelection)
+    {
+      emit selectionChanged(selected());
+      emit selectionChanged(mSelection);
+    }
   }
 }
 
@@ -595,26 +860,6 @@ void QCPAbstractPlottable::pixelsToCoords(const QPointF &pixelPos, double &key, 
 
 /*! \internal
 
-  Returns the pen that should be used for drawing lines of the plottable. Returns mPen when the
-  graph is not selected and mSelectedPen when it is.
-*/
-QPen QCPAbstractPlottable::mainPen() const
-{
-  return mSelected ? mSelectedPen : mPen;
-}
-
-/*! \internal
-
-  Returns the brush that should be used for drawing fills of the plottable. Returns mBrush when the
-  graph is not selected and mSelectedBrush when it is.
-*/
-QBrush QCPAbstractPlottable::mainBrush() const
-{
-  return mSelected ? mSelectedBrush : mBrush;
-}
-
-/*! \internal
-
   A convenience function to easily set the QPainter::Antialiased hint on the provided \a painter
   before drawing plottable lines.
 
@@ -669,24 +914,41 @@ void QCPAbstractPlottable::applyScattersAntialiasingHint(QCPPainter *painter) co
 void QCPAbstractPlottable::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
 {
   Q_UNUSED(event)
-  Q_UNUSED(details)
-  if (mSelectable)
+  
+  if (mSelectable != QCP::stNone)
   {
-    bool selBefore = mSelected;
-    setSelected(additive ? !mSelected : true);
+    QCPDataSelection newSelection = details.value<QCPDataSelection>();
+    QCPDataSelection selectionBefore = mSelection;
+    if (additive)
+    {
+      if (mSelectable == QCP::stWhole) // in whole selection mode, we toggle to no selection even if currently unselected point was hit
+      {
+        if (selected())
+          setSelection(QCPDataSelection());
+        else
+          setSelection(newSelection);
+      } else // in all other selection modes we toggle selections of homogeneously selected/unselected segments
+      {
+        if (mSelection.contains(newSelection)) // if entire newSelection is already selected, toggle selection
+          setSelection(mSelection-newSelection);
+        else
+          setSelection(mSelection+newSelection);
+      }
+    } else
+      setSelection(newSelection);
     if (selectionStateChanged)
-      *selectionStateChanged = mSelected != selBefore;
+      *selectionStateChanged = mSelection != selectionBefore;
   }
 }
 
 /* inherits documentation from base class */
 void QCPAbstractPlottable::deselectEvent(bool *selectionStateChanged)
 {
-  if (mSelectable)
+  if (mSelectable != QCP::stNone)
   {
-    bool selBefore = mSelected;
-    setSelected(false);
+    QCPDataSelection selectionBefore = mSelection;
+    setSelection(QCPDataSelection());
     if (selectionStateChanged)
-      *selectionStateChanged = mSelected != selBefore;
+      *selectionStateChanged = mSelection != selectionBefore;
   }
 }

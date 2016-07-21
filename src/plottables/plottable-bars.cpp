@@ -502,6 +502,13 @@ QCPBarsData::QCPBarsData(double key, double value) :
 
 /* start of documentation of inline functions */
 
+/*! \fn QSharedPointer<QCPBarsDataContainer> QCPBars::data() const
+  
+  Returns a shared pointer to the internal data storage of type \ref QCPBarsDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods.
+*/
+
 /*! \fn QCPBars *QCPBars::barBelow() const
   Returns the bars plottable that is directly below this bars plottable.
   If there is no such plottable, returns 0.
@@ -517,6 +524,49 @@ QCPBarsData::QCPBarsData(double key, double value) :
 */
 
 /* end of documentation of inline functions */
+/* start of documentation of template specializations */
+
+/*! \fn int QCPAbstractPlottable1D<QCPBarsData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
+  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
+*/
+
+/*! \fn int QCPAbstractPlottable1D<QCPBarsData>::dataCount() const
+  \copydoc QCPAbstractPlottable1D::dataCount
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataMainKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataSortKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataSortKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataMainValue(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainValue
+*/
+
+/*! \fn QCPRange QCPAbstractPlottable1D<QCPBarsData>::dataValueRange(int index) const
+  \copydoc QCPAbstractPlottable1D::dataValueRange
+*/
+
+/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPBarsData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
+  \copydoc QCPAbstractPlottable1D::selectTestRect
+*/
+
+/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPBarsData>::interface1D()
+  \copydoc QCPAbstractPlottable::interface1D
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPBarsData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
+  \copydoc QCPAbstractPlottable1D::getDataSegments
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPBarsData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
+  \copydoc QCPAbstractPlottable1D::drawPolyline
+*/
+
+/* end of documentation of template specializations */
 
 /*!
   Constructs a bar chart which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value
@@ -529,8 +579,7 @@ QCPBarsData::QCPBarsData(double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPBarsDataContainer),
+  QCPAbstractPlottable1D<QCPBarsData>(keyAxis, valueAxis),
   mWidth(0.75),
   mWidthType(wtPlotCoords),
   mBarsGroup(0),
@@ -541,10 +590,7 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPen.setStyle(Qt::SolidLine);
   mBrush.setColor(QColor(40, 50, 255, 30));
   mBrush.setStyle(Qt::SolidPattern);
-  mSelectedPen = mPen;
-  mSelectedPen.setWidthF(2.5);
-  mSelectedPen.setColor(QColor(80, 80, 255)); // lighter than Qt::blue of mPen
-  mSelectedBrush = mBrush;
+  mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }
 
 QCPBars::~QCPBars()
@@ -552,6 +598,43 @@ QCPBars::~QCPBars()
   setBarsGroup(0);
   if (mBarBelow || mBarAbove)
     connectBars(mBarBelow.data(), mBarAbove.data()); // take this bar out of any stacking
+}
+
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPBars may share the same data container safely.
+  Modifying the data in the container will then affect all bars that share the container. Sharing
+  can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the bar's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpbars-datasharing-2
+  
+  \see addData
+*/
+void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
+{
+  mDataContainer = data;
+}
+
+/*! \overload
+  
+  Replaces the current data with the provided points in \a keys and \a values. The provided
+  vectors should have equal length. Else, the number of added points will be the size of the
+  smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData
+*/
+void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+{
+  mDataContainer->clear();
+  addData(keys, values, alreadySorted);
 }
 
 /*!
@@ -612,21 +695,46 @@ void QCPBars::setBaseValue(double baseValue)
   mBaseValue = baseValue;
 }
 
-void QCPBars::setData(QSharedPointer<QCPBarsDataContainer> data)
+/*! \overload
+  
+  Adds the provided points in \a keys and \a values to the current data. The provided vectors
+  should have equal length. Else, the number of added points will be the size of the smallest
+  vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+*/
+void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
 {
-  mDataContainer = data;
+  if (keys.size() != values.size())
+    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
+  const int n = qMin(keys.size(), values.size());
+  QVector<QCPBarsData> tempData(n);
+  QVector<QCPBarsData>::iterator it = tempData.begin();
+  const QVector<QCPBarsData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
+  {
+    it->key = keys[i];
+    it->value = values[i];
+    ++it;
+    ++i;
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /*! \overload
+  Adds the provided data point as \a key and \a value to the current data.
   
-  Replaces the current data with the provided points in \a keys and \a values tuples. The provided
-  vectors should have equal length. Else, the number of added points will be the size of the
-  smallest vector.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
 */
-void QCPBars::setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+void QCPBars::addData(double key, double value)
 {
-  mDataContainer->clear();
-  addData(keys, values, alreadySorted);
+  mDataContainer->add(QCPBarsData(key, value));
 }
 
 /*!
@@ -695,61 +803,52 @@ void QCPBars::moveAbove(QCPBars *bars)
   }
 }
 
-/*! \overload
-  Adds the provided data points as \a key and \a value pairs to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-*/
-void QCPBars::addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted)
+QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
-  if (keys.size() != values.size())
-    qDebug() << Q_FUNC_INFO << "keys and values have different sizes:" << keys.size() << values.size();
-  const int n = qMin(keys.size(), values.size());
-  QVector<QCPBarsData> tempData(n);
-  QVector<QCPBarsData>::iterator it = tempData.begin();
-  const QVector<QCPBarsData>::iterator itEnd = tempData.end();
-  int i = 0;
-  while (it != itEnd)
+  QCPDataSelection result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
+  
+  QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
-    it->key = keys[i];
-    it->value = values[i];
-    ++it;
-    ++i;
+    const QRectF barRect(getBarPolygon(it->key, it->value).boundingRect());
+    if (rect.intersects(barRect))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
   }
-  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
-}
-
-/*! \overload
-  Adds the provided data point as \a key and \a value to the current data.
-  
-  Alternatively, you can also access and modify the graph's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPGraphDataContainer.
-*/
-void QCPBars::addData(double key, double value)
-{
-  mDataContainer->add(QCPBarsData(key, value));
+  result.simplify();
+  return result;
 }
 
 /* inherits documentation from base class */
 double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if (onlySelectable && !mSelectable)
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
     return -1;
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPBarsDataContainer::const_iterator lower, upperEnd;
-    getVisibleDataBounds(lower, upperEnd);
-    if (lower == upperEnd)
-      return -1;
-    for (QCPBarsDataContainer::const_iterator it = lower; it != upperEnd; ++it)
+    QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
+    getVisibleDataBounds(visibleBegin, visibleEnd);
+    for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
     {
       if (getBarPolygon(it->key, it->value).boundingRect().contains(pos))
+      {
+        if (details)
+        {
+          int pointIndex = it-mDataContainer->constBegin();
+          details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+        }
         return mParentPlot->selectionTolerance()*0.99;
+      }
     }
   }
   return -1;
@@ -761,33 +860,58 @@ void QCPBars::draw(QCPPainter *painter)
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (mDataContainer->isEmpty()) return;
   
-  QCPBarsDataContainer::const_iterator it, lower, upperEnd;
-  getVisibleDataBounds(lower, upperEnd);
-  for (it = lower; it != upperEnd; ++it)
+  QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    // check data validity if flag set:
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPBarsDataContainer::const_iterator begin = visibleBegin;
+    QCPBarsDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
+    
+    for (QCPBarsDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // check data validity if flag set:
 #ifdef QCUSTOMPLOT_CHECK_DATA
-    if (QCP::isInvalidData(it->key, it->value))
-      qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
+      if (QCP::isInvalidData(it->key, it->value))
+        qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
 #endif
-    QPolygonF barPolygon = getBarPolygon(it->key, it->value);
-    // draw bar fill:
-    if (mainBrush().style() != Qt::NoBrush && mainBrush().color().alpha() != 0)
-    {
-      applyFillAntialiasingHint(painter);
+      QPolygonF barPolygon = getBarPolygon(it->key, it->value);
+      // draw bar fill:
+      if (isSelectedSegment && mSelectionDecorator)
+        mSelectionDecorator->applyBrush(painter);
+      else
+        painter->setBrush(mBrush);
       painter->setPen(Qt::NoPen);
-      painter->setBrush(mainBrush());
-      painter->drawPolygon(barPolygon);
-    }
-    // draw bar line:
-    if (mainPen().style() != Qt::NoPen && mainPen().color().alpha() != 0)
-    {
-      applyDefaultAntialiasingHint(painter);
-      painter->setPen(mainPen());
+      if (painter->brush().style() != Qt::NoBrush && painter->brush().color().alpha() != 0)
+      {
+        applyFillAntialiasingHint(painter);
+        painter->drawPolygon(barPolygon);
+      }
+      // draw bar line:
+      if (isSelectedSegment && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
+      else
+        painter->setPen(mPen);
       painter->setBrush(Qt::NoBrush);
-      painter->drawPolyline(barPolygon);
+      if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
+      {
+        applyDefaultAntialiasingHint(painter);
+        painter->drawPolyline(barPolygon);
+      }
     }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */
@@ -833,8 +957,8 @@ void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, 
   }
   
   // get visible data range as QMap iterators
-  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower);
-  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper);
+  begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower);
+  end = mDataContainer->findEnd(mKeyAxis.data()->range().upper);
   double lowerPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().lower);
   double upperPixelBound = mKeyAxis.data()->coordToPixel(mKeyAxis.data()->range().upper);
   bool isVisible = false;
@@ -979,8 +1103,8 @@ double QCPBars::getStackedBaseValue(double key, bool positive) const
     double epsilon = qAbs(key)*1e-6; // should be safe even when changed to use float at some point
     if (key == 0)
       epsilon = 1e-6;
-    QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBeginBelowKey(key-epsilon);
-    QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEndAboveKey(key+epsilon);
+    QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBegin(key-epsilon);
+    QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEnd(key+epsilon);
     while (it != itEnd)
     {
       if (it->key > key-epsilon && it->key < key+epsilon)

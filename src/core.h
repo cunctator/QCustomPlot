@@ -38,6 +38,7 @@ class QCPGraph;
 class QCPPlotTitle;
 class QCPLegend;
 class QCPAbstractLegendItem;
+class QCPSelectionRect;
 
 class QCP_LIB_DECL QCustomPlot : public QWidget
 {
@@ -69,10 +70,12 @@ public:
 
     \see replot
   */
-  enum RefreshPriority { rpImmediate ///< The QCustomPlot surface is immediately refreshed, by calling QWidget::repaint() after the replot
-                         ,rpQueued   ///< Queues the refresh such that it is performed at a slightly delayed point in time after the replot, by calling QWidget::update() after the replot
-                         ,rpHint     ///< Whether to use immediate repaint or queued update depends on whether the plotting hint \ref QCP::phForceRepaint is set, see \ref setPlottingHints.
+  enum RefreshPriority { rpImmediateRefresh ///< Replots immediately and repaints the widget immediately by calling QWidget::repaint() after the replot
+                         ,rpQueuedRefresh   ///< Replots immediately, but queues the widget repaint, by calling QWidget::update() after the replot. This way multiple redundant widget repaints can be avoided.
+                         ,rpRefreshHint     ///< Whether to use immediate or queued refresh depends on whether the plotting hint \ref QCP::phImmediateRefresh is set, see \ref setPlottingHints.
+                         ,rpQueuedReplot    ///< Queues the entire replot for the next event loop iteration. This way multiple redundant replots can be avoided. The actual replot is then done with \ref rpRefreshHint priority.
                        };
+  Q_ENUMS(RefreshPriority)
   
   explicit QCustomPlot(QWidget *parent = 0);
   virtual ~QCustomPlot();
@@ -91,7 +94,9 @@ public:
   bool noAntialiasingOnDrag() const { return mNoAntialiasingOnDrag; }
   QCP::PlottingHints plottingHints() const { return mPlottingHints; }
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
-
+  QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
+  QCPSelectionRect *selectionRect() const { return mSelectionRect; }
+  
   // setters:
   void setViewport(const QRect &rect);
   void setBackground(const QPixmap &pm);
@@ -111,6 +116,8 @@ public:
   void setPlottingHints(const QCP::PlottingHints &hints);
   void setPlottingHint(QCP::PlottingHint hint, bool enabled=true);
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
+  void setSelectionRectMode(QCP::SelectionRectMode mode);
+  void setSelectionRect(QCPSelectionRect *selectionRect);
   
   // non-property methods:
   // plottable interface:
@@ -174,7 +181,7 @@ public:
   bool saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality=-1);
   QPixmap toPixmap(int width=0, int height=0, double scale=1.0);
   void toPainter(QCPPainter *painter, int width=0, int height=0);
-  Q_SLOT void replot(QCustomPlot::RefreshPriority refreshPriority=QCustomPlot::rpHint);
+  Q_SLOT void replot(QCustomPlot::RefreshPriority refreshPriority=QCustomPlot::rpRefreshHint);
   
   QCPAxis *xAxis, *yAxis, *xAxis2, *yAxis2;
   QCPLegend *legend;
@@ -186,8 +193,8 @@ signals:
   void mouseRelease(QMouseEvent *event);
   void mouseWheel(QWheelEvent *event);
   
-  void plottableClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
-  void plottableDoubleClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
+  void plottableClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
+  void plottableDoubleClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
   void itemClick(QCPAbstractItem *item, QMouseEvent *event);
   void itemDoubleClick(QCPAbstractItem *item, QMouseEvent *event);
   void axisClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event);
@@ -222,12 +229,16 @@ protected:
   QCPLayer *mCurrentLayer;
   QCP::PlottingHints mPlottingHints;
   Qt::KeyboardModifier mMultiSelectModifier;
+  QCP::SelectionRectMode mSelectionRectMode;
+  QCPSelectionRect *mSelectionRect;
   
   // non-property members:
   QPixmap mPaintBuffer;
   QPoint mMousePressPos;
+  bool mMouseHasMoved;
   QPointer<QCPLayoutElement> mMouseEventElement;
   bool mReplotting;
+  bool mReplotQueued;
   
   // reimplemented virtual methods:
   virtual QSize minimumSizeHint() const;
@@ -244,6 +255,9 @@ protected:
   virtual void draw(QCPPainter *painter);
   virtual void axisRemoved(QCPAxis *axis);
   virtual void legendRemoved(QCPLegend *legend);
+  Q_SLOT virtual void processRectSelection(QRect rect, QMouseEvent *event);
+  Q_SLOT virtual void processRectZoom(QRect rect, QMouseEvent *event);
+  Q_SLOT virtual void processPointSelection(QMouseEvent *event);
   
   // non-virtual methods:
   bool registerPlottable(QCPAbstractPlottable *plottable);

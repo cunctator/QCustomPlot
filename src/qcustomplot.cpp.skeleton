@@ -30,6 +30,8 @@
 //amalgamation: add painter.cpp
 //amalgamation: add layer.cpp
 //amalgamation: add axis/range.cpp
+//amalgamation: add selection.cpp
+//amalgamation: add selectionrect.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
 //amalgamation: add axis/axisticker.cpp
@@ -40,11 +42,14 @@
 //amalgamation: add axis/axistickerpi.cpp
 //amalgamation: add axis/axistickerlog.cpp
 //amalgamation: add axis/axis.cpp
-//amalgamation: add plottable.cpp
+//amalgamation: add scatterstyle.cpp
 //amalgamation: add datacontainer.cpp
+//amalgamation: add plottable.cpp
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp
+//amalgamation: add plottable1d.cpp
 //amalgamation: add colorgradient.cpp
+//amalgamation: add selectiondecorator-bracket.cpp
 //amalgamation: add layoutelements/layoutelement-axisrect.cpp
 //amalgamation: add layoutelements/layoutelement-legend.cpp
 //amalgamation: add layoutelements/layoutelement-plottitle.cpp

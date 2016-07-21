@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "../axis/range.h"
-#include "../plottable.h"
+#include "../plottable1d.h"
 #include "../painter.h"
 #include "../datacontainer.h"
 
@@ -52,7 +52,7 @@ public:
   
   double t, key, value;
 };
-Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPCurveData, Q_PRIMITIVE_TYPE);
 
 
 /*! \typedef QCPCurveDataContainer
@@ -67,7 +67,7 @@ Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
 */
 typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
-class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable1D<QCPCurveData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -109,7 +109,6 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPCurveDataContainer> mDataContainer;
   QCPScatterStyle mScatterStyle;
   LineStyle mLineStyle;
   
@@ -120,17 +119,18 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
-  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;
+  virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &points, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
-  void getCurveData(QVector<QPointF> *lineData) const;
+  QVector<QPointF> getCurveLines(const QCPDataRange &dataRange, double penWidth) const;
   int getRegion(double x, double y, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
   bool mayTraverse(int prevRegion, int currentRegion) const;
   bool getTraverse(double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom, QPointF &crossA, QPointF &crossB) const;
   void getTraverseCornerPoints(int prevRegion, int currentRegion, double rectLeft, double rectTop, double rectRight, double rectBottom, QVector<QPointF> &beforeTraverse, QVector<QPointF> &afterTraverse) const;
-  double pointDistance(const QPointF &pixelPoint) const;
+  double pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer::const_iterator &closestData) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;

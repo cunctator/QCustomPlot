@@ -127,12 +127,12 @@ Q_DECLARE_FLAGS(AntialiasedElements, AntialiasedElement)
   
   \see QCustomPlot::setPlottingHints
 */
-enum PlottingHint { phNone            = 0x000 ///< <tt>0x000</tt> No hints are set
-                    ,phFastPolylines  = 0x001 ///< <tt>0x001</tt> Graph/Curve lines are drawn with a faster method. This reduces the quality
-                                              ///<                especially of the line segment joins. (Only relevant for solid line pens.)
-                    ,phForceRepaint   = 0x002 ///< <tt>0x002</tt> causes an immediate repaint() instead of a soft update() when QCustomPlot::replot() is called with parameter \ref QCustomPlot::rpHint.
-                                              ///<                This is set by default to prevent the plot from freezing on fast consecutive replots (e.g. user drags ranges with mouse).
-                    ,phCacheLabels    = 0x004 ///< <tt>0x004</tt> axis (tick) labels will be cached as pixmaps, increasing replot performance.
+enum PlottingHint { phNone              = 0x000 ///< <tt>0x000</tt> No hints are set
+                    ,phFastPolylines    = 0x001 ///< <tt>0x001</tt> Graph/Curve lines are drawn with a faster method. This reduces the quality
+                                                ///<                especially of the line segment joins. (Only relevant for solid line pens.)
+                    ,phImmediateRefresh = 0x002 ///< <tt>0x002</tt> causes an immediate repaint() instead of a soft update() when QCustomPlot::replot() is called with parameter \ref QCustomPlot::rpRefreshHint.
+                                                ///<                This is set by default to prevent the plot from freezing on fast consecutive replots (e.g. user drags ranges with mouse).
+                    ,phCacheLabels      = 0x004 ///< <tt>0x004</tt> axis (tick) labels will be cached as pixmaps, increasing replot performance.
                   };
 Q_DECLARE_FLAGS(PlottingHints, PlottingHint)
 
@@ -153,6 +153,42 @@ enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges ar
                    ,iSelectOther      = 0x080 ///< <tt>0x080</tt> All other objects are selectable (e.g. your own derived layerables, the plot title,...)
                  };
 Q_DECLARE_FLAGS(Interactions, Interaction)
+
+/*!
+  Defines the behaviour of the selection rect.
+  
+  \see QCustomPlot::setSelectionRectMode, QCustomPlot::selectionRect, QCPSelectionRect
+*/
+enum SelectionRectMode { srmNone    ///< The selection rect is disabled, and all mouse events are forwarded to the underlying objects, e.g. for axis range dragging
+                         ,srmZoom   ///< When dragging the mouse, a selection rect becomes active. Upon releasing, the axes that are currently set as range zoom axes (\ref QCPAxisRect::setRangeZoomAxes) will have their ranges zoomed accordingly.
+                         ,srmSelect ///< When dragging the mouse, a selection rect becomes active. Upon releasing, plottable data points that were within the selection rect are selected, if the plottable's selectability setting permits. (See  \ref dataselection "data selection mechanism" for details.)
+                         ,srmCustom ///< When dragging the mouse, a selection rect becomes active. It is the programmer's responsibility to connect according slots to the selection rect's signals (e.g. \ref QCPSelectionRect::accepted) in order to process the user interaction.
+                       };
+
+/*!
+  Defines the different ways a plottable can be selected. These images show the effect of the
+  different selection types, when the indicated selection rect was dragged:
+  
+  <center>
+  <table>
+  <tr>
+    <td>\image html selectiontype-none.png stNone</td>
+    <td>\image html selectiontype-whole.png stWhole</td>
+    <td>\image html selectiontype-singledata.png stSingleData</td>
+    <td>\image html selectiontype-datarange.png stDataRange</td>
+    <td>\image html selectiontype-multipledataranges.png stMultipleDataRanges</td>
+  </tr>
+  </table>
+  </center>
+  
+  \see QCPAbstractPlottable::setSelectable, QCPDataSelection::enforceType
+*/
+enum SelectionType { stNone                ///< The plottable is not selectable
+                     ,stWhole              ///< Selection behaves like \ref stMultipleDataRanges, but if there are any data points selected, the entire plottable is drawn as selected.
+                     ,stSingleData         ///< One individual data point can be selected at a time
+                     ,stDataRange          ///< Multiple contiguous data points (a data range) can be selected
+                     ,stMultipleDataRanges ///< Any combination of data points/ranges can be selected
+                    };
 
 /*! \internal
   

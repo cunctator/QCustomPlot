@@ -23,52 +23,60 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_H
-#define QCP_H
+#ifndef QCP_PLOTTABLE1D_H
+#define QCP_PLOTTABLE1D_H
 
 #include "global.h"
-#include "qcpvector2d.h"
-#include "painter.h"
-#include "layer.h"
-#include "layout.h"
-#include "axis/range.h"
-#include "selection.h"
-#include "selectionrect.h"
-#include "axis/axis.h"
-#include "axis/axisticker.h"
-#include "axis/axistickerdatetime.h"
-#include "axis/axistickertime.h"
-#include "axis/axistickerfixed.h"
-#include "axis/axistickertext.h"
-#include "axis/axistickerpi.h"
-#include "axis/axistickerlog.h"
-#include "scatterstyle.h"
-#include "plottable.h"
-#include "plottable1d.h"
 #include "datacontainer.h"
-#include "item.h"
-#include "lineending.h"
-#include "core.h"
-#include "colorgradient.h"
-#include "selectiondecorator-bracket.h"
-#include "plottables/plottable-graph.h"
-#include "plottables/plottable-curve.h"
-#include "plottables/plottable-bars.h"
-#include "plottables/plottable-statisticalbox.h"
-#include "plottables/plottable-colormap.h"
-#include "plottables/plottable-financial.h"
-#include "items/item-straightline.h"
-#include "items/item-line.h"
-#include "items/item-curve.h"
-#include "items/item-rect.h"
-#include "items/item-text.h"
-#include "items/item-ellipse.h"
-#include "items/item-pixmap.h"
-#include "items/item-tracer.h"
-#include "items/item-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
-#include "layoutelements/layoutelement-colorscale.h"
+#include "plottable.h"
 
-#endif // QCP_H
+class QCP_LIB_DECL QCPPlottableInterface1D
+{
+public:
+  // introduced pure virtual methods:
+  virtual int dataCount() const = 0;
+  virtual double dataMainKey(int index) const = 0;
+  virtual double dataSortKey(int index) const = 0;
+  virtual double dataMainValue(int index) const = 0;
+  virtual QCPRange dataValueRange(int index) const = 0;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const = 0;
+};
+
+template <class DataType>
+class QCP_LIB_DECL QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableInterface1D
+{
+  // No Q_OBJECT macro due to template class
+  
+public:
+  QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis);
+  virtual ~QCPAbstractPlottable1D();
+  
+  // virtual methods of 1d plottable interface:
+  virtual int dataCount() const;
+  virtual double dataMainKey(int index) const;
+  virtual double dataSortKey(int index) const;
+  virtual double dataMainValue(int index) const;
+  virtual QCPRange dataValueRange(int index) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
+  
+  // virtual methods:
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual QCPPlottableInterface1D *interface1D() { return this; }
+  
+protected:
+  // property members:
+  QSharedPointer<QCPDataContainer<DataType> > mDataContainer;
+  
+  // helpers for subclasses:
+  void getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const;
+  void drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const;
+
+private:
+  Q_DISABLE_COPY(QCPAbstractPlottable1D)
+  
+};
+
+// include implementation in header since it is a class template:
+#include "plottable1d.cpp"
+
+#endif // QCP_PLOTTABLE1D_H

@@ -160,7 +160,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   represented with a different pen and brush than negative changes (\a close < \a open). These can
   be configured with \ref setPenPositive, \ref setPenNegative, \ref setBrushPositive, and \ref
   setBrushNegative. In two-colored mode, the normal plottable pen/brush is ignored. Upon selection
-  however, the normal selected pen/brush (\ref setSelectedPen, \ref setSelectedBrush) is used,
+  however, the normal selected pen/brush (provided by the \ref selectionDecorator) is used,
   irrespective of whether the chart is single- or two-colored.
   
   \section usage Usage
@@ -191,6 +191,49 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
 */
 
 /* end of documentation of inline functions */
+/* start of documentation of template specializations */
+
+/*! \fn int QCPAbstractPlottable1D<QCPFinancialData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
+  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
+*/
+
+/*! \fn int QCPAbstractPlottable1D<QCPFinancialData>::dataCount() const
+  \copydoc QCPAbstractPlottable1D::dataCount
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataMainKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataSortKey(int index) const
+  \copydoc QCPAbstractPlottable1D::dataSortKey
+*/
+
+/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataMainValue(int index) const
+  \copydoc QCPAbstractPlottable1D::dataMainValue
+*/
+
+/*! \fn QCPRange QCPAbstractPlottable1D<QCPFinancialData>::dataValueRange(int index) const
+  \copydoc QCPAbstractPlottable1D::dataValueRange
+*/
+
+/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPFinancialData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
+  \copydoc QCPAbstractPlottable1D::selectTestRect
+*/
+
+/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPFinancialData>::interface1D()
+  \copydoc QCPAbstractPlottable::interface1D
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPFinancialData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
+  \copydoc QCPAbstractPlottable1D::getDataSegments
+*/
+
+/*! \fn void QCPAbstractPlottable1D<QCPFinancialData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
+  \copydoc QCPAbstractPlottable1D::drawPolyline
+*/
+
+/* end of documentation of template specializations */
 
 /*!
   Constructs a financial chart which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value
@@ -203,8 +246,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   but use QCustomPlot::removePlottable() instead.
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mDataContainer(new QCPFinancialDataContainer),
+  QCPAbstractPlottable1D<QCPFinancialData>(keyAxis, valueAxis),
   mChartStyle(csOhlc),
   mWidth(0.5),
   mTwoColored(false),
@@ -213,19 +255,28 @@ QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mPenPositive(QPen(QColor(10, 40, 180))),
   mPenNegative(QPen(QColor(180, 40, 10)))
 {
-  setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
-  setSelectedBrush(QBrush(QColor(80, 80, 255)));
+  mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }
 
 QCPFinancial::~QCPFinancial()
 {
 }
 
-/*!
-  TODO
-  \see timeSeriesToOhlc
+/*! \overload
+  
+  Replaces the current data container with the provided \a data container.
+  
+  Since a QSharedPointer is used, multiple QCPFinancials may share the same data container safely.
+  Modifying the data in the container will then affect all financials that share the container.
+  Sharing can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the financial's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-2
+  
+  \see addData, timeSeriesToOhlc
 */
-
 void QCPFinancial::setData(QSharedPointer<QCPFinancialDataContainer> data)
 {
   mDataContainer = data;
@@ -233,10 +284,14 @@ void QCPFinancial::setData(QSharedPointer<QCPFinancialDataContainer> data)
 
 /*! \overload
   
-  Replaces the current data with the provided open/high/low/close data. The provided vectors should
-  have equal length. Else, the number of added points will be the size of the smallest vector.
+  Replaces the current data with the provided points in \a keys, \a open, \a high, \a low and \a
+  close. The provided vectors should have equal length. Else, the number of added points will be
+  the size of the smallest vector.
   
-  \see timeSeriesToOhlc
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData, timeSeriesToOhlc
 */
 void QCPFinancial::setData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
 {
@@ -334,10 +389,17 @@ void QCPFinancial::setPenNegative(const QPen &pen)
 
 /*! \overload
   
-  Adds the provided open/high/low/close data to the current data.
+  Adds the provided points in \a keys, \a open, \a high, \a low and \a close to the current data.
+  The provided vectors should have equal length. Else, the number of added points will be the size
+  of the smallest vector.
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialDataContainer.
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+  
+  \see timeSeriesToOhlc
 */
 void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
 {
@@ -363,41 +425,71 @@ void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &o
 
 /*! \overload
   
-  Adds the provided single data point given by \a key, \a open, \a high, \a low, and \a close to
-  the current data.
+  Adds the provided data point as \a key, \a open, \a high, \a low and \a close to the current
+  data.
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialDataContainer.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+  
+  \see timeSeriesToOhlc
 */
 void QCPFinancial::addData(double key, double open, double high, double low, double close)
 {
   mDataContainer->add(QCPFinancialData(key, open, high, low, close));
 }
 
+QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect, bool onlySelectable) const
+{
+  QCPDataSelection result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
+  
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPFinancialDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
+  {
+    if (rect.intersects(selectionHitBox(it)))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+  }
+  result.simplify();
+  return result;
+}
+
 /* inherits documentation from base class */
 double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if (onlySelectable && !mSelectable)
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
     return -1;
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPFinancialDataContainer::const_iterator lower, upperEnd;
-    getVisibleDataBounds(lower, upperEnd);
-    if (lower == upperEnd)
-      return -1;
+    QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+    QCPFinancialDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    getVisibleDataBounds(visibleBegin, visibleEnd);
     // perform select test according to configured style:
+    double result = -1;
     switch (mChartStyle)
     {
       case QCPFinancial::csOhlc:
-        return ohlcSelectTest(pos, lower, upperEnd); break;
+        result = ohlcSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
       case QCPFinancial::csCandlestick:
-        return candlestickSelectTest(pos, lower, upperEnd); break;
+        result = candlestickSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
     }
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+    }
+    return result;
   }
+  
   return -1;
 }
 
@@ -458,17 +550,35 @@ QCPFinancialDataContainer QCPFinancial::timeSeriesToOhlc(const QVector<double> &
 void QCPFinancial::draw(QCPPainter *painter)
 {
   // get visible data range:
-  QCPFinancialDataContainer::const_iterator lower, upperEnd;
-  getVisibleDataBounds(lower, upperEnd);
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
   
-  // draw visible data range according to configured style:
-  switch (mChartStyle)
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    case QCPFinancial::csOhlc:
-      drawOhlcPlot(painter, lower, upperEnd); break;
-    case QCPFinancial::csCandlestick:
-      drawCandlestickPlot(painter, lower, upperEnd); break;
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPFinancialDataContainer::const_iterator begin = visibleBegin;
+    QCPFinancialDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
+    
+    // draw data segment according to configured style:
+    switch (mChartStyle)
+    {
+      case QCPFinancial::csOhlc:
+        drawOhlcPlot(painter, begin, end, isSelectedSegment); break;
+      case QCPFinancial::csCandlestick:
+        drawCandlestickPlot(painter, begin, end, isSelectedSegment); break;
+    }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */
@@ -557,25 +667,22 @@ QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csOhlc.
 */
-void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end)
+void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it->close >= it->open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
+        painter->setPen(mPen);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -591,13 +698,12 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it->close >= it->open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
+        painter->setPen(mPen);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -618,41 +724,29 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csCandlestick.
 */
-void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end)
+void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  QBrush boxBrush;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it->close >= it->open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -668,28 +762,19 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
   {
     for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it->close >= it->open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
       double keyPixel = keyAxis->coordToPixel(it->key);
       double openPixel = valueAxis->coordToPixel(it->open);
       double closePixel = valueAxis->coordToPixel(it->close);
@@ -708,34 +793,43 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
   
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csOhlc. It only tests against the data points between \a begin and \a end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const
+double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataContainer::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
       double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it->high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(it->low)));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
       double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it->high), keyPixel), QCPVector2D(valueAxis->coordToPixel(it->low), keyPixel));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);
@@ -746,18 +840,21 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataCo
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csCandlestick. It only tests against the data points between \a begin and \a
   end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end) const
+double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataContainer::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
@@ -777,11 +874,14 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
@@ -801,7 +901,10 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);
@@ -830,6 +933,22 @@ void QCPFinancial::getVisibleDataBounds(QCPFinancialDataContainer::const_iterato
     end = mDataContainer->constEnd();
     return;
   }
-  begin = mDataContainer->findBeginBelowKey(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of ohlc/candlestick to include partially visible data points
-  end = mDataContainer->findEndAboveKey(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
+  begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of ohlc/candlestick to include partially visible data points
+  end = mDataContainer->findEnd(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
+}
+
+QRectF QCPFinancial::selectionHitBox(QCPFinancialDataContainer::const_iterator it) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
+  
+  double keyPixel = keyAxis->coordToPixel(it->key);
+  double highPixel = valueAxis->coordToPixel(it->high);
+  double lowPixel = valueAxis->coordToPixel(it->low);
+  double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5);
+  if (keyAxis->orientation() == Qt::Horizontal)
+    return QRectF(keyPixel-keyWidthPixels, highPixel, keyWidthPixels*2, lowPixel-highPixel).normalized();
+  else
+    return QRectF(highPixel, keyPixel-keyWidthPixels, lowPixel-highPixel, keyWidthPixels*2).normalized();
 }

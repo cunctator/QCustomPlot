@@ -68,10 +68,30 @@
 #endif
 
 /*!
-  The QCP Namespace contains general enums and QFlags used throughout the QCustomPlot library
+  The QCP Namespace contains general enums, QFlags and functions used throughout the QCustomPlot
+  library.
+  
+  It provides QMetaObject-based reflection of its enums and flags via \a QCP::staticMetaObject.
 */
-namespace QCP
-{
+#ifndef Q_MOC_RUN
+namespace QCP {
+#else
+class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q_ENUMS/Q_FLAGS features in namespace
+  Q_GADGET
+  Q_ENUMS(SignDomain)
+  Q_ENUMS(MarginSide)
+  Q_FLAGS(MarginSides)
+  Q_ENUMS(AntialiasedElement)
+  Q_FLAGS(AntialiasedElements)
+  Q_ENUMS(PlottingHint)
+  Q_FLAGS(PlottingHints)
+  Q_ENUMS(Interaction)
+  Q_FLAGS(Interactions)
+  Q_ENUMS(SelectionRectMode)
+  Q_ENUMS(SelectionType)
+public:
+#endif
+
 /*!
   Represents negative and positive sign domain, e.g. for passing to \ref
   QCPAbstractPlottable::getKeyRange and \ref QCPAbstractPlottable::getValueRange.
@@ -250,6 +270,9 @@ inline int getMarginValue(const QMargins &margins, QCP::MarginSide side)
   }
   return 0;
 }
+
+
+extern const QMetaObject staticMetaObject; // in moc-run we create a static meta object for QCP "fake" object. This line is the link to it via QCP::staticMetaObject in normal operation as namespace
 
 } // end of namespace QCP
 

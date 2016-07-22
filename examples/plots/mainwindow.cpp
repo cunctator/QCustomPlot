@@ -145,8 +145,8 @@ void MainWindow::setupSimpleDemo(QCustomPlot *customPlot)
   customPlot->addGraph();
   customPlot->graph(1)->setPen(QPen(Qt::red)); // line color red for second graph
   // generate some points of data (y0 for first, y1 for second graph):
-  QVector<double> x(250), y0(250), y1(250);
-  for (int i=0; i<250; ++i)
+  QVector<double> x(251), y0(251), y1(251);
+  for (int i=0; i<251; ++i)
   {
     x[i] = i;
     y0[i] = qExp(-i/150.0)*qCos(i/10.0); // exponentially decaying cosine
@@ -718,7 +718,7 @@ void MainWindow::setupRealtimeDataDemo(QCustomPlot *customPlot)
   timeTicker->setTimeFormat("%h:%m:%s");
   customPlot->xAxis->setTicker(timeTicker);
   customPlot->axisRect()->setupFullAxesBox();
-  customPlot->yAxis->setRange(-1, 1);
+  customPlot->yAxis->setRange(-1.2, 1.2);
   
   // make left and bottom axes transfer their ranges to right and top axes:
   connect(customPlot->xAxis, SIGNAL(rangeChanged(QCPRange)), customPlot->xAxis2, SLOT(setRange(QCPRange)));
@@ -1020,17 +1020,17 @@ void MainWindow::setupStyledDemo(QCustomPlot *customPlot)
   QVector<double> x4(20), y4(20);
   for (int i=0; i<x1.size(); ++i)
   {
-    x1[i] = i/(double)x1.size()*10;
+    x1[i] = i/(double)(x1.size()-1)*10;
     y1[i] = qCos(x1[i]*0.8+qSin(x1[i]*0.16+1.0))*qSin(x1[i]*0.54)+1.4;
   }
   for (int i=0; i<x2.size(); ++i)
   {
-    x2[i] = i/(double)x2.size()*10;
+    x2[i] = i/(double)(x2.size()-1)*10;
     y2[i] = qCos(x2[i]*0.85+qSin(x2[i]*0.165+1.1))*qSin(x2[i]*0.50)+1.7;
   }
   for (int i=0; i<x3.size(); ++i)
   {
-    x3[i] = i/(double)x3.size()*10;
+    x3[i] = i/(double)(x3.size()-1)*10;
     y3[i] = 0.05+3*(0.5+qCos(x3[i]*x3[i]*0.2+2)*0.5)/(double)(x3[i]+0.7)+qrand()/(double)RAND_MAX*0.01;
   }
   for (int i=0; i<x4.size(); ++i)
@@ -1151,7 +1151,7 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   }
   
   // prepare data:
-  QVector<QCPGraphData> dataCos(20), dataGauss(50), dataRandom(100);
+  QVector<QCPGraphData> dataCos(21), dataGauss(50), dataRandom(100);
   QVector<double> x3, y3;
   qsrand(3);
   for (int i=0; i<dataCos.size(); ++i)
@@ -1175,6 +1175,8 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   // create and configure plottables:
   QCPGraph *mainGraphCos = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft));
   mainGraphCos->data()->set(dataCos);
+  mainGraphCos->valueAxis()->setRange(-1, 1);
+  mainGraphCos->rescaleKeyAxis();
   mainGraphCos->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QPen(Qt::black), QBrush(Qt::white), 6));
   mainGraphCos->setPen(QPen(QColor(120, 120, 120), 2));
   QCPGraph *mainGraphGauss = customPlot->addGraph(wideAxisRect->axis(QCPAxis::atBottom), wideAxisRect->axis(QCPAxis::atLeft, 1));
@@ -1183,11 +1185,14 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   mainGraphGauss->setBrush(QColor(110, 170, 110, 30));
   mainGraphCos->setChannelFillGraph(mainGraphGauss);
   mainGraphCos->setBrush(QColor(255, 161, 0, 50));
+  mainGraphGauss->valueAxis()->setRange(0, 1000);
+  mainGraphGauss->rescaleKeyAxis();
   
   QCPGraph *subGraphRandom = customPlot->addGraph(subRectLeft->axis(QCPAxis::atBottom), subRectLeft->axis(QCPAxis::atLeft));
   subGraphRandom->data()->set(dataRandom);
   subGraphRandom->setLineStyle(QCPGraph::lsImpulse);
   subGraphRandom->setPen(QPen(QColor("#FFA100"), 1.5));
+  subGraphRandom->rescaleAxes();
   
   QCPBars *subBars = new QCPBars(subRectRight->axis(QCPAxis::atBottom), subRectRight->axis(QCPAxis::atRight));
   subBars->setWidth(3/(double)x3.size());
@@ -1197,18 +1202,12 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   subBars->setAntialiasedFill(false);
   subBars->setBrush(QColor("#705BE8"));
   subBars->keyAxis()->setSubTicks(false);
+  subBars->rescaleAxes();
   // setup a ticker for subBars key axis that only gives integer ticks:
   QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
   intTicker->setTickStep(1.0);
   intTicker->setScaleStrategy(QCPAxisTickerFixed::ssMultiples);
   subBars->keyAxis()->setTicker(intTicker);
-  
-  // rescale axes according to graph's data:
-  mainGraphCos->rescaleAxes();
-  mainGraphGauss->rescaleAxes();
-  subGraphRandom->rescaleAxes();
-  subBars->rescaleAxes();
-  wideAxisRect->axis(QCPAxis::atLeft, 1)->setRangeLower(0);
 }
 
 void MainWindow::setupColorMapDemo(QCustomPlot *customPlot)
@@ -1362,10 +1361,10 @@ void MainWindow::realtimeDataSlot()
   // calculate two new data points:
   double key = time.elapsed()/1000.0; // time elapsed since start of demo, in seconds
   static double lastPointKey = 0;
-  if (key-lastPointKey > 0.002) // at most add point every 5 ms
+  if (key-lastPointKey > 0.002) // at most add point every 2 ms
   {
     // add data to lines:
-    ui->customPlot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.3843));
+    ui->customPlot->graph(0)->addData(key, qSin(key)+qrand()/(double)RAND_MAX*1*qSin(key/0.3843));
     ui->customPlot->graph(1)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
     // rescale value (vertical) axis to fit the current data:
     //ui->customPlot->graph(0)->rescaleValueAxis();
@@ -1373,7 +1372,7 @@ void MainWindow::realtimeDataSlot()
     lastPointKey = key;
   }
   // make key axis range scroll with the data (at a constant range size of 8):
-  ui->customPlot->xAxis->setRange(key+0.25, 8, Qt::AlignRight);
+  ui->customPlot->xAxis->setRange(key, 8, Qt::AlignRight);
   ui->customPlot->replot();
   
   // calculate frames per second:

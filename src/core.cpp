@@ -2439,7 +2439,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         {
           foreach (QCPLayerable *layerable, layer->children())
           {
-            if ((potentialSelections.isEmpty() || potentialSelections.first().first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
+            if ((potentialSelections.isEmpty() || potentialSelections.constBegin()->first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
             {
               bool selChanged = false;
               layerable->deselectEvent(&selChanged);

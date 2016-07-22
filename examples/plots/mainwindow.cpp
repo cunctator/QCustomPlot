@@ -1443,8 +1443,10 @@ void MainWindow::screenShot()
 {
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
   QPixmap pm = QPixmap::grabWindow(qApp->desktop()->winId(), this->x()+2, this->y()+2, this->frameGeometry().width()-4, this->frameGeometry().height()-4);
-#else
+#elif QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
   QPixmap pm = qApp->primaryScreen()->grabWindow(qApp->desktop()->winId(), this->x()+2, this->y()+2, this->frameGeometry().width()-4, this->frameGeometry().height()-4);
+#else
+  QPixmap pm = qApp->primaryScreen()->grabWindow(qApp->desktop()->winId(), this->x()-7, this->y()-7, this->frameGeometry().width()+14, this->frameGeometry().height()+14);
 #endif
   QString fileName = demoName.toLower()+".png";
   fileName.replace(" ", "");

@@ -31,6 +31,7 @@
 #include <QPointer>
 #include <QSharedPointer>
 #include <QWidget>
+#include <QTimer>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QMouseEvent>

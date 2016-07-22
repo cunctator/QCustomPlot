@@ -78,8 +78,11 @@ protected:
   // introduced virtual methods:
   virtual bool registerWithPlottable(QCPAbstractPlottable *plottable);
   
+private:
+  Q_DISABLE_COPY(QCPSelectionDecorator)
   friend class QCPAbstractPlottable;
 };
+Q_DECLARE_METATYPE(QCPSelectionDecorator*)
 
 
 class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable

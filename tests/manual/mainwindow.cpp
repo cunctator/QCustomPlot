@@ -1016,6 +1016,7 @@ void MainWindow::setupBarsGroupTest(QCustomPlot *customPlot)
 
 void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
   // create large initial set that would take long to clear as a whole:
   QElapsedTimer timer;
   timer.start();
@@ -1048,6 +1049,9 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   }
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediateRefresh);
+#else
+  qDebug() << Q_FUNC_INFO << "unavailable in Qt < 4.7";
+#endif
 }
 
 void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)

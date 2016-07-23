@@ -5,7 +5,10 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QDir>
-#include <QElapsedTimer>
+#include <QMetaEnum>
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
+#  include <QElapsedTimer>
+#endif
 
 #include "../../src/qcp.h"
 

@@ -1751,7 +1751,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
     if (!mReplotQueued)
     {
       mReplotQueued = true;
-      QTimer::singleShot(0, this, SLOT(replot(QCustomPlot::RefreshPriority)));
+      QTimer::singleShot(0, this, SLOT(replot()));
     }
     return;
   }

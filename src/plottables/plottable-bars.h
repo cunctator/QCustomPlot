@@ -201,7 +201,7 @@ protected:
   
   // non-virtual methods:
   void getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const;
-  QPolygonF getBarPolygon(double key, double value) const;
+  QRectF getBarRect(double key, double value) const;
   void getPixelWidth(double key, double &lower, double &upper) const;
   double getStackedBaseValue(double key, bool positive) const;
   static void connectBars(QCPBars* lower, QCPBars* upper);

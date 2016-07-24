@@ -816,8 +816,7 @@ QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable
   
   for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
-    const QRectF barRect(getBarPolygon(it->key, it->value).boundingRect());
-    if (rect.intersects(barRect))
+    if (rect.intersects(getBarRect(it->key, it->value)))
       result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
   }
   result.simplify();
@@ -840,7 +839,7 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
     getVisibleDataBounds(visibleBegin, visibleEnd);
     for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
     {
-      if (getBarPolygon(it->key, it->value).boundingRect().contains(pos))
+      if (getBarRect(it->key, it->value).contains(pos))
       {
         if (details)
         {
@@ -883,29 +882,18 @@ void QCPBars::draw(QCPPainter *painter)
       if (QCP::isInvalidData(it->key, it->value))
         qDebug() << Q_FUNC_INFO << "Data point at" << it->key << "of drawn range invalid." << "Plottable name:" << name();
 #endif
-      QPolygonF barPolygon = getBarPolygon(it->key, it->value);
-      // draw bar fill:
+      // draw bar:
       if (isSelectedSegment && mSelectionDecorator)
+      {
         mSelectionDecorator->applyBrush(painter);
-      else
-        painter->setBrush(mBrush);
-      painter->setPen(Qt::NoPen);
-      if (painter->brush().style() != Qt::NoBrush && painter->brush().color().alpha() != 0)
-      {
-        applyFillAntialiasingHint(painter);
-        painter->drawPolygon(barPolygon);
-      }
-      // draw bar line:
-      if (isSelectedSegment && mSelectionDecorator)
         mSelectionDecorator->applyPen(painter);
-      else
-        painter->setPen(mPen);
-      painter->setBrush(Qt::NoBrush);
-      if (painter->pen().style() != Qt::NoPen && painter->pen().color().alpha() != 0)
+      } else
       {
-        applyDefaultAntialiasingHint(painter);
-        painter->drawPolyline(barPolygon);
+        painter->setBrush(mBrush);
+        painter->setPen(mPen);
       }
+      applyDefaultAntialiasingHint(painter);
+      painter->drawPolygon(getBarRect(it->key, it->value));
     }
   }
   
@@ -967,11 +955,11 @@ void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, 
   while (it != mDataContainer->constBegin())
   {
     --it;
-    QRectF barBounds = getBarPolygon(it->key, it->value).boundingRect();
+    const QRectF barRect = getBarRect(it->key, it->value);
     if (mKeyAxis.data()->orientation() == Qt::Horizontal)
-      isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.right() >= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.left() <= lowerPixelBound));
+      isVisible = ((!mKeyAxis.data()->rangeReversed() && barRect.right() >= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barRect.left() <= lowerPixelBound));
     else // keyaxis is vertical
-      isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.top() <= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.bottom() >= lowerPixelBound));
+      isVisible = ((!mKeyAxis.data()->rangeReversed() && barRect.top() <= lowerPixelBound) || (mKeyAxis.data()->rangeReversed() && barRect.bottom() >= lowerPixelBound));
     if (isVisible)
       begin = it;
     else
@@ -981,11 +969,11 @@ void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, 
   it = end;
   while (it != mDataContainer->constEnd())
   {
-    QRectF barBounds = getBarPolygon(it->key, it->value).boundingRect();
+    const QRectF barRect = getBarRect(it->key, it->value);
     if (mKeyAxis.data()->orientation() == Qt::Horizontal)
-      isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.left() <= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.right() >= upperPixelBound));
+      isVisible = ((!mKeyAxis.data()->rangeReversed() && barRect.left() <= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barRect.right() >= upperPixelBound));
     else // keyaxis is vertical
-      isVisible = ((!mKeyAxis.data()->rangeReversed() && barBounds.bottom() >= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barBounds.top() <= upperPixelBound));
+      isVisible = ((!mKeyAxis.data()->rangeReversed() && barRect.bottom() >= upperPixelBound) || (mKeyAxis.data()->rangeReversed() && barRect.top() <= upperPixelBound));
     if (isVisible)
       end = it+1;
     else
@@ -996,17 +984,16 @@ void QCPBars::getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, 
 
 /*! \internal
   
-  Returns the polygon of a single bar with \a key and \a value. The Polygon is open at the bottom
-  and shifted according to the bar stacking (see \ref moveAbove) and base value (see \ref
-  setBaseValue).
+  Returns the rect in pixel coordinates of a single bar with the specified \a key and \a value. The
+  rect is shifted according to the bar stacking (see \ref moveAbove) and base value (see \ref
+  setBaseValue), and to have non-overlapping border lines with the bars stacked below.
 */
-QPolygonF QCPBars::getBarPolygon(double key, double value) const
+QRectF QCPBars::getBarRect(double key, double value) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPolygonF(); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
   
-  QPolygonF result;
   double lowerPixelWidth, upperPixelWidth;
   getPixelWidth(key, lowerPixelWidth, upperPixelWidth);
   double base = getStackedBaseValue(key, value >= 0);
@@ -1015,20 +1002,17 @@ QPolygonF QCPBars::getBarPolygon(double key, double value) const
   double keyPixel = keyAxis->coordToPixel(key);
   if (mBarsGroup)
     keyPixel += mBarsGroup->keyPixelOffset(this, key);
+  double bottomOffset = (mBarBelow && mPen != Qt::NoPen ? 1 : 0)*(mPen.isCosmetic() ? 1 : mPen.widthF());
+  bottomOffset *= (valueAxis->rangeReversed() ? -1 : 1)*(value<0 ? -1 : 1)*(valueAxis->orientation()==Qt::Vertical ? -1 : 1);
+  if (qAbs(valuePixel-basePixel) <= qAbs(bottomOffset))
+    bottomOffset = valuePixel-basePixel;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    result << QPointF(keyPixel+lowerPixelWidth, basePixel);
-    result << QPointF(keyPixel+lowerPixelWidth, valuePixel);
-    result << QPointF(keyPixel+upperPixelWidth, valuePixel);
-    result << QPointF(keyPixel+upperPixelWidth, basePixel);
+    return QRectF(QPointF(keyPixel+lowerPixelWidth, valuePixel), QPointF(keyPixel+upperPixelWidth, basePixel+bottomOffset)).normalized();
   } else
   {
-    result << QPointF(basePixel, keyPixel+lowerPixelWidth);
-    result << QPointF(valuePixel, keyPixel+lowerPixelWidth);
-    result << QPointF(valuePixel, keyPixel+upperPixelWidth);
-    result << QPointF(basePixel, keyPixel+upperPixelWidth);
+    return QRectF(QPointF(basePixel+bottomOffset, keyPixel+lowerPixelWidth), QPointF(valuePixel, keyPixel+upperPixelWidth)).normalized();
   }
-  return result;
 }
 
 /*! \internal

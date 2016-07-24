@@ -249,11 +249,11 @@ QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable1D<QCPFinancialData>(keyAxis, valueAxis),
   mChartStyle(csOhlc),
   mWidth(0.5),
-  mTwoColored(false),
-  mBrushPositive(QBrush(QColor(210, 210, 255))),
-  mBrushNegative(QBrush(QColor(255, 210, 210))),
-  mPenPositive(QPen(QColor(10, 40, 180))),
-  mPenNegative(QPen(QColor(180, 40, 10)))
+  mTwoColored(true),
+  mBrushPositive(QBrush(QColor(50, 160, 0))),
+  mBrushNegative(QBrush(QColor(180, 0, 15))),
+  mPenPositive(QPen(QColor(40, 150, 0))),
+  mPenNegative(QPen(QColor(170, 5, 5)))
 {
   mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }

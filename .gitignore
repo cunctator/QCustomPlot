@@ -22,6 +22,7 @@ ui_*.h
 *.ts
 *.autosave
 *.moc
+.qmake.stash
 
 # Compilation Binaries:
 

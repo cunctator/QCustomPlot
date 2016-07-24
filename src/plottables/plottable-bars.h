@@ -139,6 +139,7 @@ class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable1D<QCPBarsData>
   Q_PROPERTY(WidthType widthType READ widthType WRITE setWidthType)
   Q_PROPERTY(QCPBarsGroup* barsGroup READ barsGroup WRITE setBarsGroup)
   Q_PROPERTY(double baseValue READ baseValue WRITE setBaseValue)
+  Q_PROPERTY(double stackingGap READ stackingGap WRITE setStackingGap)
   Q_PROPERTY(QCPBars* barBelow READ barBelow)
   Q_PROPERTY(QCPBars* barAbove READ barAbove)
   /// \endcond
@@ -163,6 +164,7 @@ public:
   WidthType widthType() const { return mWidthType; }
   QCPBarsGroup *barsGroup() const { return mBarsGroup; }
   double baseValue() const { return mBaseValue; }
+  double stackingGap() const { return mStackingGap; }
   QCPBars *barBelow() const { return mBarBelow.data(); }
   QCPBars *barAbove() const { return mBarAbove.data(); }
   QSharedPointer<QCPBarsDataContainer> data() const { return mDataContainer; }
@@ -174,6 +176,7 @@ public:
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
+  void setStackingGap(double pixels);
   
   // non-property methods:
   void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
@@ -191,6 +194,7 @@ protected:
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;
   double mBaseValue;
+  double mStackingGap;
   QPointer<QCPBars> mBarBelow, mBarAbove;
   
   // reimplemented virtual methods:

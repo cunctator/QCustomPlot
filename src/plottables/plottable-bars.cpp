@@ -583,7 +583,8 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mWidth(0.75),
   mWidthType(wtPlotCoords),
   mBarsGroup(0),
-  mBaseValue(0)
+  mBaseValue(0),
+  mStackingGap(0)
 {
   // modify inherited properties from abstract plottable:
   mPen.setColor(Qt::blue);
@@ -693,6 +694,16 @@ void QCPBars::setBarsGroup(QCPBarsGroup *barsGroup)
 void QCPBars::setBaseValue(double baseValue)
 {
   mBaseValue = baseValue;
+}
+
+/*!
+  If this bars plottable is stacked on top of another bars plottable (\ref moveAbove), this method
+  allows specifying a distance in \a pixels, by which the drawn bar rectangles will be separated by
+  the bars below it.
+*/
+void QCPBars::setStackingGap(double pixels)
+{
+  mStackingGap = pixels;
 }
 
 /*! \overload
@@ -1003,6 +1014,7 @@ QRectF QCPBars::getBarRect(double key, double value) const
   if (mBarsGroup)
     keyPixel += mBarsGroup->keyPixelOffset(this, key);
   double bottomOffset = (mBarBelow && mPen != Qt::NoPen ? 1 : 0)*(mPen.isCosmetic() ? 1 : mPen.widthF());
+  bottomOffset += mBarBelow ? mStackingGap : 0;
   bottomOffset *= (valueAxis->rangeReversed() ? -1 : 1)*(value<0 ? -1 : 1)*(valueAxis->orientation()==Qt::Vertical ? -1 : 1);
   if (qAbs(valuePixel-basePixel) <= qAbs(bottomOffset))
     bottomOffset = valuePixel-basePixel;

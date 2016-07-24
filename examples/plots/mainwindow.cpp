@@ -1311,7 +1311,7 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   candlesticks->setWidth(binSize*0.9);
   candlesticks->setTwoColored(true);
   candlesticks->setBrushPositive(QColor(245, 245, 245));
-  candlesticks->setBrushNegative(QColor(0, 0, 0));
+  candlesticks->setBrushNegative(QColor(40, 40, 40));
   candlesticks->setPenPositive(QPen(QColor(0, 0, 0)));
   candlesticks->setPenNegative(QPen(QColor(0, 0, 0)));
   

@@ -32,13 +32,17 @@ class QCP_LIB_DECL QCPAxisTickerTime : public QCPAxisTicker
 {
   Q_GADGET
 public:
-  enum TimeUnit {
-    tuMilliseconds
-    ,tuSeconds
-    ,tuMinutes
-    ,tuHours
-    ,tuDays
-  };
+  /*!
+    Defines the logical units in which fractions of time spans can be expressed.
+    
+    \see setFieldWidth, setTimeFormat
+  */
+  enum TimeUnit { tuMilliseconds
+                  ,tuSeconds
+                  ,tuMinutes
+                  ,tuHours
+                  ,tuDays
+                };
   Q_ENUMS(TimeUnit)
   
   QCPAxisTickerTime();

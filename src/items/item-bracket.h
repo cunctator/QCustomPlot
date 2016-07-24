@@ -42,6 +42,12 @@ class QCP_LIB_DECL QCPItemBracket : public QCPAbstractItem
   Q_PROPERTY(BracketStyle style READ style WRITE setStyle)
   /// \endcond
 public:
+  /*!
+    Defines the various visual shapes of the bracket item. The appearance can be further modified
+    by \ref setLength and \ref setPen.
+    
+    \see setStyle
+  */
   enum BracketStyle { bsSquare  ///< A brace with angled edges
                       ,bsRound  ///< A brace with round edges
                       ,bsCurly  ///< A curly brace

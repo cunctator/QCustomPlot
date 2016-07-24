@@ -149,5 +149,6 @@ protected:
   friend class QCustomPlot;
   friend class QCPLegend;
 };
+Q_DECLARE_METATYPE(QCPFinancial::ChartStyle)
 
 #endif // QCP_PLOTTABLE_FINANCIAL_H

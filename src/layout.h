@@ -151,6 +151,7 @@ private:
   friend class QCPLayout;
   friend class QCPMarginGroup;
 };
+Q_DECLARE_METATYPE(QCPLayoutElement::UpdatePhase)
 
 
 class QCP_LIB_DECL QCPLayout : public QCPLayoutElement
@@ -267,6 +268,7 @@ public:
   enum InsetPlacement { ipFree            ///< The element may be positioned/sized arbitrarily, see \ref setInsetRect
                         ,ipBorderAligned  ///< The element is aligned to one of the layout sides, see \ref setInsetAlignment
                       };
+  Q_ENUMS(InsetPlacement)
   
   explicit QCPLayoutInset();
   virtual ~QCPLayoutInset();
@@ -304,5 +306,6 @@ protected:
 private:
   Q_DISABLE_COPY(QCPLayoutInset)
 };
+Q_DECLARE_METATYPE(QCPLayoutInset::InsetPlacement)
 
 #endif // QCP_LAYOUT_H

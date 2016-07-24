@@ -42,14 +42,15 @@ public:
     Specific scatter properties can be transferred between \ref QCPScatterStyle instances via \ref
     setFromOther.
   */
-  enum ScatterProperty {  spNone  = 0x00  ///< <tt>0x00</tt> None
+  enum ScatterProperty { spNone  = 0x00  ///< <tt>0x00</tt> None
                          ,spPen   = 0x01  ///< <tt>0x01</tt> The pen property, see \ref setPen
                          ,spBrush = 0x02  ///< <tt>0x02</tt> The brush property, see \ref setBrush
                          ,spSize  = 0x04  ///< <tt>0x04</tt> The size property, see \ref setSize
                          ,spShape = 0x08  ///< <tt>0x08</tt> The shape property, see \ref setShape
                          ,spAll   = 0xFF  ///< <tt>0xFF</tt> All properties
                        };
-  Q_FLAGS(ScatterProperty ScatterProperties)
+  Q_ENUMS(ScatterProperty)
+  Q_FLAGS(ScatterProperties)
   Q_DECLARE_FLAGS(ScatterProperties, ScatterProperty)
 
   /*!

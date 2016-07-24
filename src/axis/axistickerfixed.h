@@ -30,6 +30,7 @@
 
 class QCP_LIB_DECL QCPAxisTickerFixed : public QCPAxisTicker
 {
+  Q_GADGET
 public:
   /*!
     Defines how the axis ticker may modify the specified tick step (\ref setTickStep) in order to
@@ -37,11 +38,11 @@ public:
     
     \see setScaleStrategy
   */
-  enum ScaleStrategy {
-     ssNone      ///< Modifications are not allowed, the specified tick step is absolutely fixed. This might cause a high tick density and overlapping labels if the axis range is zoomed out.
-    ,ssMultiples ///< An integer multiple of the specified tick step is allowed. The used factor follows the base class properties of \ref setTickStepStrategy and \ref setTickCount.
-    ,ssPowers    ///< An integer power of the specified tick step is allowed.
-  };
+  enum ScaleStrategy { ssNone      ///< Modifications are not allowed, the specified tick step is absolutely fixed. This might cause a high tick density and overlapping labels if the axis range is zoomed out.
+                       ,ssMultiples ///< An integer multiple of the specified tick step is allowed. The used factor follows the base class properties of \ref setTickStepStrategy and \ref setTickCount.
+                       ,ssPowers    ///< An integer power of the specified tick step is allowed.
+                     };
+  Q_ENUMS(ScaleStrategy)
   
   QCPAxisTickerFixed();
   
@@ -61,5 +62,6 @@ protected:
   // reimplemented virtual methods:
   virtual double getTickStep(const QCPRange &range);
 };
+Q_DECLARE_METATYPE(QCPAxisTickerFixed::ScaleStrategy)
 
 #endif // QCP_AXISTICKERFIXED_H

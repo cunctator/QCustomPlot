@@ -30,6 +30,7 @@
 
 class QCP_LIB_DECL QCPAxisTickerTime : public QCPAxisTicker
 {
+  Q_GADGET
 public:
   enum TimeUnit {
     tuMilliseconds
@@ -38,6 +39,7 @@ public:
     ,tuHours
     ,tuDays
   };
+  Q_ENUMS(TimeUnit)
   
   QCPAxisTickerTime();
 
@@ -66,5 +68,6 @@ protected:
   // non-virtual methods:
   void replaceUnit(QString &text, TimeUnit unit, int value) const;
 };
+Q_DECLARE_METATYPE(QCPAxisTickerTime::TimeUnit)
 
 #endif // QCP_AXISTICKERTIME_H

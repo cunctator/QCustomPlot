@@ -52,7 +52,9 @@ public:
   enum SpacingType { stAbsolute       ///< Bar spacing is in absolute pixels
                      ,stAxisRectRatio ///< Bar spacing is given by a fraction of the axis rect size
                      ,stPlotCoords    ///< Bar spacing is in key coordinates and thus scales with the key axis range
-                 };
+                   };
+  Q_ENUMS(SpacingType)
+  
   QCPBarsGroup(QCustomPlot *parentPlot);
   ~QCPBarsGroup();
   
@@ -95,6 +97,7 @@ private:
   
   friend class QCPBars;
 };
+Q_DECLARE_METATYPE(QCPBarsGroup::SpacingType)
 
 
 class QCP_LIB_DECL QCPBarsData
@@ -150,7 +153,7 @@ public:
                    ,wtAxisRectRatio ///< Bar width is given by a fraction of the axis rect size
                    ,wtPlotCoords    ///< Bar width is in key coordinates and thus scales with the key axis range
                  };
-   Q_ENUMS(WidthType)
+  Q_ENUMS(WidthType)
   
   explicit QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPBars();
@@ -207,5 +210,6 @@ protected:
   friend class QCPLegend;
   friend class QCPBarsGroup;
 };
+Q_DECLARE_METATYPE(QCPBars::WidthType)
 
 #endif // QCP_PLOTTABLE_BARS_H

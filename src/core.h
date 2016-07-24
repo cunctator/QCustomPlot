@@ -275,5 +275,7 @@ protected:
   friend class QCPGraph;
   friend class QCPAbstractItem;
 };
+Q_DECLARE_METATYPE(QCustomPlot::LayerInsertMode)
+Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)
 
 #endif // QCP_CORE_H

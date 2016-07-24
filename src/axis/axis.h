@@ -151,7 +151,8 @@ public:
                   ,atTop    = 0x04  ///< <tt>0x04</tt> Axis is horizontal and on the top side of the axis rect
                   ,atBottom = 0x08  ///< <tt>0x08</tt> Axis is horizontal and on the bottom side of the axis rect
                 };
-  Q_FLAGS(AxisType AxisTypes)
+  Q_ENUMS(AxisType)
+  Q_FLAGS(AxisTypes)
   Q_DECLARE_FLAGS(AxisTypes, AxisType)
   /*!
     Defines on which side of the axis the tick labels (numbers) shall appear.
@@ -179,7 +180,8 @@ public:
                         ,spTickLabels = 0x002  ///< Tick labels (numbers) of this axis (as a whole, not individually)
                         ,spAxisLabel  = 0x004  ///< The axis label
                       };
-  Q_FLAGS(SelectablePart SelectableParts)
+  Q_ENUMS(SelectablePart)
+  Q_FLAGS(SelectableParts)
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   explicit QCPAxis(QCPAxisRect *parent, AxisType type);
@@ -380,8 +382,10 @@ private:
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCPAxis::SelectableParts)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCPAxis::AxisTypes)
+Q_DECLARE_METATYPE(QCPAxis::AxisType)
+Q_DECLARE_METATYPE(QCPAxis::LabelSide)
+Q_DECLARE_METATYPE(QCPAxis::ScaleType)
 Q_DECLARE_METATYPE(QCPAxis::SelectablePart)
-Q_DECLARE_METATYPE(QCPAxis::SelectableParts)
 
 
 class QCPAxisPainterPrivate

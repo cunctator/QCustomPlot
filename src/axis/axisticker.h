@@ -31,6 +31,7 @@
 
 class QCP_LIB_DECL QCPAxisTicker
 {
+  Q_GADGET
 public:
   /*!
     Defines the strategies that the axis ticker may follow when choosing the size of the tick step.
@@ -42,6 +43,7 @@ public:
     tssReadability    ///< A nicely readable tick step is prioritized over matching the requested number of ticks (see \ref setTickCount)
     ,tssMeetTickCount ///< Less readable tick steps are allowed which in turn facilitates getting closer to the requested tick count
   };
+  Q_ENUMS(TickStepStrategy)
   
   QCPAxisTicker();
   virtual ~QCPAxisTicker();
@@ -79,5 +81,6 @@ protected:
   double getMantissa(double input, double *magnitude=0) const;
   double cleanMantissa(double input) const;
 };
+Q_DECLARE_METATYPE(QCPAxisTicker::TickStepStrategy)
 
 #endif // QCPAXISTICKER_H

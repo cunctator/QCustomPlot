@@ -90,5 +90,6 @@ protected:
   QPointF getPixelCoordinates(const QCPPlottableInterface1D *interface1d, int dataIndex) const;
   
 };
+Q_DECLARE_METATYPE(QCPSelectionDecoratorBracket::BracketStyle)
 
 #endif // QCP_SELECTIONDECORATOR_BRACKET_H

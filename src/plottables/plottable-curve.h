@@ -83,6 +83,8 @@ public:
   enum LineStyle { lsNone  ///< No line is drawn between data points (e.g. only scatters)
                    ,lsLine ///< Data points are connected with a straight line
                  };
+  Q_ENUMS(LineStyle)
+  
   explicit QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPCurve();
   
@@ -135,5 +137,6 @@ protected:
   friend class QCustomPlot;
   friend class QCPLegend;
 };
+Q_DECLARE_METATYPE(QCPCurve::LineStyle)
 
 #endif // QCP_PLOTTABLE_CURVE_H

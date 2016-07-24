@@ -161,5 +161,6 @@ protected:
   friend class QCustomPlot;
   friend class QCPLegend;
 };
+Q_DECLARE_METATYPE(QCPGraph::LineStyle)
 
 #endif // QCP_PLOTTABLE_GRAPH_H

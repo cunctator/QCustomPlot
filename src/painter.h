@@ -41,7 +41,8 @@ public:
                      ,pmNoCaching    = 0x02   ///< <tt>0x02</tt> Mode for all sorts of exports (e.g. PNG, PDF,...). For example, this prevents using cached pixmap labels
                      ,pmNonCosmetic  = 0x04   ///< <tt>0x04</tt> Turns pen widths 0 to 1, i.e. disables cosmetic pens. (A cosmetic pen is always drawn with width 1 pixel in the vector image/pdf viewer, independent of zoom.)
                    };
-  Q_FLAGS(PainterMode PainterModes)
+  Q_ENUMS(PainterMode)
+  Q_FLAGS(PainterModes)
   Q_DECLARE_FLAGS(PainterModes, PainterMode)
   
   QCPPainter();

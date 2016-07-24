@@ -47,6 +47,7 @@ public:
                       ,bsCurly  ///< A curly brace
                       ,bsCalligraphic ///< A curly brace with varying stroke width giving a calligraphic impression
   };
+  Q_ENUMS(BracketStyle)
 
   QCPItemBracket(QCustomPlot *parentPlot);
   virtual ~QCPItemBracket();
@@ -84,5 +85,6 @@ protected:
   // non-virtual methods:
   QPen mainPen() const;
 };
+Q_DECLARE_METATYPE(QCPItemBracket::BracketStyle)
 
 #endif // QCP_ITEM_BRACKET_H

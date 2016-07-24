@@ -111,5 +111,6 @@ protected:
   QPen mainPen() const;
   QBrush mainBrush() const;
 };
+Q_DECLARE_METATYPE(QCPItemTracer::TracerStyle)
 
 #endif // QCP_ITEM_TRACER_H

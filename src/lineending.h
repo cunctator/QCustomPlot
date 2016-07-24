@@ -46,7 +46,6 @@ public:
     
     \see QCPItemLine::setHead, QCPItemLine::setTail, QCPItemCurve::setHead, QCPItemCurve::setTail, QCPAxis::setLowerEnding, QCPAxis::setUpperEnding
   */
-  Q_ENUMS(EndingStyle)
   enum EndingStyle { esNone          ///< No ending decoration
                      ,esFlatArrow    ///< A filled arrow head with a straight/flat back (a triangle)
                      ,esSpikeArrow   ///< A filled arrow head with an indented back
@@ -58,6 +57,7 @@ public:
                      ,esHalfBar      ///< A bar perpendicular to the line, pointing out to only one side (to which side can be changed with \ref setInverted)
                      ,esSkewedBar    ///< A bar that is skewed (skew controllable via \ref setLength)
                    };
+  Q_ENUMS(EndingStyle)
   
   QCPLineEnding();
   QCPLineEnding(EndingStyle style, double width=8, double length=10, bool inverted=false);

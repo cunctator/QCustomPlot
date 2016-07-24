@@ -39,6 +39,7 @@ class QCPAxisRect;
 
 class QCP_LIB_DECL QCPItemAnchor
 {
+  Q_GADGET
 public:
   QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name, int anchorId=-1);
   virtual ~QCPItemAnchor();
@@ -76,6 +77,7 @@ private:
 
 class QCP_LIB_DECL QCPItemPosition : public QCPItemAnchor
 {
+  Q_GADGET
 public:
   /*!
     Defines the ways an item position can be specified. Thus it defines what the numbers passed to
@@ -92,6 +94,7 @@ public:
                                         ///< vertically at the top of the axis rect, etc. You can also go beyond the axis rect by providing negative coordinates or coordinates larger than 1.
                       ,ptPlotCoords     ///< Dynamic positioning at a plot coordinate defined by two axes (see \ref setAxes).
                     };
+  Q_ENUMS(PositionType)
   
   QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name);
   virtual ~QCPItemPosition();
@@ -139,6 +142,7 @@ private:
   Q_DISABLE_COPY(QCPItemPosition)
   
 };
+Q_DECLARE_METATYPE(QCPItemPosition::PositionType)
 
 
 class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable

@@ -277,10 +277,16 @@ inline int getMarginValue(const QMargins &margins, QCP::MarginSide side)
 extern const QMetaObject staticMetaObject; // in moc-run we create a static meta object for QCP "fake" object. This line is the link to it via QCP::staticMetaObject in normal operation as namespace
 
 } // end of namespace QCP
-
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::AntialiasedElements)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::PlottingHints)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::MarginSides)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::Interactions)
+Q_DECLARE_METATYPE(QCP::SignDomain)
+Q_DECLARE_METATYPE(QCP::MarginSide)
+Q_DECLARE_METATYPE(QCP::AntialiasedElement)
+Q_DECLARE_METATYPE(QCP::PlottingHint)
+Q_DECLARE_METATYPE(QCP::Interaction)
+Q_DECLARE_METATYPE(QCP::SelectionRectMode)
+Q_DECLARE_METATYPE(QCP::SelectionType)
 
 #endif // QCP_GLOBAL_H

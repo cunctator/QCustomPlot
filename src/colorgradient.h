@@ -100,5 +100,7 @@ protected:
   // non-virtual methods:
   void updateColorBuffer();
 };
+Q_DECLARE_METATYPE(QCPColorGradient::ColorInterpolation)
+Q_DECLARE_METATYPE(QCPColorGradient::GradientPreset)
 
 #endif // QCP_COLORGRADIENT_H

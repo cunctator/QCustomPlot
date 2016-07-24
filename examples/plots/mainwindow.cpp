@@ -772,20 +772,33 @@ void MainWindow::setupParametricCurveDemo(QCustomPlot *customPlot)
 void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
 {
   demoName = "Bar Chart Demo";
+  // set dark background gradient:
+  QLinearGradient gradient(0, 0, 0, 400);
+  gradient.setColorAt(0, QColor(90, 90, 90));
+  gradient.setColorAt(0.38, QColor(105, 105, 105));
+  gradient.setColorAt(1, QColor(70, 70, 70));
+  customPlot->setBackground(QBrush(gradient));
+  
   // create empty bar chart objects:
   QCPBars *regen = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *nuclear = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *fossil = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  regen->setAntialiased(false); // gives more crisp, pixel aligned bar borders
+  nuclear->setAntialiased(false);
+  fossil->setAntialiased(false);
+  regen->setStackingGap(1);
+  nuclear->setStackingGap(1);
+  fossil->setStackingGap(1);
   // set names and colors:
   fossil->setName("Fossil fuels");
-  fossil->setPen(QPen(QColor(110, 110, 110)));
-  fossil->setBrush(QColor(140, 140, 140, 50));
+  fossil->setPen(QPen(QColor(111, 9, 176).lighter(170)));
+  fossil->setBrush(QColor(111, 9, 176));
   nuclear->setName("Nuclear");
-  nuclear->setPen(QPen(QColor(110, 110, 110)));
-  nuclear->setBrush(QColor(1, 100, 220, 50));
+  nuclear->setPen(QPen(QColor(250, 170, 20).lighter(150)));
+  nuclear->setBrush(QColor(250, 170, 20));
   regen->setName("Regenerative");
-  regen->setPen(QPen(QColor(110, 110, 110)));
-  regen->setBrush(QColor(160, 210, 10, 70));
+  regen->setPen(QPen(QColor(0, 168, 140).lighter(130)));
+  regen->setBrush(QColor(0, 168, 140));
   // stack bars on top of each other:
   nuclear->moveAbove(fossil);
   regen->moveAbove(nuclear);
@@ -801,20 +814,26 @@ void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
   customPlot->xAxis->setTickLabelRotation(60);
   customPlot->xAxis->setSubTicks(false);
   customPlot->xAxis->setTickLength(0, 4);
-  customPlot->xAxis->grid()->setVisible(true);
   customPlot->xAxis->setRange(0, 8);
+  customPlot->xAxis->setBasePen(QPen(Qt::white));
+  customPlot->xAxis->setTickPen(QPen(Qt::white));
+  customPlot->xAxis->grid()->setVisible(true);
+  customPlot->xAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
+  customPlot->xAxis->setTickLabelColor(Qt::white);
+  customPlot->xAxis->setLabelColor(Qt::white);
   
   // prepare y axis:
   customPlot->yAxis->setRange(0, 12.1);
   customPlot->yAxis->setPadding(5); // a bit more space to the left border
   customPlot->yAxis->setLabel("Power Consumption in\nKilowatts per Capita (2007)");
+  customPlot->yAxis->setBasePen(QPen(Qt::white));
+  customPlot->yAxis->setTickPen(QPen(Qt::white));
+  customPlot->yAxis->setSubTickPen(QPen(Qt::white));
   customPlot->yAxis->grid()->setSubGridVisible(true);
-  QPen gridPen;
-  gridPen.setStyle(Qt::SolidLine);
-  gridPen.setColor(QColor(0, 0, 0, 25));
-  customPlot->yAxis->grid()->setPen(gridPen);
-  gridPen.setStyle(Qt::DotLine);
-  customPlot->yAxis->grid()->setSubGridPen(gridPen);
+  customPlot->yAxis->setTickLabelColor(Qt::white);
+  customPlot->yAxis->setLabelColor(Qt::white);
+  customPlot->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
+  customPlot->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
   
   // Add data:
   QVector<double> fossilData, nuclearData, regenData;
@@ -828,10 +847,8 @@ void MainWindow::setupBarChartDemo(QCustomPlot *customPlot)
   // setup legend:
   customPlot->legend->setVisible(true);
   customPlot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop|Qt::AlignHCenter);
-  customPlot->legend->setBrush(QColor(255, 255, 255, 200));
-  QPen legendPen;
-  legendPen.setColor(QColor(130, 130, 130, 200));
-  customPlot->legend->setBorderPen(legendPen);
+  customPlot->legend->setBrush(QColor(255, 255, 255, 100));
+  customPlot->legend->setBorderPen(Qt::NoPen);
   QFont legendFont = font();
   legendFont.setPointSize(10);
   customPlot->legend->setFont(legendFont);

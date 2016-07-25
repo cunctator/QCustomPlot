@@ -82,5 +82,6 @@ protected:
   double cleanMantissa(double input) const;
 };
 Q_DECLARE_METATYPE(QCPAxisTicker::TickStepStrategy)
+Q_DECLARE_METATYPE(QSharedPointer<QCPAxisTicker>)
 
 #endif // QCPAXISTICKER_H

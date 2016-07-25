@@ -103,6 +103,7 @@ class QCP_LIB_DECL QCPAxis : public QCPLayerable
   Q_PROPERTY(ScaleType scaleType READ scaleType WRITE setScaleType NOTIFY scaleTypeChanged)
   Q_PROPERTY(QCPRange range READ range WRITE setRange NOTIFY rangeChanged)
   Q_PROPERTY(bool rangeReversed READ rangeReversed WRITE setRangeReversed)
+  Q_PROPERTY(QSharedPointer<QCPAxisTicker> ticker READ ticker WRITE setTicker)
   Q_PROPERTY(bool ticks READ ticks WRITE setTicks)
   Q_PROPERTY(bool tickLabels READ tickLabels WRITE setTickLabels)
   Q_PROPERTY(int tickLabelPadding READ tickLabelPadding WRITE setTickLabelPadding)

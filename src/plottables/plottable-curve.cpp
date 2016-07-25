@@ -615,10 +615,10 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
   double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
   if (!mScatterStyle.isNone())
     strokeMargin = qMax(strokeMargin, mScatterStyle.size());
-  double rectLeft = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
-  double rectRight = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
-  double rectBottom = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)+strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
-  double rectTop = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)-strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
+  double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
+  double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
+  double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)+strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
+  double valueMax = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)-strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
   int currentRegion;
   QCPCurveDataContainer::const_iterator itBegin = mDataContainer->constBegin();
   QCPCurveDataContainer::const_iterator itEnd = mDataContainer->constEnd();
@@ -627,11 +627,11 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
     return result;
   QCPCurveDataContainer::const_iterator it = itBegin;
   QCPCurveDataContainer::const_iterator prevIt = itEnd-1;
-  int prevRegion = getRegion(prevIt->key, prevIt->value, rectLeft, rectTop, rectRight, rectBottom);
+  int prevRegion = getRegion(prevIt->key, prevIt->value, keyMin, valueMax, keyMax, valueMin);
   QVector<QPointF> trailingPoints; // points that must be applied after all other points (are generated only when handling first point to get virtual segment between last and first point right)
   while (it != itEnd)
   {
-    currentRegion = getRegion(it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+    currentRegion = getRegion(it->key, it->value, keyMin, valueMax, keyMax, valueMin);
     if (currentRegion != prevRegion) // changed region, possibly need to add some optimized edge points or original points if entering R
     {
       if (currentRegion != 5) // segment doesn't end in R, so it's a candidate for removal
@@ -639,15 +639,15 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
         QPointF crossA, crossB;
         if (prevRegion == 5) // we're coming from R, so add this point optimized
         {
-          result.append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, rectLeft, rectTop, rectRight, rectBottom));
+          result.append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, keyMin, valueMax, keyMax, valueMin));
           // in the situations 5->1/7/9/3 the segment may leave R and directly cross through two outer regions. In these cases we need to add an additional corner point
-          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         } else if (mayTraverse(prevRegion, currentRegion) &&
-                   getTraverse(prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom, crossA, crossB))
+                   getTraverse(prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin, crossA, crossB))
         {
           // add the two cross points optimized if segment crosses R and if segment isn't virtual zeroth segment between last and first curve point:
           QVector<QPointF> beforeTraverseCornerPoints, afterTraverseCornerPoints;
-          getTraverseCornerPoints(prevRegion, currentRegion, rectLeft, rectTop, rectRight, rectBottom, beforeTraverseCornerPoints, afterTraverseCornerPoints);
+          getTraverseCornerPoints(prevRegion, currentRegion, keyMin, valueMax, keyMax, valueMin, beforeTraverseCornerPoints, afterTraverseCornerPoints);
           if (it != itBegin)
           {
             result << beforeTraverseCornerPoints;
@@ -662,14 +662,14 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
           }
         } else // doesn't cross R, line is just moving around in outside regions, so only need to add optimized point(s) at the boundary corner(s)
         {
-          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         }
       } else // segment does end in R, so we add previous point optimized and this point at original position
       {
         if (it == itBegin) // it is first point in curve and prevIt is last one. So save optimized point for adding it to the lineData in the end
-          trailingPoints << getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom);
+          trailingPoints << getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         else
-          result.append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, rectLeft, rectTop, rectRight, rectBottom));
+          result.append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin));
         result.append(coordsToPixels(it->key, it->value));
       }
     } else // region didn't change
@@ -691,46 +691,47 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
 }
 
 /*! \internal
-  
+
   This function is part of the curve optimization algorithm of \ref getCurveLines.
-  
-  It returns the region of the given point (\a x, \a y) with respect to a rectangle defined by \a
-  rectLeft, \a rectTop, \a rectRight, and \a rectBottom.
-  
-  The regions are enumerated from top to bottom and left to right:
-  
+
+  It returns the region of the given point (\a key, \a value) with respect to a rectangle defined
+  by \a keyMin, \a keyMax, \a valueMin, and \a valueMax.
+
+  The regions are enumerated from top to bottom (\a valueMin to \a valueMax) and left to right (\a
+  keyMin to \a keyMax):
+
   <table style="width:10em; text-align:center">
     <tr><td>1</td><td>4</td><td>7</td></tr>
     <tr><td>2</td><td style="border:1px solid black">5</td><td>8</td></tr>
     <tr><td>3</td><td>6</td><td>9</td></tr>
   </table>
-  
+
   With the rectangle being region 5, and the outer regions extending infinitely outwards. In the
   curve optimization algorithm, region 5 is considered to be the visible portion of the plot.
 */
-int QCPCurve::getRegion(double x, double y, double rectLeft, double rectTop, double rectRight, double rectBottom) const
+int QCPCurve::getRegion(double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const
 {
-  if (x < rectLeft) // region 123
+  if (key < keyMin) // region 123
   {
-    if (y > rectTop)
+    if (value > valueMax)
       return 1;
-    else if (y < rectBottom)
+    else if (value < valueMin)
       return 3;
     else
       return 2;
-  } else if (x > rectRight) // region 789
+  } else if (key > keyMax) // region 789
   {
-    if (y > rectTop)
+    if (value > valueMax)
       return 7;
-    else if (y < rectBottom)
+    else if (value < valueMin)
       return 9;
     else
       return 8;
   } else // region 456
   {
-    if (y > rectTop)
+    if (value > valueMax)
       return 4;
-    else if (y < rectBottom)
+    else if (value < valueMin)
       return 6;
     else
       return 5;
@@ -752,43 +753,43 @@ int QCPCurve::getRegion(double x, double y, double rectLeft, double rectTop, dou
   leaving it. It is important though that \a otherRegion correctly identifies the other region not
   equal to 5.
 */
-QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double otherValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const
+QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double otherValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const
 {
-  double intersectKey = rectLeft; // initial value is just fail-safe
-  double intersectValue = rectTop; // initial value is just fail-safe
+  double intersectKey = keyMin; // initial value is just fail-safe
+  double intersectValue = valueMax; // initial value is just fail-safe
   switch (otherRegion)
   {
     case 1: // top and left edge
     {
-      intersectValue = rectTop;
+      intersectValue = valueMax;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
-      if (intersectKey < rectLeft || intersectKey > rectRight) // doesn't intersect, so must intersect other:
+      if (intersectKey < keyMin || intersectKey > keyMax) // doesn't intersect, so must intersect other:
       {
-        intersectKey = rectLeft;
+        intersectKey = keyMin;
         intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       }
       break;
     }
     case 2: // left edge
     {
-      intersectKey = rectLeft;
+      intersectKey = keyMin;
       intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       break;
     }
     case 3: // bottom and left edge
     {
-      intersectValue = rectBottom;
+      intersectValue = valueMin;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
-      if (intersectKey < rectLeft || intersectKey > rectRight) // doesn't intersect, so must intersect other:
+      if (intersectKey < keyMin || intersectKey > keyMax) // doesn't intersect, so must intersect other:
       {
-        intersectKey = rectLeft;
+        intersectKey = keyMin;
         intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       }
       break;
     }
     case 4: // top edge
     {
-      intersectValue = rectTop;
+      intersectValue = valueMax;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
       break;
     }
@@ -798,34 +799,34 @@ QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double oth
     }
     case 6: // bottom edge
     {
-      intersectValue = rectBottom;
+      intersectValue = valueMin;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
       break;
     }
     case 7: // top and right edge
     {
-      intersectValue = rectTop;
+      intersectValue = valueMax;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
-      if (intersectKey < rectLeft || intersectKey > rectRight) // doesn't intersect, so must intersect other:
+      if (intersectKey < keyMin || intersectKey > keyMax) // doesn't intersect, so must intersect other:
       {
-        intersectKey = rectRight;
+        intersectKey = keyMax;
         intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       }
       break;
     }
     case 8: // right edge
     {
-      intersectKey = rectRight;
+      intersectKey = keyMax;
       intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       break;
     }
     case 9: // bottom and right edge
     {
-      intersectValue = rectBottom;
+      intersectValue = valueMin;
       intersectKey = otherKey + (key-otherKey)/(value-otherValue)*(intersectValue-otherValue);
-      if (intersectKey < rectLeft || intersectKey > rectRight) // doesn't intersect, so must intersect other:
+      if (intersectKey < keyMin || intersectKey > keyMax) // doesn't intersect, so must intersect other:
       {
-        intersectKey = rectRight;
+        intersectKey = keyMax;
         intersectValue = otherValue + (value-otherValue)/(key-otherKey)*(intersectKey-otherKey);
       }
       break;
@@ -852,7 +853,7 @@ QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double oth
   the top left corner, making the optimized curve correctly pass from region 4 to 1 to 2 without
   traversing 5.
 */
-QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const
+QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const
 {
   QVector<QPointF> result;
   switch (prevRegion)
@@ -861,17 +862,17 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 2: { result << coordsToPixels(rectLeft, rectTop); break; }
-        case 4: { result << coordsToPixels(rectLeft, rectTop); break; }
-        case 3: { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectLeft, rectBottom); break; }
-        case 7: { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectRight, rectTop); break; }
-        case 6: { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); break; }
-        case 8: { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectRight, rectTop); result.append(result.last()); break; }
+        case 2: { result << coordsToPixels(keyMin, valueMax); break; }
+        case 4: { result << coordsToPixels(keyMin, valueMax); break; }
+        case 3: { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMin, valueMin); break; }
+        case 7: { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMax, valueMax); break; }
+        case 6: { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMin, valueMin); result.append(result.last()); break; }
+        case 8: { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMax, valueMax); result.append(result.last()); break; }
         case 9: { // in this case we need another distinction of cases: segment may pass below or above rect, requiring either bottom right or top left corner points
-          if ((value-prevValue)/(key-prevKey)*(rectLeft-key)+value < rectBottom) // segment passes below R
-          { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); result << coordsToPixels(rectRight, rectBottom); }
+          if ((value-prevValue)/(key-prevKey)*(keyMin-key)+value < valueMin) // segment passes below R
+          { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMin, valueMin); result.append(result.last()); result << coordsToPixels(keyMax, valueMin); }
           else
-          { result << coordsToPixels(rectLeft, rectTop) << coordsToPixels(rectRight, rectTop); result.append(result.last()); result << coordsToPixels(rectRight, rectBottom); }
+          { result << coordsToPixels(keyMin, valueMax) << coordsToPixels(keyMax, valueMax); result.append(result.last()); result << coordsToPixels(keyMax, valueMin); }
           break;
         }
       }
@@ -881,12 +882,12 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 1: { result << coordsToPixels(rectLeft, rectTop); break; }
-        case 3: { result << coordsToPixels(rectLeft, rectBottom); break; }
-        case 4: { result << coordsToPixels(rectLeft, rectTop); result.append(result.last()); break; }
-        case 6: { result << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); break; }
-        case 7: { result << coordsToPixels(rectLeft, rectTop); result.append(result.last()); result << coordsToPixels(rectRight, rectTop); break; }
-        case 9: { result << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); result << coordsToPixels(rectRight, rectBottom); break; }
+        case 1: { result << coordsToPixels(keyMin, valueMax); break; }
+        case 3: { result << coordsToPixels(keyMin, valueMin); break; }
+        case 4: { result << coordsToPixels(keyMin, valueMax); result.append(result.last()); break; }
+        case 6: { result << coordsToPixels(keyMin, valueMin); result.append(result.last()); break; }
+        case 7: { result << coordsToPixels(keyMin, valueMax); result.append(result.last()); result << coordsToPixels(keyMax, valueMax); break; }
+        case 9: { result << coordsToPixels(keyMin, valueMin); result.append(result.last()); result << coordsToPixels(keyMax, valueMin); break; }
       }
       break;
     }
@@ -894,17 +895,17 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 2: { result << coordsToPixels(rectLeft, rectBottom); break; }
-        case 6: { result << coordsToPixels(rectLeft, rectBottom); break; }
-        case 1: { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectLeft, rectTop); break; }
-        case 9: { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectRight, rectBottom); break; }
-        case 4: { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectLeft, rectTop); result.append(result.last()); break; }
-        case 8: { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectRight, rectBottom); result.append(result.last()); break; }
+        case 2: { result << coordsToPixels(keyMin, valueMin); break; }
+        case 6: { result << coordsToPixels(keyMin, valueMin); break; }
+        case 1: { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMin, valueMax); break; }
+        case 9: { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMax, valueMin); break; }
+        case 4: { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMin, valueMax); result.append(result.last()); break; }
+        case 8: { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMax, valueMin); result.append(result.last()); break; }
         case 7: { // in this case we need another distinction of cases: segment may pass below or above rect, requiring either bottom right or top left corner points
-          if ((value-prevValue)/(key-prevKey)*(rectRight-key)+value < rectBottom) // segment passes below R
-          { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectRight, rectBottom); result.append(result.last()); result << coordsToPixels(rectRight, rectTop); }
+          if ((value-prevValue)/(key-prevKey)*(keyMax-key)+value < valueMin) // segment passes below R
+          { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMax, valueMin); result.append(result.last()); result << coordsToPixels(keyMax, valueMax); }
           else
-          { result << coordsToPixels(rectLeft, rectBottom) << coordsToPixels(rectLeft, rectTop); result.append(result.last()); result << coordsToPixels(rectRight, rectTop); }
+          { result << coordsToPixels(keyMin, valueMin) << coordsToPixels(keyMin, valueMax); result.append(result.last()); result << coordsToPixels(keyMax, valueMax); }
           break;
         }
       }
@@ -914,12 +915,12 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 1: { result << coordsToPixels(rectLeft, rectTop); break; }
-        case 7: { result << coordsToPixels(rectRight, rectTop); break; }
-        case 2: { result << coordsToPixels(rectLeft, rectTop); result.append(result.last()); break; }
-        case 8: { result << coordsToPixels(rectRight, rectTop); result.append(result.last()); break; }
-        case 3: { result << coordsToPixels(rectLeft, rectTop); result.append(result.last()); result << coordsToPixels(rectLeft, rectBottom); break; }
-        case 9: { result << coordsToPixels(rectRight, rectTop); result.append(result.last()); result << coordsToPixels(rectRight, rectBottom); break; }
+        case 1: { result << coordsToPixels(keyMin, valueMax); break; }
+        case 7: { result << coordsToPixels(keyMax, valueMax); break; }
+        case 2: { result << coordsToPixels(keyMin, valueMax); result.append(result.last()); break; }
+        case 8: { result << coordsToPixels(keyMax, valueMax); result.append(result.last()); break; }
+        case 3: { result << coordsToPixels(keyMin, valueMax); result.append(result.last()); result << coordsToPixels(keyMin, valueMin); break; }
+        case 9: { result << coordsToPixels(keyMax, valueMax); result.append(result.last()); result << coordsToPixels(keyMax, valueMin); break; }
       }
       break;
     }
@@ -927,10 +928,10 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 1: { result << coordsToPixels(rectLeft, rectTop); break; }
-        case 7: { result << coordsToPixels(rectRight, rectTop); break; }
-        case 9: { result << coordsToPixels(rectRight, rectBottom); break; }
-        case 3: { result << coordsToPixels(rectLeft, rectBottom); break; }
+        case 1: { result << coordsToPixels(keyMin, valueMax); break; }
+        case 7: { result << coordsToPixels(keyMax, valueMax); break; }
+        case 9: { result << coordsToPixels(keyMax, valueMin); break; }
+        case 3: { result << coordsToPixels(keyMin, valueMin); break; }
       }
       break;
     }
@@ -938,12 +939,12 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 3: { result << coordsToPixels(rectLeft, rectBottom); break; }
-        case 9: { result << coordsToPixels(rectRight, rectBottom); break; }
-        case 2: { result << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); break; }
-        case 8: { result << coordsToPixels(rectRight, rectBottom); result.append(result.last()); break; }
-        case 1: { result << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); result << coordsToPixels(rectLeft, rectTop); break; }
-        case 7: { result << coordsToPixels(rectRight, rectBottom); result.append(result.last()); result << coordsToPixels(rectRight, rectTop); break; }
+        case 3: { result << coordsToPixels(keyMin, valueMin); break; }
+        case 9: { result << coordsToPixels(keyMax, valueMin); break; }
+        case 2: { result << coordsToPixels(keyMin, valueMin); result.append(result.last()); break; }
+        case 8: { result << coordsToPixels(keyMax, valueMin); result.append(result.last()); break; }
+        case 1: { result << coordsToPixels(keyMin, valueMin); result.append(result.last()); result << coordsToPixels(keyMin, valueMax); break; }
+        case 7: { result << coordsToPixels(keyMax, valueMin); result.append(result.last()); result << coordsToPixels(keyMax, valueMax); break; }
       }
       break;
     }
@@ -951,17 +952,17 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 4: { result << coordsToPixels(rectRight, rectTop); break; }
-        case 8: { result << coordsToPixels(rectRight, rectTop); break; }
-        case 1: { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectLeft, rectTop); break; }
-        case 9: { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectRight, rectBottom); break; }
-        case 2: { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectLeft, rectTop); result.append(result.last()); break; }
-        case 6: { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectRight, rectBottom); result.append(result.last()); break; }
+        case 4: { result << coordsToPixels(keyMax, valueMax); break; }
+        case 8: { result << coordsToPixels(keyMax, valueMax); break; }
+        case 1: { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMin, valueMax); break; }
+        case 9: { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMax, valueMin); break; }
+        case 2: { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMin, valueMax); result.append(result.last()); break; }
+        case 6: { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMax, valueMin); result.append(result.last()); break; }
         case 3: { // in this case we need another distinction of cases: segment may pass below or above rect, requiring either bottom right or top left corner points
-          if ((value-prevValue)/(key-prevKey)*(rectRight-key)+value < rectBottom) // segment passes below R
-          { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectRight, rectBottom); result.append(result.last()); result << coordsToPixels(rectLeft, rectBottom); }
+          if ((value-prevValue)/(key-prevKey)*(keyMax-key)+value < valueMin) // segment passes below R
+          { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMax, valueMin); result.append(result.last()); result << coordsToPixels(keyMin, valueMin); }
           else
-          { result << coordsToPixels(rectRight, rectTop) << coordsToPixels(rectLeft, rectTop); result.append(result.last()); result << coordsToPixels(rectLeft, rectBottom); }
+          { result << coordsToPixels(keyMax, valueMax) << coordsToPixels(keyMin, valueMax); result.append(result.last()); result << coordsToPixels(keyMin, valueMin); }
           break;
         }
       }
@@ -971,12 +972,12 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 7: { result << coordsToPixels(rectRight, rectTop); break; }
-        case 9: { result << coordsToPixels(rectRight, rectBottom); break; }
-        case 4: { result << coordsToPixels(rectRight, rectTop); result.append(result.last()); break; }
-        case 6: { result << coordsToPixels(rectRight, rectBottom); result.append(result.last()); break; }
-        case 1: { result << coordsToPixels(rectRight, rectTop); result.append(result.last()); result << coordsToPixels(rectLeft, rectTop); break; }
-        case 3: { result << coordsToPixels(rectRight, rectBottom); result.append(result.last()); result << coordsToPixels(rectLeft, rectBottom); break; }
+        case 7: { result << coordsToPixels(keyMax, valueMax); break; }
+        case 9: { result << coordsToPixels(keyMax, valueMin); break; }
+        case 4: { result << coordsToPixels(keyMax, valueMax); result.append(result.last()); break; }
+        case 6: { result << coordsToPixels(keyMax, valueMin); result.append(result.last()); break; }
+        case 1: { result << coordsToPixels(keyMax, valueMax); result.append(result.last()); result << coordsToPixels(keyMin, valueMax); break; }
+        case 3: { result << coordsToPixels(keyMax, valueMin); result.append(result.last()); result << coordsToPixels(keyMin, valueMin); break; }
       }
       break;
     }
@@ -984,17 +985,17 @@ QVector<QPointF> QCPCurve::getOptimizedCornerPoints(int prevRegion, int currentR
     {
       switch (currentRegion)
       {
-        case 6: { result << coordsToPixels(rectRight, rectBottom); break; }
-        case 8: { result << coordsToPixels(rectRight, rectBottom); break; }
-        case 3: { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectLeft, rectBottom); break; }
-        case 7: { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectRight, rectTop); break; }
-        case 2: { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); break; }
-        case 4: { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectRight, rectTop); result.append(result.last()); break; }
+        case 6: { result << coordsToPixels(keyMax, valueMin); break; }
+        case 8: { result << coordsToPixels(keyMax, valueMin); break; }
+        case 3: { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMin, valueMin); break; }
+        case 7: { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMax, valueMax); break; }
+        case 2: { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMin, valueMin); result.append(result.last()); break; }
+        case 4: { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMax, valueMax); result.append(result.last()); break; }
         case 1: { // in this case we need another distinction of cases: segment may pass below or above rect, requiring either bottom right or top left corner points
-          if ((value-prevValue)/(key-prevKey)*(rectLeft-key)+value < rectBottom) // segment passes below R
-          { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectLeft, rectBottom); result.append(result.last()); result << coordsToPixels(rectLeft, rectTop); }
+          if ((value-prevValue)/(key-prevKey)*(keyMin-key)+value < valueMin) // segment passes below R
+          { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMin, valueMin); result.append(result.last()); result << coordsToPixels(keyMin, valueMax); }
           else
-          { result << coordsToPixels(rectRight, rectBottom) << coordsToPixels(rectRight, rectTop); result.append(result.last()); result << coordsToPixels(rectLeft, rectTop); }
+          { result << coordsToPixels(keyMax, valueMin) << coordsToPixels(keyMax, valueMax); result.append(result.last()); result << coordsToPixels(keyMin, valueMax); }
           break;
         }
       }
@@ -1119,40 +1120,40 @@ bool QCPCurve::mayTraverse(int prevRegion, int currentRegion) const
   If the segment traverses 5, the output parameters \a crossA and \a crossB indicate the entry and
   exit points of region 5. They will become the optimized points for that segment.
 */
-bool QCPCurve::getTraverse(double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom, QPointF &crossA, QPointF &crossB) const
+bool QCPCurve::getTraverse(double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin, QPointF &crossA, QPointF &crossB) const
 {
   QList<QPointF> intersections; // x of QPointF corresponds to key and y to value
   if (qFuzzyIsNull(key-prevKey)) // line is parallel to value axis
   {
     // due to region filter in mayTraverseR(), if line is parallel to value or key axis, R is traversed here
-    intersections.append(QPointF(key, rectBottom)); // direction will be taken care of at end of method
-    intersections.append(QPointF(key, rectTop));
+    intersections.append(QPointF(key, valueMin)); // direction will be taken care of at end of method
+    intersections.append(QPointF(key, valueMax));
   } else if (qFuzzyIsNull(value-prevValue)) // line is parallel to key axis
   {
     // due to region filter in mayTraverseR(), if line is parallel to value or key axis, R is traversed here
-    intersections.append(QPointF(rectLeft, value)); // direction will be taken care of at end of method
-    intersections.append(QPointF(rectRight, value));
+    intersections.append(QPointF(keyMin, value)); // direction will be taken care of at end of method
+    intersections.append(QPointF(keyMax, value));
   } else // line is skewed
   {
     double gamma;
     double keyPerValue = (key-prevKey)/(value-prevValue);
     // check top of rect:
-    gamma = prevKey + (rectTop-prevValue)*keyPerValue;
-    if (gamma >= rectLeft && gamma <= rectRight)
-      intersections.append(QPointF(gamma, rectTop));
+    gamma = prevKey + (valueMax-prevValue)*keyPerValue;
+    if (gamma >= keyMin && gamma <= keyMax)
+      intersections.append(QPointF(gamma, valueMax));
     // check bottom of rect:
-    gamma = prevKey + (rectBottom-prevValue)*keyPerValue;
-    if (gamma >= rectLeft && gamma <= rectRight)
-      intersections.append(QPointF(gamma, rectBottom));
+    gamma = prevKey + (valueMin-prevValue)*keyPerValue;
+    if (gamma >= keyMin && gamma <= keyMax)
+      intersections.append(QPointF(gamma, valueMin));
     double valuePerKey = 1.0/keyPerValue;
     // check left of rect:
-    gamma = prevValue + (rectLeft-prevKey)*valuePerKey;
-    if (gamma >= rectBottom && gamma <= rectTop)
-      intersections.append(QPointF(rectLeft, gamma));
+    gamma = prevValue + (keyMin-prevKey)*valuePerKey;
+    if (gamma >= valueMin && gamma <= valueMax)
+      intersections.append(QPointF(keyMin, gamma));
     // check right of rect:
-    gamma = prevValue + (rectRight-prevKey)*valuePerKey;
-    if (gamma >= rectBottom && gamma <= rectTop)
-      intersections.append(QPointF(rectRight, gamma));
+    gamma = prevValue + (keyMax-prevKey)*valuePerKey;
+    if (gamma >= valueMin && gamma <= valueMax)
+      intersections.append(QPointF(keyMax, gamma));
   }
   
   // handle cases where found points isn't exactly 2:
@@ -1215,7 +1216,7 @@ bool QCPCurve::getTraverse(double prevKey, double prevValue, double key, double 
   corner points before and after the traverse. Then both \a beforeTraverse and \a afterTraverse
   return the respective corner points.
 */
-void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double rectLeft, double rectTop, double rectRight, double rectBottom, QVector<QPointF> &beforeTraverse, QVector<QPointF> &afterTraverse) const
+void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double keyMin, double valueMax, double keyMax, double valueMin, QVector<QPointF> &beforeTraverse, QVector<QPointF> &afterTraverse) const
 {
   switch (prevRegion)
   {
@@ -1223,9 +1224,9 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 6: { beforeTraverse << coordsToPixels(rectLeft, rectTop); break; }
-        case 9: { beforeTraverse << coordsToPixels(rectLeft, rectTop); afterTraverse << coordsToPixels(rectRight, rectBottom); break; }
-        case 8: { beforeTraverse << coordsToPixels(rectLeft, rectTop); break; }
+        case 6: { beforeTraverse << coordsToPixels(keyMin, valueMax); break; }
+        case 9: { beforeTraverse << coordsToPixels(keyMin, valueMax); afterTraverse << coordsToPixels(keyMax, valueMin); break; }
+        case 8: { beforeTraverse << coordsToPixels(keyMin, valueMax); break; }
       }
       break;
     }
@@ -1233,8 +1234,8 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 7: { afterTraverse << coordsToPixels(rectRight, rectTop); break; }
-        case 9: { afterTraverse << coordsToPixels(rectRight, rectBottom); break; }
+        case 7: { afterTraverse << coordsToPixels(keyMax, valueMax); break; }
+        case 9: { afterTraverse << coordsToPixels(keyMax, valueMin); break; }
       }
       break;
     }
@@ -1242,9 +1243,9 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 4: { beforeTraverse << coordsToPixels(rectLeft, rectBottom); break; }
-        case 7: { beforeTraverse << coordsToPixels(rectLeft, rectBottom); afterTraverse << coordsToPixels(rectRight, rectTop); break; }
-        case 8: { beforeTraverse << coordsToPixels(rectLeft, rectBottom); break; }
+        case 4: { beforeTraverse << coordsToPixels(keyMin, valueMin); break; }
+        case 7: { beforeTraverse << coordsToPixels(keyMin, valueMin); afterTraverse << coordsToPixels(keyMax, valueMax); break; }
+        case 8: { beforeTraverse << coordsToPixels(keyMin, valueMin); break; }
       }
       break;
     }
@@ -1252,8 +1253,8 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 3: { afterTraverse << coordsToPixels(rectLeft, rectBottom); break; }
-        case 9: { afterTraverse << coordsToPixels(rectRight, rectBottom); break; }
+        case 3: { afterTraverse << coordsToPixels(keyMin, valueMin); break; }
+        case 9: { afterTraverse << coordsToPixels(keyMax, valueMin); break; }
       }
       break;
     }
@@ -1262,8 +1263,8 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 1: { afterTraverse << coordsToPixels(rectLeft, rectTop); break; }
-        case 7: { afterTraverse << coordsToPixels(rectRight, rectTop); break; }
+        case 1: { afterTraverse << coordsToPixels(keyMin, valueMax); break; }
+        case 7: { afterTraverse << coordsToPixels(keyMax, valueMax); break; }
       }
       break;
     }
@@ -1271,9 +1272,9 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 2: { beforeTraverse << coordsToPixels(rectRight, rectTop); break; }
-        case 3: { beforeTraverse << coordsToPixels(rectRight, rectTop); afterTraverse << coordsToPixels(rectLeft, rectBottom); break; }
-        case 6: { beforeTraverse << coordsToPixels(rectRight, rectTop); break; }
+        case 2: { beforeTraverse << coordsToPixels(keyMax, valueMax); break; }
+        case 3: { beforeTraverse << coordsToPixels(keyMax, valueMax); afterTraverse << coordsToPixels(keyMin, valueMin); break; }
+        case 6: { beforeTraverse << coordsToPixels(keyMax, valueMax); break; }
       }
       break;
     }
@@ -1281,8 +1282,8 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 1: { afterTraverse << coordsToPixels(rectLeft, rectTop); break; }
-        case 3: { afterTraverse << coordsToPixels(rectLeft, rectBottom); break; }
+        case 1: { afterTraverse << coordsToPixels(keyMin, valueMax); break; }
+        case 3: { afterTraverse << coordsToPixels(keyMin, valueMin); break; }
       }
       break;
     }
@@ -1290,9 +1291,9 @@ void QCPCurve::getTraverseCornerPoints(int prevRegion, int currentRegion, double
     {
       switch (currentRegion)
       {
-        case 2: { beforeTraverse << coordsToPixels(rectRight, rectBottom); break; }
-        case 1: { beforeTraverse << coordsToPixels(rectRight, rectBottom); afterTraverse << coordsToPixels(rectLeft, rectTop); break; }
-        case 4: { beforeTraverse << coordsToPixels(rectRight, rectBottom); break; }
+        case 2: { beforeTraverse << coordsToPixels(keyMax, valueMin); break; }
+        case 1: { beforeTraverse << coordsToPixels(keyMax, valueMin); afterTraverse << coordsToPixels(keyMin, valueMax); break; }
+        case 4: { beforeTraverse << coordsToPixels(keyMax, valueMin); break; }
       }
       break;
     }

@@ -134,6 +134,10 @@ public:
   virtual QCPPlottableInterface1D *interface1D() { return 0; }
   
   // non-property methods:
+  void coordsToPixels(double key, double value, double &x, double &y) const;
+  const QPointF coordsToPixels(double key, double value) const;
+  void pixelsToCoords(double x, double y, double &key, double &value) const;
+  void pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const;
   void rescaleAxes(bool onlyEnlarge=false) const;
   void rescaleKeyAxis(bool onlyEnlarge=false) const;
   void rescaleValueAxis(bool onlyEnlarge=false) const;
@@ -171,10 +175,6 @@ protected:
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   
   // non-virtual methods:
-  void coordsToPixels(double key, double value, double &x, double &y) const;
-  const QPointF coordsToPixels(double key, double value) const;
-  void pixelsToCoords(double x, double y, double &key, double &value) const;
-  void pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const;
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
 

@@ -617,6 +617,84 @@ void QCPAbstractPlottable::setSelectable(QCP::SelectionType selectable)
   }
 }
 
+
+/*!
+  Convenience function for transforming a key/value pair to pixels on the QCustomPlot surface,
+  taking the orientations of the axes associated with this plottable into account (e.g. whether key
+  represents x or y).
+
+  \a key and \a value are transformed to the coodinates in pixels and are written to \a x and \a y.
+
+  \see pixelsToCoords, QCPAxis::coordToPixel
+*/
+void QCPAbstractPlottable::coordsToPixels(double key, double value, double &x, double &y) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
+  
+  if (keyAxis->orientation() == Qt::Horizontal)
+  {
+    x = keyAxis->coordToPixel(key);
+    y = valueAxis->coordToPixel(value);
+  } else
+  {
+    y = keyAxis->coordToPixel(key);
+    x = valueAxis->coordToPixel(value);
+  }
+}
+
+/*! \overload
+
+  Transforms the given \a key and \a value to pixel coordinates and returns them in a QPointF.
+*/
+const QPointF QCPAbstractPlottable::coordsToPixels(double key, double value) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
+  
+  if (keyAxis->orientation() == Qt::Horizontal)
+    return QPointF(keyAxis->coordToPixel(key), valueAxis->coordToPixel(value));
+  else
+    return QPointF(valueAxis->coordToPixel(value), keyAxis->coordToPixel(key));
+}
+
+/*!
+  Convenience function for transforming a x/y pixel pair on the QCustomPlot surface to plot coordinates,
+  taking the orientations of the axes associated with this plottable into account (e.g. whether key
+  represents x or y).
+
+  \a x and \a y are transformed to the plot coodinates and are written to \a key and \a value.
+
+  \see coordsToPixels, QCPAxis::coordToPixel
+*/
+void QCPAbstractPlottable::pixelsToCoords(double x, double y, double &key, double &value) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
+  
+  if (keyAxis->orientation() == Qt::Horizontal)
+  {
+    key = keyAxis->pixelToCoord(x);
+    value = valueAxis->pixelToCoord(y);
+  } else
+  {
+    key = keyAxis->pixelToCoord(y);
+    value = valueAxis->pixelToCoord(x);
+  }
+}
+
+/*! \overload
+
+  Returns the pixel input \a pixelPos as plot coordinates \a key and \a value.
+*/
+void QCPAbstractPlottable::pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const
+{
+  pixelsToCoords(pixelPos.x(), pixelPos.y(), key, value);
+}
+
 /*!
   Rescales the key and value axes associated with this plottable to contain all displayed data, so
   the whole plottable is visible. If the scaling of an axis is logarithmic, rescaleAxes will make
@@ -775,87 +853,6 @@ QRect QCPAbstractPlottable::clipRect() const
 QCP::Interaction QCPAbstractPlottable::selectionCategory() const
 {
   return QCP::iSelectPlottables;
-}
-
-/*! \internal
-  
-  Convenience function for transforming a key/value pair to pixels on the QCustomPlot surface,
-  taking the orientations of the axes associated with this plottable into account (e.g. whether key
-  represents x or y).
-  
-  \a key and \a value are transformed to the coodinates in pixels and are written to \a x and \a y.
-    
-  \see pixelsToCoords, QCPAxis::coordToPixel
-*/
-void QCPAbstractPlottable::coordsToPixels(double key, double value, double &x, double &y) const
-{
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  if (keyAxis->orientation() == Qt::Horizontal)
-  {
-    x = keyAxis->coordToPixel(key);
-    y = valueAxis->coordToPixel(value);
-  } else
-  {
-    y = keyAxis->coordToPixel(key);
-    x = valueAxis->coordToPixel(value);
-  }
-}
-
-/*! \internal
-  \overload
-  
-  Returns the input as pixel coordinates in a QPointF.
-*/
-const QPointF QCPAbstractPlottable::coordsToPixels(double key, double value) const
-{
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
-  
-  if (keyAxis->orientation() == Qt::Horizontal)
-    return QPointF(keyAxis->coordToPixel(key), valueAxis->coordToPixel(value));
-  else
-    return QPointF(valueAxis->coordToPixel(value), keyAxis->coordToPixel(key));
-}
-
-/*! \internal
-  
-  Convenience function for transforming a x/y pixel pair on the QCustomPlot surface to plot coordinates,
-  taking the orientations of the axes associated with this plottable into account (e.g. whether key
-  represents x or y).
-  
-  \a x and \a y are transformed to the plot coodinates and are written to \a key and \a value.
-    
-  \see coordsToPixels, QCPAxis::coordToPixel
-*/
-void QCPAbstractPlottable::pixelsToCoords(double x, double y, double &key, double &value) const
-{
-  QCPAxis *keyAxis = mKeyAxis.data();
-  QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  
-  if (keyAxis->orientation() == Qt::Horizontal)
-  {
-    key = keyAxis->pixelToCoord(x);
-    value = valueAxis->pixelToCoord(y);
-  } else
-  {
-    key = keyAxis->pixelToCoord(y);
-    value = valueAxis->pixelToCoord(x);
-  }
-}
-
-/*! \internal
-  \overload
-
-  Returns the pixel input \a pixelPos as plot coordinates \a key and \a value.
-*/
-void QCPAbstractPlottable::pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const
-{
-  pixelsToCoords(pixelPos.x(), pixelPos.y(), key, value);
 }
 
 /*! \internal

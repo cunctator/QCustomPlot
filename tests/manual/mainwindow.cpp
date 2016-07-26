@@ -591,9 +591,24 @@ void MainWindow::setupLayoutTest(QCustomPlot *customPlot)
 void MainWindow::setupMultiAxisTest(QCustomPlot *customPlot)
 {
   presetInteractive(customPlot);
+  customPlot->axisRect()->removeAxis(customPlot->axisRect()->axis(QCPAxis::atRight));
+  customPlot->axisRect()->removeAxis(customPlot->axisRect()->axis(QCPAxis::atTop));
   customPlot->axisRect()->addAxes(QCPAxis::atLeft|QCPAxis::atRight|QCPAxis::atTop|QCPAxis::atBottom);
+  customPlot->axisRect()->addAxes(QCPAxis::atLeft|QCPAxis::atRight|QCPAxis::atTop|QCPAxis::atBottom);
+  customPlot->axisRect()->addAxes(QCPAxis::atLeft|QCPAxis::atRight|QCPAxis::atTop|QCPAxis::atBottom);
+  customPlot->axisRect()->addAxes(QCPAxis::atTop|QCPAxis::atRight);
   customPlot->axisRect()->axis(QCPAxis::atRight, 0)->setTickLabels(true);
   customPlot->axisRect()->axis(QCPAxis::atTop, 0)->setTickLabels(true);
+  
+  QList<QCPAxis*> dragZoomAxes;
+  dragZoomAxes << customPlot->axisRect()->axis(QCPAxis::atTop, 2)
+               << customPlot->axisRect()->axis(QCPAxis::atBottom, 3)
+               << customPlot->axisRect()->axis(QCPAxis::atLeft, 3)
+               << customPlot->axisRect()->axis(QCPAxis::atRight, 1)
+               << customPlot->axisRect()->axis(QCPAxis::atRight, 0);
+  
+  customPlot->axisRect()->setRangeDragAxes(dragZoomAxes);
+  customPlot->axisRect()->setRangeZoomAxes(dragZoomAxes);
 }
 
 void MainWindow::setupLayoutElementBugTest(QCustomPlot *customPlot)

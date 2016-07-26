@@ -1000,8 +1000,9 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   int maxCount = std::numeric_limits<int>::max();
   if (mAdaptiveSampling)
   {
-    int keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
-    maxCount = 2*keyPixelSpan+2;
+    double keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
+    if (2*keyPixelSpan+2 < (double)std::numeric_limits<int>::max())
+      maxCount = 2*keyPixelSpan+2;
   }
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average

@@ -285,6 +285,7 @@ public:
   // non-property methods:
   Qt::Orientation orientation() const { return mOrientation; }
   void moveRange(double diff);
+  void scaleRange(double factor);
   void scaleRange(double factor, double center);
   void setScaleRatio(const QCPAxis *otherAxis, double ratio=1.0);
   void rescale(bool onlyVisiblePlottables=false);

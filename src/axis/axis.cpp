@@ -1316,10 +1316,27 @@ void QCPAxis::moveRange(double diff)
 }
 
 /*!
+  Scales the range of this axis by \a factor around the center of the current axis range. For
+  example, if \a factor is 2.0, then the axis range will double its size, and the point at the axis
+  range center won't have changed its position in the QCustomPlot widget (i.e. coordinates around
+  the center will have moved symmetrically closer).
+
+  If you wish to scale around a different coordinate than the current axis range center, use the
+  overload \ref scaleRange(double factor, double center).
+*/
+void QCPAxis::scaleRange(double factor)
+{
+  scaleRange(factor, range().center());
+}
+
+/*! \overload
+
   Scales the range of this axis by \a factor around the coordinate \a center. For example, if \a
   factor is 2.0, \a center is 1.0, then the axis range will double its size, and the point at
   coordinate 1.0 won't have changed its position in the QCustomPlot widget (i.e. coordinates
   around 1.0 will have moved symmetrically closer to 1.0).
+
+  \see scaleRange(double factor)
 */
 void QCPAxis::scaleRange(double factor, double center)
 {

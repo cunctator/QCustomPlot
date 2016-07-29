@@ -554,6 +554,14 @@ QCPBarsData::QCPBarsData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */
 
+/*! \fn virtual int QCPAbstractPlottable1D<QCPBarsData>::findBegin(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findBegin
+*/
+
+/*! \fn virtual int QCPAbstractPlottable1D<QCPBarsData>::findEnd(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findEnd
+*/
+
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPBarsData>::interface1D()
   \copydoc QCPAbstractPlottable::interface1D
 */

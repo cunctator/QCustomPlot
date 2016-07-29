@@ -203,6 +203,14 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */
 
+/*! \fn virtual int QCPAbstractPlottable1D<QCPCurveData>::findBegin(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findBegin
+*/
+
+/*! \fn virtual int QCPAbstractPlottable1D<QCPCurveData>::findEnd(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findEnd
+*/
+
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPCurveData>::interface1D()
   \copydoc QCPAbstractPlottable::interface1D
 */

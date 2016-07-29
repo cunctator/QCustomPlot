@@ -221,6 +221,14 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */
 
+/*! \fn virtual int QCPAbstractPlottable1D<QCPFinancialData>::findBegin(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findBegin
+*/
+
+/*! \fn virtual int QCPAbstractPlottable1D<QCPFinancialData>::findEnd(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findEnd
+*/
+
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPFinancialData>::interface1D()
   \copydoc QCPAbstractPlottable::interface1D
 */

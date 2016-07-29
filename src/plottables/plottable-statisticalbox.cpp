@@ -243,6 +243,14 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */
 
+/*! \fn virtual int QCPAbstractPlottable1D<QCPStatisticalBoxData>::findBegin(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findBegin
+*/
+
+/*! \fn virtual int QCPAbstractPlottable1D<QCPStatisticalBoxData>::findEnd(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findEnd
+*/
+
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPStatisticalBoxData>::interface1D()
   \copydoc QCPAbstractPlottable::interface1D
 */

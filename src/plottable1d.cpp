@@ -104,6 +104,40 @@
   convention.
 */
 
+/*! \fn virtual int QCPPlottableInterface1D::findBegin(double sortKey, bool expandedRange) const = 0
+
+  Returns the index of the data point with a (sort-)key that is equal to, just below, or just above
+  \a sortKey. If \a expandedRange is true, the data point just below \a sortKey will be considered,
+  otherwise the one just above.
+
+  This can be used in conjunction with \ref findEnd to iterate over data points within a given key
+  range, including or excluding the bounding data points that are just beyond the specified range.
+
+  If \a expandedRange is true but there are no data points below \a sortKey, 0 is returned.
+
+  If the container is empty, returns 0 (in that case, \ref findEnd will also return 0, so a loop
+  using these methods will not iterate over the index 0).
+
+  \see findEnd, QCPDataContainer::findBegin
+*/
+
+/*! \fn virtual int QCPPlottableInterface1D::findEnd(double sortKey, bool expandedRange) const = 0
+
+  Returns the index one after the data point with a (sort-)key that is equal to, just above, or
+  just below \a sortKey. If \a expandedRange is true, the data point just above \a sortKey will be
+  considered, otherwise the one just below.
+
+  This can be used in conjunction with \ref findBegin to iterate over data points within a given
+  key range, including the bounding data points that are just below and above the specified range.
+
+  If \a expandedRange is true but there are no data points above \a sortKey, the index just above the
+  highest data point is returned.
+
+  If the container is empty, returns 0.
+
+  \see findBegin, QCPDataContainer::findEnd
+*/
+
 /* end documentation of pure virtual functions */
 
 
@@ -265,6 +299,20 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
   
   result.simplify();
   return result;
+}
+
+/* inherits documentation from base class */
+template <class DataType>
+int QCPAbstractPlottable1D<DataType>::findBegin(double sortKey, bool expandedRange) const
+{
+  return mDataContainer->findBegin(sortKey, expandedRange)-mDataContainer->constBegin();
+}
+
+/* inherits documentation from base class */
+template <class DataType>
+int QCPAbstractPlottable1D<DataType>::findEnd(double sortKey, bool expandedRange) const
+{
+  return mDataContainer->findEnd(sortKey, expandedRange)-mDataContainer->constBegin();
 }
 
 /*!

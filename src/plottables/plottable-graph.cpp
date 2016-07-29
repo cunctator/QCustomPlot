@@ -202,6 +202,14 @@ QCPGraphData::QCPGraphData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */
 
+/*! \fn virtual int QCPAbstractPlottable1D<QCPGraphData>::findBegin(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findBegin
+*/
+
+/*! \fn virtual int QCPAbstractPlottable1D<QCPGraphData>::findEnd(double sortKey, bool expandedRange) const
+  \copydoc QCPAbstractPlottable1D::findEnd
+*/
+
 /*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPGraphData>::interface1D()
   \copydoc QCPAbstractPlottable::interface1D
 */

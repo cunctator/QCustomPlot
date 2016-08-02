@@ -873,6 +873,68 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
 }
 
 /* inherits documentation from base class */
+QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  QCPRange range;
+  range = mDataContainer->keyRange(foundRange, inSignDomain);
+  
+  // determine exact range of bars by including bar width and barsgroup offset:
+  if (foundRange && mKeyAxis)
+  {
+    double lowerPixelWidth, upperPixelWidth, keyPixel;
+    // lower range bound:
+    getPixelWidth(range.lower, lowerPixelWidth, upperPixelWidth);
+    keyPixel = mKeyAxis.data()->coordToPixel(range.lower) + lowerPixelWidth;
+    if (mBarsGroup)
+      keyPixel += mBarsGroup->keyPixelOffset(this, range.lower);
+    range.lower = mKeyAxis.data()->pixelToCoord(keyPixel);
+    // upper range bound:
+    getPixelWidth(range.upper, lowerPixelWidth, upperPixelWidth);
+    keyPixel = mKeyAxis.data()->coordToPixel(range.upper) + upperPixelWidth;
+    if (mBarsGroup)
+      keyPixel += mBarsGroup->keyPixelOffset(this, range.upper);
+    range.upper = mKeyAxis.data()->pixelToCoord(keyPixel);
+  }
+  return range;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  // Note: can't simply use mDataContainer->valueRange here because we need to
+  // take into account bar base value and possible stacking of multiple bars
+  QCPRange range;
+  range.lower = mBaseValue;
+  range.upper = mBaseValue;
+  bool haveLower = true; // set to true, because baseValue should always be visible in bar charts
+  bool haveUpper = true; // set to true, because baseValue should always be visible in bar charts
+  double current;
+  
+  QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin();
+  while (it != mDataContainer->constEnd())
+  {
+    current = it->value + getStackedBaseValue(it->key, it->value >= 0);
+    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+    {
+      if (current < range.lower || !haveLower)
+      {
+        range.lower = current;
+        haveLower = true;
+      }
+      if (current > range.upper || !haveUpper)
+      {
+        range.upper = current;
+        haveUpper = true;
+      }
+    }
+    ++it;
+  }
+  
+  foundRange = true; // return true because bar charts always have the 0-line visible
+  return range;
+}
+
+/* inherits documentation from base class */
 void QCPBars::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
@@ -1162,65 +1224,4 @@ void QCPBars::connectBars(QCPBars *lower, QCPBars *upper)
   }
 }
 
-/* inherits documentation from base class */
-QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  QCPRange range;
-  range = mDataContainer->keyRange(foundRange, inSignDomain);
-  
-  // determine exact range of bars by including bar width and barsgroup offset:
-  if (foundRange && mKeyAxis)
-  {
-    double lowerPixelWidth, upperPixelWidth, keyPixel;
-    // lower range bound:
-    getPixelWidth(range.lower, lowerPixelWidth, upperPixelWidth);
-    keyPixel = mKeyAxis.data()->coordToPixel(range.lower) + lowerPixelWidth;
-    if (mBarsGroup)
-      keyPixel += mBarsGroup->keyPixelOffset(this, range.lower);
-    range.lower = mKeyAxis.data()->pixelToCoord(keyPixel);
-    // upper range bound:
-    getPixelWidth(range.upper, lowerPixelWidth, upperPixelWidth);
-    keyPixel = mKeyAxis.data()->coordToPixel(range.upper) + upperPixelWidth;
-    if (mBarsGroup)
-      keyPixel += mBarsGroup->keyPixelOffset(this, range.upper);
-    range.upper = mKeyAxis.data()->pixelToCoord(keyPixel);
-  }
-  return range;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  // Note: can't simply use mDataContainer->valueRange here because we need to
-  // take into account bar base value and possible stacking of multiple bars
-  QCPRange range;
-  range.lower = mBaseValue;
-  range.upper = mBaseValue;
-  bool haveLower = true; // set to true, because baseValue should always be visible in bar charts
-  bool haveUpper = true; // set to true, because baseValue should always be visible in bar charts
-  double current;
-  
-  QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin();
-  while (it != mDataContainer->constEnd())
-  {
-    current = it->value + getStackedBaseValue(it->key, it->value >= 0);
-    if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
-    {
-      if (current < range.lower || !haveLower)
-      {
-        range.lower = current;
-        haveLower = true;
-      }
-      if (current > range.upper || !haveUpper)
-      {
-        range.upper = current;
-        haveUpper = true;
-      }
-    }
-    ++it;
-  }
-  
-  foundRange = true; // return true because bar charts always have the 0-line visible
-  return range;
-}
 

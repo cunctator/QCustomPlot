@@ -444,6 +444,18 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
 }
 
 /* inherits documentation from base class */
+QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->keyRange(foundRange, inSignDomain);
+}
+
+/* inherits documentation from base class */
+QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->valueRange(foundRange, inSignDomain);
+}
+
+/* inherits documentation from base class */
 void QCPGraph::draw(QCPPainter *painter)
 {
   if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
@@ -1696,16 +1708,4 @@ int QCPGraph::findIndexBelowY(const QVector<QPointF> *data, double y) const
     }
   }
   return -1;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->keyRange(foundRange, inSignDomain);
-}
-
-/* inherits documentation from base class */
-QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->valueRange(foundRange, inSignDomain);
 }

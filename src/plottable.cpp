@@ -341,35 +341,37 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
 */
 
 /*! \fn QCPRange QCPAbstractPlottable::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
-  \internal
   
-  called by rescaleAxes functions to get the full data key bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
-  returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
-  parameter that indicates whether a range could be found or not. If this is false, you shouldn't
-  use the returned range (e.g. no points in data).
+  Returns the coordinate range that all data in this plottable span in the key axis dimension. For
+  logarithmic plots, one can set \a inSignDomain to either \ref QCP::sdNegative or \ref
+  QCP::sdPositive in order to restrict the returned range to that sign domain. E.g. when only
+  negative range is wanted, set \a inSignDomain to \ref QCP::sdNegative and all positive points
+  will be ignored for range calculation. For no restriction, just set \a inSignDomain to \ref
+  QCP::sdBoth (default). \a foundRange is an output parameter that indicates whether a range could
+  be found or not. If this is false, you shouldn't use the returned range (e.g. no points in data).
 
   Note that \a foundRange is not the same as \ref QCPRange::validRange, since the range returned by
-  this function may have size zero, which wouldn't count as a valid range.
+  this function may have size zero (e.g. when there is only one data point). In this case \a
+  foundRange would return true, but the returned range is not a valid range in terms of \ref
+  QCPRange::validRange.
   
   \see rescaleAxes, getValueRange
 */
 
 /*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
-  \internal
   
-  called by rescaleAxes functions to get the full data value bounds. For logarithmic plots, one can
-  set \a inSignDomain to either \ref QCP::sdNegative or \ref QCP::sdPositive in order to restrict the
-  returned range to that sign domain. E.g. when only negative range is wanted, set \a inSignDomain
-  to \ref QCP::sdNegative and all positive points will be ignored for range calculation. For no
-  restriction, just set \a inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output
-  parameter that indicates whether a range could be found or not. If this is false, you shouldn't
-  use the returned range (e.g. no points in data).
+  Returns the coordinate range that all data in this plottable span in the key axis dimension. For
+  logarithmic plots, one can set \a inSignDomain to either \ref QCP::sdNegative or \ref
+  QCP::sdPositive in order to restrict the returned range to that sign domain. E.g. when only
+  negative range is wanted, set \a inSignDomain to \ref QCP::sdNegative and all positive points
+  will be ignored for range calculation. For no restriction, just set \a inSignDomain to \ref
+  QCP::sdBoth (default). \a foundRange is an output parameter that indicates whether a range could
+  be found or not. If this is false, you shouldn't use the returned range (e.g. no points in data).
 
   Note that \a foundRange is not the same as \ref QCPRange::validRange, since the range returned by
-  this function may have size zero, which wouldn't count as a valid range.
+  this function may have size zero (e.g. when there is only one data point). In this case \a
+  foundRange would return true, but the returned range is not a valid range in terms of \ref
+  QCPRange::validRange.
   
   \see rescaleAxes, getKeyRange
 */

@@ -120,6 +120,8 @@ public:
   // reimplemented virtual methods:
   virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // static methods:
   static QCPFinancialDataContainer timeSeriesToOhlc(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset = 0);
@@ -135,8 +137,6 @@ protected:
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // non-virtual methods:
   void drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected);

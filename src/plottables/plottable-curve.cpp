@@ -452,6 +452,18 @@ double QCPCurve::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
 }
 
 /* inherits documentation from base class */
+QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->keyRange(foundRange, inSignDomain);
+}
+
+/* inherits documentation from base class */
+QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->valueRange(foundRange, inSignDomain);
+}
+
+/* inherits documentation from base class */
 void QCPCurve::draw(QCPPainter *painter)
 {
   if (mDataContainer->isEmpty()) return;
@@ -1363,16 +1375,4 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer:
   }
   
   return qSqrt(minDistSqr);
-}
-
-/* inherits documentation from base class */
-QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->keyRange(foundRange, inSignDomain);
-}
-
-/* inherits documentation from base class */
-QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->valueRange(foundRange, inSignDomain);
 }

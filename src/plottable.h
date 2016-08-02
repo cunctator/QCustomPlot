@@ -132,6 +132,8 @@ public:
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
   virtual QCPPlottableInterface1D *interface1D() { return 0; }
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   
   // non-property methods:
   void coordsToPixels(double key, double value, double &x, double &y) const;
@@ -171,8 +173,6 @@ protected:
   
   // introduced virtual methods:
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const = 0;
-  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
-  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   
   // non-virtual methods:
   void applyFillAntialiasingHint(QCPPainter *painter) const;

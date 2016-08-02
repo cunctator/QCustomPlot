@@ -516,6 +516,27 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
 }
 
 /* inherits documentation from base class */
+QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  QCPRange range = mDataContainer->keyRange(foundRange, inSignDomain);
+  // determine exact range by including width of bars/flags:
+  if (foundRange)
+  {
+    if (inSignDomain != QCP::sdPositive || range.lower-mWidth*0.5 > 0)
+      range.lower -= mWidth*0.5;
+    if (inSignDomain != QCP::sdNegative || range.upper+mWidth*0.5 < 0)
+      range.upper += mWidth*0.5;
+  }
+  return range;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->valueRange(foundRange, inSignDomain);
+}
+
+/* inherits documentation from base class */
 void QCPStatisticalBox::draw(QCPPainter *painter)
 {
   if (mDataContainer->isEmpty()) return;
@@ -583,27 +604,6 @@ void QCPStatisticalBox::drawLegendIcon(QCPPainter *painter, const QRectF &rect) 
   QRectF r = QRectF(0, 0, rect.width()*0.67, rect.height()*0.67);
   r.moveCenter(rect.center());
   painter->drawRect(r);
-}
-
-/* inherits documentation from base class */
-QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  QCPRange range = mDataContainer->keyRange(foundRange, inSignDomain);
-  // determine exact range by including width of bars/flags:
-  if (foundRange)
-  {
-    if (inSignDomain != QCP::sdPositive || range.lower-mWidth*0.5 > 0)
-      range.lower -= mWidth*0.5;
-    if (inSignDomain != QCP::sdNegative || range.upper+mWidth*0.5 < 0)
-      range.upper += mWidth*0.5;
-  }
-  return range;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->valueRange(foundRange, inSignDomain);
 }
 
 void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const

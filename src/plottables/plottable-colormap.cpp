@@ -772,6 +772,50 @@ double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   return -1;
 }
 
+/* inherits documentation from base class */
+QCPRange QCPColorMap::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  foundRange = true;
+  QCPRange result = mMapData->keyRange();
+  result.normalize();
+  if (inSignDomain == QCP::sdPositive)
+  {
+    if (result.lower <= 0 && result.upper > 0)
+      result.lower = result.upper*1e-3;
+    else if (result.lower <= 0 && result.upper <= 0)
+      foundRange = false;
+  } else if (inSignDomain == QCP::sdNegative)
+  {
+    if (result.upper >= 0 && result.lower < 0)
+      result.upper = result.lower*1e-3;
+    else if (result.upper >= 0 && result.lower >= 0)
+      foundRange = false;
+  }
+  return result;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  foundRange = true;
+  QCPRange result = mMapData->valueRange();
+  result.normalize();
+  if (inSignDomain == QCP::sdPositive)
+  {
+    if (result.lower <= 0 && result.upper > 0)
+      result.lower = result.upper*1e-3;
+    else if (result.lower <= 0 && result.upper <= 0)
+      foundRange = false;
+  } else if (inSignDomain == QCP::sdNegative)
+  {
+    if (result.upper >= 0 && result.lower < 0)
+      result.upper = result.lower*1e-3;
+    else if (result.upper >= 0 && result.lower >= 0)
+      foundRange = false;
+  }
+  return result;
+}
+
 /*! \internal
   
   Updates the internal map image buffer by going through the internal \ref QCPColorMapData and
@@ -934,49 +978,5 @@ void QCPColorMap::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   painter->setPen(Qt::black);
   painter->drawRect(rect.adjusted(1, 1, 0, 0));
   */
-}
-
-/* inherits documentation from base class */
-QCPRange QCPColorMap::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  foundRange = true;
-  QCPRange result = mMapData->keyRange();
-  result.normalize();
-  if (inSignDomain == QCP::sdPositive)
-  {
-    if (result.lower <= 0 && result.upper > 0)
-      result.lower = result.upper*1e-3;
-    else if (result.lower <= 0 && result.upper <= 0)
-      foundRange = false;
-  } else if (inSignDomain == QCP::sdNegative)
-  {
-    if (result.upper >= 0 && result.lower < 0)
-      result.upper = result.lower*1e-3;
-    else if (result.upper >= 0 && result.lower >= 0)
-      foundRange = false;
-  }
-  return result;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  foundRange = true;
-  QCPRange result = mMapData->valueRange();
-  result.normalize();
-  if (inSignDomain == QCP::sdPositive)
-  {
-    if (result.lower <= 0 && result.upper > 0)
-      result.lower = result.upper*1e-3;
-    else if (result.lower <= 0 && result.upper <= 0)
-      foundRange = false;
-  } else if (inSignDomain == QCP::sdNegative)
-  {
-    if (result.upper >= 0 && result.lower < 0)
-      result.upper = result.lower*1e-3;
-    else if (result.upper >= 0 && result.lower >= 0)
-      foundRange = false;
-  }
-  return result;
 }
 

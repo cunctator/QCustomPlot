@@ -501,6 +501,27 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   return -1;
 }
 
+/* inherits documentation from base class */
+QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  QCPRange range = mDataContainer->keyRange(foundRange, inSignDomain);
+  // determine exact range by including width of bars/flags:
+  if (foundRange)
+  {
+    if (inSignDomain != QCP::sdPositive || range.lower-mWidth*0.5 > 0)
+      range.lower -= mWidth*0.5;
+    if (inSignDomain != QCP::sdNegative || range.upper+mWidth*0.5 < 0)
+      range.upper += mWidth*0.5;
+  }
+  return range;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  return mDataContainer->valueRange(foundRange, inSignDomain);
+}
+
 /*!
   A convenience function that converts time series data (\a value against \a time) to OHLC binned
   data points. The return value can then be passed on to \ref QCPFinancialDataContainer::set(const
@@ -646,27 +667,6 @@ void QCPFinancial::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
       painter->drawRect(QRectF(rect.width()*0.25, rect.height()*0.25, rect.width()*0.5, rect.height()*0.5).translated(rect.topLeft()));
     }
   }
-}
-
-/* inherits documentation from base class */
-QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  QCPRange range = mDataContainer->keyRange(foundRange, inSignDomain);
-  // determine exact range by including width of bars/flags:
-  if (foundRange)
-  {
-    if (inSignDomain != QCP::sdPositive || range.lower-mWidth*0.5 > 0)
-      range.lower -= mWidth*0.5;
-    if (inSignDomain != QCP::sdNegative || range.upper+mWidth*0.5 < 0)
-      range.upper += mWidth*0.5;
-  }
-  return range;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
-{
-  return mDataContainer->valueRange(foundRange, inSignDomain);
 }
 
 /*! \internal

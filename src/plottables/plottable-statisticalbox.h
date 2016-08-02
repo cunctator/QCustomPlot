@@ -117,6 +117,8 @@ public:
   // reimplemented virtual methods:
   virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
 protected:
   // property members:
@@ -128,8 +130,6 @@ protected:
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   
   // introduced virtual methods:
   virtual void drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const;

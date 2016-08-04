@@ -239,6 +239,10 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn bool QCPAbstractPlottable1D<QCPStatisticalBoxData>::sortKeyIsMainKey() const
+  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
+*/
+
 /*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPStatisticalBoxData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */

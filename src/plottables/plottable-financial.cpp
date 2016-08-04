@@ -217,6 +217,10 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn bool QCPAbstractPlottable1D<QCPFinancialData>::sortKeyIsMainKey() const
+  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
+*/
+
 /*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPFinancialData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */

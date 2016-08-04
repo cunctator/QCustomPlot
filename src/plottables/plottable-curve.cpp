@@ -199,6 +199,10 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn bool QCPAbstractPlottable1D<QCPCurveData>::sortKeyIsMainKey() const
+  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
+*/
+
 /*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPCurveData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */

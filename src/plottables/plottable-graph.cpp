@@ -198,6 +198,10 @@ QCPGraphData::QCPGraphData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn bool QCPAbstractPlottable1D<QCPGraphData>::sortKeyIsMainKey() const
+  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
+*/
+
 /*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPGraphData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */

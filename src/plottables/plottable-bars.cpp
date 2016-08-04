@@ -550,6 +550,10 @@ QCPBarsData::QCPBarsData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn bool QCPAbstractPlottable1D<QCPBarsData>::sortKeyIsMainKey() const
+  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
+*/
+
 /*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPBarsData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
   \copydoc QCPAbstractPlottable1D::selectTestRect
 */

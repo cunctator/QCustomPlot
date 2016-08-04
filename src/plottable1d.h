@@ -39,6 +39,7 @@ public:
   virtual double dataSortKey(int index) const = 0;
   virtual double dataMainValue(int index) const = 0;
   virtual QCPRange dataValueRange(int index) const = 0;
+  virtual bool sortKeyIsMainKey() const = 0;
   virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const = 0;
   virtual int findBegin(double sortKey, bool expandedRange=true) const = 0;
   virtual int findEnd(double sortKey, bool expandedRange=true) const = 0;
@@ -59,6 +60,7 @@ public:
   virtual double dataSortKey(int index) const;
   virtual double dataMainValue(int index) const;
   virtual QCPRange dataValueRange(int index) const;
+  virtual bool sortKeyIsMainKey() const;
   virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
   virtual int findBegin(double sortKey, bool expandedRange=true) const;
   virtual int findEnd(double sortKey, bool expandedRange=true) const;

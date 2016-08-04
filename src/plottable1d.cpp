@@ -104,6 +104,15 @@
   convention.
 */
 
+/*! \fn virtual bool QCPPlottableInterface1D::sortKeyIsMainKey() const = 0
+
+  Returns whether the sort key (\ref dataSortKey) is identical to the main key (\ref dataMainKey).
+
+  What the sort and main keys are, is defined by the plottable's data type. See the \ref
+  qcpdatacontainer-datatype "QCPDataContainer DataType" documentation for details about this naming
+  convention.
+*/
+
 /*! \fn virtual int QCPPlottableInterface1D::findBegin(double sortKey, bool expandedRange) const = 0
 
   Returns the index of the data point with a (sort-)key that is equal to, just below, or just above
@@ -246,6 +255,13 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
     qDebug() << Q_FUNC_INFO << "Index out of bounds" << index;
     return QCPRange(0, 0);
   }
+}
+
+/* inherits documentation from base class */
+template <class DataType>
+bool QCPAbstractPlottable1D<DataType>::sortKeyIsMainKey() const
+{
+  return DataType::sortKeyIsMainKey();
 }
 
 /*!

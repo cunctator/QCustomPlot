@@ -205,8 +205,12 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   customPlot->graph(3)->setPen(QPen(Qt::blue));
   customPlot->graph(3)->setLineStyle(QCPGraph::lsNone);
   customPlot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 4));
-  //customPlot->graph(3)->setErrorType(QCPGraph::etValue); // TODO: error bar plottable
-  //customPlot->graph(3)->setErrorPen(QPen(QColor(180,180,180))); // TODO: error bar plottable
+  // add error bars:
+  QCPErrorBars *errorBars = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  errorBars->removeFromLegend();
+  errorBars->setAntialiased(false);
+  errorBars->setDataPlottable(customPlot->graph(3));
+  errorBars->setPen(QPen(QColor(180,180,180)));
   customPlot->graph(3)->setName("Measurement");
 
   // generate ideal sinc curve data and some randomly perturbed data for scatter plot:
@@ -237,7 +241,8 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   customPlot->graph(0)->setData(x0, yConfUpper);
   customPlot->graph(1)->setData(x0, yConfLower);
   customPlot->graph(2)->setData(x0, y0);
-  //customPlot->graph(3)->setDataValueError(x1, y1, y1err); // TODO: error bar plottable
+  customPlot->graph(3)->setData(x1, y1);
+  errorBars->setData(y1err);
   customPlot->graph(2)->rescaleAxes();
   customPlot->graph(3)->rescaleAxes(true);
   // setup look of bottom tick labels:
@@ -524,14 +529,16 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   customPlot->graph(0)->setName("Left maxwell function");
   
   // setup for graph 1: key axis bottom, value axis left (those are the default axes)
-  // will contain bottom maxwell-like function
+  // will contain bottom maxwell-like function with error bars
   customPlot->addGraph();
   customPlot->graph(1)->setPen(QPen(Qt::red));
   customPlot->graph(1)->setBrush(QBrush(QPixmap("./balboa.jpg"))); // same fill as we used for graph 0
   customPlot->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
   customPlot->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red, Qt::white, 7));
-  //customPlot->graph(1)->setErrorType(QCPGraph::etValue); // TODO: error bar plottable
   customPlot->graph(1)->setName("Bottom maxwell function");
+  QCPErrorBars *errorBars = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  errorBars->removeFromLegend();
+  errorBars->setDataPlottable(customPlot->graph(1));
   
   // setup for graph 2: key axis top, value axis right
   // will contain high frequency sine with low frequency beating:
@@ -586,7 +593,8 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   
   // pass data points to graphs:
   customPlot->graph(0)->setData(x0, y0);
-  //customPlot->graph(1)->setDataValueError(x1, y1, y1err); // TODO: error bar plottable
+  customPlot->graph(1)->setData(x1, y1);
+  errorBars->setData(y1err);
   customPlot->graph(2)->setData(x2, y2);
   customPlot->graph(3)->setData(x3, y3);
   customPlot->graph(4)->setData(x4, y4);
@@ -631,7 +639,6 @@ void MainWindow::setupLogarithmicDemo(QCustomPlot *customPlot)
   customPlot->addGraph();
   customPlot->graph(1)->setPen(QPen(Qt::red));
   customPlot->graph(1)->setBrush(QBrush(QColor(255, 0, 0, 20)));
-  //customPlot->graph(1)->setErrorType(QCPGraph::etBoth); // TODO: error bar plottable
   customPlot->graph(1)->setName("-sin(x)exp(x)");
   
   customPlot->addGraph();

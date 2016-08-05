@@ -60,6 +60,7 @@
 //amalgamation: add plottables/plottable-statisticalbox.cpp
 //amalgamation: add plottables/plottable-colormap.cpp
 //amalgamation: add plottables/plottable-financial.cpp
+//amalgamation: add plottables/plottable-errorbar.cpp
 //amalgamation: add items/item-straightline.cpp
 //amalgamation: add items/item-line.cpp
 //amalgamation: add items/item-curve.cpp

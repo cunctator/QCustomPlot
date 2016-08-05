@@ -57,6 +57,7 @@
 #include "plottables/plottable-statisticalbox.h"
 #include "plottables/plottable-colormap.h"
 #include "plottables/plottable-financial.h"
+#include "plottables/plottable-errorbar.h"
 #include "items/item-straightline.h"
 #include "items/item-line.h"
 #include "items/item-curve.h"

@@ -290,6 +290,19 @@ void MainWindow::snippetQCPFinancialDataSharing()
   //! [qcpfinancial-datasharing-2]
 }
 
+void MainWindow::snippetQCPErrorBarsDataSharing()
+{
+  QCPErrorBars *errorBars1 = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  QCPErrorBars *errorBars2 = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  //! [qcperrorbars-datasharing-1]
+  errorBars2->setData(errorBars1->data()); // errorBars1 and errorBars2 now share data container
+  //! [qcperrorbars-datasharing-1]
+  
+  //! [qcperrorbars-datasharing-2]
+  errorBars2->data()->set(*errorBars1->data()); // errorBars2 now has copy of errorBars1's data in its container
+  //! [qcperrorbars-datasharing-2]
+}
+
 void MainWindow::snippetQCPDataSelectionIterating()
 {
   QCPGraph *graph = customPlot->addGraph();

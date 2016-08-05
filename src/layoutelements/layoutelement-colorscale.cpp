@@ -223,8 +223,7 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     }
     connect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
     connect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
-    mAxisRect.data()->setRangeDragAxes(QCPAxis::orientation(mType) == Qt::Horizontal ? mColorAxis.data() : 0,
-                                       QCPAxis::orientation(mType) == Qt::Vertical ? mColorAxis.data() : 0);
+    mAxisRect.data()->setRangeDragAxes(QList<QCPAxis*>() << mColorAxis.data());
   }
 }
 

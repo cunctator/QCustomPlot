@@ -38,19 +38,20 @@
   
   Data Ranges are not bound to a certain plottable, thus they can be freely exchanged, created and
   modified. If a non-contiguous data set shall be described, the class \ref QCPDataSelection is
-  used, which holds and manages multiple instances of QCPDataRange. In most situations,
+  used, which holds and manages multiple instances of \ref QCPDataRange. In most situations, \ref
   QCPDataSelection is thus used.
   
-  Both QCPDataRange and QCPDataSelection offer convenience methods to work with them, e.g. \ref
-  bounded, \ref intersects, \ref intersection, \ref adjusted, \ref contains. Further, addition and
-  subtraction operators (defined in QCPDataSelection) can be used to join/subtract data ranges and
-  data selections (or mixtures), to retrieve a corresponding QCPDataSelection.
+  Both \ref QCPDataRange and \ref QCPDataSelection offer convenience methods to work with them,
+  e.g. \ref bounded, \ref expanded, \ref intersects, \ref intersection, \ref adjusted, \ref
+  contains. Further, addition and subtraction operators (defined in \ref QCPDataSelection) can be
+  used to join/subtract data ranges and data selections (or mixtures), to retrieve a corresponding
+  \ref QCPDataSelection.
   
-  %QCustomPlot's \ref dataselection "data selection mechanism" is based on QCPDataSelection and
+  %QCustomPlot's \ref dataselection "data selection mechanism" is based on \ref QCPDataSelection and
   QCPDataRange.
   
-  \note Do not confuse QCPDataRange with QCPRange. A QCPRange describes an interval in floating
-  point plot coordinates, e.g. the current axis range.
+  \note Do not confuse \ref QCPDataRange with \ref QCPRange. A \ref QCPRange describes an interval
+  in floating point plot coordinates, e.g. the current axis range.
 */
 
 /* start documentation of inline functions */

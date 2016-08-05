@@ -139,7 +139,7 @@ QCPErrorBars::QCPErrorBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
   mDataContainer(new QVector<QCPErrorBarsData>),
   mErrorType(etValueError),
-  mWhiskerWidth(7),
+  mWhiskerWidth(9),
   mSymbolGap(10)
 {
   setPen(QPen(Qt::black, 0));
@@ -530,6 +530,12 @@ void QCPErrorBars::draw(QCPPainter *painter)
       mSelectionDecorator->applyPen(painter);
     else
       painter->setPen(mPen);
+    if (painter->pen().capStyle() == Qt::SquareCap)
+    {
+      QPen capFixPen(painter->pen());
+      capFixPen.setCapStyle(Qt::FlatCap);
+      painter->setPen(capFixPen);
+    }
     backbones.clear();
     whiskers.clear();
     for (QCPErrorBarsDataContainer::const_iterator it=begin; it!=end; ++it)

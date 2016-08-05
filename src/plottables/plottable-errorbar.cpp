@@ -88,16 +88,16 @@ QCPErrorBarsData::QCPErrorBarsData(double errorMinus, double errorPlus) :
   \image html QCPErrorBars.png
 
   The \ref QCPErrorBars plottable can be attached to other one-dimensional plottables (e.g. \ref
-  QCPGraph, \ref QCPCurve or \ref QCPBars) and equips them with error bars.
+  QCPGraph, \ref QCPCurve, \ref QCPBars, etc.) and equips them with error bars.
 
   Use \ref setDataPlottable to define for which plottable the \ref QCPErrorBars shall display the
   error bars. The orientation of the error bars can be controlled with \ref setErrorType.
 
   By using \ref setData, you can supply the actual error data, either as symmetric error or
-  plus/minus asymmetric errors. \ref QCPErrorBars only stores the error data. The key/value
-  position of the error bar will be adopted from the configured data plottable. The error values of
-  the \ref QCPErrorBars are associated one-to-one via their index to the data points of the data
-  plottable. You can directly access and manipulate the error bar data via \ref data.
+  plus/minus asymmetric errors. \ref QCPErrorBars only stores the error data. The absolute
+  key/value position of each error bar will be adopted from the configured data plottable. The
+  error data of the \ref QCPErrorBars are associated one-to-one via their index to the data points
+  of the data plottable. You can directly access and manipulate the error bar data via \ref data.
 
   Set either of the plus/minus errors to NaN (<tt>qQNaN()</tt> or
   <tt>std::numeric_limits<double>::quiet_NaN()</tt>) to not have an error bar on the data point at
@@ -107,7 +107,7 @@ QCPErrorBarsData::QCPErrorBarsData(double errorMinus, double errorPlus) :
 
   The appearance of the error bars is defined by the pen (\ref setPen), and the width of the
   whiskers (\ref setWhiskerWidth). Further, the error bar backbones may leave a gap around the data
-  point center to prevent that error bars are drawn to close to or even through scatter points.
+  point center to prevent that error bars are drawn too close to or even through scatter points.
   This gap size can be controlled via \ref setSymbolGap.
 */
 
@@ -255,7 +255,7 @@ void QCPErrorBars::setWhiskerWidth(double pixels)
 
 /*!
   Sets the gap diameter around the data points that will be left out when drawing the error bar
-  backbones. This gap prevents that error bars are drawn to close to or even through scatter
+  backbones. This gap prevents that error bars are drawn too close to or even through scatter
   points.
 */
 void QCPErrorBars::setSymbolGap(double pixels)

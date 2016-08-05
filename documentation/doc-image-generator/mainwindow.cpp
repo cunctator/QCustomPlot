@@ -796,6 +796,74 @@ void MainWindow::genQCPFinancial()
   customPlot->savePng(dir.filePath("QCPFinancial.png"), 450, 250);
 }
 
+void MainWindow::genQCPErrorBars()
+{
+  // generate main doc image of plottable:
+  resetPlot(false);
+  
+  customPlot->xAxis->setVisible(true);
+  customPlot->yAxis->setVisible(true);
+  customPlot->xAxis->setBasePen(Qt::NoPen);
+  customPlot->yAxis->setBasePen(Qt::NoPen);
+  customPlot->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+  customPlot->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+  customPlot->xAxis->setTicks(false);
+  customPlot->yAxis->setTicks(false);
+  customPlot->xAxis->setTickLabels(false);
+  customPlot->yAxis->setTickLabels(false);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
+
+  qsrand(4);
+  int n = 5;
+  int n2 = 12;
+  QVector<double> x(n), y(n), errX(n), errY(n);
+  QVector<double> x2(n2), y2(n2), errY2(n2);
+  for (int i=0; i<n; ++i)
+  {
+    x[i] = i/(double)(n-1)*5;
+    y[i] = 0.7+qrand()/(double)RAND_MAX;
+    errX[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
+    errY[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
+  }
+  for (int i=0; i<n2; ++i)
+  {
+    x2[i] = i/(double)(n2-1)*5;
+    y2[i] = qrand()/(double)RAND_MAX*0.5+0.15;
+    errY2[i] = 0.02+qrand()/(double)RAND_MAX*0.2;
+  }
+  
+  QCPGraph *graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
+  graph->setLineStyle(QCPGraph::lsLine);
+  graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(200, 200, 200), 6));
+  graph->setPen(QPen(QColor(200, 200, 200)));
+  graph->setData(x, y);
+  QCPBars *bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  bars->setData(x2, y2);
+  bars->setWidth(0.3);
+  bars->setPen(QPen(QColor(200, 200, 200)));
+  bars->setBrush(QBrush(QColor(230, 230, 230)));
+
+  QCPErrorBars *xErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  xErrors->setErrorType(QCPErrorBars::etKeyError);
+  xErrors->setDataPlottable(graph);
+  xErrors->setData(errX);
+  QCPErrorBars *yErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  yErrors->setErrorType(QCPErrorBars::etValueError);
+  yErrors->setDataPlottable(graph);
+  yErrors->setData(errY);
+  QCPErrorBars *yErrorsBars = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  yErrorsBars->setErrorType(QCPErrorBars::etValueError);
+  yErrorsBars->setDataPlottable(bars);
+  yErrorsBars->setData(errY2);
+  yErrorsBars->setSymbolGap(4);
+
+  customPlot->xAxis->setRange(-0.5, 5.5);
+  customPlot->yAxis->setRange(0, 2.0);
+  
+  customPlot->savePng(dir.filePath("QCPErrorBars.png"), 450, 250);
+}
+
 void MainWindow::genQCPColorScale()
 {
   // generate main doc image of plottable:

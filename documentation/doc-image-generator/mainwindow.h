@@ -49,6 +49,7 @@ public slots:
   void genQCPStatisticalBox();
   void genQCPColorMap();
   void genQCPFinancial();
+  void genQCPErrorBars();
   void genQCPColorScale();
   void genQCPColorGradient();
   void genQCPBarsGroup();

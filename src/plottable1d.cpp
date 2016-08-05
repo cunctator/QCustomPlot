@@ -413,34 +413,18 @@ void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &sele
 {
   selectedSegments.clear();
   unselectedSegments.clear();
-  if (mSelectable == QCP::stWhole)
+  if (mSelectable == QCP::stWhole) // stWhole selection type draws the entire plottable with selected style if mSelection isn't empty
   {
-    // stWhole selection type draws the entire plottable with selected style if mSelection isn't empty
     if (selected())
-      selectedSegments = QList<QCPDataRange>() << QCPDataRange(0, dataCount());
+      selectedSegments << QCPDataRange(0, dataCount());
     else
-      unselectedSegments = QList<QCPDataRange>() << QCPDataRange(0, dataCount());
+      unselectedSegments << QCPDataRange(0, dataCount());
   } else
   {
     QCPDataSelection sel(selection());
     sel.simplify();
     selectedSegments = sel.dataRanges();
-    
-    if (selectedSegments.isEmpty())
-    {
-      unselectedSegments.append(QCPDataRange(0, dataCount()));
-    } else
-    {
-      // first unselected segment:
-      if (selectedSegments.first().begin() != 0)
-        unselectedSegments.append(QCPDataRange(0, selectedSegments.first().begin()));
-      // intermediate unselected segments:
-      for (int i=1; i<selectedSegments.size(); ++i)
-        unselectedSegments.append(QCPDataRange(selectedSegments.at(i-1).end(), selectedSegments.at(i).begin()));
-      // last unselected segment:
-      if (selectedSegments.last().end() != dataCount())
-        unselectedSegments.append(QCPDataRange(selectedSegments.last().end(), dataCount()));
-    }
+    unselectedSegments = sel.inverse(QCPDataRange(0, dataCount())).dataRanges();
   }
 }
 

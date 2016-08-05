@@ -40,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupLargeDataSetDelete(mCustomPlot);
   //setupMultiValueGraph(mCustomPlot);
   //setupDataSelectTest(mCustomPlot);
-  setupTestbed(mCustomPlot);
+  setupErrorBarTest(mCustomPlot);
+  //setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -1086,6 +1087,27 @@ void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)
   
   customPlot->rescaleAxes();
   customPlot->replot();
+}
+
+void MainWindow::setupErrorBarTest(QCustomPlot *customPlot)
+{
+  customPlot->axisRect()->setMinimumMargins(QMargins(100, 100, 100, 100));
+  QCPAxis *keyAxis = customPlot->xAxis;
+  QCPAxis *valueAxis = customPlot->yAxis;
+  
+  QCPCurve *graph = new QCPCurve(keyAxis, valueAxis);
+  graph->setData(QVector<double>() << 1 << 2 << 3 << 4 << 2.5 << -2, QVector<double>() << -2 << 0 << 1 << 2 << 1.5 << 1.2);
+  //graph->setScatterStyle(QCPScatterStyle::ssCircle);
+  
+  QCPErrorBars *keyErrors = new QCPErrorBars(keyAxis, valueAxis);
+  keyErrors->setDataPlottable(graph);
+  keyErrors->setData(QVector<double>() << 0.2 << 0.4 << 1.6 << 0.8 << 0.2 << 0.2, QVector<double>() << 0.2 << 0.2 << 2.2 << 0.2 << 0.2 << 0.2);
+  keyErrors->setErrorType(QCPErrorBars::etKeyError);
+  QCPErrorBars *valueErrors = new QCPErrorBars(keyAxis, valueAxis);
+  valueErrors->setDataPlottable(graph);
+  valueErrors->setData(QVector<double>() << 0.2 << 0.4 << 1.6 << 0.8 << 0.2 << 0.2, QVector<double>() << 0.2 << 0.2 << 2.2 << 0.2 << 0.2 << 0.2);
+  valueErrors->setErrorType(QCPErrorBars::etValueError);
+  valueErrors->setSelectable(QCP::stMultipleDataRanges);
 }
 
 void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)

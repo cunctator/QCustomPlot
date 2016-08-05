@@ -34,17 +34,25 @@
 
 /*! \class QCPPlottableInterface1D
   \brief Defines an abstract interface for one-dimensional plottables
-  
+
   This class contains only pure virtual methods which define a common interface to the data
   of one-dimensional plottables.
-  
-  It is used to add virtual methods to the template class \ref QCPAbstractPlottable1D (the
-  preferred base class for one-dimensional plottables), via multiple inheritance from \ref
-  QCPAbstractPlottable and \ref QCPPlottableInterface1D. If you have a \ref QCPAbstractPlottable
-  pointer, you can check whether it implements this interface by calling \ref
-  QCPAbstractPlottable::interface1D and testing it for a non-zero return value. If it indeed
-  implements this interface, you may use it to access the plottable's data without needing to
-  know the exact type of the plottable or its data point type.
+
+  For example, it is implemented by the template class \ref QCPAbstractPlottable1D (the preferred
+  base class for one-dimensional plottables). So if you use that template class as base class of
+  your one-dimensional plottable, you won't have to care about implementing the 1d interface
+  yourself.
+
+  If your plottable doesn't derive from \ref QCPAbstractPlottable1D but still wants to provide a 1d
+  interface (e.g. like \ref QCPErrorBars does), you should inherit from both \ref
+  QCPAbstractPlottable and \ref QCPPlottableInterface1D and accordingly reimplement the pure
+  virtual methods of the 1d interface, matching your data container. Also, reimplement \ref
+  QCPAbstractPlottable::interface1D to return the \c this pointer.
+
+  If you have a \ref QCPAbstractPlottable pointer, you can check whether it implements this
+  interface by calling \ref QCPAbstractPlottable::interface1D and testing it for a non-zero return
+  value. If it indeed implements this interface, you may use it to access the plottable's data
+  without needing to know the exact type of the plottable or its data point type.
 */
 
 /* start documentation of pure virtual functions */

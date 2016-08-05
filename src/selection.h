@@ -51,6 +51,7 @@ public:
   bool isValid() const { return (mEnd >= mBegin) && (mBegin >= 0); }
   bool isEmpty() const { return length() == 0; }
   QCPDataRange bounded(const QCPDataRange &other) const;
+  QCPDataRange expanded(const QCPDataRange &other) const;
   QCPDataRange intersection(const QCPDataRange &other) const;
   QCPDataRange adjusted(int changeBegin, int changeEnd) const { return QCPDataRange(mBegin+changeBegin, mEnd+changeEnd); }
   bool intersects(const QCPDataRange &other) const;
@@ -90,6 +91,7 @@ public:
   int dataPointCount() const;
   QCPDataRange dataRange(int index=0) const;
   QList<QCPDataRange> dataRanges() const { return mDataRanges; }
+  QCPDataRange span() const;
   
   // non-property methods:
   void addDataRange(const QCPDataRange &dataRange, bool simplify=true);
@@ -100,6 +102,7 @@ public:
   bool contains(const QCPDataSelection &other) const;
   QCPDataSelection intersection(const QCPDataRange &other) const;
   QCPDataSelection intersection(const QCPDataSelection &other) const;
+  QCPDataSelection inverse(const QCPDataRange outerRange) const;
   
 private:
   // property members:

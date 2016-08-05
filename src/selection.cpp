@@ -158,6 +158,14 @@ QCPDataRange QCPDataRange::bounded(const QCPDataRange &other) const
 }
 
 /*!
+  Returns a data range that contains both this data range as well as \a other.
+*/
+QCPDataRange QCPDataRange::expanded(const QCPDataRange &other) const
+{
+  return QCPDataRange(qMin(mBegin, other.mBegin), qMax(mEnd, other.mEnd));
+}
+
+/*!
   Returns the data range which is contained in both this data range and \a other.
   
   This method is very similar to \ref bounded, with one distinction: If this range and the \a other
@@ -410,6 +418,18 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
 }
 
 /*!
+  Returns a \ref QCPDataRange which spans the entire data selection, including possible
+  intermediate segments which are not part of the original data selection.
+*/
+QCPDataRange QCPDataSelection::span() const
+{
+  if (isEmpty())
+    return QCPDataRange();
+  else
+    return QCPDataRange(mDataRanges.first().begin(), mDataRanges.last().end());
+}
+
+/*!
   Adds the given \a dataRange to this data selection. This is equivalent to the += operator but
   allows disabling immediate simplification by setting \a simplify to false. This can improve
   performance if adding a very large amount of data ranges successively. In this case, make sure to
@@ -508,13 +528,7 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     }
     case QCP::stDataRange:
     {
-      if (mDataRanges.size() > 1)
-      {
-        QCPDataRange newDataRange;
-        newDataRange.setBegin(mDataRanges.first().begin());
-        newDataRange.setEnd(mDataRanges.last().end());
-        mDataRanges = QList<QCPDataRange>() << newDataRange;
-      }
+      mDataRanges = QList<QCPDataRange>() << span();
       break;
     }
     case QCP::stMultipleDataRanges:
@@ -573,6 +587,35 @@ QCPDataSelection QCPDataSelection::intersection(const QCPDataSelection &other) c
   QCPDataSelection result;
   for (int i=0; i<other.dataRangeCount(); ++i)
     result += intersection(other.dataRange(i));
+  result.simplify();
+  return result;
+}
+
+/*!
+  Returns a data selection which is the exact inverse of this data selection, with \a outerRange
+  defining the base range on which to invert. If \a outerRange is smaller than the \ref span of
+  this data selection, it is expanded accordingly.
+
+  For example, this method can be used to retrieve all unselected segments by setting \a outerRange
+  to the full data range of the plottable, and calling this method on a data selection holding the
+  selected segments.
+*/
+QCPDataSelection QCPDataSelection::inverse(const QCPDataRange outerRange) const
+{
+  if (isEmpty())
+    return QCPDataSelection(outerRange);
+  QCPDataRange fullRange = outerRange.expanded(span());
+  
+  QCPDataSelection result;
+  // first unselected segment:
+  if (mDataRanges.first().begin() != fullRange.begin())
+    result.addDataRange(QCPDataRange(fullRange.begin(), mDataRanges.first().begin()), false);
+  // intermediate unselected segments:
+  for (int i=1; i<mDataRanges.size(); ++i)
+    result.addDataRange(QCPDataRange(mDataRanges.at(i-1).end(), mDataRanges.at(i).begin()), false);
+  // last unselected segment:
+  if (mDataRanges.last().end() != fullRange.end())
+    result.addDataRange(QCPDataRange(mDataRanges.last().end(), fullRange.end()), false);
   result.simplify();
   return result;
 }

@@ -608,6 +608,8 @@ void QCPErrorBars::getErrorBarLines(QCPErrorBarsDataContainer::const_iterator it
   QCPAxis *orthoAxis = mErrorType == etValueError ? mKeyAxis : mValueAxis;
   const double centerErrorAxisCoord = mErrorType == etValueError ? mDataPlottable->interface1D()->dataMainValue(index) : mDataPlottable->interface1D()->dataMainKey(index);
   const double centerOrthoAxisCoord = mErrorType == etValueError ? mDataPlottable->interface1D()->dataMainKey(index) : mDataPlottable->interface1D()->dataMainValue(index);
+  if (qIsNaN(centerErrorAxisCoord) || qIsNaN(centerOrthoAxisCoord))
+    return;
   const double centerErrorAxisPixel = errorAxis->coordToPixel(centerErrorAxisCoord);
   const double centerOrthoAxisPixel = orthoAxis->coordToPixel(centerOrthoAxisCoord);
   const double symbolGap = mSymbolGap*0.5*(errorAxis->rangeReversed() ? -1 : 1)*(errorAxis->orientation()==Qt::Vertical ? -1 : 1);
@@ -791,6 +793,9 @@ void QCPErrorBars::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<
 bool QCPErrorBars::errorBarVisible(int index) const
 {
   const double centerKey = mDataPlottable->interface1D()->dataMainKey(index);
+  if (qIsNaN(centerKey))
+    return false;
+  
   double keyMin, keyMax;
   if (mErrorType == etKeyError)
   {

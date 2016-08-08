@@ -104,15 +104,18 @@ void QCPRange::normalize()
   Expands this range such that \a otherRange is contained in the new range. It is assumed that both
   this range and \a otherRange are normalized (see \ref normalize).
   
+  If this range contains NaN as lower or upper bound, it will be replaced by the respective bound
+  of \a otherRange.
+  
   If \a otherRange is already inside the current range, this function does nothing.
   
   \see expanded
 */
 void QCPRange::expand(const QCPRange &otherRange)
 {
-  if (lower > otherRange.lower)
+  if (lower > otherRange.lower || qIsNaN(lower))
     lower = otherRange.lower;
-  if (upper < otherRange.upper)
+  if (upper < otherRange.upper || qIsNaN(upper))
     upper = otherRange.upper;
 }
 
@@ -120,6 +123,9 @@ void QCPRange::expand(const QCPRange &otherRange)
 /*!
   Returns an expanded range that contains this and \a otherRange. It is assumed that both this
   range and \a otherRange are normalized (see \ref normalize).
+  
+  If this range contains NaN as lower or upper bound, the returned range's bound will be taken from
+  \a otherRange.
   
   \see expand
 */

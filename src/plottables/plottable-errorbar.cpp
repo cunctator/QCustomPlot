@@ -574,18 +574,148 @@ void QCPErrorBars::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 QCPRange QCPErrorBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   if (!mDataPlottable)
+  {
+    foundRange = false;
     return QCPRange();
-  else
-    return mDataPlottable->getKeyRange(foundRange, inSignDomain);
+  }
+  
+  QCPRange range;
+  bool haveLower = false;
+  bool haveUpper = false;
+  QCPErrorBarsDataContainer::const_iterator it;
+  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  {
+    if (mErrorType == etValueError)
+    {
+      // error bar doesn't extend in key dimension (except whisker but we ignore that here), so only use data point center
+      const double current = mDataPlottable->interface1D()->dataMainKey(it-mDataContainer->constBegin());
+      if (qIsNaN(current)) continue;
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current < range.lower || !haveLower)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if (current > range.upper || !haveUpper)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+    } else // mErrorType == etKeyError
+    {
+      const double dataKey = mDataPlottable->interface1D()->dataMainKey(it-mDataContainer->constBegin());
+      if (qIsNaN(dataKey)) continue;
+      // plus error:
+      double current = dataKey + (qIsNaN(it->errorPlus) ? 0 : it->errorPlus);
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current > range.upper || !haveUpper)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      // minus error:
+      current = dataKey - (qIsNaN(it->errorMinus) ? 0 : it->errorMinus);
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current < range.lower || !haveLower)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+      }
+    }
+  }
+  
+  if (haveUpper && !haveLower)
+  {
+    range.lower = range.upper;
+    haveLower = true;
+  } else if (haveLower && !haveUpper)
+  {
+    range.upper = range.lower;
+    haveUpper = true;
+  }
+  
+  foundRange = haveLower && haveUpper;
+  return range;
 }
 
 /* inherits documentation from base class */
 QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
   if (!mDataPlottable)
+  {
+    foundRange = false;
     return QCPRange();
-  else
-    return mDataPlottable->getValueRange(foundRange, inSignDomain);
+  }
+  
+  QCPRange range;
+  bool haveLower = false;
+  bool haveUpper = false;
+  QCPErrorBarsDataContainer::const_iterator it;
+  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  {
+    if (mErrorType == etValueError)
+    {
+      const double dataValue = mDataPlottable->interface1D()->dataMainValue(it-mDataContainer->constBegin());
+      if (qIsNaN(dataValue)) continue;
+      // plus error:
+      double current = dataValue + (qIsNaN(it->errorPlus) ? 0 : it->errorPlus);
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current > range.upper || !haveUpper)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+      // minus error:
+      current = dataValue - (qIsNaN(it->errorMinus) ? 0 : it->errorMinus);
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current < range.lower || !haveLower)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+      }
+    } else // mErrorType == etKeyError
+    {
+      // error bar doesn't extend in value dimension (except whisker but we ignore that here), so only use data point center
+      const double current = mDataPlottable->interface1D()->dataMainValue(it-mDataContainer->constBegin());
+      if (qIsNaN(current)) continue;
+      if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
+      {
+        if (current < range.lower || !haveLower)
+        {
+          range.lower = current;
+          haveLower = true;
+        }
+        if (current > range.upper || !haveUpper)
+        {
+          range.upper = current;
+          haveUpper = true;
+        }
+      }
+    }
+  }
+  
+  if (haveUpper && !haveLower)
+  {
+    range.lower = range.upper;
+    haveLower = true;
+  } else if (haveLower && !haveUpper)
+  {
+    range.upper = range.lower;
+    haveUpper = true;
+  }
+  
+  foundRange = haveLower && haveUpper;
+  return range;
 }
 
 /*! \internal

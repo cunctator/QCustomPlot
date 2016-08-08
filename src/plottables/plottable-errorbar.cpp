@@ -100,7 +100,7 @@ QCPErrorBarsData::QCPErrorBarsData(double errorMinus, double errorPlus) :
   of the data plottable. You can directly access and manipulate the error bar data via \ref data.
 
   Set either of the plus/minus errors to NaN (<tt>qQNaN()</tt> or
-  <tt>std::numeric_limits<double>::quiet_NaN()</tt>) to not have an error bar on the data point at
+  <tt>std::numeric_limits<double>::quiet_NaN()</tt>) to not show the respective error bar on the data point at
   that index.
 
   \section appearance Changing the appearance
@@ -612,32 +612,39 @@ void QCPErrorBars::getErrorBarLines(QCPErrorBarsDataContainer::const_iterator it
   const double centerOrthoAxisPixel = orthoAxis->coordToPixel(centerOrthoAxisCoord);
   const double symbolGap = mSymbolGap*0.5*(errorAxis->rangeReversed() ? -1 : 1)*(errorAxis->orientation()==Qt::Vertical ? -1 : 1);
   // plus error:
-  double errorStart = centerErrorAxisPixel+symbolGap;
-  double errorEnd = errorAxis->coordToPixel(centerErrorAxisCoord+it->errorPlus);
-  if (errorAxis->orientation() == Qt::Vertical)
+  double errorStart, errorEnd;
+  if (!qIsNaN(it->errorPlus))
   {
-    if ((errorStart > errorEnd) != errorAxis->rangeReversed())
-      backbones.append(QLineF(centerOrthoAxisPixel, errorStart, centerOrthoAxisPixel, errorEnd));
-    whiskers.append(QLineF(centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5, errorEnd));
-  } else
-  {
-    if ((errorStart < errorEnd) != errorAxis->rangeReversed())
-      backbones.append(QLineF(errorStart, centerOrthoAxisPixel, errorEnd, centerOrthoAxisPixel));
-    whiskers.append(QLineF(errorEnd, centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5));
+    errorStart = centerErrorAxisPixel+symbolGap;
+    errorEnd = errorAxis->coordToPixel(centerErrorAxisCoord+it->errorPlus);
+    if (errorAxis->orientation() == Qt::Vertical)
+    {
+      if ((errorStart > errorEnd) != errorAxis->rangeReversed())
+        backbones.append(QLineF(centerOrthoAxisPixel, errorStart, centerOrthoAxisPixel, errorEnd));
+      whiskers.append(QLineF(centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5, errorEnd));
+    } else
+    {
+      if ((errorStart < errorEnd) != errorAxis->rangeReversed())
+        backbones.append(QLineF(errorStart, centerOrthoAxisPixel, errorEnd, centerOrthoAxisPixel));
+      whiskers.append(QLineF(errorEnd, centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5));
+    }
   }
   // minus error:
-  errorStart = centerErrorAxisPixel-symbolGap;
-  errorEnd = errorAxis->coordToPixel(centerErrorAxisCoord-it->errorMinus);
-  if (errorAxis->orientation() == Qt::Vertical)
+  if (!qIsNaN(it->errorMinus))
   {
-    if ((errorStart < errorEnd) != errorAxis->rangeReversed())
-      backbones.append(QLineF(centerOrthoAxisPixel, errorStart, centerOrthoAxisPixel, errorEnd));
-    whiskers.append(QLineF(centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5, errorEnd));
-  } else
-  {
-    if ((errorStart > errorEnd) != errorAxis->rangeReversed())
-      backbones.append(QLineF(errorStart, centerOrthoAxisPixel, errorEnd, centerOrthoAxisPixel));
-    whiskers.append(QLineF(errorEnd, centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5));
+    errorStart = centerErrorAxisPixel-symbolGap;
+    errorEnd = errorAxis->coordToPixel(centerErrorAxisCoord-it->errorMinus);
+    if (errorAxis->orientation() == Qt::Vertical)
+    {
+      if ((errorStart < errorEnd) != errorAxis->rangeReversed())
+        backbones.append(QLineF(centerOrthoAxisPixel, errorStart, centerOrthoAxisPixel, errorEnd));
+      whiskers.append(QLineF(centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5, errorEnd));
+    } else
+    {
+      if ((errorStart > errorEnd) != errorAxis->rangeReversed())
+        backbones.append(QLineF(errorStart, centerOrthoAxisPixel, errorEnd, centerOrthoAxisPixel));
+      whiskers.append(QLineF(errorEnd, centerOrthoAxisPixel-mWhiskerWidth*0.5, errorEnd, centerOrthoAxisPixel+mWhiskerWidth*0.5));
+    }
   }
 }
 
@@ -787,8 +794,10 @@ bool QCPErrorBars::errorBarVisible(int index) const
   double keyMin, keyMax;
   if (mErrorType == etKeyError)
   {
-    keyMax = centerKey+mDataContainer->at(index).errorPlus;
-    keyMin = centerKey-mDataContainer->at(index).errorMinus;
+    const double errorPlus = mDataContainer->at(index).errorPlus;
+    const double errorMinus = mDataContainer->at(index).errorMinus;
+    keyMax = centerKey+(qIsNaN(errorPlus) ? 0 : errorPlus);
+    keyMin = centerKey-(qIsNaN(errorMinus) ? 0 : errorMinus);
   } else // mErrorType == etValueError
   {
     const double centerKeyPixel = mKeyAxis->coordToPixel(centerKey);

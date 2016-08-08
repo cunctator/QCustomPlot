@@ -891,13 +891,17 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) co
     keyPixel = mKeyAxis.data()->coordToPixel(range.lower) + lowerPixelWidth;
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.lower);
-    range.lower = mKeyAxis.data()->pixelToCoord(keyPixel);
+    const double lowerCorrected = mKeyAxis.data()->pixelToCoord(keyPixel);
+    if (!qIsNaN(lowerCorrected) && range.lower > lowerCorrected)
+      range.lower = lowerCorrected;
     // upper range bound:
     getPixelWidth(range.upper, lowerPixelWidth, upperPixelWidth);
     keyPixel = mKeyAxis.data()->coordToPixel(range.upper) + upperPixelWidth;
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.upper);
-    range.upper = mKeyAxis.data()->pixelToCoord(keyPixel);
+    const double upperCorrected = mKeyAxis.data()->pixelToCoord(keyPixel);
+    if (!qIsNaN(upperCorrected) && range.upper < upperCorrected)
+      range.upper = upperCorrected;
   }
   return range;
 }
@@ -912,12 +916,10 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) 
   range.upper = mBaseValue;
   bool haveLower = true; // set to true, because baseValue should always be visible in bar charts
   bool haveUpper = true; // set to true, because baseValue should always be visible in bar charts
-  double current;
-  
-  QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin();
-  while (it != mDataContainer->constEnd())
+  for (QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
   {
-    current = it->value + getStackedBaseValue(it->key, it->value >= 0);
+    const double current = it->value + getStackedBaseValue(it->key, it->value >= 0);
+    if (qIsNaN(current)) continue;
     if (inSignDomain == QCP::sdBoth || (inSignDomain == QCP::sdNegative && current < 0) || (inSignDomain == QCP::sdPositive && current > 0))
     {
       if (current < range.lower || !haveLower)
@@ -931,7 +933,6 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) 
         haveUpper = true;
       }
     }
-    ++it;
   }
   
   foundRange = true; // return true because bar charts always have the 0-line visible

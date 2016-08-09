@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupLargeDataSetDelete(mCustomPlot);
   //setupMultiValueGraph(mCustomPlot);
   //setupDataSelectTest(mCustomPlot);
+  //setupErrorBarTest(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -318,7 +319,6 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
-  /* TODO: with new error bars plottable
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
   customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   customPlot->yAxis->setNumberFormat("eb");
@@ -329,20 +329,24 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   for (int i=0; i<n; ++i)
   {
     x[i] = i;
-    y[i] = i*0.1;
+    y[i] = i*0.11;
     yerr[i] = 0.5;
     xerr[i] = qAbs(qCos(i/2.0)*0.5);
   }
   customPlot->addGraph();
   customPlot->graph()->setScatterStyle(QCPScatterStyle::ssCross);
-  customPlot->graph()->setDataBothError(x, y, xerr, yerr);
-  customPlot->graph()->setErrorType(QCPGraph::etBoth);
-  customPlot->graph()->setErrorBarSkipSymbol(true);
+  customPlot->graph()->setData(x, y);
   
-  //customPlot->rescaleAxes();
-  customPlot->xAxis->setRange(0, 10);
-  customPlot->yAxis->setRange(1, 10);
-  */
+  QCPErrorBars *keyErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  keyErrors->setErrorType(QCPErrorBars::etKeyError);
+  keyErrors->setDataPlottable(customPlot->graph());
+  keyErrors->setData(xerr);
+  QCPErrorBars *valueErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  valueErrors->setErrorType(QCPErrorBars::etValueError);
+  valueErrors->setDataPlottable(customPlot->graph());
+  valueErrors->setData(yerr);
+  
+  customPlot->rescaleAxes();
 }
 
 void MainWindow::setupSelectTest(QCustomPlot *customPlot)
@@ -1086,6 +1090,27 @@ void MainWindow::setupMultiValueGraph(QCustomPlot *customPlot)
   
   customPlot->rescaleAxes();
   customPlot->replot();
+}
+
+void MainWindow::setupErrorBarTest(QCustomPlot *customPlot)
+{
+  customPlot->axisRect()->setMinimumMargins(QMargins(100, 100, 100, 100));
+  QCPAxis *keyAxis = customPlot->xAxis;
+  QCPAxis *valueAxis = customPlot->yAxis;
+  
+  QCPCurve *graph = new QCPCurve(keyAxis, valueAxis);
+  graph->setData(QVector<double>() << 1 << 2 << 3 << 4 << 2.5 << -2, QVector<double>() << -2 << 0 << 1 << 2 << 1.5 << 1.2);
+  //graph->setScatterStyle(QCPScatterStyle::ssCircle);
+  
+  QCPErrorBars *keyErrors = new QCPErrorBars(keyAxis, valueAxis);
+  keyErrors->setDataPlottable(graph);
+  keyErrors->setData(QVector<double>() << 0.2 << 0.4 << 1.6 << 0.8 << 0.2 << 0.2, QVector<double>() << 0.2 << 0.2 << 2.2 << 0.2 << 0.2 << 0.2);
+  keyErrors->setErrorType(QCPErrorBars::etKeyError);
+  QCPErrorBars *valueErrors = new QCPErrorBars(keyAxis, valueAxis);
+  valueErrors->setDataPlottable(graph);
+  valueErrors->setData(QVector<double>() << 0.2 << 0.4 << 1.6 << 0.8 << 0.2 << 0.2, QVector<double>() << 0.2 << 0.2 << 2.2 << 0.2 << 0.2 << 0.2);
+  valueErrors->setErrorType(QCPErrorBars::etValueError);
+  valueErrors->setSelectable(QCP::stMultipleDataRanges);
 }
 
 void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)

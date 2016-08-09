@@ -64,6 +64,7 @@
 //amalgamation: add plottables/plottable-statisticalbox.h
 //amalgamation: add plottables/plottable-colormap.h
 //amalgamation: add plottables/plottable-financial.h
+//amalgamation: add plottables/plottable-errorbar.h
 //amalgamation: add items/item-straightline.h
 //amalgamation: add items/item-line.h
 //amalgamation: add items/item-curve.h

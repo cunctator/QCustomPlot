@@ -60,12 +60,37 @@
   Returns true when \a value lies within or exactly on the borders of the range.
 */
 
+/*! \fn QCPRange &QCPRange::operator+=(const double& value)
+
+  Adds \a value to both boundaries of the range.
+*/
+
+/*! \fn QCPRange &QCPRange::operator-=(const double& value)
+
+  Subtracts \a value from both boundaries of the range.
+*/
+
+/*! \fn QCPRange &QCPRange::operator*=(const double& value)
+
+  Multiplies both boundaries of the range by \a value.
+*/
+
+/*! \fn QCPRange &QCPRange::operator/=(const double& value)
+
+  Divides both boundaries of the range by \a value.
+*/
+
 /* end of documentation of inline functions */
 
 /*!
   Minimum range size (\a upper - \a lower) the range changing functions will accept. Smaller
   intervals would cause errors due to the 11-bit exponent of double precision numbers,
   corresponding to a minimum magnitude of roughly 1e-308.
+
+  \warning Do not use this constant to indicate "arbitrarily small" values in plotting logic (as
+  values that will appear in the plot)! It is intended only as a bound to compare against, e.g. to
+  prevent axis ranges from obtaining underflowing ranges.
+
   \see validRange, maxRange
 */
 const double QCPRange::minRange = 1e-280;
@@ -74,8 +99,11 @@ const double QCPRange::minRange = 1e-280;
   Maximum values (negative and positive) the range will accept in range-changing functions.
   Larger absolute values would cause errors due to the 11-bit exponent of double precision numbers,
   corresponding to a maximum magnitude of roughly 1e308.
-  Since the number of planck-volumes in the entire visible universe is only ~1e183, this should
-  be enough.
+
+  \warning Do not use this constant to indicate "arbitrarily large" values in plotting logic (as
+  values that will appear in the plot)! It is intended only as a bound to compare against, e.g. to
+  prevent axis ranges from obtaining overflowing ranges.
+
   \see validRange, minRange
 */
 const double QCPRange::maxRange = 1e250;
@@ -90,7 +118,11 @@ QCPRange::QCPRange() :
 }
 
 /*! \overload
+
   Constructs a range with the specified \a lower and \a upper values.
+
+  The resulting range will be normalized (see \ref normalize), so if \a lower is not numerically
+  smaller than \a upper, they will be swapped.
 */
 QCPRange::QCPRange(double lower, double upper) :
   lower(lower),
@@ -283,13 +315,6 @@ QCPRange QCPRange::sanitizedForLinScale() const
 */
 bool QCPRange::validRange(double lower, double upper)
 {
-  /*
-  return (lower > -maxRange &&
-          upper < maxRange &&
-          qAbs(lower-upper) > minRange &&
-          (lower < -minRange || lower > minRange) &&
-          (upper < -minRange || upper > minRange));
-          */
   return (lower > -maxRange &&
           upper < maxRange &&
           qAbs(lower-upper) > minRange &&
@@ -309,14 +334,6 @@ bool QCPRange::validRange(double lower, double upper)
 */
 bool QCPRange::validRange(const QCPRange &range)
 {
-  /*
-  return (range.lower > -maxRange &&
-          range.upper < maxRange &&
-          qAbs(range.lower-range.upper) > minRange &&
-          qAbs(range.lower-range.upper) < maxRange &&
-          (range.lower < -minRange || range.lower > minRange) &&
-          (range.upper < -minRange || range.upper > minRange));
-          */
   return (range.lower > -maxRange &&
           range.upper < maxRange &&
           qAbs(range.lower-range.upper) > minRange &&

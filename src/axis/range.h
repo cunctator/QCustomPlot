@@ -64,35 +64,11 @@ public:
   
   static bool validRange(double lower, double upper);
   static bool validRange(const QCPRange &range);
-  static const double minRange; //1e-280;
-  static const double maxRange; //1e280;
+  static const double minRange;
+  static const double maxRange;
   
 };
 Q_DECLARE_TYPEINFO(QCPRange, Q_MOVABLE_TYPE);
-
-/* documentation of inline functions */
-
-/*! \fn QCPRange &QCPRange::operator+=(const double& value)
-  
-  Adds \a value to both boundaries of the range.
-*/
-
-/*! \fn QCPRange &QCPRange::operator-=(const double& value)
-  
-  Subtracts \a value from both boundaries of the range.
-*/
-
-/*! \fn QCPRange &QCPRange::operator*=(const double& value)
-  
-  Multiplies both boundaries of the range by \a value.
-*/
-
-/*! \fn QCPRange &QCPRange::operator/=(const double& value)
-  
-  Divides both boundaries of the range by \a value.
-*/
-
-/* end documentation of inline functions */
 
 /*! \relates QCPRange
 

@@ -50,15 +50,15 @@ public:
   friend inline const QCPRange operator*(double value, const QCPRange& range);
   friend inline const QCPRange operator/(const QCPRange& range, double value);
   
-  double size() const;
-  double center() const;
-  void normalize();
+  double size() const { return upper-lower; }
+  double center() const { return (upper+lower)*0.5; }
+  void normalize() { if (lower > upper) qSwap(lower, upper); }
   void expand(const QCPRange &otherRange);
   QCPRange expanded(const QCPRange &otherRange) const;
   QCPRange bounded(double lowerBound, double upperBound) const;
   QCPRange sanitizedForLogScale() const;
   QCPRange sanitizedForLinScale() const;
-  bool contains(double value) const;
+  bool contains(double value) const { return value >= lower && value <= upper; }
   
   static bool validRange(double lower, double upper);
   static bool validRange(const QCPRange &range);

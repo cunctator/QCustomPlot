@@ -37,6 +37,31 @@
   \see QCPAxis::setRange
 */
 
+/* start of documentation of inline functions */
+
+/*! \fn double QCPRange::size() const
+
+  Returns the size of the range, i.e. \a upper-\a lower
+*/
+
+/*! \fn double QCPRange::center() const
+
+  Returns the center of the range, i.e. (\a upper+\a lower)*0.5
+*/
+
+/*! \fn void QCPRange::normalize()
+
+  Makes sure \a lower is numerically smaller than \a upper. If this is not the case, the values are
+  swapped.
+*/
+
+/*! \fn bool QCPRange::contains(double value) const
+
+  Returns true when \a value lies within or exactly on the borders of the range.
+*/
+
+/* end of documentation of inline functions */
+
 /*!
   Minimum range size (\a upper - \a lower) the range changing functions will accept. Smaller
   intervals would cause errors due to the 11-bit exponent of double precision numbers,
@@ -74,33 +99,8 @@ QCPRange::QCPRange(double lower, double upper) :
   normalize();
 }
 
-/*!
-  Returns the size of the range, i.e. \a upper-\a lower
-*/
-double QCPRange::size() const
-{
-  return upper-lower;
-}
+/*! \overload
 
-/*!
-  Returns the center of the range, i.e. (\a upper+\a lower)*0.5
-*/
-double QCPRange::center() const
-{
-  return (upper+lower)*0.5;
-}
-
-/*!
-  Makes sure \a lower is numerically smaller than \a upper. If this is not the case, the values
-  are swapped.
-*/
-void QCPRange::normalize()
-{
-  if (lower > upper)
-    qSwap(lower, upper);
-}
-
-/*!
   Expands this range such that \a otherRange is contained in the new range. It is assumed that both
   this range and \a otherRange are normalized (see \ref normalize).
   
@@ -233,14 +233,6 @@ QCPRange QCPRange::sanitizedForLinScale() const
   QCPRange sanitizedRange(lower, upper);
   sanitizedRange.normalize();
   return sanitizedRange;
-}
-
-/*!
-  Returns true when \a value lies within or exactly on the borders of the range.
-*/
-bool QCPRange::contains(double value) const
-{
-  return value >= lower && value <= upper;
 }
 
 /*!

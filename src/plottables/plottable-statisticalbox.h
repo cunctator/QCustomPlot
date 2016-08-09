@@ -52,10 +52,7 @@ public:
   {
     QCPRange result(minimum, maximum);
     for (QVector<double>::const_iterator it = outliers.constBegin(); it != outliers.constEnd(); ++it)
-    {
-      if (*it < result.lower) result.lower = *it;
-      if (*it > result.upper) result.upper = *it;
-    }
+      result.expand(*it);
     return result;
   }
   

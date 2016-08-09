@@ -54,7 +54,9 @@ public:
   double center() const { return (upper+lower)*0.5; }
   void normalize() { if (lower > upper) qSwap(lower, upper); }
   void expand(const QCPRange &otherRange);
+  void expand(double includeCoord);
   QCPRange expanded(const QCPRange &otherRange) const;
+  QCPRange expanded(double includeCoord) const;
   QCPRange bounded(double lowerBound, double upperBound) const;
   QCPRange sanitizedForLogScale() const;
   QCPRange sanitizedForLinScale() const;

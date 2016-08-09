@@ -103,12 +103,12 @@ QCPRange::QCPRange(double lower, double upper) :
 
   Expands this range such that \a otherRange is contained in the new range. It is assumed that both
   this range and \a otherRange are normalized (see \ref normalize).
-  
+
   If this range contains NaN as lower or upper bound, it will be replaced by the respective bound
   of \a otherRange.
-  
+
   If \a otherRange is already inside the current range, this function does nothing.
-  
+
   \see expanded
 */
 void QCPRange::expand(const QCPRange &otherRange)
@@ -119,20 +119,58 @@ void QCPRange::expand(const QCPRange &otherRange)
     upper = otherRange.upper;
 }
 
+/*! \overload
 
-/*!
+  Expands this range such that \a includeCoord is contained in the new range. It is assumed that
+  this range is normalized (see \ref normalize).
+
+  If this range contains NaN as lower or upper bound, the respective bound will be set to \a
+  includeCoord.
+
+  If \a includeCoord is already inside the current range, this function does nothing.
+
+  \see expand
+*/
+void QCPRange::expand(double includeCoord)
+{
+  if (lower > includeCoord || qIsNaN(lower))
+    lower = includeCoord;
+  if (upper < includeCoord || qIsNaN(upper))
+    upper = includeCoord;
+}
+
+
+/*! \overload
+
   Returns an expanded range that contains this and \a otherRange. It is assumed that both this
   range and \a otherRange are normalized (see \ref normalize).
-  
+
   If this range contains NaN as lower or upper bound, the returned range's bound will be taken from
   \a otherRange.
-  
+
   \see expand
 */
 QCPRange QCPRange::expanded(const QCPRange &otherRange) const
 {
   QCPRange result = *this;
   result.expand(otherRange);
+  return result;
+}
+
+/*! \overload
+
+  Returns an expanded range that includes the specified \a includeCoord. It is assumed that this
+  range is normalized (see \ref normalize).
+
+  If this range contains NaN as lower or upper bound, the returned range's bound will be set to \a
+  includeCoord.
+
+  \see expand
+*/
+QCPRange QCPRange::expanded(double includeCoord) const
+{
+  QCPRange result = *this;
+  result.expand(includeCoord);
   return result;
 }
 

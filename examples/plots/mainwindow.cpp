@@ -980,7 +980,7 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   phaseTracerArrow->endDir->setParentAnchor(phaseTracerArrow->end);
   phaseTracerArrow->endDir->setCoords(30, 30);
   phaseTracerArrow->setHead(QCPLineEnding::esSpikeArrow);
-  phaseTracerArrow->setTail(QCPLineEnding(QCPLineEnding::esBar, (phaseTracerText->bottom->pixelPoint().y()-phaseTracerText->top->pixelPoint().y())*0.85));
+  phaseTracerArrow->setTail(QCPLineEnding(QCPLineEnding::esBar, (phaseTracerText->bottom->pixelPosition().y()-phaseTracerText->top->pixelPosition().y())*0.85));
   
   // add the group velocity tracer (green circle):
   QCPItemTracer *groupTracer = new QCPItemTracer(customPlot);
@@ -1011,7 +1011,7 @@ void MainWindow::setupItemDemo(QCustomPlot *customPlot)
   groupTracerArrow->endDir->setParentAnchor(groupTracerArrow->end);
   groupTracerArrow->endDir->setCoords(0, -40);
   groupTracerArrow->setHead(QCPLineEnding::esSpikeArrow);
-  groupTracerArrow->setTail(QCPLineEnding(QCPLineEnding::esBar, (groupTracerText->bottom->pixelPoint().y()-groupTracerText->top->pixelPoint().y())*0.85));
+  groupTracerArrow->setTail(QCPLineEnding(QCPLineEnding::esBar, (groupTracerText->bottom->pixelPosition().y()-groupTracerText->top->pixelPosition().y())*0.85));
   
   // add dispersion arrow:
   QCPItemCurve *arrow = new QCPItemCurve(customPlot);

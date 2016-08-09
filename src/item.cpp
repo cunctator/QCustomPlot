@@ -103,13 +103,13 @@ QCPItemAnchor::~QCPItemAnchor()
   The pixel information is internally retrieved via QCPAbstractItem::anchorPixelPosition of the
   parent item, QCPItemAnchor is just an intermediary.
 */
-QPointF QCPItemAnchor::pixelPoint() const
+QPointF QCPItemAnchor::pixelPosition() const
 {
   if (mParentItem)
   {
     if (mAnchorId > -1)
     {
-      return mParentItem->anchorPixelPoint(mAnchorId);
+      return mParentItem->anchorPixelPosition(mAnchorId);
     } else
     {
       qDebug() << Q_FUNC_INFO << "no valid anchor id set:" << mAnchorId;
@@ -211,9 +211,9 @@ void QCPItemAnchor::removeChildY(QCPItemPosition *pos)
   Note that every QCPItemPosition inherits from QCPItemAnchor and thus can itself be used as parent
   anchor for other positions.
 
-  To set the apparent pixel position on the QCustomPlot surface directly, use \ref setPixelPoint. This
+  To set the apparent pixel position on the QCustomPlot surface directly, use \ref setPixelPosition. This
   works no matter what type this QCPItemPosition is or what parent-child situation it is in, as \ref
-  setPixelPoint transforms the coordinates appropriately, to make the position appear at the specified
+  setPixelPosition transforms the coordinates appropriately, to make the position appear at the specified
   pixel values.
 */
 
@@ -262,7 +262,7 @@ QCPItemPosition::~QCPItemPosition()
 {
   // unregister as parent at children:
   // Note: this is done in ~QCPItemAnchor again, but it's important QCPItemPosition does it itself, because only then
-  //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPoint function instead of QCPItemAnchor::pixelPoint
+  //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPosition function instead of QCPItemAnchor::pixelPosition
   foreach (QCPItemPosition *child, mChildrenX.toList())
   {
     if (child->parentAnchorX() == this)
@@ -329,7 +329,7 @@ void QCPItemPosition::setTypeX(QCPItemPosition::PositionType type)
   if (mPositionTypeX != type)
   {
     // if switching from or to coordinate type that isn't valid (e.g. because axes or axis rect
-    // were deleted), don't try to recover the pixelPoint() because it would output a qDebug warning.
+    // were deleted), don't try to recover the pixelPosition() because it would output a qDebug warning.
     bool retainPixelPosition = true;
     if ((mPositionTypeX == ptPlotCoords || type == ptPlotCoords) && (!mKeyAxis || !mValueAxis))
       retainPixelPosition = false;
@@ -338,12 +338,12 @@ void QCPItemPosition::setTypeX(QCPItemPosition::PositionType type)
     
     QPointF pixel;
     if (retainPixelPosition)
-      pixel = pixelPoint();
+      pixel = pixelPosition();
     
     mPositionTypeX = type;
     
     if (retainPixelPosition)
-      setPixelPoint(pixel);
+      setPixelPosition(pixel);
   }
 }
 
@@ -359,7 +359,7 @@ void QCPItemPosition::setTypeY(QCPItemPosition::PositionType type)
   if (mPositionTypeY != type)
   {
     // if switching from or to coordinate type that isn't valid (e.g. because axes or axis rect
-    // were deleted), don't try to recover the pixelPoint() because it would output a qDebug warning.
+    // were deleted), don't try to recover the pixelPosition() because it would output a qDebug warning.
     bool retainPixelPosition = true;
     if ((mPositionTypeY == ptPlotCoords || type == ptPlotCoords) && (!mKeyAxis || !mValueAxis))
       retainPixelPosition = false;
@@ -368,12 +368,12 @@ void QCPItemPosition::setTypeY(QCPItemPosition::PositionType type)
     
     QPointF pixel;
     if (retainPixelPosition)
-      pixel = pixelPoint();
+      pixel = pixelPosition();
     
     mPositionTypeY = type;
     
     if (retainPixelPosition)
-      setPixelPoint(pixel);
+      setPixelPosition(pixel);
   }
 }
 
@@ -451,7 +451,7 @@ bool QCPItemPosition::setParentAnchorX(QCPItemAnchor *parentAnchor, bool keepPix
   // save pixel position:
   QPointF pixelP;
   if (keepPixelPosition)
-    pixelP = pixelPoint();
+    pixelP = pixelPosition();
   // unregister at current parent anchor:
   if (mParentAnchorX)
     mParentAnchorX->removeChildX(this);
@@ -461,7 +461,7 @@ bool QCPItemPosition::setParentAnchorX(QCPItemAnchor *parentAnchor, bool keepPix
   mParentAnchorX = parentAnchor;
   // restore pixel position under new parent:
   if (keepPixelPosition)
-    setPixelPoint(pixelP);
+    setPixelPosition(pixelP);
   else
     setCoords(0, coords().y());
   return true;
@@ -516,7 +516,7 @@ bool QCPItemPosition::setParentAnchorY(QCPItemAnchor *parentAnchor, bool keepPix
   // save pixel position:
   QPointF pixelP;
   if (keepPixelPosition)
-    pixelP = pixelPoint();
+    pixelP = pixelPosition();
   // unregister at current parent anchor:
   if (mParentAnchorY)
     mParentAnchorY->removeChildY(this);
@@ -526,7 +526,7 @@ bool QCPItemPosition::setParentAnchorY(QCPItemAnchor *parentAnchor, bool keepPix
   mParentAnchorY = parentAnchor;
   // restore pixel position under new parent:
   if (keepPixelPosition)
-    setPixelPoint(pixelP);
+    setPixelPosition(pixelP);
   else
     setCoords(coords().x(), 0);
   return true;
@@ -547,7 +547,7 @@ bool QCPItemPosition::setParentAnchorY(QCPItemAnchor *parentAnchor, bool keepPix
   value must also be provided in the different coordinate systems. Here, the X type refers to \a
   key, and the Y type refers to \a value.
 
-  \see setPixelPoint
+  \see setPixelPosition
 */
 void QCPItemPosition::setCoords(double key, double value)
 {
@@ -569,9 +569,9 @@ void QCPItemPosition::setCoords(const QPointF &pos)
   Returns the final absolute pixel position of the QCPItemPosition on the QCustomPlot surface. It
   includes all effects of type (\ref setType) and possible parent anchors (\ref setParentAnchor).
 
-  \see setPixelPoint
+  \see setPixelPosition
 */
-QPointF QCPItemPosition::pixelPoint() const
+QPointF QCPItemPosition::pixelPosition() const
 {
   QPointF result;
   
@@ -582,14 +582,14 @@ QPointF QCPItemPosition::pixelPoint() const
     {
       result.rx() = mKey;
       if (mParentAnchorX)
-        result.rx() += mParentAnchorX->pixelPoint().x();
+        result.rx() += mParentAnchorX->pixelPosition().x();
       break;
     }
     case ptViewportRatio:
     {
       result.rx() = mKey*mParentPlot->viewport().width();
       if (mParentAnchorX)
-        result.rx() += mParentAnchorX->pixelPoint().x();
+        result.rx() += mParentAnchorX->pixelPosition().x();
       else
         result.rx() += mParentPlot->viewport().left();
       break;
@@ -600,7 +600,7 @@ QPointF QCPItemPosition::pixelPoint() const
       {
         result.rx() = mKey*mAxisRect.data()->width();
         if (mParentAnchorX)
-          result.rx() += mParentAnchorX->pixelPoint().x();
+          result.rx() += mParentAnchorX->pixelPosition().x();
         else
           result.rx() += mAxisRect.data()->left();
       } else
@@ -626,14 +626,14 @@ QPointF QCPItemPosition::pixelPoint() const
     {
       result.ry() = mValue;
       if (mParentAnchorY)
-        result.ry() += mParentAnchorY->pixelPoint().y();
+        result.ry() += mParentAnchorY->pixelPosition().y();
       break;
     }
     case ptViewportRatio:
     {
       result.ry() = mValue*mParentPlot->viewport().height();
       if (mParentAnchorY)
-        result.ry() += mParentAnchorY->pixelPoint().y();
+        result.ry() += mParentAnchorY->pixelPosition().y();
       else
         result.ry() += mParentPlot->viewport().top();
       break;
@@ -644,7 +644,7 @@ QPointF QCPItemPosition::pixelPoint() const
       {
         result.ry() = mValue*mAxisRect.data()->height();
         if (mParentAnchorY)
-          result.ry() += mParentAnchorY->pixelPoint().y();
+          result.ry() += mParentAnchorY->pixelPosition().y();
         else
           result.ry() += mAxisRect.data()->top();
       } else
@@ -695,25 +695,25 @@ void QCPItemPosition::setAxisRect(QCPAxisRect *axisRect)
   Only if the type is \ref ptAbsolute and no parent anchor is set, this function's effect is
   identical to that of \ref setCoords.
 
-  \see pixelPoint, setCoords
+  \see pixelPosition, setCoords
 */
-void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
+void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
 {
-  double x = pixelPoint.x();
-  double y = pixelPoint.y();
+  double x = pixelPosition.x();
+  double y = pixelPosition.y();
   
   switch (mPositionTypeX)
   {
     case ptAbsolute:
     {
       if (mParentAnchorX)
-        x -= mParentAnchorX->pixelPoint().x();
+        x -= mParentAnchorX->pixelPosition().x();
       break;
     }
     case ptViewportRatio:
     {
       if (mParentAnchorX)
-        x -= mParentAnchorX->pixelPoint().x();
+        x -= mParentAnchorX->pixelPosition().x();
       else
         x -= mParentPlot->viewport().left();
       x /= (double)mParentPlot->viewport().width();
@@ -724,7 +724,7 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
       if (mAxisRect)
       {
         if (mParentAnchorX)
-          x -= mParentAnchorX->pixelPoint().x();
+          x -= mParentAnchorX->pixelPosition().x();
         else
           x -= mAxisRect.data()->left();
         x /= (double)mAxisRect.data()->width();
@@ -749,13 +749,13 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
     case ptAbsolute:
     {
       if (mParentAnchorY)
-        y -= mParentAnchorY->pixelPoint().y();
+        y -= mParentAnchorY->pixelPosition().y();
       break;
     }
     case ptViewportRatio:
     {
       if (mParentAnchorY)
-        y -= mParentAnchorY->pixelPoint().y();
+        y -= mParentAnchorY->pixelPosition().y();
       else
         y -= mParentPlot->viewport().top();
       y /= (double)mParentPlot->viewport().height();
@@ -766,7 +766,7 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
       if (mAxisRect)
       {
         if (mParentAnchorY)
-          y -= mParentAnchorY->pixelPoint().y();
+          y -= mParentAnchorY->pixelPosition().y();
         else
           y -= mAxisRect.data()->top();
         y /= (double)mAxisRect.data()->height();
@@ -889,7 +889,7 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
   
   To give your item a visual representation, reimplement the \ref draw function and use the passed
   QCPPainter to draw the item. You can retrieve the item position in pixel coordinates from the
-  position member(s) via \ref QCPItemPosition::pixelPoint.
+  position member(s) via \ref QCPItemPosition::pixelPosition.
 
   To optimize performance you should calculate a bounding rect first (don't forget to take the pen
   width into account), check whether it intersects the \ref clipRect, and only draw the item at all
@@ -912,7 +912,7 @@ void QCPItemPosition::setPixelPoint(const QPointF &pixelPoint)
   and create it in the constructor with the \ref createAnchor function, assigning it a name and an
   anchor id (an integer enumerating all anchors on the item, you may create an own enum for this).
   Since anchors can be placed anywhere, relative to the item's position(s), your item needs to
-  provide the position of every anchor with the reimplementation of the \ref anchorPixelPoint(int
+  provide the position of every anchor with the reimplementation of the \ref anchorPixelPosition(int
   anchorId) function.
   
   In essence the QCPItemAnchor is merely an intermediary that itself asks your item for the pixel
@@ -1201,7 +1201,7 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
   
   \see createAnchor
 */
-QPointF QCPAbstractItem::anchorPixelPoint(int anchorId) const
+QPointF QCPAbstractItem::anchorPixelPosition(int anchorId) const
 {
   qDebug() << Q_FUNC_INFO << "called on item which shouldn't have any anchors (this method not reimplemented). anchorId" << anchorId;
   return QPointF();
@@ -1244,7 +1244,7 @@ QCPItemPosition *QCPAbstractItem::createPosition(const QString &name)
   
   The \a anchorId must be a number identifying the created anchor. It is recommended to create an
   enum (e.g. "AnchorIndex") for this on each item that uses anchors. This id is used by the anchor
-  to identify itself when it calls QCPAbstractItem::anchorPixelPoint. That function then returns
+  to identify itself when it calls QCPAbstractItem::anchorPixelPosition. That function then returns
   the correct pixel coordinates for the passed anchor id.
   
   Don't delete anchors created by this function manually, as the item will take care of it.

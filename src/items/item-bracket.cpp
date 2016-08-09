@@ -132,8 +132,8 @@ double QCPItemBracket::selectTest(const QPointF &pos, bool onlySelectable, QVari
     return -1;
   
   QCPVector2D p(pos);
-  QCPVector2D leftVec(left->pixelPoint());
-  QCPVector2D rightVec(right->pixelPoint());
+  QCPVector2D leftVec(left->pixelPosition());
+  QCPVector2D rightVec(right->pixelPosition());
   if (leftVec.toPoint() == rightVec.toPoint())
     return -1;
   
@@ -167,8 +167,8 @@ double QCPItemBracket::selectTest(const QPointF &pos, bool onlySelectable, QVari
 /* inherits documentation from base class */
 void QCPItemBracket::draw(QCPPainter *painter)
 {
-  QCPVector2D leftVec(left->pixelPoint());
-  QCPVector2D rightVec(right->pixelPoint());
+  QCPVector2D leftVec(left->pixelPosition());
+  QCPVector2D rightVec(right->pixelPosition());
   if (leftVec.toPoint() == rightVec.toPoint())
     return;
   
@@ -233,10 +233,10 @@ void QCPItemBracket::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemBracket::anchorPixelPoint(int anchorId) const
+QPointF QCPItemBracket::anchorPixelPosition(int anchorId) const
 {
-  QCPVector2D leftVec(left->pixelPoint());
-  QCPVector2D rightVec(right->pixelPoint());
+  QCPVector2D leftVec(left->pixelPosition());
+  QCPVector2D rightVec(right->pixelPosition());
   if (leftVec.toPoint() == rightVec.toPoint())
     return leftVec.toPointF();
   

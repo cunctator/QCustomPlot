@@ -152,7 +152,7 @@ void QCPItemPixmap::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemPixmap::anchorPixelPoint(int anchorId) const
+QPointF QCPItemPixmap::anchorPixelPosition(int anchorId) const
 {
   bool flipHorz;
   bool flipVert;
@@ -230,8 +230,8 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
   QRect result;
   bool flipHorz = false;
   bool flipVert = false;
-  QPoint p1 = topLeft->pixelPoint().toPoint();
-  QPoint p2 = bottomRight->pixelPoint().toPoint();
+  QPoint p1 = topLeft->pixelPosition().toPoint();
+  QPoint p2 = bottomRight->pixelPosition().toPoint();
   if (p1 == p2)
     return QRect(p1, QSize(0, 0));
   if (mScaled)

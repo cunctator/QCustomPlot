@@ -226,7 +226,7 @@ double QCPItemText::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   
   // The rect may be rotated, so we transform the actual clicked pos to the rotated
   // coordinate system, so we can use the normal rectDistance function for non-rotated rects:
-  QPointF positionPixels(position->pixelPoint());
+  QPointF positionPixels(position->pixelPosition());
   QTransform inputTransform;
   inputTransform.translate(positionPixels.x(), positionPixels.y());
   inputTransform.rotate(-mRotation);
@@ -244,7 +244,7 @@ double QCPItemText::selectTest(const QPointF &pos, bool onlySelectable, QVariant
 /* inherits documentation from base class */
 void QCPItemText::draw(QCPPainter *painter)
 {
-  QPointF pos(position->pixelPoint());
+  QPointF pos(position->pixelPosition());
   QTransform transform = painter->transform();
   transform.translate(pos.x(), pos.y());
   if (!qFuzzyIsNull(mRotation))
@@ -274,10 +274,10 @@ void QCPItemText::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemText::anchorPixelPoint(int anchorId) const
+QPointF QCPItemText::anchorPixelPosition(int anchorId) const
 {
   // get actual rect points (pretty much copied from draw function):
-  QPointF pos(position->pixelPoint());
+  QPointF pos(position->pixelPosition());
   QTransform transform;
   transform.translate(pos.x(), pos.y());
   if (!qFuzzyIsNull(mRotation))

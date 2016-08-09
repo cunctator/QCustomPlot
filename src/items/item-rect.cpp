@@ -119,7 +119,7 @@ double QCPItemRect::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (onlySelectable && !mSelectable)
     return -1;
   
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint()).normalized();
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition()).normalized();
   bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
   return rectDistance(rect, pos, filledRect);
 }
@@ -127,8 +127,8 @@ double QCPItemRect::selectTest(const QPointF &pos, bool onlySelectable, QVariant
 /* inherits documentation from base class */
 void QCPItemRect::draw(QCPPainter *painter)
 {
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   if (p1.toPoint() == p2.toPoint())
     return;
   QRectF rect = QRectF(p1, p2).normalized();
@@ -143,9 +143,9 @@ void QCPItemRect::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemRect::anchorPixelPoint(int anchorId) const
+QPointF QCPItemRect::anchorPixelPosition(int anchorId) const
 {
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition());
   switch (anchorId)
   {
     case aiTop:         return (rect.topLeft()+rect.topRight())*0.5;

@@ -89,14 +89,14 @@ double QCPItemStraightLine::selectTest(const QPointF &pos, bool onlySelectable, 
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return QCPVector2D(pos).distanceToStraightLine(point1->pixelPoint(), point2->pixelPoint()-point1->pixelPoint());
+  return QCPVector2D(pos).distanceToStraightLine(point1->pixelPosition(), point2->pixelPosition()-point1->pixelPosition());
 }
 
 /* inherits documentation from base class */
 void QCPItemStraightLine::draw(QCPPainter *painter)
 {
-  QCPVector2D start(point1->pixelPoint());
-  QCPVector2D end(point2->pixelPoint());
+  QCPVector2D start(point1->pixelPosition());
+  QCPVector2D end(point2->pixelPosition());
   // get visible segment of straight line inside clipRect:
   double clipPad = mainPen().widthF();
   QLineF line = getRectClippedStraightLine(start, end-start, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));

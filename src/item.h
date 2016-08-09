@@ -46,7 +46,7 @@ public:
   
   // getters:
   QString name() const { return mName; }
-  virtual QPointF pixelPoint() const;
+  virtual QPointF pixelPosition() const;
   
 protected:
   // property members:
@@ -112,7 +112,7 @@ public:
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
   QCPAxisRect *axisRect() const;
-  virtual QPointF pixelPoint() const;
+  virtual QPointF pixelPosition() const;
   
   // setters:
   void setType(PositionType type);
@@ -125,7 +125,7 @@ public:
   void setCoords(const QPointF &coords);
   void setAxes(QCPAxis* keyAxis, QCPAxis* valueAxis);
   void setAxisRect(QCPAxisRect *axisRect);
-  void setPixelPoint(const QPointF &pixelPoint);
+  void setPixelPosition(const QPointF &pixelPosition);
   
 protected:
   // property members:
@@ -202,7 +202,7 @@ protected:
   virtual void deselectEvent(bool *selectionStateChanged);
   
   // introduced virtual methods:
-  virtual QPointF anchorPixelPoint(int anchorId) const;
+  virtual QPointF anchorPixelPosition(int anchorId) const;
   
   // non-virtual methods:
   double rectDistance(const QRectF &rect, const QPointF &pos, bool filledRect) const;

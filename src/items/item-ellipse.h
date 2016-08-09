@@ -81,7 +81,7 @@ protected:
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter);
-  virtual QPointF anchorPixelPoint(int anchorId) const;
+  virtual QPointF anchorPixelPosition(int anchorId) const;
   
   // non-virtual methods:
   QPen mainPen() const;

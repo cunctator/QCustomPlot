@@ -128,10 +128,10 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   if (onlySelectable && !mSelectable)
     return -1;
   
-  QPointF startVec(start->pixelPoint());
-  QPointF startDirVec(startDir->pixelPoint());
-  QPointF endDirVec(endDir->pixelPoint());
-  QPointF endVec(end->pixelPoint());
+  QPointF startVec(start->pixelPosition());
+  QPointF startDirVec(startDir->pixelPosition());
+  QPointF endDirVec(endDir->pixelPosition());
+  QPointF endVec(end->pixelPosition());
 
   QPainterPath cubicPath(startVec);
   cubicPath.cubicTo(startDirVec, endDirVec, endVec);
@@ -151,10 +151,10 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
 /* inherits documentation from base class */
 void QCPItemCurve::draw(QCPPainter *painter)
 {
-  QCPVector2D startVec(start->pixelPoint());
-  QCPVector2D startDirVec(startDir->pixelPoint());
-  QCPVector2D endDirVec(endDir->pixelPoint());
-  QCPVector2D endVec(end->pixelPoint());
+  QCPVector2D startVec(start->pixelPosition());
+  QCPVector2D startDirVec(startDir->pixelPosition());
+  QCPVector2D endDirVec(endDir->pixelPosition());
+  QCPVector2D endVec(end->pixelPosition());
   if ((endVec-startVec).length() > 1e10) // too large curves cause crash
     return;
 

@@ -122,8 +122,8 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   if (onlySelectable && !mSelectable)
     return -1;
   
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   QPointF center((p1+p2)/2.0);
   double a = qAbs(p1.x()-p2.x())/2.0;
   double b = qAbs(p1.y()-p2.y())/2.0;
@@ -145,8 +145,8 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
 /* inherits documentation from base class */
 void QCPItemEllipse::draw(QCPPainter *painter)
 {
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   if (p1.toPoint() == p2.toPoint())
     return;
   QRectF ellipseRect = QRectF(p1, p2).normalized();
@@ -171,9 +171,9 @@ void QCPItemEllipse::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemEllipse::anchorPixelPoint(int anchorId) const
+QPointF QCPItemEllipse::anchorPixelPosition(int anchorId) const
 {
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition());
   switch (anchorId)
   {
     case aiTopLeftRim:     return rect.center()+(rect.topLeft()-rect.center())*1/qSqrt(2);

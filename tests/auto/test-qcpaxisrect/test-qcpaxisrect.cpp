@@ -97,20 +97,20 @@ void TestQCPAxisRect::axisRemovalConsequencesToItems()
   mPlot->replot();
 
   QVERIFY(mPlot->axisRect()->removeAxis(mPlot->xAxis));
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptPlotCoords, but no axes were defined "); // for start position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptPlotCoords, but no axes were defined "); // for start position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
   mPlot->replot();
   QVERIFY(mPlot->axisRect()->removeAxis(mPlot->yAxis));
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptPlotCoords, but no axes were defined "); // for start position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type y is ptPlotCoords, but no axes were defined "); // for start position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type y is ptPlotCoords, but no axes were defined "); // for end position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptPlotCoords, but no axes were defined "); // for start position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type y is ptPlotCoords, but no axes were defined "); // for start position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type y is ptPlotCoords, but no axes were defined "); // for end position
   mPlot->replot();
   
   
-  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPoint(const QPointF&) Item position type x is ptPlotCoords, but no axes were defined ");
-  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPoint(const QPointF&) Item position type y is ptPlotCoords, but no axes were defined ");
-  item->start->setPixelPoint(QPointF(1, 2));
+  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPosition(const QPointF&) Item position type x is ptPlotCoords, but no axes were defined ");
+  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPosition(const QPointF&) Item position type y is ptPlotCoords, but no axes were defined ");
+  item->start->setPixelPosition(QPointF(1, 2));
   
   // change type to axis-independent coordinates:
   item->start->setType(QCPItemPosition::ptAxisRectRatio);
@@ -168,15 +168,15 @@ void TestQCPAxisRect::axisRectRemovalConsequencesToItems()
   QVERIFY(mPlot->plotLayout()->removeAt(0));
   mPlot->plotLayout()->simplify();
   QCOMPARE(mPlot->plotLayout()->elementCount(), 0);
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptAxisRectRatio, but no axis rect was defined "); // for start position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type y is ptAxisRectRatio, but no axis rect was defined "); // for start position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
-  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPoint() const Item position type y is ptPlotCoords, but no axes were defined "); // for end position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptAxisRectRatio, but no axis rect was defined "); // for start position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type y is ptAxisRectRatio, but no axis rect was defined "); // for start position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type x is ptPlotCoords, but no axes were defined "); // for end position
+  QTest::ignoreMessage(QtDebugMsg, "virtual QPointF QCPItemPosition::pixelPosition() const Item position type y is ptPlotCoords, but no axes were defined "); // for end position
   mPlot->replot();
   
-  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPoint(const QPointF&) Item position type x is ptAxisRectRatio, but no axis rect was defined ");
-  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPoint(const QPointF&) Item position type y is ptAxisRectRatio, but no axis rect was defined ");
-  item->start->setPixelPoint(QPointF(1, 2));
+  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPosition(const QPointF&) Item position type x is ptAxisRectRatio, but no axis rect was defined ");
+  QTest::ignoreMessage(QtDebugMsg, "void QCPItemPosition::setPixelPosition(const QPointF&) Item position type y is ptAxisRectRatio, but no axis rect was defined ");
+  item->start->setPixelPosition(QPointF(1, 2));
   
   // change type to axisRect-independent coordinates:
   item->start->setType(QCPItemPosition::ptAbsolute);

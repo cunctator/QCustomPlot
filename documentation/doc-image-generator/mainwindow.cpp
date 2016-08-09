@@ -1018,7 +1018,7 @@ void MainWindow::genQCPSelectionType()
   rectItem->setPen(customPlot->selectionRect()->pen());
   rectItem->setBrush(customPlot->selectionRect()->brush());
   rectItem->setAntialiased(false);
-  QRect rect(rectItem->topLeft->pixelPoint().toPoint(), rectItem->bottomRight->pixelPoint().toPoint());
+  QRect rect(rectItem->topLeft->pixelPosition().toPoint(), rectItem->bottomRight->pixelPosition().toPoint());
   QMouseEvent fakeEvent(QEvent::MouseButtonRelease, customPlot->axisRect()->center(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   
   g->setSelectable(QCP::stNone);
@@ -1377,7 +1377,7 @@ void MainWindow::addArrow(QPointF target, QPointF textPosition, QString text, Qt
   textItem->position->setType(QCPItemPosition::ptAbsolute);
   textItem->position->setCoords(textPosition);
   textItem->setColor(Qt::blue);
-  QRectF textRect(textItem->topLeft->pixelPoint(), textItem->bottomRight->pixelPoint());
+  QRectF textRect(textItem->topLeft->pixelPosition(), textItem->bottomRight->pixelPosition());
   
   QCPItemLine *arrowItem = new QCPItemLine(customPlot);
   arrowItem->setClipToAxisRect(false);
@@ -1429,8 +1429,8 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
     outerRect->setPen(QPen(QColor(180, 180, 180)));
     outerRect->topLeft->setType(QCPItemPosition::ptAbsolute);
     outerRect->bottomRight->setType(QCPItemPosition::ptAbsolute);
-    outerRect->topLeft->setPixelPoint(elements.at(i)->outerRect().topLeft());
-    outerRect->bottomRight->setPixelPoint(elements.at(i)->outerRect().bottomRight());
+    outerRect->topLeft->setPixelPosition(elements.at(i)->outerRect().topLeft());
+    outerRect->bottomRight->setPixelPosition(elements.at(i)->outerRect().bottomRight());
     
     QCPItemRect *innerRect = new QCPItemRect(customPlot);
     innerRect->setClipToAxisRect(false);

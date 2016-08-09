@@ -215,7 +215,7 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
   if (onlySelectable && !mSelectable)
     return -1;
 
-  QPointF center(position->pixelPoint());
+  QPointF center(position->pixelPosition());
   double w = mSize/2.0;
   QRect clip = clipRect();
   switch (mStyle)
@@ -274,7 +274,7 @@ void QCPItemTracer::draw(QCPPainter *painter)
 
   painter->setPen(mainPen());
   painter->setBrush(mainBrush());
-  QPointF center(position->pixelPoint());
+  QPointF center(position->pixelPosition());
   double w = mSize/2.0;
   QRect clip = clipRect();
   switch (mStyle)

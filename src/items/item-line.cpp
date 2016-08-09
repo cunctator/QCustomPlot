@@ -117,14 +117,14 @@ double QCPItemLine::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return qSqrt(QCPVector2D(pos).distanceSquaredToLine(start->pixelPoint(), end->pixelPoint()));
+  return qSqrt(QCPVector2D(pos).distanceSquaredToLine(start->pixelPosition(), end->pixelPosition()));
 }
 
 /* inherits documentation from base class */
 void QCPItemLine::draw(QCPPainter *painter)
 {
-  QCPVector2D startVec(start->pixelPoint());
-  QCPVector2D endVec(end->pixelPoint());
+  QCPVector2D startVec(start->pixelPosition());
+  QCPVector2D endVec(end->pixelPosition());
   if (qFuzzyIsNull((startVec-endVec).lengthSquared()))
     return;
   // get visible segment of straight line inside clipRect:

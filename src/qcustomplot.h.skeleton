@@ -56,7 +56,7 @@
 //amalgamation: add selectiondecorator-bracket.h
 //amalgamation: add layoutelements/layoutelement-axisrect.h
 //amalgamation: add layoutelements/layoutelement-legend.h
-//amalgamation: add layoutelements/layoutelement-plottitle.h
+//amalgamation: add layoutelements/layoutelement-textelement.h
 //amalgamation: add layoutelements/layoutelement-colorscale.h
 //amalgamation: add plottables/plottable-graph.h
 //amalgamation: add plottables/plottable-curve.h

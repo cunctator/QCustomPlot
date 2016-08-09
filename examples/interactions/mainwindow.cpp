@@ -15,7 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->customPlot->axisRect()->setupFullAxesBox();
   
   ui->customPlot->plotLayout()->insertRow(0);
-  ui->customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(ui->customPlot, "Interaction Example"));
+  QCPTextElement *title = new QCPTextElement(ui->customPlot, "Interaction Example", QFont("sans", 17, QFont::Bold));
+  ui->customPlot->plotLayout()->addElement(0, 0, title);
   
   ui->customPlot->xAxis->setLabel("x Axis");
   ui->customPlot->yAxis->setLabel("y Axis");
@@ -43,7 +44,6 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->yAxis2, SLOT(setRange(QCPRange)));
   
   // connect some interaction slots:
-  connect(ui->customPlot, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)), this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
   connect(ui->customPlot, SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)), this, SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
   connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
   
@@ -60,8 +60,10 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::titleDoubleClick(QMouseEvent* event, QCPPlotTitle* title)
+void MainWindow::titleDoubleClick(QMouseEvent* event, QCPTextElement* title)
 {
+  // TODO: implement once click signals of elements are in place
+  
   Q_UNUSED(event)
   // Set the plot title by double clicking on it
   bool ok;

@@ -18,7 +18,7 @@ public:
   ~MainWindow();
   
 private slots:
-  void titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title);
+  void titleDoubleClick(QMouseEvent *event, QCPTextElement *title);
   void axisLabelDoubleClick(QCPAxis* axis, QCPAxis::SelectablePart part);
   void legendDoubleClick(QCPLegend* legend, QCPAbstractLegendItem* item);
   void selectionChanged();

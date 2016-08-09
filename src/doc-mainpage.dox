@@ -114,9 +114,10 @@
   
   \section mainpage-layoutelements Layout Elements and Layouts
   
-  QCustomPlot uses an internal layout system to provide dynamic sizing and positioning of objects like
-  the axis rect(s), legends and the plot title. They are all based on \ref QCPLayoutElement and are arranged by
-  placing them inside a \ref QCPLayout subclass, like \ref QCPLayoutGrid.
+  QCustomPlot uses an internal layout system to provide dynamic sizing and positioning of objects
+  like the axis rect(s), legends, color scales, and other layout elements. They are all based on
+  \ref QCPLayoutElement and are arranged by placing them inside a \ref QCPLayout subclass, like
+  \ref QCPLayoutGrid.
   
   See the page about \link thelayoutsystem the layout system\endlink for details.
   

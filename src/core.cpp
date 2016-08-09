@@ -32,7 +32,6 @@
 #include "axis/axis.h"
 #include "layoutelements/layoutelement-axisrect.h"
 #include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
 #include "plottable.h"
 #include "plottables/plottable-graph.h"
 #include "item.h"
@@ -70,7 +69,8 @@
   
   Don't confuse the viewport with the axis rect (QCustomPlot::axisRect). An axis rect is typically
   an area enclosed by four axes, where the graphs/plottables are drawn in. The viewport is larger
-  and contains also the axes themselves, their tick numbers, their labels, the plot title etc.
+  and contains also the axes themselves, their tick numbers, their labels, or even additional axis
+  rects, color scales and other layout elements.
   
   Only when saving to a file (see \ref savePng, \ref savePdf etc.) the viewport is temporarily
   modified to allow saving plots with sizes independent of the current widget size.
@@ -213,26 +213,6 @@
   two items.
   
   \see legendClick
-*/
-
-/*! \fn void QCustomPlot:: titleClick(QMouseEvent *event, QCPPlotTitle *title)
-
-  This signal is emitted when a plot title is clicked.
-  
-  \a event is the mouse event that caused the click and \a title is the plot title that received
-  the click.
-  
-  \see titleDoubleClick
-*/
-
-/*! \fn void QCustomPlot::titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title)
-
-  This signal is emitted when a plot title is double clicked.
-  
-  \a event is the mouse event that caused the click and \a title is the plot title that received
-  the click.
-  
-  \see titleClick
 */
 
 /*! \fn void QCustomPlot::selectionChangedByUser()
@@ -613,7 +593,7 @@ void QCustomPlot::setAutoAddPlottableToLegend(bool on)
   find out which child items are selected, call \ref QCPLegend::selectedItems.
   
   <b>All other selectable elements</b> The selection of all other selectable objects (e.g.
-  QCPPlotTitle, or your own layerable subclasses) is controlled with \ref QCP::iSelectOther. If set, the
+  QCPTextElement, or your own layerable subclasses) is controlled with \ref QCP::iSelectOther. If set, the
   user may select those objects by clicking on them. To find out which are currently selected, you
   need to check their selected state explicitly.
   
@@ -2098,8 +2078,6 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
     emit legendDoubleClick(lg, 0, event);
   else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
     emit legendDoubleClick(li->parentLegend(), li, event);
-  else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
-    emit titleDoubleClick(event, pt);
   
   // call double click event of affected layout element:
   if (QCPLayoutElement *el = layoutElementAt(event->pos()))
@@ -2225,8 +2203,6 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
       emit legendClick(lg, 0, event);
     else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
       emit legendClick(li->parentLegend(), li, event);
-    else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
-      emit titleClick(event, pt);
   }
   
   if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is canceled there

@@ -500,8 +500,8 @@ void MainWindow::genLayoutsystem_AddingPlotTitle()
   resetPlot(false);
   
   //! [plottitle-example]
-  // first we create and prepare a plot title layout element:
-  QCPPlotTitle *title = new QCPPlotTitle(customPlot);
+  // first we create and prepare a text layout element:
+  QCPTextElement *title = new QCPTextElement(customPlot);
   title->setText("Plot Title Example");
   title->setFont(QFont("sans", 12, QFont::Bold));
   // then we add it to the main plot layout:

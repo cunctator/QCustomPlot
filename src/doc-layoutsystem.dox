@@ -1,7 +1,7 @@
 /*! \page thelayoutsystem The Layout System
  
   The layout system is responsible for positioning and scaling layout elements such as axis rects,
-  legends and plot titles in a QCustomPlot.
+  legends, or color scales in a QCustomPlot.
 
   \section layoutsystem-classesandmechanisms Classes and mechanisms
   

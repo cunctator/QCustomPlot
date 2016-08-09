@@ -20,7 +20,7 @@
   <area shape="rect" coords="247,178,356,194" href="./classQCPItemPosition.html" />
   <area shape="rect" coords="651,85,789,119" href="./classQCPLayoutGrid.html" />
   <area shape="rect" coords="649,146,789,181" href="./classQCPLayoutElement.html" />
-  <area shape="rect" coords="415,202,504,232" href="./classQCPPlotTitle.html" />
+  <area shape="rect" coords="415,202,504,232" href="./classQCPTextElement.html" />
   <area shape="rect" coords="516,202,653,233" href="./classQCPAxisRect.html" />
   <area shape="rect" coords="442,279,543,310" href="./classQCPAxis.html" />
   <area shape="rect" coords="595,279,719,310" href="./classQCPLayoutInset.html" />
@@ -55,7 +55,7 @@
   <area shape="rect" coords="581,284,739,317" href="./classQCPAbstractLegendItem.html" />
   <area shape="rect" coords="582,322,740,355" href="./classQCPLayout.html" />
   <area shape="rect" coords="582,363,740,396" href="./classQCPAxisRect.html" />
-  <area shape="rect" coords="581,404,739,437" href="./classQCPPlotTitle.html" />
+  <area shape="rect" coords="581,404,739,437" href="./classQCPTextElement.html" />
   <area shape="rect" coords="580,443,738,476" href="./classQCPColorScale.html" />
   <area shape="rect" coords="777,290,915,309" href="./classQCPPlottableLegendItem.html" />
   <area shape="rect" coords="778,318,916,337" href="./classQCPLayoutGrid.html" />

@@ -23,33 +23,28 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#include "layoutelement-plottitle.h"
+#include "layoutelement-textelement.h"
 
 #include "../painter.h"
 #include "../core.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPPlotTitle
+//////////////////// QCPTextElement
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPPlotTitle
-  \brief A layout element displaying a plot title text
-  
-  The text may be specified with \ref setText, theformatting can be controlled with \ref setFont
-  and \ref setTextColor.
-  
-  A plot title can be added as follows:
-  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpplottitle-creation
-  
-  Since a plot title is a common requirement, QCustomPlot offers specialized selection signals for
-  easy interaction with QCPPlotTitle. If a layout element of type QCPPlotTitle is clicked, the
-  signal \ref QCustomPlot::titleClick is emitted. A double click emits the \ref
-  QCustomPlot::titleDoubleClick signal.
+/*! \class QCPTextElement
+  \brief A layout element displaying a text
+
+  The text may be specified with \ref setText, the formatting can be controlled with \ref setFont,
+  \ref setTextColor, and \ref setTextFlags.
+
+  A text element can be added as follows:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcptextelement-creation
 */
 
 /* start documentation of signals */
 
-/*! \fn void QCPPlotTitle::selectionChanged(bool selected)
+/*! \fn void QCPTextElement::selectionChanged(bool selected)
   
   This signal is emitted when the selection state has changed to \a selected, either by user
   interaction or by a direct call to \ref setSelected.
@@ -59,104 +54,204 @@
 
 /* end documentation of signals */
 
-/*!
-  Creates a new QCPPlotTitle instance and sets default values. The initial text is empty (\ref setText).
+/*! \overload
   
-  To set the title text in the constructor, rather use \ref QCPPlotTitle(QCustomPlot *parentPlot, const QString &text).
+  Creates a new QCPTextElement instance and sets default values. The initial text is empty (\ref
+  setText).
 */
-QCPPlotTitle::QCPPlotTitle(QCustomPlot *parentPlot) :
+QCPTextElement::QCPTextElement(QCustomPlot *parentPlot) :
   QCPLayoutElement(parentPlot),
-  mFont(QFont(QLatin1String("sans serif"), 13*1.5, QFont::Bold)),
+  mText(),
+  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
-  mSelectedFont(QFont(QLatin1String("sans serif"), 13*1.6, QFont::Bold)),
+  mSelectedFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mSelectedTextColor(Qt::blue),
   mSelectable(false),
   mSelected(false)
 {
   if (parentPlot)
   {
-    setLayer(parentPlot->currentLayer());
-    mFont = QFont(parentPlot->font().family(), parentPlot->font().pointSize()*1.5, QFont::Bold);
-    mSelectedFont = QFont(parentPlot->font().family(), parentPlot->font().pointSize()*1.6, QFont::Bold);
+    mFont = parentPlot->font();
+    mSelectedFont = parentPlot->font();
   }
-  setMargins(QMargins(5, 5, 5, 0));
+  setMargins(QMargins(2, 2, 2, 2));
 }
 
 /*! \overload
   
-  Creates a new QCPPlotTitle instance and sets default values. The initial text is set to \a text.
+  Creates a new QCPTextElement instance and sets default values.
+
+  The initial text is set to \a text.
 */
-QCPPlotTitle::QCPPlotTitle(QCustomPlot *parentPlot, const QString &text) :
+QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text) :
   QCPLayoutElement(parentPlot),
   mText(text),
-  mFont(QFont(parentPlot->font().family(), parentPlot->font().pointSize()*1.5, QFont::Bold)),
+  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
-  mSelectedFont(QFont(parentPlot->font().family(), parentPlot->font().pointSize()*1.6, QFont::Bold)),
+  mSelectedFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mSelectedTextColor(Qt::blue),
   mSelectable(false),
   mSelected(false)
 {
-  setLayer(QLatin1String("axes"));
-  setMargins(QMargins(5, 5, 5, 0));
+  if (parentPlot)
+  {
+    mFont = parentPlot->font();
+    mSelectedFont = parentPlot->font();
+  }
+  setMargins(QMargins(2, 2, 2, 2));
+}
+
+/*! \overload
+  
+  Creates a new QCPTextElement instance and sets default values.
+
+  The initial text is set to \a text with \a pointSize.
+*/
+QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, double pointSize) :
+  QCPLayoutElement(parentPlot),
+  mText(text),
+  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mFont(QFont(QLatin1String("sans serif"), pointSize)), // will be taken from parentPlot if available, see below
+  mTextColor(Qt::black),
+  mSelectedFont(QFont(QLatin1String("sans serif"), pointSize)), // will be taken from parentPlot if available, see below
+  mSelectedTextColor(Qt::blue),
+  mSelectable(false),
+  mSelected(false)
+{
+  if (parentPlot)
+  {
+    mFont = parentPlot->font();
+    mFont.setPointSizeF(pointSize);
+    mSelectedFont = parentPlot->font();
+    mSelectedFont.setPointSizeF(pointSize);
+  }
+  setMargins(QMargins(2, 2, 2, 2));
+}
+
+/*! \overload
+  
+  Creates a new QCPTextElement instance and sets default values.
+
+  The initial text is set to \a text with \a pointSize and the specified \a fontFamily.
+*/
+QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QString &fontFamily, double pointSize) :
+  QCPLayoutElement(parentPlot),
+  mText(text),
+  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mFont(QFont(fontFamily, pointSize)),
+  mTextColor(Qt::black),
+  mSelectedFont(QFont(fontFamily, pointSize)),
+  mSelectedTextColor(Qt::blue),
+  mSelectable(false),
+  mSelected(false)
+{
+  setMargins(QMargins(2, 2, 2, 2));
+}
+
+/*! \overload
+  
+  Creates a new QCPTextElement instance and sets default values.
+
+  The initial text is set to \a text with the specified \a font.
+*/
+QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QFont &font) :
+  QCPLayoutElement(parentPlot),
+  mText(text),
+  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mFont(font),
+  mTextColor(Qt::black),
+  mSelectedFont(font),
+  mSelectedTextColor(Qt::blue),
+  mSelectable(false),
+  mSelected(false)
+{
+  setMargins(QMargins(2, 2, 2, 2));
 }
 
 /*!
   Sets the text that will be displayed to \a text. Multiple lines can be created by insertion of "\n".
   
-  \see setFont, setTextColor
+  \see setFont, setTextColor, setTextFlags
 */
-void QCPPlotTitle::setText(const QString &text)
+void QCPTextElement::setText(const QString &text)
 {
   mText = text;
 }
 
 /*!
-  Sets the \a font of the title text.
+  Sets options for text alignment and wrapping behaviour. \a flags is a bitwise OR-combination of
+  \c Qt::AlignmentFlag and \c Qt::TextFlag enums.
+  
+  Possible enums are:
+  - Qt::AlignLeft
+  - Qt::AlignRight
+  - Qt::AlignHCenter
+  - Qt::AlignJustify
+  - Qt::AlignTop
+  - Qt::AlignBottom
+  - Qt::AlignVCenter
+  - Qt::AlignCenter
+  - Qt::TextDontClip
+  - Qt::TextSingleLine
+  - Qt::TextExpandTabs
+  - Qt::TextShowMnemonic
+  - Qt::TextWordWrap
+  - Qt::TextIncludeTrailingSpaces
+*/
+void QCPTextElement::setTextFlags(int flags)
+{
+  mTextFlags = flags;
+}
+
+/*!
+  Sets the \a font of the text.
   
   \see setTextColor, setSelectedFont
 */
-void QCPPlotTitle::setFont(const QFont &font)
+void QCPTextElement::setFont(const QFont &font)
 {
   mFont = font;
 }
 
 /*!
-  Sets the \a color of the title text.
+  Sets the \a color of the text.
   
   \see setFont, setSelectedTextColor
 */
-void QCPPlotTitle::setTextColor(const QColor &color)
+void QCPTextElement::setTextColor(const QColor &color)
 {
   mTextColor = color;
 }
 
 /*!
-  Sets the \a font of the title text that will be used if the plot title is selected (\ref setSelected).
+  Sets the \a font of the text that will be used if the text element is selected (\ref setSelected).
   
   \see setFont
 */
-void QCPPlotTitle::setSelectedFont(const QFont &font)
+void QCPTextElement::setSelectedFont(const QFont &font)
 {
   mSelectedFont = font;
 }
 
 /*!
-  Sets the \a color of the title text that will be used if the plot title is selected (\ref setSelected).
+  Sets the \a color of the text that will be used if the text element is selected (\ref setSelected).
   
   \see setTextColor
 */
-void QCPPlotTitle::setSelectedTextColor(const QColor &color)
+void QCPTextElement::setSelectedTextColor(const QColor &color)
 {
   mSelectedTextColor = color;
 }
 
 /*!
-  Sets whether the user may select this plot title to \a selectable.
+  Sets whether the user may select this text element.
 
   Note that even when \a selectable is set to <tt>false</tt>, the selection state may be changed
   programmatically via \ref setSelected.
 */
-void QCPPlotTitle::setSelectable(bool selectable)
+void QCPTextElement::setSelectable(bool selectable)
 {
   if (mSelectable != selectable)
   {
@@ -166,13 +261,13 @@ void QCPPlotTitle::setSelectable(bool selectable)
 }
 
 /*!
-  Sets the selection state of this plot title to \a selected. If the selection has changed, \ref
+  Sets the selection state of this text element to \a selected. If the selection has changed, \ref
   selectionChanged is emitted.
   
   Note that this function can change the selection state independently of the current \ref
   setSelectable state.
 */
-void QCPPlotTitle::setSelected(bool selected)
+void QCPTextElement::setSelected(bool selected)
 {
   if (mSelected != selected)
   {
@@ -182,13 +277,13 @@ void QCPPlotTitle::setSelected(bool selected)
 }
 
 /* inherits documentation from base class */
-void QCPPlotTitle::applyDefaultAntialiasingHint(QCPPainter *painter) const
+void QCPTextElement::applyDefaultAntialiasingHint(QCPPainter *painter) const
 {
   applyAntialiasingHint(painter, mAntialiased, QCP::aeOther);
 }
 
 /* inherits documentation from base class */
-void QCPPlotTitle::draw(QCPPainter *painter)
+void QCPTextElement::draw(QCPPainter *painter)
 {
   painter->setFont(mainFont());
   painter->setPen(QPen(mainTextColor()));
@@ -196,7 +291,7 @@ void QCPPlotTitle::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QSize QCPPlotTitle::minimumSizeHint() const
+QSize QCPTextElement::minimumSizeHint() const
 {
   QFontMetrics metrics(mFont);
   QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
@@ -206,7 +301,7 @@ QSize QCPPlotTitle::minimumSizeHint() const
 }
 
 /* inherits documentation from base class */
-QSize QCPPlotTitle::maximumSizeHint() const
+QSize QCPTextElement::maximumSizeHint() const
 {
   QFontMetrics metrics(mFont);
   QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
@@ -216,7 +311,7 @@ QSize QCPPlotTitle::maximumSizeHint() const
 }
 
 /* inherits documentation from base class */
-void QCPPlotTitle::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
+void QCPTextElement::selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged)
 {
   Q_UNUSED(event)
   Q_UNUSED(details)
@@ -230,7 +325,7 @@ void QCPPlotTitle::selectEvent(QMouseEvent *event, bool additive, const QVariant
 }
 
 /* inherits documentation from base class */
-void QCPPlotTitle::deselectEvent(bool *selectionStateChanged)
+void QCPTextElement::deselectEvent(bool *selectionStateChanged)
 {
   if (mSelectable)
   {
@@ -242,7 +337,7 @@ void QCPPlotTitle::deselectEvent(bool *selectionStateChanged)
 }
 
 /* inherits documentation from base class */
-double QCPPlotTitle::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
+double QCPTextElement::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
   if (onlySelectable && !mSelectable)
@@ -259,7 +354,7 @@ double QCPPlotTitle::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   Returns the main font to be used. This is mSelectedFont if \ref setSelected is set to
   <tt>true</tt>, else mFont is returned.
 */
-QFont QCPPlotTitle::mainFont() const
+QFont QCPTextElement::mainFont() const
 {
   return mSelected ? mSelectedFont : mFont;
 }
@@ -269,7 +364,7 @@ QFont QCPPlotTitle::mainFont() const
   Returns the main color to be used. This is mSelectedTextColor if \ref setSelected is set to
   <tt>true</tt>, else mTextColor is returned.
 */
-QColor QCPPlotTitle::mainTextColor() const
+QColor QCPTextElement::mainTextColor() const
 {
   return mSelected ? mSelectedTextColor : mTextColor;
 }

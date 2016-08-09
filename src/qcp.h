@@ -53,7 +53,7 @@
 #include "selectiondecorator-bracket.h"
 #include "layoutelements/layoutelement-axisrect.h"
 #include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
+#include "layoutelements/layoutelement-textelement.h"
 #include "layoutelements/layoutelement-colorscale.h"
 #include "plottables/plottable-graph.h"
 #include "plottables/plottable-curve.h"

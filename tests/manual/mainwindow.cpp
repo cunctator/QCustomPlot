@@ -668,8 +668,10 @@ void MainWindow::setupLegendTest(QCustomPlot *customPlot)
   QCPLayoutGrid *grid = customPlot->plotLayout();
   grid->addElement(1, 0, grid->element(0, 0));
   
-  QCPPlotTitle *title = new QCPPlotTitle(customPlot);
+  QCPTextElement *title = new QCPTextElement(customPlot);
   title->setText("This is a Plot Title");
+  title->setFont(QFont(title->font().family(), 15, QFont::Bold));
+  title->setSelectedFont(title->font());
   title->setSelectable(true);
   grid->addElement(0, 0, title);
   

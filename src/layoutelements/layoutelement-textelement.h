@@ -23,8 +23,8 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_LAYOUTELEMENT_PLOTTITLE_H
-#define QCP_LAYOUTELEMENT_PLOTTITLE_H
+#ifndef QCP_LAYOUTELEMENT_TEXTELEMENT_H
+#define QCP_LAYOUTELEMENT_TEXTELEMENT_H
 
 #include "../global.h"
 #include "../layer.h"
@@ -33,7 +33,7 @@
 class QCPPainter;
 class QCustomPlot;
 
-class QCP_LIB_DECL QCPPlotTitle : public QCPLayoutElement
+class QCP_LIB_DECL QCPTextElement : public QCPLayoutElement
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -46,11 +46,15 @@ class QCP_LIB_DECL QCPPlotTitle : public QCPLayoutElement
   Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
   /// \endcond
 public:
-  explicit QCPPlotTitle(QCustomPlot *parentPlot);
-  explicit QCPPlotTitle(QCustomPlot *parentPlot, const QString &text);
+  explicit QCPTextElement(QCustomPlot *parentPlot);
+  QCPTextElement(QCustomPlot *parentPlot, const QString &text);
+  QCPTextElement(QCustomPlot *parentPlot, const QString &text, double pointSize);
+  QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QString &fontFamily, double pointSize);
+  QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QFont &font);
   
   // getters:
   QString text() const { return mText; }
+  int textFlags() const { return mTextFlags; }
   QFont font() const { return mFont; }
   QColor textColor() const { return mTextColor; }
   QFont selectedFont() const { return mSelectedFont; }
@@ -60,6 +64,7 @@ public:
   
   // setters:
   void setText(const QString &text);
+  void setTextFlags(int flags);
   void setFont(const QFont &font);
   void setTextColor(const QColor &color);
   void setSelectedFont(const QFont &font);
@@ -77,6 +82,7 @@ signals:
 protected:
   // property members:
   QString mText;
+  int mTextFlags;
   QFont mFont;
   QColor mTextColor;
   QFont mSelectedFont;
@@ -98,9 +104,9 @@ protected:
   QColor mainTextColor() const;
   
 private:
-  Q_DISABLE_COPY(QCPPlotTitle)
+  Q_DISABLE_COPY(QCPTextElement)
 };
 
 
 
-#endif // QCP_LAYOUTELEMENT_PLOTTITLE_H
+#endif // QCP_LAYOUTELEMENT_TEXTELEMENT_H

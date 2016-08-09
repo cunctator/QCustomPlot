@@ -25,7 +25,7 @@ public slots:
   void snippetQCPCurve();
   void snippetQCPItemLine();
   void snippetQCPMarginGroup();
-  void snippetQCPPlotTitle();
+  void snippetQCPTextElement();
   void snippetQCPLineEnding();
   void snippetQCPScatterStyle();
   void snippetQCPBarsGroup();

@@ -35,7 +35,6 @@ class QCPLayer;
 class QCPAbstractPlottable;
 class QCPAbstractItem;
 class QCPGraph;
-class QCPPlotTitle;
 class QCPLegend;
 class QCPAbstractLegendItem;
 class QCPSelectionRect;
@@ -201,8 +200,6 @@ signals:
   void axisDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event);
   void legendClick(QCPLegend *legend, QCPAbstractLegendItem *item, QMouseEvent *event);
   void legendDoubleClick(QCPLegend *legend,  QCPAbstractLegendItem *item, QMouseEvent *event);
-  void titleClick(QMouseEvent *event, QCPPlotTitle *title);
-  void titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title);
   
   void selectionChangedByUser();
   void beforeReplot();

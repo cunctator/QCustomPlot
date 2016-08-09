@@ -199,7 +199,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   invisible by themselves, because they don't draw anything. Their only purpose is to manage the
   position and size of other layout elements. This category of layout elements usually use
   QCPLayout as base class. Then there is the category of layout elements which actually draw
-  something. For example, QCPAxisRect, QCPLegend and QCPPlotTitle are of this category. This does
+  something. For example, QCPAxisRect, QCPLegend and QCPTextElement are of this category. This does
   not necessarily mean that the latter category can't have child layout elements. QCPLegend for
   instance, actually derives from QCPLayoutGrid and the individual legend items are child layout
   elements in the grid layout.

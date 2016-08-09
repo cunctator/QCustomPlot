@@ -381,7 +381,7 @@ void MainWindow::setupScatterPixmapDemo(QCustomPlot *customPlot)
 
   // set title of plot:
   customPlot->plotLayout()->insertRow(0);
-  customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Regenerative Energies"));
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Regenerative Energies"));
   // axis configurations:
   customPlot->xAxis->setLabel("Year");
   customPlot->yAxis->setLabel("Installed Gigawatts of\nphotovoltaic in the European Union");
@@ -610,7 +610,7 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   customPlot->xAxis2->setTicker(QSharedPointer<QCPAxisTickerPi>(new QCPAxisTickerPi));
   // add title layout element:
   customPlot->plotLayout()->insertRow(0);
-  customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Way too many graphs in one plot"));
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Way too many graphs in one plot"));
   // set labels:
   customPlot->xAxis->setLabel("Bottom axis with outward ticks");
   customPlot->yAxis->setLabel("Left axis label");

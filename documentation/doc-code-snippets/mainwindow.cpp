@@ -135,12 +135,12 @@ void MainWindow::snippetQCPMarginGroup()
   //! [qcpmargingroup-creation-2]
 }
 
-void MainWindow::snippetQCPPlotTitle()
+void MainWindow::snippetQCPTextElement()
 {
-  //! [qcpplottitle-creation]
+  //! [qcptextelement-creation]
   customPlot->plotLayout()->insertRow(0); // inserts an empty row above the default axis rect
-  customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Your Plot Title"));
-  //! [qcpplottitle-creation]
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Your Text"));
+  //! [qcptextelement-creation]
 }
 
 void MainWindow::snippetQCPLineEnding()

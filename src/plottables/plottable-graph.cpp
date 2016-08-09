@@ -198,6 +198,10 @@ QCPGraphData::QCPGraphData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn QPointF QCPAbstractPlottable1D<QCPGraphData>::dataPixelPosition(int index) const
+  \copydoc QCPAbstractPlottable1D::dataPixelPosition
+*/
+
 /*! \fn bool QCPAbstractPlottable1D<QCPGraphData>::sortKeyIsMainKey() const
   \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
 */

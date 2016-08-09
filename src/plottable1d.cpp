@@ -112,6 +112,17 @@
   convention.
 */
 
+/*! \fn virtual QPointF QCPPlottableInterface1D::dataPixelPosition(int index) const = 0
+
+  Returns the pixel position on the widget surface at which the data point at the given \a index
+  appears.
+
+  Usually this corresponds to the point of \ref dataMainKey/\ref dataMainValue, in pixel
+  coordinates. However, depending on the plottable, this might be a different apparent position
+  than just a coord-to-pixel transform of those values. For example, \ref QCPBars apparent data
+  values can be shifted depending on their stacking, bar grouping or configured base value.
+*/
+
 /*! \fn virtual bool QCPPlottableInterface1D::sortKeyIsMainKey() const = 0
 
   Returns whether the sort key (\ref dataSortKey) is identical to the main key (\ref dataMainKey).
@@ -262,6 +273,21 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
   {
     qDebug() << Q_FUNC_INFO << "Index out of bounds" << index;
     return QCPRange(0, 0);
+  }
+}
+
+/* inherits documentation from base class */
+template <class DataType>
+QPointF QCPAbstractPlottable1D<DataType>::dataPixelPosition(int index) const
+{
+  if (index >= 0 && index < mDataContainer->size())
+  {
+    const typename QCPDataContainer<DataType>::const_iterator it = mDataContainer->constBegin()+index;
+    return coordsToPixels(it->mainKey(), it->mainValue());
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "Index out of bounds" << index;
+    return QPointF();
   }
 }
 

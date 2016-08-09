@@ -550,6 +550,10 @@ QCPBarsData::QCPBarsData(double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn QPointF QCPAbstractPlottable1D<QCPBarsData>::dataPixelPosition(int index) const
+  \copydoc QCPAbstractPlottable1D::dataPixelPosition
+*/
+
 /*! \fn bool QCPAbstractPlottable1D<QCPBarsData>::sortKeyIsMainKey() const
   \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
 */
@@ -937,6 +941,29 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) 
   
   foundRange = true; // return true because bar charts always have the 0-line visible
   return range;
+}
+
+/* inherits documentation from base class */
+QPointF QCPBars::dataPixelPosition(int index) const
+{
+  if (index >= 0 && index < mDataContainer->size())
+  {
+    QCPAxis *keyAxis = mKeyAxis.data();
+    QCPAxis *valueAxis = mValueAxis.data();
+    if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
+    
+    const QCPDataContainer<QCPBarsData>::const_iterator it = mDataContainer->constBegin()+index;
+    const double valuePixel = valueAxis->coordToPixel(getStackedBaseValue(it->key, it->value >= 0) + it->value);
+    const double keyPixel = keyAxis->coordToPixel(it->key) + (mBarsGroup ? mBarsGroup->keyPixelOffset(this, it->key) : 0);
+    if (keyAxis->orientation() == Qt::Horizontal)
+      return QPointF(keyPixel, valuePixel);
+    else
+      return QPointF(valuePixel, keyPixel);
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "Index out of bounds" << index;
+    return QPointF();
+  }
 }
 
 /* inherits documentation from base class */

@@ -217,6 +217,10 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn QPointF QCPAbstractPlottable1D<QCPFinancialData>::dataPixelPosition(int index) const
+  \copydoc QCPAbstractPlottable1D::dataPixelPosition
+*/
+
 /*! \fn bool QCPAbstractPlottable1D<QCPFinancialData>::sortKeyIsMainKey() const
   \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
 */

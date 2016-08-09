@@ -189,6 +189,7 @@ public:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
   virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
+  virtual QPointF dataPixelPosition(int index) const;
   
 protected:
   // property members:

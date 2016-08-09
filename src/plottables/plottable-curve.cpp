@@ -199,6 +199,10 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn QPointF QCPAbstractPlottable1D<QCPCurveData>::dataPixelPosition(int index) const
+  \copydoc QCPAbstractPlottable1D::dataPixelPosition
+*/
+
 /*! \fn bool QCPAbstractPlottable1D<QCPCurveData>::sortKeyIsMainKey() const
   \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
 */

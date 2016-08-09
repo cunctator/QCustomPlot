@@ -239,6 +239,10 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   \copydoc QCPAbstractPlottable1D::dataValueRange
 */
 
+/*! \fn QPointF QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataPixelPosition(int index) const
+  \copydoc QCPAbstractPlottable1D::dataPixelPosition
+*/
+
 /*! \fn bool QCPAbstractPlottable1D<QCPStatisticalBoxData>::sortKeyIsMainKey() const
   \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
 */

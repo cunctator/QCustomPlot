@@ -734,14 +734,14 @@ void QCPErrorBars::getErrorBarLines(QCPErrorBarsDataContainer::const_iterator it
   if (!mDataPlottable) return;
   
   int index = it-mDataContainer->constBegin();
+  QPointF centerPixel = mDataPlottable->interface1D()->dataPixelPosition(index);
+  if (qIsNaN(centerPixel.x()) || qIsNaN(centerPixel.y()))
+    return;
   QCPAxis *errorAxis = mErrorType == etValueError ? mValueAxis : mKeyAxis;
   QCPAxis *orthoAxis = mErrorType == etValueError ? mKeyAxis : mValueAxis;
-  const double centerErrorAxisCoord = mErrorType == etValueError ? mDataPlottable->interface1D()->dataMainValue(index) : mDataPlottable->interface1D()->dataMainKey(index);
-  const double centerOrthoAxisCoord = mErrorType == etValueError ? mDataPlottable->interface1D()->dataMainKey(index) : mDataPlottable->interface1D()->dataMainValue(index);
-  if (qIsNaN(centerErrorAxisCoord) || qIsNaN(centerOrthoAxisCoord))
-    return;
-  const double centerErrorAxisPixel = errorAxis->coordToPixel(centerErrorAxisCoord);
-  const double centerOrthoAxisPixel = orthoAxis->coordToPixel(centerOrthoAxisCoord);
+  const double centerErrorAxisPixel = errorAxis->orientation() == Qt::Horizontal ? centerPixel.x() : centerPixel.y();
+  const double centerOrthoAxisPixel = orthoAxis->orientation() == Qt::Horizontal ? centerPixel.x() : centerPixel.y();
+  const double centerErrorAxisCoord = errorAxis->pixelToCoord(centerErrorAxisPixel); // depending on plottable, this might be different from just mDataPlottable->interface1D()->dataMainKey/Value
   const double symbolGap = mSymbolGap*0.5*(errorAxis->rangeReversed() ? -1 : 1)*(errorAxis->orientation()==Qt::Vertical ? -1 : 1);
   // plus error:
   double errorStart, errorEnd;
@@ -922,20 +922,21 @@ void QCPErrorBars::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<
 */
 bool QCPErrorBars::errorBarVisible(int index) const
 {
-  const double centerKey = mDataPlottable->interface1D()->dataMainKey(index);
-  if (qIsNaN(centerKey))
+  QPointF centerPixel = mDataPlottable->interface1D()->dataPixelPosition(index);
+  const double centerKeyPixel = mKeyAxis->orientation() == Qt::Horizontal ? centerPixel.x() : centerPixel.y();
+  if (qIsNaN(centerKeyPixel))
     return false;
   
   double keyMin, keyMax;
   if (mErrorType == etKeyError)
   {
+    const double centerKey = mKeyAxis->pixelToCoord(centerKeyPixel);
     const double errorPlus = mDataContainer->at(index).errorPlus;
     const double errorMinus = mDataContainer->at(index).errorMinus;
     keyMax = centerKey+(qIsNaN(errorPlus) ? 0 : errorPlus);
     keyMin = centerKey-(qIsNaN(errorMinus) ? 0 : errorMinus);
   } else // mErrorType == etValueError
   {
-    const double centerKeyPixel = mKeyAxis->coordToPixel(centerKey);
     keyMax = mKeyAxis->pixelToCoord(centerKeyPixel+mWhiskerWidth*0.5*(mKeyAxis->rangeReversed() ? -1 : 1));
     keyMin = mKeyAxis->pixelToCoord(centerKeyPixel-mWhiskerWidth*0.5*(mKeyAxis->rangeReversed() ? -1 : 1));
   }

@@ -40,8 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupLargeDataSetDelete(mCustomPlot);
   //setupMultiValueGraph(mCustomPlot);
   //setupDataSelectTest(mCustomPlot);
-  setupErrorBarTest(mCustomPlot);
-  //setupTestbed(mCustomPlot);
+  //setupErrorBarTest(mCustomPlot);
+  setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -319,7 +319,6 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
 
 void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
 {
-  /* TODO: with new error bars plottable
   customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
   customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   customPlot->yAxis->setNumberFormat("eb");
@@ -330,20 +329,24 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   for (int i=0; i<n; ++i)
   {
     x[i] = i;
-    y[i] = i*0.1;
+    y[i] = i*0.11;
     yerr[i] = 0.5;
     xerr[i] = qAbs(qCos(i/2.0)*0.5);
   }
   customPlot->addGraph();
   customPlot->graph()->setScatterStyle(QCPScatterStyle::ssCross);
-  customPlot->graph()->setDataBothError(x, y, xerr, yerr);
-  customPlot->graph()->setErrorType(QCPGraph::etBoth);
-  customPlot->graph()->setErrorBarSkipSymbol(true);
+  customPlot->graph()->setData(x, y);
   
-  //customPlot->rescaleAxes();
-  customPlot->xAxis->setRange(0, 10);
-  customPlot->yAxis->setRange(1, 10);
-  */
+  QCPErrorBars *keyErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  keyErrors->setErrorType(QCPErrorBars::etKeyError);
+  keyErrors->setDataPlottable(customPlot->graph());
+  keyErrors->setData(xerr);
+  QCPErrorBars *valueErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  valueErrors->setErrorType(QCPErrorBars::etValueError);
+  valueErrors->setDataPlottable(customPlot->graph());
+  valueErrors->setData(yerr);
+  
+  customPlot->rescaleAxes();
 }
 
 void MainWindow::setupSelectTest(QCustomPlot *customPlot)

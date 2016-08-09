@@ -29,7 +29,7 @@ private slots:
   void removeAllGraphs();
   void contextMenuRequest(QPoint pos);
   void moveLegend();
-  void graphClicked(QCPAbstractPlottable *plottable);
+  void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   
 private:
   Ui::MainWindow *ui;

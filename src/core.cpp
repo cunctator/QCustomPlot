@@ -2461,7 +2461,7 @@ void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
   Q_UNUSED(event)
   if (QCPAxisRect *axisRect = qobject_cast<QCPAxisRect*>(layoutElementAt(rect.topLeft())))
   {
-    QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxis(Qt::Horizontal) << axisRect->rangeZoomAxis(Qt::Vertical);
+    QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxes(Qt::Horizontal) << axisRect->rangeZoomAxes(Qt::Vertical);
     affectedAxes.removeAll(static_cast<QCPAxis*>(0));
     axisRect->zoom(QRectF(rect), affectedAxes);
   }

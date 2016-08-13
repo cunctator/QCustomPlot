@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
   // connect some interaction slots:
   connect(ui->customPlot, SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)), this, SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
   connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
+  connect(title, SIGNAL(doubleClicked(QMouseEvent*)), this, SLOT(titleDoubleClick(QMouseEvent*)));
   
   // connect slot that shows a message in the status bar when a graph is clicked:
   connect(ui->customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
@@ -60,18 +61,19 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::titleDoubleClick(QMouseEvent* event, QCPTextElement* title)
+void MainWindow::titleDoubleClick(QMouseEvent* event)
 {
-  // TODO: implement once click signals of elements are in place
-  
   Q_UNUSED(event)
-  // Set the plot title by double clicking on it
-  bool ok;
-  QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
-  if (ok)
+  if (QCPTextElement *title = qobject_cast<QCPTextElement*>(sender()))
   {
-    title->setText(newTitle);
-    ui->customPlot->replot();
+    // Set the plot title by double clicking on it
+    bool ok;
+    QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
+    if (ok)
+    {
+      title->setText(newTitle);
+      ui->customPlot->replot();
+    }
   }
 }
 

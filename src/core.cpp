@@ -2648,10 +2648,10 @@ void QCustomPlot::updateLayerIndices() const
 }
 
 /*! \internal
-  
-  Returns the layerable at pixel position \a pos. If \a onlySelectable is set to true, only those
-  layerables that are selectable will be considered. (Layerable subclasses communicate their
-  selectability via the QCPLayerable::selectTest method, by returning -1.)
+
+  Returns the top-most layerable at pixel position \a pos. If \a onlySelectable is set to true,
+  only those layerables that are selectable will be considered. (Layerable subclasses communicate
+  their selectability via the QCPLayerable::selectTest method, by returning -1.)
 
   \a selectionDetails is an output parameter that contains selection specifics of the affected
   layerable. This is useful if the respective layerable shall be given a subsequent
@@ -2659,31 +2659,60 @@ void QCustomPlot::updateLayerIndices() const
   information about which part of the layerable was hit, in multi-part layerables (e.g.
   QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
   QCPDataSelection instance with the single data point which is closest to \a pos.
+  
+  \see layerableListAt, layoutElementAt, axisRectAt
 */
 QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails) const
 {
+  QList<QVariant> details;
+  QList<QCPLayerable*> candidates = layerableListAt(pos, onlySelectable, selectionDetails ? &details : 0);
+  if (selectionDetails && !details.isEmpty())
+    *selectionDetails = details.first();
+  if (!candidates.isEmpty())
+    return candidates.first();
+  else
+    return 0;
+}
+
+/*! \internal
+
+  Returns the layerables at pixel position \a pos. If \a onlySelectable is set to true, only those
+  layerables that are selectable will be considered. (Layerable subclasses communicate their
+  selectability via the QCPLayerable::selectTest method, by returning -1.)
+
+  The returned list is sorted by the layerable/drawing order. If you only need to know the top-most
+  layerable, rather use \ref layerableAt.
+
+  \a selectionDetails is an output parameter that contains selection specifics of the affected
+  layerable. This is useful if the respective layerable shall be given a subsequent
+  QCPLayerable::selectEvent (like in \ref mouseReleaseEvent). \a selectionDetails usually contains
+  information about which part of the layerable was hit, in multi-part layerables (e.g.
+  QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
+  QCPDataSelection instance with the single data point which is closest to \a pos.
+  
+  \see layerableAt, layoutElementAt, axisRectAt
+*/
+QList<QCPLayerable*> QCustomPlot::layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails) const
+{
+  QList<QCPLayerable*> result;
   for (int layerIndex=mLayers.size()-1; layerIndex>=0; --layerIndex)
   {
     const QList<QCPLayerable*> layerables = mLayers.at(layerIndex)->children();
-    double minimumDistance = selectionTolerance()*1.1;
-    QCPLayerable *minimumDistanceLayerable = 0;
     for (int i=layerables.size()-1; i>=0; --i)
     {
       if (!layerables.at(i)->realVisibility())
         continue;
       QVariant details;
-      double dist = layerables.at(i)->selectTest(pos, onlySelectable, &details);
-      if (dist >= 0 && dist < minimumDistance)
+      double dist = layerables.at(i)->selectTest(pos, onlySelectable, selectionDetails ? &details : 0);
+      if (dist >= 0 && dist < selectionTolerance())
       {
-        minimumDistance = dist;
-        minimumDistanceLayerable = layerables.at(i);
-        if (selectionDetails) *selectionDetails = details;
+        result.append(layerables.at(i));
+        if (selectionDetails)
+          selectionDetails->append(details);
       }
     }
-    if (minimumDistance < selectionTolerance())
-      return minimumDistanceLayerable;
   }
-  return 0;
+  return result;
 }
 
 /*!

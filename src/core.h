@@ -263,6 +263,7 @@ protected:
   bool registerItem(QCPAbstractItem* item);
   void updateLayerIndices() const;
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
+  QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
   
   friend class QCPLegend;

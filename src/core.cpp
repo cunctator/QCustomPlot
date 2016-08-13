@@ -1638,6 +1638,39 @@ QCPLayoutElement *QCustomPlot::layoutElementAt(const QPointF &pos) const
 }
 
 /*!
+  Returns the layout element of type \ref QCPAxisRect at pixel position \a pos. This method ignores
+  other layout elements even if they are visually in front of the axis rect (e.g. a \ref
+  QCPLegend). If there is no axis rect at that position, returns 0.
+
+  Only visible axis rects are used. If \ref QCPLayoutElement::setVisible on the axis rect itself or
+  on any of its parent elements is set to false, it will not be considered.
+
+  \see layoutElementAt
+*/
+QCPAxisRect *QCustomPlot::axisRectAt(const QPointF &pos) const
+{
+  QCPAxisRect *result = 0;
+  QCPLayoutElement *currentElement = mPlotLayout;
+  bool searchSubElements = true;
+  while (searchSubElements && currentElement)
+  {
+    searchSubElements = false;
+    foreach (QCPLayoutElement *subElement, currentElement->elements(false))
+    {
+      if (subElement && subElement->realVisibility() && subElement->selectTest(pos, false) >= 0)
+      {
+        currentElement = subElement;
+        searchSubElements = true;
+        if (QCPAxisRect *ar = qobject_cast<QCPAxisRect*>(currentElement))
+          result = ar;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+/*!
   Returns the axes that currently have selected parts, i.e. whose selection state is not \ref
   QCPAxis::spNone.
   

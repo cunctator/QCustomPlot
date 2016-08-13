@@ -141,7 +141,7 @@ protected:
   virtual int calculateAutoMargin(QCP::MarginSide side);
   virtual void layoutChanged();
   // events:
-  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
   virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void wheelEvent(QWheelEvent *event);

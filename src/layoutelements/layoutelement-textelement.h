@@ -74,9 +74,9 @@ public:
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
   virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void mouseDoubleClickEvent(QMouseEvent *event);
+  virtual void mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details);
   
 signals:
   void selectionChanged(bool selected);

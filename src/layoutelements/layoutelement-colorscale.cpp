@@ -475,14 +475,14 @@ void QCPColorScale::applyDefaultAntialiasingHint(QCPPainter *painter) const
 }
 
 /* inherits documentation from base class */
-void QCPColorScale::mousePressEvent(QMouseEvent *event)
+void QCPColorScale::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
   if (!mAxisRect)
   {
     qDebug() << Q_FUNC_INFO << "internal axis rect was deleted";
     return;
   }
-  mAxisRect.data()->mousePressEvent(event);
+  mAxisRect.data()->mousePressEvent(event, details);
 }
 
 /* inherits documentation from base class */

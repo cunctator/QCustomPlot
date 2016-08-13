@@ -131,10 +131,10 @@ protected:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
   virtual void deselectEvent(bool *selectionStateChanged);
   // low-level mouse events:
-  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
   virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void mouseDoubleClickEvent(QMouseEvent *event);
+  virtual void mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details);
   virtual void wheelEvent(QWheelEvent *event);
   
   // non-property methods:

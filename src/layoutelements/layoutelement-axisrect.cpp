@@ -1151,8 +1151,9 @@ void QCPAxisRect::layoutChanged()
   
   \see mouseMoveEvent, mouseReleaseEvent
 */
-void QCPAxisRect::mousePressEvent(QMouseEvent *event)
+void QCPAxisRect::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
+  Q_UNUSED(details)
   mDragStart = event->pos(); // need this even when not LeftButton is pressed, to determine in releaseEvent whether it was a full click (no position change between press and release)
   if (event->buttons() & Qt::LeftButton)
   {

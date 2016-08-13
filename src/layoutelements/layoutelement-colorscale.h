@@ -127,7 +127,7 @@ protected:
   // reimplemented virtual methods:
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
   // events:
-  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
   virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void wheelEvent(QWheelEvent *event);

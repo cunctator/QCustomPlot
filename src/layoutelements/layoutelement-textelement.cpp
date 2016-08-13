@@ -378,8 +378,9 @@ double QCPTextElement::selectTest(const QPointF &pos, bool onlySelectable, QVari
 
   \seebaseclassmethod
 */
-void QCPTextElement::mousePressEvent(QMouseEvent *event)
+void QCPTextElement::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
+  Q_UNUSED(details)
   event->accept();
 }
 
@@ -400,8 +401,9 @@ void QCPTextElement::mouseReleaseEvent(QMouseEvent *event, const QPointF &startP
 
   \seebaseclassmethod
 */
-void QCPTextElement::mouseDoubleClickEvent(QMouseEvent *event)
+void QCPTextElement::mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details)
 {
+  Q_UNUSED(details)
   emit doubleClicked(event);
 }
 

@@ -638,7 +638,11 @@ void QCPLayerable::deselectEvent(bool *selectionStateChanged)
   selectTest.
 
   The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
-  event->pos().
+  event->pos(). The parameter \a details contains layerable-specific details about the hit, which
+  were generated in the previous call to \ref selectTest. For example, One-dimensional plottables
+  like \ref QCPGraph or \ref QCPBars convey the clicked data point in the \a details parameter, as
+  \ref QCPDataSelection packed as QVariant. Multi-part objects convey the specific \c
+  SelectablePart that was hit (e.g. \ref QCPAxis::SelectablePart in the case of axes).
 
   QCustomPlot uses an event propagation system that works the same as Qt's system. If your
   layerable doesn't reimplement the \ref mousePressEvent or explicitly calls \c event->ignore() in
@@ -653,8 +657,9 @@ void QCPLayerable::deselectEvent(bool *selectionStateChanged)
 
   \see mouseMoveEvent, mouseReleaseEvent, mouseDoubleClickEvent, wheelEvent
 */
-void QCPLayerable::mousePressEvent(QMouseEvent *event)
+void QCPLayerable::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
+  Q_UNUSED(details)
   event->ignore();
 }
 
@@ -704,7 +709,11 @@ void QCPLayerable::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos
   <i>pressEvent &ndash; releaseEvent &ndash; doubleClickEvent &ndash; releaseEvent</i>.
 
   The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
-  event->pos().
+  event->pos(). The parameter \a details contains layerable-specific details about the hit, which
+  were generated in the previous call to \ref selectTest. For example, One-dimensional plottables
+  like \ref QCPGraph or \ref QCPBars convey the clicked data point in the \a details parameter, as
+  \ref QCPDataSelection packed as QVariant. Multi-part objects convey the specific \c
+  SelectablePart that was hit (e.g. \ref QCPAxis::SelectablePart in the case of axes).
 
   Similarly to \ref mousePressEvent, once a layerable has accepted the \ref mouseDoubleClickEvent,
   it is considered the mouse grabber and will receive all following calls to \ref mouseMoveEvent
@@ -716,8 +725,9 @@ void QCPLayerable::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos
 
   \see mousePressEvent, mouseMoveEvent, mouseReleaseEvent, wheelEvent
 */
-void QCPLayerable::mouseDoubleClickEvent(QMouseEvent *event)
+void QCPLayerable::mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details)
 {
+  Q_UNUSED(details)
   event->ignore();
 }
 

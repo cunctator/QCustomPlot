@@ -2101,7 +2101,7 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   for (int i=0; i<candidates.size(); ++i)
   {
     event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
-    candidates.at(i)->mouseDoubleClickEvent(event);
+    candidates.at(i)->mouseDoubleClickEvent(event, details.at(i));
     if (event->isAccepted())
     {
       mMouseEventLayerable = candidates.at(i);
@@ -2160,7 +2160,7 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
     for (int i=0; i<candidates.size(); ++i)
     {
       event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
-      candidates.at(i)->mousePressEvent(event);
+      candidates.at(i)->mousePressEvent(event, details.at(i));
       if (event->isAccepted())
       {
         mMouseEventLayerable = candidates.at(i);

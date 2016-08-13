@@ -74,10 +74,15 @@ public:
   
   // reimplemented virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseDoubleClickEvent(QMouseEvent *event);
   
 signals:
   void selectionChanged(bool selected);
   void selectableChanged(bool selectable);
+  void clicked(QMouseEvent *event);
+  void doubleClicked(QMouseEvent *event);
   
 protected:
   // property members:

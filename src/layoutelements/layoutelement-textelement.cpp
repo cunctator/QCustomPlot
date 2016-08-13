@@ -52,6 +52,20 @@
   \see setSelected, setSelectable
 */
 
+/*! \fn void QCPTextElement::clicked(QMouseEvent *event)
+
+  This signal is emitted when the text element is clicked.
+
+  \see doubleClicked, selectTest
+*/
+
+/*! \fn void QCPTextElement::doubleClicked(QMouseEvent *event)
+
+  This signal is emitted when the text element is double clicked.
+
+  \see clicked, selectTest
+*/
+
 /* end documentation of signals */
 
 /*! \overload
@@ -347,6 +361,39 @@ double QCPTextElement::selectTest(const QPointF &pos, bool onlySelectable, QVari
     return mParentPlot->selectionTolerance()*0.99;
   else
     return -1;
+}
+
+/*!
+  Accepts the mouse event in order to emit the according click signal in the \ref
+  mouseReleaseEvent.
+
+  \seebaseclassmethod
+*/
+void QCPTextElement::mousePressEvent(QMouseEvent *event)
+{
+  event->accept();
+}
+
+/*!
+  Emits the \ref clicked signal if the cursor hasn't moved by more than a few pixels since the \ref
+  mousePressEvent.
+
+  \seebaseclassmethod
+*/
+void QCPTextElement::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  if ((QPointF(event->pos())-startPos).manhattanLength() <= 3)
+    emit clicked(event);
+}
+
+/*!
+  Emits the \ref doubleClicked signal.
+
+  \seebaseclassmethod
+*/
+void QCPTextElement::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  emit doubleClicked(event);
 }
 
 /*! \internal

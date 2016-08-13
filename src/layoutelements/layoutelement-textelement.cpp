@@ -350,7 +350,16 @@ void QCPTextElement::deselectEvent(bool *selectionStateChanged)
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  Returns 0.99*selectionTolerance (see \ref QCustomPlot::setSelectionTolerance) when \a pos is
+  within the bounding box of the text element's text. Note that this bounding box is updated in the
+  draw call.
+
+  If \a pos is outside the text's bounding box or if \a onlySelectable is true and this text
+  element is not selectable (\ref setSelectable), returns -1.
+
+  \seebaseclassmethod
+*/
 double QCPTextElement::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)

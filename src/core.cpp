@@ -381,7 +381,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mSelectionRect(0),
   mPaintBuffer(size()),
   mMouseHasMoved(false),
-  mMouseEventElement(0),
+  mMouseEventLayerable(0),
   mReplotting(false),
   mReplotQueued(false)
 {
@@ -2082,48 +2082,54 @@ void QCustomPlot::resizeEvent(QResizeEvent *event)
 
 /*! \internal
   
- Event handler for when a double click occurs. Emits the \ref mouseDoubleClick signal, then emits
- the specialized signals when certain objecs are clicked (e.g. \ref plottableDoubleClick, \ref
- axisDoubleClick, etc.). Finally determines the affected layout element and forwards the event to
- it.
+ Event handler for when a double click occurs. Emits the \ref mouseDoubleClick signal, then
+ determines the layerable under the cursor and forwards the event to it. Finally, emits the
+ specialized signals when certain objecs are clicked (e.g. \ref plottableDoubleClick, \ref
+ axisDoubleClick, etc.).
  
  \see mousePressEvent, mouseReleaseEvent
 */
 void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
 {
   emit mouseDoubleClick(event);
+  mMouseHasMoved = false;
+  mMousePressPos = event->pos();
   
-  QVariant details;
-  QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details);
-  
-  // emit specialized object double click signals:
-  if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
+  // determine layerable under the cursor (this event is called instead of the second press event in a double-click):
+  QList<QVariant> details;
+  QList<QCPLayerable*> candidates = layerableListAt(mMousePressPos, false, &details);
+  for (int i=0; i<candidates.size(); ++i)
   {
-    int dataIndex = 0;
-    if (!details.value<QCPDataSelection>().isEmpty())
-      dataIndex = details.value<QCPDataSelection>().dataRange().begin();
-    emit plottableDoubleClick(ap, dataIndex, event);
-  } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
-    emit axisDoubleClick(ax, details.value<QCPAxis::SelectablePart>(), event);
-  else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
-    emit itemDoubleClick(ai, event);
-  else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
-    emit legendDoubleClick(lg, 0, event);
-  else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
-    emit legendDoubleClick(li->parentLegend(), li, event);
-  
-  // call double click event of affected layout element:
-  if (QCPLayoutElement *el = layoutElementAt(event->pos()))
-    el->mouseDoubleClickEvent(event);
-  
-  // call release event of affected layout element (as in mouseReleaseEvent, since the mouseDoubleClick replaces the second release event in double click case):
-  if (mMouseEventElement)
-  {
-    mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+    candidates.at(i)->mouseDoubleClickEvent(event);
+    if (event->isAccepted())
+    {
+      mMouseEventLayerable = candidates.at(i);
+      mMouseEventLayerableDetails = details.at(i);
+      break;
+    }
   }
   
-  //QWidget::mouseDoubleClickEvent(event); don't call base class implementation because it would just cause a mousePress/ReleaseEvent, which we don't want.
+  // emit specialized object double click signals:
+  if (!candidates.isEmpty())
+  {
+    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(candidates.first()))
+    {
+      int dataIndex = 0;
+      if (!details.first().value<QCPDataSelection>().isEmpty())
+        dataIndex = details.first().value<QCPDataSelection>().dataRange().begin();
+      emit plottableDoubleClick(ap, dataIndex, event);
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(candidates.first()))
+      emit axisDoubleClick(ax, details.first().value<QCPAxis::SelectablePart>(), event);
+    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(candidates.first()))
+      emit itemDoubleClick(ai, event);
+    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(candidates.first()))
+      emit legendDoubleClick(lg, 0, event);
+    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(candidates.first()))
+      emit legendDoubleClick(li->parentLegend(), li, event);
+  }
+  
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
@@ -2131,8 +2137,7 @@ void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
   Event handler for when a mouse button is pressed. Emits the mousePress signal.
 
   If the current \ref setSelectionRectMode is not \ref QCP::srmNone, passes the event to the
-  selection rect. Otherwise determines the layout element under the cursor and forwards the event
-  to it.
+  selection rect. Otherwise determines the layerable under the cursor and forwards the event to it.
   
   \see mouseMoveEvent, mouseReleaseEvent
 */
@@ -2142,22 +2147,30 @@ void QCustomPlot::mousePressEvent(QMouseEvent *event)
   // save some state to tell in releaseEvent whether it was a click:
   mMouseHasMoved = false;
   mMousePressPos = event->pos();
-  QCPLayoutElement *pressedElement = layoutElementAt(event->pos());
   
   if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
   {
-    // activate selection rect:
-    if (mSelectionRectMode != QCP::srmZoom || qobject_cast<QCPAxisRect*>(pressedElement)) // in zoom mode only activate selection rect if on an axis rect
+    if (mSelectionRectMode != QCP::srmZoom || qobject_cast<QCPAxisRect*>(axisRectAt(mMousePressPos))) // in zoom mode only activate selection rect if on an axis rect
       mSelectionRect->startSelection(event);
   } else
   {
-    // no selection rect interaction, so forward event to layout element under the cursor:
-    mMouseEventElement = pressedElement;
-    if (mMouseEventElement)
-      mMouseEventElement->mousePressEvent(event);
+    // no selection rect interaction, so forward event to layerable under the cursor:
+    QList<QVariant> details;
+    QList<QCPLayerable*> candidates = layerableListAt(mMousePressPos, false, &details);
+    for (int i=0; i<candidates.size(); ++i)
+    {
+      event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+      candidates.at(i)->mousePressEvent(event);
+      if (event->isAccepted())
+      {
+        mMouseEventLayerable = candidates.at(i);
+        mMouseEventLayerableDetails = details.at(i);
+        break;
+      }
+    }
   }
   
-  QWidget::mousePressEvent(event);
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
@@ -2181,31 +2194,28 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
   
   if (mSelectionRect && mSelectionRect->isActive())
   {
-    // update selection rect:
     mSelectionRect->moveSelection(event);
     replot(rpQueuedReplot); // TODO: replace by selective replot of "overlay" layer
-  } else
+  } else if (mMouseEventLayerable) // call event of affected layerable:
   {
-    // call event of affected layout element:
-    if (mMouseEventElement)
-      mMouseEventElement->mouseMoveEvent(event);
+    mMouseEventLayerable->mouseMoveEvent(event, mMousePressPos);
   }
   
-  QWidget::mouseMoveEvent(event);
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
-  
+
   Event handler for when a mouse button is released. Emits the \ref mouseRelease signal.
-  
+
   If the mouse was moved less than a certain threshold in any direction since the \ref
   mousePressEvent, it is considered a click which causes the selection mechanism (if activated via
   \ref setInteractions) to possibly change selection states accordingly. Further, specialized mouse
   click signals are emitted (e.g. \ref plottableClick, \ref axisClick, etc.)
-  
-  If a layout element has mouse capture focus (a \ref mousePressEvent happened on top of the layout
-  element before), the \ref mouseReleaseEvent is forwarded to that element.
-  
+
+  If a layerable is the mouse capturer (a \ref mousePressEvent happened on top of the layerable
+  before), the \ref mouseReleaseEvent is forwarded to that element.
+
   \see mousePressEvent, mouseMoveEvent
 */
 void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
@@ -2219,22 +2229,20 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton)
       processPointSelection(event);
     
-    // emit specialized object click signals:
-    QVariant details;
-    QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details); // for these signals, selectability is ignored, that's why we call this again with onlySelectable set to false
-    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
+    // emit specialized click signals of QCustomPlot instance:
+    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(mMouseEventLayerable))
     {
       int dataIndex = 0;
-      if (!details.value<QCPDataSelection>().isEmpty())
-        dataIndex = details.value<QCPDataSelection>().dataRange().begin();
+      if (!mMouseEventLayerableDetails.value<QCPDataSelection>().isEmpty())
+        dataIndex = mMouseEventLayerableDetails.value<QCPDataSelection>().dataRange().begin();
       emit plottableClick(ap, dataIndex, event);
-    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
-      emit axisClick(ax, details.value<QCPAxis::SelectablePart>(), event);
-    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(mMouseEventLayerable))
+      emit axisClick(ax, mMouseEventLayerableDetails.value<QCPAxis::SelectablePart>(), event);
+    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(mMouseEventLayerable))
       emit itemClick(ai, event);
-    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
+    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(mMouseEventLayerable))
       emit legendClick(lg, 0, event);
-    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
+    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(mMouseEventLayerable))
       emit legendClick(li->parentLegend(), li, event);
   }
   
@@ -2244,35 +2252,38 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
     mSelectionRect->endSelection(event);
   } else
   {
-    // call event of affected layout element:
-    if (mMouseEventElement)
+    // call event of affected layerable:
+    if (mMouseEventLayerable)
     {
-      mMouseEventElement->mouseReleaseEvent(event);
-      mMouseEventElement = 0;
+      mMouseEventLayerable->mouseReleaseEvent(event, mMousePressPos);
+      mMouseEventLayerable = 0;
     }
   }
   
   if (noAntialiasingOnDrag())
     replot(rpQueuedReplot);
   
-  QWidget::mouseReleaseEvent(event);
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
-  
+
   Event handler for mouse wheel events. First, the \ref mouseWheel signal is emitted. Then
-  determines the affected layout element and forwards the event to it.
-  
+  determines the affected layerable and forwards the event to it.
 */
 void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
-  
-  // call event of affected layout element:
-  if (QCPLayoutElement *el = layoutElementAt(event->pos()))
-    el->wheelEvent(event);
-  
-  QWidget::wheelEvent(event);
+  // forward event to layerable under cursor:
+  QList<QCPLayerable*> candidates = layerableListAt(event->pos(), false);
+  for (int i=0; i<candidates.size(); ++i)
+  {
+    event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+    candidates.at(i)->wheelEvent(event);
+    if (event->isAccepted())
+      break;
+  }
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
@@ -2413,16 +2424,15 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   if (mInteractions.testFlag(QCP::iSelectPlottables))
   {
     QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
-    
-    QCPLayoutElement *affectedElement = layoutElementAt(rect.topLeft());
-    if (QCPAxisRect *affectedAxisRect = qobject_cast<QCPAxisRect*>(affectedElement))
+    QRectF rectF(rect.normalized());
+    if (QCPAxisRect *affectedAxisRect = axisRectAt(rectF.topLeft()))
     {
       // determine plottables that were hit by the rect and thus are candidates for selection:
       foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
       {
         if (QCPPlottableInterface1D *plottableInterface = plottable->interface1D())
         {
-          QCPDataSelection dataSel = plottableInterface->selectTestRect(QRectF(rect.normalized()), true);
+          QCPDataSelection dataSel = plottableInterface->selectTestRect(rectF, true);
           if (!dataSel.isEmpty())
             potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
         }
@@ -2475,7 +2485,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   
   if (selectionStateChanged)
     emit selectionChangedByUser();
-  replot(rpQueuedReplot); // always replot to make selection rect disappear
+  replot(rpQueuedReplot); // always replot to make selection rect disappear, TODO: if selection rect is drawn on dedicated replot-layer, only replot here if selection has changed
 }
 
 /*! \internal
@@ -2492,7 +2502,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
 void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
 {
   Q_UNUSED(event)
-  if (QCPAxisRect *axisRect = qobject_cast<QCPAxisRect*>(layoutElementAt(rect.topLeft())))
+  if (QCPAxisRect *axisRect = axisRectAt(rect.topLeft()))
   {
     QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxes(Qt::Horizontal) << axisRect->rangeZoomAxes(Qt::Vertical);
     affectedAxes.removeAll(static_cast<QCPAxis*>(0));
@@ -2502,14 +2512,21 @@ void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
 }
 
 /*! \internal
-  
+
   This method is called when a simple left mouse click was detected on the QCustomPlot surface.
 
   It first determines the layerable that was hit by the click, and then calls its \ref
   QCPLayerable::selectEvent. All other layerables receive a QCPLayerable::deselectEvent (unless the
   multi-select modifier was pressed, see \ref setMultiSelectModifier).
-        
-  \see processRectSelection, layerableAt, QCPLayerable::selectTest
+
+  In this method the hit layerable is determined a second time using \ref layerableAt (after the
+  one in \ref mousePressEvent), because we want \a onlySelectable set to true this time. This
+  implies that the mouse event grabber (mMouseEventLayerable) may be a different one from the
+  clicked layerable determined here. For example, if a non-selectable layerable is in front of a
+  selectable layerable at the click position, the front layerable will receive mouse events but the
+  selectable one in the back will receive the \ref QCPLayerable::selectEvent.
+
+  \see processRectSelection, QCPLayerable::selectTest
 */
 void QCustomPlot::processPointSelection(QMouseEvent *event)
 {

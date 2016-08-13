@@ -225,35 +225,6 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   \ref setAutoMargins is enabled) according to the space required by the labels of the axes.
 */
 
-/*! \fn virtual void QCPLayoutElement::mousePressEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse was pressed while being inside the outer rect of this layout
-  element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseMoveEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse is moved inside the outer rect of this layout element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseReleaseEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse was previously pressed inside the outer rect of this layout
-  element and is now released.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseDoubleClickEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse is double-clicked inside the outer rect of this layout
-  element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::wheelEvent(QWheelEvent *event)
-  
-  This event is called, if the mouse wheel is scrolled while the cursor is inside the rect of this
-  layout element.
-*/
-
 /* end documentation of inline functions */
 
 /*!

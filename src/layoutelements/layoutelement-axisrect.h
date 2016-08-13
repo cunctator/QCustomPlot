@@ -142,8 +142,8 @@ protected:
   virtual void layoutChanged();
   // events:
   virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void wheelEvent(QWheelEvent *event);
   
   // non-property methods:

@@ -486,25 +486,25 @@ void QCPColorScale::mousePressEvent(QMouseEvent *event)
 }
 
 /* inherits documentation from base class */
-void QCPColorScale::mouseMoveEvent(QMouseEvent *event)
+void QCPColorScale::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
 {
   if (!mAxisRect)
   {
     qDebug() << Q_FUNC_INFO << "internal axis rect was deleted";
     return;
   }
-  mAxisRect.data()->mouseMoveEvent(event);
+  mAxisRect.data()->mouseMoveEvent(event, startPos);
 }
 
 /* inherits documentation from base class */
-void QCPColorScale::mouseReleaseEvent(QMouseEvent *event)
+void QCPColorScale::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
 {
   if (!mAxisRect)
   {
     qDebug() << Q_FUNC_INFO << "internal axis rect was deleted";
     return;
   }
-  mAxisRect.data()->mouseReleaseEvent(event);
+  mAxisRect.data()->mouseReleaseEvent(event, startPos);
 }
 
 /* inherits documentation from base class */

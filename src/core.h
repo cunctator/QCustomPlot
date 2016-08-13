@@ -234,7 +234,8 @@ protected:
   QPixmap mPaintBuffer;
   QPoint mMousePressPos;
   bool mMouseHasMoved;
-  QPointer<QCPLayoutElement> mMouseEventElement;
+  QPointer<QCPLayerable> mMouseEventLayerable;
+  QVariant mMouseEventLayerableDetails;
   bool mReplotting;
   bool mReplotQueued;
   

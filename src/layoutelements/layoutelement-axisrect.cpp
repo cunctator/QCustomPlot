@@ -1183,8 +1183,9 @@ void QCPAxisRect::mousePressEvent(QMouseEvent *event)
   
   \see mousePressEvent, mouseReleaseEvent
 */
-void QCPAxisRect::mouseMoveEvent(QMouseEvent *event)
+void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
 {
+  Q_UNUSED(startPos)
   // Mouse range dragging interaction:
   if (mDragging && mParentPlot->interactions().testFlag(QCP::iRangeDrag))
   {
@@ -1242,9 +1243,10 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event)
 }
 
 /* inherits documentation from base class */
-void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event)
+void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
 {
   Q_UNUSED(event)
+  Q_UNUSED(startPos)
   mDragging = false;
   if (mParentPlot->noAntialiasingOnDrag())
   {

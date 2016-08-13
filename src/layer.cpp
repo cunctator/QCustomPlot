@@ -418,7 +418,7 @@ bool QCPLayerable::realVisibility() const
   
   You may pass 0 as \a details to indicate that you are not interested in those selection details.
   
-  \see selectEvent, deselectEvent, QCustomPlot::setInteractions
+  \see selectEvent, deselectEvent, mousePressEvent, wheelEvent, QCustomPlot::setInteractions
 */
 double QCPLayerable::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
@@ -630,4 +630,115 @@ void QCPLayerable::selectEvent(QMouseEvent *event, bool additive, const QVariant
 void QCPLayerable::deselectEvent(bool *selectionStateChanged)
 {
   Q_UNUSED(selectionStateChanged)
+}
+
+/*!
+  This event gets called when the user presses a mouse button while the cursor is over the
+  layerable. Whether a cursor is over the layerable is decided by a preceding call to \ref
+  selectTest.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos().
+
+  QCustomPlot uses an event propagation system that works the same as Qt's system. If your
+  layerable doesn't reimplement the \ref mousePressEvent or explicitly calls \c event->ignore() in
+  its reimplementation, the event will be propagated to the next layerable in the stacking order.
+
+  Once a layerable has accepted the \ref mousePressEvent, it is considered the mouse grabber and
+  will receive all following calls to \ref mouseMoveEvent or \ref mouseReleaseEvent for this mouse
+  interaction (a "mouse interaction" in this context ends with the release).
+
+  The default implementation does nothing except explicitly ignoring the event with \c
+  event->ignore().
+
+  \see mouseMoveEvent, mouseReleaseEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mousePressEvent(QMouseEvent *event)
+{
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user moves the mouse while holding a mouse button, after this
+  layerable has become the mouse grabber by accepting the preceding \ref mousePressEvent.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a startPos indicates the position where the initial \ref
+  mousePressEvent occured, that started the mouse interaction.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseReleaseEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  Q_UNUSED(startPos)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user releases the mouse button, after this layerable has become
+  the mouse grabber by accepting the preceding \ref mousePressEvent.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a startPos indicates the position where the initial \ref
+  mousePressEvent occured, that started the mouse interaction.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseMoveEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  Q_UNUSED(startPos)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user presses the mouse button a second time in a double-click,
+  while the cursor is over the layerable. Whether a cursor is over the layerable is decided by a
+  preceding call to \ref selectTest.
+
+  The \ref mouseDoubleClickEvent is called instead of the second \ref mousePressEvent. So in the
+  case of a double-click, the event succession is
+  <i>pressEvent &ndash; releaseEvent &ndash; doubleClickEvent &ndash; releaseEvent</i>.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos().
+
+  Similarly to \ref mousePressEvent, once a layerable has accepted the \ref mouseDoubleClickEvent,
+  it is considered the mouse grabber and will receive all following calls to \ref mouseMoveEvent
+  and \ref mouseReleaseEvent for this mouse interaction (a "mouse interaction" in this context ends
+  with the release).
+
+  The default implementation does nothing except explicitly ignoring the event with \c
+  event->ignore().
+
+  \see mousePressEvent, mouseMoveEvent, mouseReleaseEvent, wheelEvent
+*/
+void QCPLayerable::mouseDoubleClickEvent(QMouseEvent *event)
+{
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user turns the mouse scroll wheel while the cursor is over the
+  layerable. Whether a cursor is over the layerable is decided by a preceding call to \ref
+  selectTest.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos().
+
+  The \c event->delta() indicates how far the mouse wheel was turned, which is usually +/- 120 for
+  single rotation steps. However, if the mouse wheel is turned rapidly, multiple steps may
+  accumulate to one event, making \c event->delta() larger. On the other hand, if the wheel has
+  very smooth steps or none at all, the delta may be smaller.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseMoveEvent, mouseReleaseEvent, mouseDoubleClickEvent
+*/
+void QCPLayerable::wheelEvent(QWheelEvent *event)
+{
+  event->ignore();
 }

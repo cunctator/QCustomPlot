@@ -106,7 +106,7 @@ public:
   
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  
+
   // non-property methods:
   bool realVisibility() const;
   
@@ -127,9 +127,15 @@ protected:
   virtual QRect clipRect() const;
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const = 0;
   virtual void draw(QCPPainter *painter) = 0;
-  // events:
+  // selection events:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
   virtual void deselectEvent(bool *selectionStateChanged);
+  // low-level mouse events:
+  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseDoubleClickEvent(QMouseEvent *event);
+  virtual void wheelEvent(QWheelEvent *event);
   
   // non-property methods:
   void initializeParentPlot(QCustomPlot *parentPlot);

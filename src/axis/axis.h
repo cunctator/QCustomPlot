@@ -83,8 +83,8 @@ protected:
   QCPAxis *mParentAxis;
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void drawGridLines(QCPPainter *painter) const;
@@ -280,7 +280,7 @@ public:
   void setUpperEnding(const QCPLineEnding &ending);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-property methods:
   Qt::Orientation orientation() const { return mOrientation; }
@@ -358,12 +358,12 @@ protected:
   virtual int calculateMargin();
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
-  virtual QCP::Interaction selectionCategory() const;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
   // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void setupTickVectors();

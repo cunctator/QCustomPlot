@@ -62,7 +62,7 @@ public:
   void setSelectedPen(const QPen &pen);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   QCPItemPosition * const topLeft;
   QCPItemPosition * const bottomRight;
@@ -86,8 +86,8 @@ protected:
   QPen mPen, mSelectedPen;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual QPointF anchorPixelPosition(int anchorId) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual QPointF anchorPixelPosition(int anchorId) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void updateScaledPixmap(QRect finalRect=QRect(), bool flipHorz=false, bool flipVert=false);

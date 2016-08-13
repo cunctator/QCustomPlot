@@ -74,8 +74,8 @@ protected:
   virtual void keyPressEvent(QKeyEvent *event);
   
   // reimplemented virtual methods
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   
   friend class QCustomPlot;
 };

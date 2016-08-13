@@ -185,11 +185,11 @@ public:
   void moveAbove(QCPBars *bars);
   
   // reimplemented virtual methods:
-  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const;
-  virtual QPointF dataPixelPosition(int index) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QPointF dataPixelPosition(int index) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
@@ -201,8 +201,8 @@ protected:
   QPointer<QCPBars> mBarBelow, mBarAbove;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const;

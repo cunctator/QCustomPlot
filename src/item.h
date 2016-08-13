@@ -136,7 +136,7 @@ protected:
   QCPItemAnchor *mParentAnchorX, *mParentAnchorY;
   
   // reimplemented virtual methods:
-  virtual QCPItemPosition *toQCPItemPosition() { return this; }
+  virtual QCPItemPosition *toQCPItemPosition() Q_DECL_OVERRIDE { return this; }
   
 private:
   Q_DISABLE_COPY(QCPItemPosition)
@@ -171,7 +171,7 @@ public:
   Q_SLOT void setSelected(bool selected);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE = 0;
   
   // non-virtual methods:
   QList<QCPItemPosition*> positions() const { return mPositions; }
@@ -193,13 +193,13 @@ protected:
   bool mSelectable, mSelected;
   
   // reimplemented virtual methods:
-  virtual QCP::Interaction selectionCategory() const;
-  virtual QRect clipRect() const;
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter) = 0;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
+  virtual QRect clipRect() const Q_DECL_OVERRIDE;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE = 0;
   // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
   virtual QPointF anchorPixelPosition(int anchorId) const;

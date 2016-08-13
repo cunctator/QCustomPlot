@@ -69,6 +69,11 @@
 #  define QCP_LIB_DECL
 #endif
 
+// define empty macro for Q_DECL_OVERRIDE if it doesn't exist (Qt < 5)
+#ifndef Q_DECL_OVERRIDE
+#  define Q_DECL_OVERRIDE
+#endif
+
 /*!
   The QCP Namespace contains general enums, QFlags and functions used throughout the QCustomPlot
   library.

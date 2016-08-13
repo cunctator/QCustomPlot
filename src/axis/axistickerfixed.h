@@ -60,7 +60,7 @@ protected:
   ScaleStrategy mScaleStrategy;
   
   // reimplemented virtual methods:
-  virtual double getTickStep(const QCPRange &range);
+  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE;
 };
 Q_DECLARE_METATYPE(QCPAxisTickerFixed::ScaleStrategy)
 

@@ -87,7 +87,7 @@ public:
   void setInterpolating(bool enabled);
 
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void updatePosition();
@@ -105,7 +105,7 @@ protected:
   bool mInterpolating;
 
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
 
   // non-virtual methods:
   QPen mainPen() const;

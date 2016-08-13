@@ -71,7 +71,7 @@ public:
   void setStyle(BracketStyle style);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   QCPItemPosition * const left;
   QCPItemPosition * const right;
@@ -85,8 +85,8 @@ protected:
   BracketStyle mStyle;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual QPointF anchorPixelPosition(int anchorId) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual QPointF anchorPixelPosition(int anchorId) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QPen mainPen() const;

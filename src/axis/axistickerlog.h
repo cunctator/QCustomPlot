@@ -50,9 +50,9 @@ protected:
   double mLogBaseLnInv;
   
   // reimplemented virtual methods:
-  virtual double getTickStep(const QCPRange &range);
-  virtual int getSubTickCount(double tickStep);
-  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range);
+  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE;
+  virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE;
+  virtual QVector<double> createTickVector(double tickStep, const QCPRange &range) Q_DECL_OVERRIDE;
 };
 
 #endif // QCP_AXISTICKERLOG_H

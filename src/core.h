@@ -240,15 +240,15 @@ protected:
   bool mReplotQueued;
   
   // reimplemented virtual methods:
-  virtual QSize minimumSizeHint() const;
-  virtual QSize sizeHint() const;
-  virtual void paintEvent(QPaintEvent *event);
-  virtual void resizeEvent(QResizeEvent *event);
-  virtual void mouseDoubleClickEvent(QMouseEvent *event);
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+  virtual void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+  virtual void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
   virtual void draw(QCPPainter *painter);

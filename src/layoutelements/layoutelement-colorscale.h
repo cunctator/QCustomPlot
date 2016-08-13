@@ -105,7 +105,7 @@ public:
   void rescaleDataRange(bool onlyVisibleMaps);
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
   
 signals:
   void dataRangeChanged(QCPRange newRange);
@@ -125,12 +125,12 @@ protected:
   QPointer<QCPAxis> mColorAxis;
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
   // events:
-  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
-  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
 private:
   Q_DISABLE_COPY(QCPColorScale)

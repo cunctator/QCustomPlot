@@ -59,7 +59,7 @@ public:
   void setTail(const QCPLineEnding &tail);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   QCPItemPosition * const start;
   QCPItemPosition * const end;
@@ -70,7 +70,7 @@ protected:
   QCPLineEnding mHead, mTail;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QLineF getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const;

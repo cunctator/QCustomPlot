@@ -118,7 +118,7 @@ public:
   virtual QList<QCPLayoutElement*> elements(bool recursive) const;
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
@@ -134,9 +134,9 @@ protected:
   virtual void layoutChanged();
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const { Q_UNUSED(painter) }
-  virtual void draw(QCPPainter *painter) { Q_UNUSED(painter) }
-  virtual void parentPlotInitialized(QCustomPlot *parentPlot);
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE { Q_UNUSED(painter) }
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE { Q_UNUSED(painter) }
+  virtual void parentPlotInitialized(QCustomPlot *parentPlot) Q_DECL_OVERRIDE;
 
 private:
   Q_DISABLE_COPY(QCPLayoutElement)
@@ -155,8 +155,8 @@ public:
   explicit QCPLayout();
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
   virtual int elementCount() const = 0;
@@ -218,15 +218,15 @@ public:
   void setRowSpacing(int pixels);
   
   // reimplemented virtual methods:
-  virtual void updateLayout();
-  virtual int elementCount() const;
-  virtual QCPLayoutElement* elementAt(int index) const;
-  virtual QCPLayoutElement* takeAt(int index);
-  virtual bool take(QCPLayoutElement* element);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
-  virtual void simplify();
-  virtual QSize minimumSizeHint() const;
-  virtual QSize maximumSizeHint() const;
+  virtual void updateLayout() Q_DECL_OVERRIDE;
+  virtual int elementCount() const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* elementAt(int index) const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
+  virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
+  virtual void simplify() Q_DECL_OVERRIDE;
+  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize maximumSizeHint() const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QCPLayoutElement *element(int row, int column) const;
@@ -278,13 +278,13 @@ public:
   void setInsetRect(int index, const QRectF &rect);
   
   // reimplemented virtual methods:
-  virtual void updateLayout();
-  virtual int elementCount() const;
-  virtual QCPLayoutElement* elementAt(int index) const;
-  virtual QCPLayoutElement* takeAt(int index);
-  virtual bool take(QCPLayoutElement* element);
-  virtual void simplify() {}
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual void updateLayout() Q_DECL_OVERRIDE;
+  virtual int elementCount() const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* elementAt(int index) const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
+  virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
+  virtual void simplify() Q_DECL_OVERRIDE {}
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void addElement(QCPLayoutElement *element, Qt::Alignment alignment);

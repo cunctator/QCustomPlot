@@ -112,8 +112,8 @@ public:
   QPoint center() const { return mRect.center(); }
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
 
 protected:
   // property members:
@@ -136,15 +136,15 @@ protected:
   QHash<QCPAxis::AxisType, QList<QCPAxis*> > mAxes;
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
-  virtual int calculateAutoMargin(QCP::MarginSide side);
-  virtual void layoutChanged();
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual int calculateAutoMargin(QCP::MarginSide side) Q_DECL_OVERRIDE;
+  virtual void layoutChanged() Q_DECL_OVERRIDE;
   // events:
-  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
-  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
   // non-property methods:
   void drawBackground(QCPPainter *painter);

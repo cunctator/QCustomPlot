@@ -68,9 +68,9 @@ protected:
   double mPiTickStep;
   
   // reimplemented virtual methods:
-  virtual double getTickStep(const QCPRange &range);
-  virtual int getSubTickCount(double tickStep);
-  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision);
+  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE;
+  virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE;
+  virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void simplifyFraction(int &numerator, int &denominator) const;

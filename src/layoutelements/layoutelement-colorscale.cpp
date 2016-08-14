@@ -603,6 +603,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
   if (rect().isEmpty())
     return;
   
+  const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
   int n = mParentColorScale->mGradient.levelCount();
   int w, h;
   QVector<double> data(n);
@@ -612,7 +613,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
   {
     w = n;
     h = rect().height();
-    mGradientImage = QImage(w, h, QImage::Format_RGB32);
+    mGradientImage = QImage(w, h, format);
     QVector<QRgb*> pixels;
     for (int y=0; y<h; ++y)
       pixels.append(reinterpret_cast<QRgb*>(mGradientImage.scanLine(y)));
@@ -623,7 +624,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
   {
     w = rect().width();
     h = n;
-    mGradientImage = QImage(w, h, QImage::Format_RGB32);
+    mGradientImage = QImage(w, h, format);
     for (int y=0; y<h; ++y)
     {
       QRgb *pixels = reinterpret_cast<QRgb*>(mGradientImage.scanLine(y));

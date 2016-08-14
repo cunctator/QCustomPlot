@@ -836,6 +836,7 @@ void QCPColorMap::updateMapImage()
   if (!keyAxis) return;
   if (mMapData->isEmpty()) return;
   
+  const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
   const int keySize = mMapData->keySize();
   const int valueSize = mMapData->valueSize();
   int keyOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)keySize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
@@ -843,18 +844,18 @@ void QCPColorMap::updateMapImage()
   
   // resize mMapImage to correct dimensions including possible oversampling factors, according to key/value axes orientation:
   if (keyAxis->orientation() == Qt::Horizontal && (mMapImage.width() != keySize*keyOversamplingFactor || mMapImage.height() != valueSize*valueOversamplingFactor))
-    mMapImage = QImage(QSize(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor), QImage::Format_RGB32);
+    mMapImage = QImage(QSize(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor), format);
   else if (keyAxis->orientation() == Qt::Vertical && (mMapImage.width() != valueSize*valueOversamplingFactor || mMapImage.height() != keySize*keyOversamplingFactor))
-    mMapImage = QImage(QSize(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor), QImage::Format_RGB32);
+    mMapImage = QImage(QSize(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor), format);
   
   QImage *localMapImage = &mMapImage; // this is the image on which the colorization operates. Either the final mMapImage, or if we need oversampling, mUndersampledMapImage
   if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
   {
     // resize undersampled map image to actual key/value cell sizes:
     if (keyAxis->orientation() == Qt::Horizontal && (mUndersampledMapImage.width() != keySize || mUndersampledMapImage.height() != valueSize))
-      mUndersampledMapImage = QImage(QSize(keySize, valueSize), QImage::Format_RGB32);
+      mUndersampledMapImage = QImage(QSize(keySize, valueSize), format);
     else if (keyAxis->orientation() == Qt::Vertical && (mUndersampledMapImage.width() != valueSize || mUndersampledMapImage.height() != keySize))
-      mUndersampledMapImage = QImage(QSize(valueSize, keySize), QImage::Format_RGB32);
+      mUndersampledMapImage = QImage(QSize(valueSize, keySize), format);
     localMapImage = &mUndersampledMapImage; // make the colorization run on the undersampled image
   } else if (!mUndersampledMapImage.isNull())
     mUndersampledMapImage = QImage(); // don't need oversampling mechanism anymore (map size has changed) but mUndersampledMapImage still has nonzero size, free it

@@ -94,10 +94,11 @@ protected:
   bool mPeriodic;
   
   // non-property members:
-  QVector<QRgb> mColorBuffer;
+  QVector<QRgb> mColorBuffer; // have colors premultiplied with alpha (for usage with QImage::Format_ARGB32_Premultiplied)
   bool mColorBufferInvalidated;
   
   // non-virtual methods:
+  bool stopsUseAlpha() const;
   void updateColorBuffer();
 };
 Q_DECLARE_METATYPE(QCPColorGradient::ColorInterpolation)

@@ -703,7 +703,7 @@ void MainWindow::setupColorMapTest(QCustomPlot *customPlot)
   presetInteractive(customPlot);
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
   colorMap->setName("Color Map");
-  customPlot->addLayer("maplayer", customPlot->layer("grid"), QCustomPlot::limBelow);
+  customPlot->addLayer("maplayer", customPlot->layer("grid"), QCustomPlot::limAbove);
   colorMap->setLayer("maplayer");
   
   int nx = 400;
@@ -748,6 +748,7 @@ void MainWindow::setupColorMapTest(QCustomPlot *customPlot)
   QCPColorGradient gradient = colorMap->gradient();
   gradient.loadPreset(QCPColorGradient::gpJet);
   gradient.setPeriodic(false);
+  gradient.setColorStopAt(0.5, QColor(255, 255, 255, 0));
   colorMap->setGradient(gradient);
   colorMap->rescaleDataRange(true);
   

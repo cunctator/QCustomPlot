@@ -55,9 +55,9 @@ public:
   
 signals:
   void started(QMouseEvent *event);
-  void changed(QRect rect, QMouseEvent *event);
-  void canceled(QRect rect, QInputEvent *event);
-  void accepted(QRect rect, QMouseEvent *event);
+  void changed(const QRect &rect, QMouseEvent *event);
+  void canceled(const QRect &rect, QInputEvent *event);
+  void accepted(const QRect &rect, QMouseEvent *event);
   
 protected:
   // property members:

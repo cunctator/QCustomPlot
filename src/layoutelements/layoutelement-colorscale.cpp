@@ -92,7 +92,7 @@
 /* end documentation of signals */
 /* start documentation of signals */
 
-/*! \fn void QCPColorScale::dataRangeChanged(QCPRange newRange);
+/*! \fn void QCPColorScale::dataRangeChanged(const QCPRange &newRange);
   
   This signal is emitted when the data range changes.
   
@@ -106,7 +106,7 @@
   \see setDataScaleType
 */
 
-/*! \fn void QCPColorScale::gradientChanged(QCPColorGradient newGradient);
+/*! \fn void QCPColorScale::gradientChanged(const QCPColorGradient &newGradient);
   
   This signal is emitted when the gradient changes.
   

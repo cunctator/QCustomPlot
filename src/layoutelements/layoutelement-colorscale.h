@@ -108,9 +108,9 @@ public:
   virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
   
 signals:
-  void dataRangeChanged(QCPRange newRange);
+  void dataRangeChanged(const QCPRange &newRange);
   void dataScaleTypeChanged(QCPAxis::ScaleType scaleType);
-  void gradientChanged(QCPColorGradient newGradient);
+  void gradientChanged(const QCPColorGradient &newGradient);
 
 protected:
   // property members:

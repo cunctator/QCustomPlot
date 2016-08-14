@@ -497,7 +497,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
 
 /* start documentation of signals */
 
-/*! \fn void QCPColorMap::dataRangeChanged(QCPRange newRange);
+/*! \fn void QCPColorMap::dataRangeChanged(const QCPRange &newRange);
   
   This signal is emitted when the data range changes.
   
@@ -511,7 +511,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   \see setDataScaleType
 */
 
-/*! \fn void QCPColorMap::gradientChanged(QCPColorGradient newGradient);
+/*! \fn void QCPColorMap::gradientChanged(const QCPColorGradient &newGradient);
   
   This signal is emitted when the gradient changes.
   

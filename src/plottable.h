@@ -148,7 +148,7 @@ public:
   
 signals:
   void selectionChanged(bool selected);
-  void selectionChanged(QCPDataSelection selection);
+  void selectionChanged(const QCPDataSelection &selection);
   void selectableChanged(QCP::SelectionType selectable);
   
 protected:

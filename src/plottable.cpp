@@ -385,10 +385,10 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
   interaction or by a direct call to \ref setSelection. The parameter \a selected indicates whether
   there are any points selected or not.
   
-  \see selectionChanged(QCPDataSelection selection)
+  \see selectionChanged(const QCPDataSelection &selection)
 */
 
-/*! \fn void QCPAbstractPlottable::selectionChanged(QCPDataSelection selection)
+/*! \fn void QCPAbstractPlottable::selectionChanged(const QCPDataSelection &selection)
   
   This signal is emitted when the selection state of this plottable has changed, either by user
   interaction or by a direct call to \ref setSelection. The parameter \a selection holds the

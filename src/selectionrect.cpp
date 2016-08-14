@@ -73,7 +73,7 @@
   started dragging the selection rect with the mouse.
 */
 
-/*! \fn void QCPSelectionRect::changed(QRect rect, QMouseEvent *event);
+/*! \fn void QCPSelectionRect::changed(const QRect &rect, QMouseEvent *event);
   
   This signal is emitted while the selection rect interaction is ongoing and the \a rect has
   changed its size due to the user moving the mouse.
@@ -82,7 +82,7 @@
   upper or left side of the selection rect origin.
 */
 
-/*! \fn void QCPSelectionRect::canceled(QRect rect, QInputEvent *event);
+/*! \fn void QCPSelectionRect::canceled(const QRect &rect, QInputEvent *event);
   
   This signal is emitted when the selection interaction was cancelled. Note that \a event is 0 if
   the selection interaction was cancelled programmatically, by a call to \ref cancel.
@@ -94,7 +94,7 @@
   upper or left side of the selection rect origin.
 */
 
-/*! \fn void QCPSelectionRect::accepted(QRect rect, QMouseEvent *event);
+/*! \fn void QCPSelectionRect::accepted(const QRect &rect, QMouseEvent *event);
   
   This signal is emitted when the selection interaction was completed by the user releasing the
   mouse button.

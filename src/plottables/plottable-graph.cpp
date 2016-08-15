@@ -458,9 +458,9 @@ QCPRange QCPGraph::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) c
 }
 
 /* inherits documentation from base class */
-QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPGraph::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
-  return mDataContainer->valueRange(foundRange, inSignDomain);
+  return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
 /* inherits documentation from base class */

@@ -76,7 +76,7 @@ public:
   QCPDataContainer::const_iterator findBegin(double sortKey, bool expandedRange=true) const;
   QCPDataContainer::const_iterator findEnd(double sortKey, bool expandedRange=true) const;
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
-  QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
+  QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange());
   QCPDataRange dataRange() const { return QCPDataRange(0, size()); }
   void limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const;
   

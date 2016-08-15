@@ -525,9 +525,9 @@ QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomai
 }
 
 /* inherits documentation from base class */
-QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
-  return mDataContainer->valueRange(foundRange, inSignDomain);
+  return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
 /*!

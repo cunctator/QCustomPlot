@@ -892,7 +892,7 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) co
 }
 
 /* inherits documentation from base class */
-QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
   // Note: can't simply use mDataContainer->valueRange here because we need to
   // take into account bar base value and possible stacking of multiple bars
@@ -901,7 +901,14 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) 
   range.upper = mBaseValue;
   bool haveLower = true; // set to true, because baseValue should always be visible in bar charts
   bool haveUpper = true; // set to true, because baseValue should always be visible in bar charts
-  for (QCPBarsDataContainer::const_iterator it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  QCPBarsDataContainer::const_iterator itBegin = mDataContainer->constBegin();
+  QCPBarsDataContainer::const_iterator itEnd = mDataContainer->constEnd();
+  if (inKeyRange != QCPRange())
+  {
+    itBegin = mDataContainer->findBegin(inKeyRange.lower);
+    itEnd = mDataContainer->findEnd(inKeyRange.upper);
+  }
+  for (QCPBarsDataContainer::const_iterator it = itBegin; it != itEnd; ++it)
   {
     const double current = it->value + getStackedBaseValue(it->key, it->value >= 0);
     if (qIsNaN(current)) continue;

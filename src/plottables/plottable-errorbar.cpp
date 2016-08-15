@@ -645,7 +645,7 @@ QCPRange QCPErrorBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomai
 }
 
 /* inherits documentation from base class */
-QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
   if (!mDataPlottable)
   {
@@ -654,11 +654,24 @@ QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
   }
   
   QCPRange range;
+  const bool restrictKeyRange = inKeyRange != QCPRange();
   bool haveLower = false;
   bool haveUpper = false;
-  QCPErrorBarsDataContainer::const_iterator it;
-  for (it = mDataContainer->constBegin(); it != mDataContainer->constEnd(); ++it)
+  QCPErrorBarsDataContainer::const_iterator itBegin = mDataContainer->constBegin();
+  QCPErrorBarsDataContainer::const_iterator itEnd = mDataContainer->constEnd();
+  if (mDataPlottable->interface1D()->sortKeyIsMainKey() && restrictKeyRange)
   {
+    itBegin = mDataContainer->constBegin()+findBegin(inKeyRange.lower);
+    itEnd = mDataContainer->constBegin()+findEnd(inKeyRange.upper);
+  }
+  for (QCPErrorBarsDataContainer::const_iterator it = itBegin; it != itEnd; ++it)
+  {
+    if (restrictKeyRange)
+    {
+      const double dataKey = mDataPlottable->interface1D()->dataMainKey(it-mDataContainer->constBegin());
+      if (dataKey < inKeyRange.lower || dataKey > inKeyRange.upper)
+        continue;
+    }
     if (mErrorType == etValueError)
     {
       const double dataValue = mDataPlottable->interface1D()->dataMainValue(it-mDataContainer->constBegin());

@@ -948,8 +948,17 @@ QCPRange QCPColorMap::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain
 }
 
 /* inherits documentation from base class */
-QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
+  if (inKeyRange != QCPRange())
+  {
+    if (mMapData->keyRange().upper < inKeyRange.lower || mMapData->keyRange().lower > inKeyRange.upper)
+    {
+      foundRange = false;
+      return QCPRange();
+    }
+  }
+  
   foundRange = true;
   QCPRange result = mMapData->valueRange();
   result.normalize();

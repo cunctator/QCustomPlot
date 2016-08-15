@@ -606,19 +606,23 @@ QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain 
 }
 
 /*!
-  Returns the range encompassed by the value coordinates of all data points, using the full \a
-  DataType::valueRange which each data point reports. The output parameter \a foundRange indicates
-  whether a sensible range was found. If this is false, you should not use the returned QCPRange
-  (e.g. the data container is empty or all points have the same value).
-  
+  Returns the range encompassed by the value coordinates of the data points in the specified key
+  range (\a inKeyRange), using the full \a DataType::valueRange reported by the data points. The
+  output parameter \a foundRange indicates whether a sensible range was found. If this is false,
+  you should not use the returned QCPRange (e.g. the data container is empty or all points have the
+  same value).
+
+  If \a inKeyRange has both lower and upper bound set to zero (is equal to <tt>QCPRange()</tt>),
+  all data points are considered, without any restriction on the keys.
+
   Use \a signDomain to control which sign of the value coordinates should be considered. This is
   relevant e.g. for logarithmic plots which can mathematically only display one sign domain at a
   time.
-  
+
   \see keyRange
 */
 template <class DataType>
-QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomain signDomain)
+QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomain signDomain, const QCPRange &inKeyRange)
 {
   if (isEmpty())
   {
@@ -626,16 +630,23 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
     return QCPRange();
   }
   QCPRange range;
+  const bool restrictKeyRange = inKeyRange != QCPRange();
   bool haveLower = false;
   bool haveUpper = false;
   QCPRange current;
-  
-  QCPDataContainer<DataType>::const_iterator it = constBegin();
+  QCPDataContainer<DataType>::const_iterator itBegin = constBegin();
   QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
+  if (DataType::sortKeyIsMainKey() && restrictKeyRange)
+  {
+    itBegin = findBegin(inKeyRange.lower);
+    itEnd = findEnd(inKeyRange.upper);
+  }
   if (signDomain == QCP::sdBoth) // range may be anywhere
   {
-    while (it != itEnd)
+    for (QCPDataContainer<DataType>::const_iterator it = itBegin; it != itEnd; ++it)
     {
+      if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
+        continue;
       current = it->valueRange();
       if ((current.lower < range.lower || !haveLower) && !qIsNaN(current.lower))
       {
@@ -647,12 +658,13 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
         range.upper = current.upper;
         haveUpper = true;
       }
-      ++it;
     }
   } else if (signDomain == QCP::sdNegative) // range may only be in the negative sign domain
   {
-    while (it != itEnd)
+    for (QCPDataContainer<DataType>::const_iterator it = itBegin; it != itEnd; ++it)
     {
+      if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
+        continue;
       current = it->valueRange();
       if ((current.lower < range.lower || !haveLower) && current.lower < 0 && !qIsNaN(current.lower))
       {
@@ -664,12 +676,13 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
         range.upper = current.upper;
         haveUpper = true;
       }
-      ++it;
     }
   } else if (signDomain == QCP::sdPositive) // range may only be in the positive sign domain
   {
-    while (it != itEnd)
+    for (QCPDataContainer<DataType>::const_iterator it = itBegin; it != itEnd; ++it)
     {
+      if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
+        continue;
       current = it->valueRange();
       if ((current.lower < range.lower || !haveLower) && current.lower > 0 && !qIsNaN(current.lower))
       {
@@ -681,7 +694,6 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
         range.upper = current.upper;
         haveUpper = true;
       }
-      ++it;
     }
   }
   

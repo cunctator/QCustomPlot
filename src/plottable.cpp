@@ -358,15 +358,19 @@ bool QCPSelectionDecorator::registerWithPlottable(QCPAbstractPlottable *plottabl
   \see rescaleAxes, getValueRange
 */
 
-/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const = 0
+/*! \fn QCPRange QCPAbstractPlottable::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const = 0
   
-  Returns the coordinate range that all data in this plottable span in the key axis dimension. For
-  logarithmic plots, one can set \a inSignDomain to either \ref QCP::sdNegative or \ref
-  QCP::sdPositive in order to restrict the returned range to that sign domain. E.g. when only
-  negative range is wanted, set \a inSignDomain to \ref QCP::sdNegative and all positive points
-  will be ignored for range calculation. For no restriction, just set \a inSignDomain to \ref
-  QCP::sdBoth (default). \a foundRange is an output parameter that indicates whether a range could
-  be found or not. If this is false, you shouldn't use the returned range (e.g. no points in data).
+  Returns the coordinate range that the data points in the specified key range (\a inKeyRange) span
+  in the value axis dimension. For logarithmic plots, one can set \a inSignDomain to either \ref
+  QCP::sdNegative or \ref QCP::sdPositive in order to restrict the returned range to that sign
+  domain. E.g. when only negative range is wanted, set \a inSignDomain to \ref QCP::sdNegative and
+  all positive points will be ignored for range calculation. For no restriction, just set \a
+  inSignDomain to \ref QCP::sdBoth (default). \a foundRange is an output parameter that indicates
+  whether a range could be found or not. If this is false, you shouldn't use the returned range
+  (e.g. no points in data).
+  
+  If \a inKeyRange has both lower and upper bound set to zero (is equal to <tt>QCPRange()</tt>),
+  all data points are considered, without any restriction on the keys.
 
   Note that \a foundRange is not the same as \ref QCPRange::validRange, since the range returned by
   this function may have size zero (e.g. when there is only one data point). In this case \a
@@ -754,24 +758,27 @@ void QCPAbstractPlottable::rescaleKeyAxis(bool onlyEnlarge) const
 }
 
 /*!
-  Rescales the value axis of the plottable so the whole plottable is visible.
-  
+  Rescales the value axis of the plottable so the whole plottable is visible. If \a inKeyRange is
+  set to true, only the data points which are in the currently visible key axis range are
+  considered.
+
   Returns true if the axis was actually scaled. This might not be the case if this plottable has an
   invalid range, e.g. because it has no data points.
-  
+
   See \ref rescaleAxes for detailed behaviour.
 */
-void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge) const
+void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge, bool inKeyRange) const
 {
+  QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!valueAxis) { qDebug() << Q_FUNC_INFO << "invalid value axis"; return; }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
   QCP::SignDomain signDomain = QCP::sdBoth;
   if (valueAxis->scaleType() == QCPAxis::stLogarithmic)
     signDomain = (valueAxis->range().upper < 0 ? QCP::sdNegative : QCP::sdPositive);
   
   bool foundRange;
-  QCPRange newRange = getValueRange(foundRange, signDomain);
+  QCPRange newRange = getValueRange(foundRange, signDomain, inKeyRange ? keyAxis->range() : QCPRange());
   if (foundRange)
   {
     if (onlyEnlarge)

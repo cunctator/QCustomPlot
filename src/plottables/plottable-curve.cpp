@@ -466,9 +466,9 @@ QCPRange QCPCurve::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) c
 }
 
 /* inherits documentation from base class */
-QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
-  return mDataContainer->valueRange(foundRange, inSignDomain);
+  return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
 /* inherits documentation from base class */

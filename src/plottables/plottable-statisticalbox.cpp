@@ -539,9 +539,9 @@ QCPRange QCPStatisticalBox::getKeyRange(bool &foundRange, QCP::SignDomain inSign
 }
 
 /* inherits documentation from base class */
-QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+QCPRange QCPStatisticalBox::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
 {
-  return mDataContainer->valueRange(foundRange, inSignDomain);
+  return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
 /* inherits documentation from base class */

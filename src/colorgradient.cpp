@@ -167,7 +167,8 @@ void QCPColorGradient::setPeriodic(bool enabled)
   mPeriodic = enabled;
 }
 
-/*!
+/*! \overload
+  
   This method is used to quickly convert a \a data array to colors. The colors will be output in
   the array \a scanLine. Both \a data and \a scanLine must have the length \a n when passed to this
   function. The data range that shall be used for mapping the data value to the gradient is passed
@@ -178,13 +179,15 @@ void QCPColorGradient::setPeriodic(bool enabled)
   set \a dataIndexFactor to <tt>columnCount</tt> to convert a column instead of a row of the data
   array, in \a scanLine. \a scanLine will remain a regular (1D) array. This works because \a data
   is addressed <tt>data[i*dataIndexFactor]</tt>.
+  
+  Use the overloaded method to additionally provide alpha map data.
 
   The QRgb values that are placed in \a scanLine have their r, g and b components premultiplied
   with alpha (see QImage::Format_ARGB32_Premultiplied).
 */
 void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor, bool logarithmic)
 {
-  // If you change something here, make sure to also adapt ::color()
+  // If you change something here, make sure to also adapt color() and the other colorize() overload
   if (!data)
   {
     qDebug() << Q_FUNC_INFO << "null pointer given as data";
@@ -248,8 +251,119 @@ void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb 
   }
 }
 
-/*! \internal
+/*! \overload
+
+  Additionally to the other overload of \ref colorize, this method takes the array \a alpha, which
+  has the same size and structure as \a data and encodes the alpha information per data point.
+
+  The QRgb values that are placed in \a scanLine have their r, g and b components premultiplied
+  with alpha (see QImage::Format_ARGB32_Premultiplied).
+*/
+void QCPColorGradient::colorize(const double *data, const unsigned char *alpha, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor, bool logarithmic)
+{
+  // If you change something here, make sure to also adapt color() and the other colorize() overload
+  if (!data)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as data";
+    return;
+  }
+  if (!alpha)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as alpha";
+    return;
+  }
+  if (!scanLine)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as scanLine";
+    return;
+  }
+  if (mColorBufferInvalidated)
+    updateColorBuffer();
   
+  if (!logarithmic)
+  {
+    const double posToIndexFactor = (mLevelCount-1)/range.size();
+    if (mPeriodic)
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (int)((data[dataIndexFactor*i]-range.lower)*posToIndexFactor) % mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    } else
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (data[dataIndexFactor*i]-range.lower)*posToIndexFactor;
+        if (index < 0)
+          index = 0;
+        else if (index >= mLevelCount)
+          index = mLevelCount-1;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    }
+  } else // logarithmic == true
+  {
+    if (mPeriodic)
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (int)(qLn(data[dataIndexFactor*i]/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1)) % mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    } else
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = qLn(data[dataIndexFactor*i]/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1);
+        if (index < 0)
+          index = 0;
+        else if (index >= mLevelCount)
+          index = mLevelCount-1;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    }
+  }
+}
+
+/*! \internal
+
   This method is used to colorize a single data value given in \a position, to colors. The data
   range that shall be used for mapping the data value to the gradient is passed in \a range. \a
   logarithmic indicates whether the data value shall be mapped to a color logarithmically.

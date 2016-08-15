@@ -81,6 +81,7 @@ public:
   
   // non-property methods:
   void colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor=1, bool logarithmic=false);
+  void colorize(const double *data, const unsigned char *alpha, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor=1, bool logarithmic=false);
   QRgb color(double position, const QCPRange &range, bool logarithmic=false);
   void loadPreset(GradientPreset preset);
   void clearColorStops();

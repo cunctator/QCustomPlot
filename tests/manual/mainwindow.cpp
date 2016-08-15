@@ -718,6 +718,7 @@ void MainWindow::setupColorMapTest(QCustomPlot *customPlot)
     {
       colorMap->data()->setCell(x, y, qExp(-qSqrt((x-310)*(x-310)+(y-260)*(y-260))/200.0)+
                                       qExp(-qSqrt((x-200)*(x-200)+(y-290)*(y-290))/80.0)-qExp(-qSqrt((x-180)*(x-180)+(y-140)*(y-140))/200.0));
+      colorMap->data()->setAlpha(x, y, qBound(0.0, (1-((x-nx*0.5)*(x-nx*0.5)+(y-ny*0.5)*(y-ny*0.5))/(double)(nx*nx*0.25))*255.0, 255.0));
     }
   }
   

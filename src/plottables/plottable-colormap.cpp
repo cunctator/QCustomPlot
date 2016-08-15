@@ -49,6 +49,11 @@
   coordinate with \ref setData. plot coordinate to cell index transformations and vice versa are
   provided by the functions \ref coordToCell and \ref cellToCoord.
   
+  A \ref QCPColorMapData also holds an on-demand two-dimensional array of alpha values which (if
+  allocated) has the same size as the data map. It can be accessed via \ref setAlpha, \ref
+  fillAlpha and \ref clearAlpha. The memory for the alpha map is only allocated if needed, i.e. on
+  the first call of \ref setAlpha. \ref clearAlpha restores full opacity and frees the alpha map.
+  
   This class also buffers the minimum and maximum values that are in the data set, to provide
   QCPColorMap::rescaleDataRange with the necessary information quickly. Setting a cell to a value
   that is greater than the current maximum increases this maximum to the new value. However,
@@ -85,6 +90,7 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
   mValueRange(valueRange),
   mIsEmpty(true),
   mData(0),
+  mAlpha(0),
   mDataModified(true)
 {
   setSize(keySize, valueSize);
@@ -95,6 +101,8 @@ QCPColorMapData::~QCPColorMapData()
 {
   if (mData)
     delete[] mData;
+  if (mAlpha)
+    delete[] mAlpha;
 }
 
 /*!
@@ -105,13 +113,15 @@ QCPColorMapData::QCPColorMapData(const QCPColorMapData &other) :
   mValueSize(0),
   mIsEmpty(true),
   mData(0),
+  mAlpha(0),
   mDataModified(true)
 {
   *this = other;
 }
 
 /*!
-  Overwrites this color map data instance with the data stored in \a other.
+  Overwrites this color map data instance with the data stored in \a other. The alpha map state is
+  transferred, too.
 */
 QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
 {
@@ -119,10 +129,18 @@ QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
   {
     const int keySize = other.keySize();
     const int valueSize = other.valueSize();
+    if (!other.mAlpha && mAlpha)
+      clearAlpha();
     setSize(keySize, valueSize);
+    if (other.mAlpha && !mAlpha)
+      createAlpha(false);
     setRange(other.keyRange(), other.valueRange());
-    if (!mIsEmpty)
+    if (!isEmpty())
+    {
       memcpy(mData, other.mData, sizeof(mData[0])*keySize*valueSize);
+      if (mAlpha)
+        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*keySize*valueSize);
+    }
     mDataBounds = other.mDataBounds;
     mDataModified = true;
   }
@@ -147,6 +165,22 @@ double QCPColorMapData::cell(int keyIndex, int valueIndex)
     return mData[valueIndex*mKeySize + keyIndex];
   else
     return 0;
+}
+
+/*!
+  Returns the alpha map value of the cell with the indices \a keyIndex and \a valueIndex.
+
+  If this color map data doesn't have an alpha map (because \ref setAlpha was never called after
+  creation or after a call to \ref clearAlpha), returns 255, which corresponds to full opacity.
+
+  \see setAlpha
+*/
+unsigned char QCPColorMapData::alpha(int keyIndex, int valueIndex)
+{
+  if (mAlpha && keyIndex >= 0 && keyIndex < mKeySize && valueIndex >= 0 && valueIndex < mValueSize)
+    return mAlpha[valueIndex*mKeySize + keyIndex];
+  else
+    return 255;
 }
 
 /*!
@@ -185,6 +219,10 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
         qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
     } else
       mData = 0;
+    
+    if (mAlpha) // if we had an alpha map, recreate it with new size
+      createAlpha();
+    
     mDataModified = true;
   }
 }
@@ -313,7 +351,36 @@ void QCPColorMapData::setCell(int keyIndex, int valueIndex, double z)
     if (z > mDataBounds.upper)
       mDataBounds.upper = z;
      mDataModified = true;
-  }
+  } else
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << keyIndex << valueIndex;
+}
+
+/*!
+  Sets the alpha of the color map cell given by \a keyIndex and \a valueIndex to \a alpha. A value
+  of 0 for \a alpha results in a fully transparent cell, and a value of 255 results in a fully
+  opaque cell.
+
+  If an alpha map doesn't exist yet for this color map data, it will be created here. If you wish
+  to restore full opacity and free any allocated memory of the alpha map, call \ref clearAlpha.
+
+  Note that the cell-wise alpha which can be configured here is independent of any alpha configured
+  in the color map's gradient (\ref QCPColorGradient). If a cell is affected both by the cell-wise
+  and gradient alpha, the alpha values will be blended accordingly during rendering of the color
+  map.
+
+  \see fillAlpha, clearAlpha
+*/
+void QCPColorMapData::setAlpha(int keyIndex, int valueIndex, unsigned char alpha)
+{
+  if (keyIndex >= 0 && keyIndex < mKeySize && valueIndex >= 0 && valueIndex < mValueSize)
+  {
+    if (mAlpha || createAlpha())
+    {
+      mAlpha[valueIndex*mKeySize + keyIndex] = alpha;
+      mDataModified = true;
+    }
+  } else
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << keyIndex << valueIndex;
 }
 
 /*!
@@ -359,6 +426,19 @@ void QCPColorMapData::clear()
 }
 
 /*!
+  Frees the internal alpha map. The color map will have full opacity again.
+*/
+void QCPColorMapData::clearAlpha()
+{
+  if (mAlpha)
+  {
+    delete[] mAlpha;
+    mAlpha = 0;
+    mDataModified = true;
+  }
+}
+
+/*!
   Sets all cells to the value \a z.
 */
 void QCPColorMapData::fill(double z)
@@ -368,6 +448,26 @@ void QCPColorMapData::fill(double z)
     mData[i] = z;
   mDataBounds = QCPRange(z, z);
   mDataModified = true;
+}
+
+/*!
+  Sets the opacity of all color map cells to \a alpha. A value of 0 for \a alpha results in a fully
+  transparent color map, and a value of 255 results in a fully opaque color map.
+
+  If you wish to restore opacity to 100% and free any used memory for the alpha map, rather use
+  \ref clearAlpha.
+
+  \see setAlpha
+*/
+void QCPColorMapData::fillAlpha(unsigned char alpha)
+{
+  if (mAlpha || createAlpha(false))
+  {
+    const int dataCount = mValueSize*mKeySize;
+    for (int i=0; i<dataCount; ++i)
+      mAlpha[i] = alpha;
+    mDataModified = true;
+  }
 }
 
 /*!
@@ -418,6 +518,44 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
     *value = valueIndex/(double)(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
 }
 
+/*! \internal
+
+  Allocates the internal alpha map with the current data map key/value size and, if \a
+  initializeOpaque is true, initializes all values to 255. If \a initializeOpaque is false, the
+  values are not initialized at all. In this case, the alpha map should be initialized manually,
+  e.g. with \ref fillAlpha.
+
+  If an alpha map exists already, it is deleted first. If this color map is empty (has either key
+  or value size zero, see \ref isEmpty), the alpha map is cleared.
+
+  The return value indicates the existence of the alpha map after the call. So this method returns
+  true if the data map isn't empty and an alpha map was successfully allocated.
+*/
+bool QCPColorMapData::createAlpha(bool initializeOpaque)
+{
+  clearAlpha();
+  if (isEmpty())
+    return false;
+  
+#ifdef __EXCEPTIONS
+  try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
+#endif
+    mAlpha = new unsigned char[mKeySize*mValueSize];
+#ifdef __EXCEPTIONS
+  } catch (...) { mAlpha = 0; }
+#endif
+  if (mAlpha)
+  {
+    if (initializeOpaque)
+      fillAlpha(255);
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
+    return false;
+  }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPColorMap
@@ -462,6 +600,21 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   The \a data range that is mapped to the colors of the gradient can be specified with \ref
   setDataRange. To make the data range encompass the whole data set minimum to maximum, call \ref
   rescaleDataRange.
+  
+  \section qcpcolormap-transparency Transparency
+  
+  Transparency in color maps can be achieved by two mechanisms. On one hand, you can specify alpha
+  values for color stops of the \ref QCPColorGradient, via the regular QColor interface. This will
+  cause the color map data which gets mapped to colors around those color stops to appear with the
+  accordingly interpolated transparency.
+  
+  On the other hand you can also directly apply an alpha value to each cell independent of its
+  data, by using the alpha map feature of \ref QCPColorMapData. The relevant methods are \ref
+  QCPColorMapData::setAlpha, QCPColorMapData::fillAlpha and \ref QCPColorMapData::clearAlpha().
+  
+  The two transparencies will be joined together in the plot and otherwise not interfere with each
+  other. They are mixed in a multiplicative matter, so an alpha of e.g. 50% (128/255) in both modes
+  simultaneously, will result in a total transparency of 25% (64/255).
   
   \section usage Usage
   
@@ -861,6 +1014,7 @@ void QCPColorMap::updateMapImage()
     mUndersampledMapImage = QImage(); // don't need oversampling mechanism anymore (map size has changed) but mUndersampledMapImage still has nonzero size, free it
   
   const double *rawData = mMapData->mData;
+  const unsigned char *rawAlpha = mMapData->mAlpha;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     const int lineCount = valueSize;
@@ -868,7 +1022,10 @@ void QCPColorMap::updateMapImage()
     for (int line=0; line<lineCount; ++line)
     {
       QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+      if (rawAlpha)
+        mGradient.colorize(rawData+line*rowCount, rawAlpha+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+      else
+        mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
@@ -877,7 +1034,10 @@ void QCPColorMap::updateMapImage()
     for (int line=0; line<lineCount; ++line)
     {
       QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+      if (rawAlpha)
+        mGradient.colorize(rawData+line, rawAlpha+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+      else
+        mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
     }
   }
   

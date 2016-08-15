@@ -1179,9 +1179,9 @@ double QCPBars::getStackedBaseValue(double key, bool positive) const
   {
     double max = 0; // don't initialize with mBaseValue here because only base value of bottom-most bar has meaning in a bar stack
     // find bars of mBarBelow that are approximately at key and find largest one:
-    double epsilon = qAbs(key)*1e-6; // should be safe even when changed to use float at some point
+    double epsilon = qAbs(key)*(sizeof(key)==4 ? 1e-6 : 1e-14); // should be safe even when changed to use float at some point
     if (key == 0)
-      epsilon = 1e-6;
+      epsilon = (sizeof(key)==4 ? 1e-6 : 1e-14);
     QCPBarsDataContainer::const_iterator it = mBarBelow.data()->mDataContainer->findBegin(key-epsilon);
     QCPBarsDataContainer::const_iterator itEnd = mBarBelow.data()->mDataContainer->findEnd(key+epsilon);
     while (it != itEnd)

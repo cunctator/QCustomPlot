@@ -877,7 +877,7 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) co
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.lower);
     const double lowerCorrected = mKeyAxis.data()->pixelToCoord(keyPixel);
-    if (!qIsNaN(lowerCorrected) && range.lower > lowerCorrected)
+    if (!qIsNaN(lowerCorrected) && qIsFinite(lowerCorrected) && range.lower > lowerCorrected)
       range.lower = lowerCorrected;
     // upper range bound:
     getPixelWidth(range.upper, lowerPixelWidth, upperPixelWidth);
@@ -885,7 +885,7 @@ QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) co
     if (mBarsGroup)
       keyPixel += mBarsGroup->keyPixelOffset(this, range.upper);
     const double upperCorrected = mKeyAxis.data()->pixelToCoord(keyPixel);
-    if (!qIsNaN(upperCorrected) && range.upper < upperCorrected)
+    if (!qIsNaN(upperCorrected) && qIsFinite(upperCorrected) && range.upper < upperCorrected)
       range.upper = upperCorrected;
   }
   return range;

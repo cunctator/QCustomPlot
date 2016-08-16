@@ -591,7 +591,7 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
   typically placed to the right of the axis rect. See the documentation there for details on how to
   add and use a color scale.
   
-  \section appearance Changing the appearance
+  \section qcpcolormap-appearance Changing the appearance
   
   The central part of the appearance is the color gradient, which can be specified via \ref
   setGradient. See the documentation of \ref QCPColorGradient for details on configuring a color
@@ -616,7 +616,7 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
   other. They are mixed in a multiplicative matter, so an alpha of e.g. 50% (128/255) in both modes
   simultaneously, will result in a total transparency of 25% (64/255).
   
-  \section usage Usage
+  \section qcpcolormap-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPColorMap is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies

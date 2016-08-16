@@ -103,7 +103,7 @@ QCPErrorBarsData::QCPErrorBarsData(double errorMinus, double errorPlus) :
   <tt>std::numeric_limits<double>::quiet_NaN()</tt>) to not show the respective error bar on the data point at
   that index.
 
-  \section appearance Changing the appearance
+  \section qcperrorbars-appearance Changing the appearance
 
   The appearance of the error bars is defined by the pen (\ref setPen), and the width of the
   whiskers (\ref setWhiskerWidth). Further, the error bar backbones may leave a gap around the data

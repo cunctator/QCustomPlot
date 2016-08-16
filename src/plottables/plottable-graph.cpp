@@ -144,7 +144,7 @@ QCPGraphData::QCPGraphData(double key, double value) :
   (<tt>qQNaN()</tt> or <tt>std::numeric_limits<double>::quiet_NaN()</tt>) in between the two data points that shall be
   separated.
   
-  \section appearance Changing the appearance
+  \section qcpgraph-appearance Changing the appearance
   
   The appearance of the graph is mainly determined by the line style, scatter style, brush and pen
   of the graph (\ref setLineStyle, \ref setScatterStyle, \ref setBrush, \ref setPen).

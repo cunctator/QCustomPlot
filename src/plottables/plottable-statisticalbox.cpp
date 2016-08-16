@@ -170,7 +170,7 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   "addData" method or accessing the individual data points through \ref data, and setting the
   <tt>QVector<double> outliers</tt> of the data points directly.
   
-  \section appearance Changing the appearance
+  \section qcpstatisticalbox-appearance Changing the appearance
   
   The appearance of each data point box, ranging from the lower to the upper quartile, is
   controlled via \ref setPen and \ref setBrush. You may change the width of the boxes with \ref
@@ -189,7 +189,7 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
   The outlier data points are drawn as normal scatter points. Their look can be controlled with
   \ref setOutlierStyle
   
-  \section usage Usage
+  \section qcpstatisticalbox-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPStatisticalBox is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies

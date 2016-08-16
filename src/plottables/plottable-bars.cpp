@@ -453,7 +453,7 @@ QCPBarsData::QCPBarsData(double key, double value) :
   
   To plot data, assign it with the \ref setData or \ref addData functions.
   
-  \section appearance Changing the appearance
+  \section qcpbars-appearance Changing the appearance
   
   The appearance of the bars is determined by the pen and the brush (\ref setPen, \ref setBrush).
   The width of the individual bars can be controlled with \ref setWidthType and \ref setWidth.
@@ -467,7 +467,7 @@ QCPBarsData::QCPBarsData(double key, double value) :
   
   \image html QCPBarsGroup.png
   
-  \section usage Usage
+  \section qcpbars-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPBars is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies

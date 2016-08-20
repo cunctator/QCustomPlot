@@ -37,10 +37,12 @@
 
 */
 
-QCPPaintBuffer::QCPPaintBuffer(const QSize &size) :
-  mBuffer(size),
+QCPPaintBuffer::QCPPaintBuffer(const QSize &size, double devicePixelRatio) :
+  mSize(size),
+  mDevicePixelRatio(devicePixelRatio),
   mInvalidated(true)
 {
+  reallocateBuffer();
 }
 
 QCPPaintBuffer::~QCPPaintBuffer()
@@ -52,13 +54,25 @@ QCPPaintBuffer::~QCPPaintBuffer()
 */
 void QCPPaintBuffer::setSize(const QSize &size)
 {
-  if (mBuffer.size() != size)
-    mBuffer = QPixmap(size);
+  if (mSize != size)
+  {
+    mSize = size;
+    reallocateBuffer();
+  }
 }
 
 void QCPPaintBuffer::setInvalidated(bool invalidated)
 {
   mInvalidated = invalidated;
+}
+
+void QCPPaintBuffer::setDevicePixelRatio(double ratio)
+{
+  if (!qFuzzyCompare(ratio, mDevicePixelRatio))
+  {
+    mDevicePixelRatio = ratio;
+    reallocateBuffer();
+  }
 }
 
 QCPPainter *QCPPaintBuffer::createPainter()
@@ -82,4 +96,23 @@ void QCPPaintBuffer::draw(QCPPainter *painter) const
 void QCPPaintBuffer::fill(const QColor &color)
 {
   mBuffer.fill(color);
+}
+
+void QCPPaintBuffer::reallocateBuffer()
+{
+  setInvalidated();
+  if (!qFuzzyCompare(1.0, mDevicePixelRatio))
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    mBuffer = QPixmap(mSize*mDevicePixelRatio);
+    mBuffer.setDevicePixelRatio(mDevicePixelRatio);
+#else
+    qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
+    mDevicePixelRatio = 1.0;
+    mBuffer = QPixmap(mSize);
+#endif
+  } else
+  {
+    mBuffer = QPixmap(mSize);
+  }
 }

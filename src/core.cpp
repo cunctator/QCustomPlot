@@ -364,6 +364,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(0),
   yAxis2(0),
   legend(0),
+  mDevicePixelRatio(1.0), // will be adapted to primary screen below
   mPlotLayout(0),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -390,6 +391,9 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   QLocale currentLocale = locale();
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+  setDevicePixelRatio(qApp->primaryScreen()->devicePixelRatio());
+#endif
   
   // create initial layers:
   mLayers.append(new QCPLayer(this, QLatin1String("background")));
@@ -786,6 +790,22 @@ void QCustomPlot::setViewport(const QRect &rect)
   mViewport = rect;
   if (mPlotLayout)
     mPlotLayout->setOuterRect(mViewport);
+}
+
+void QCustomPlot::setDevicePixelRatio(double ratio)
+{
+  if (!qFuzzyCompare(ratio, mDevicePixelRatio))
+  {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    mDevicePixelRatio = ratio;
+    for (int i=0; i<mPaintBuffers.size(); ++i)
+      mPaintBuffers.at(i)->setDevicePixelRatio(mDevicePixelRatio);
+    // Note: axis label cache has devicePixelRatio as part of cache hash, so no need to manually clear cache here
+#else
+    qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
+    mDevicePixelRatio = 1.0;
+#endif
+  }
 }
 
 /*!
@@ -2377,7 +2397,7 @@ void QCustomPlot::setupPaintBuffers()
 {
   int bufferIndex = 0;
   if (mPaintBuffers.isEmpty())
-    mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+    mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
   
   for (int layerIndex = 0; layerIndex < mLayers.size(); ++layerIndex)
   {
@@ -2389,13 +2409,13 @@ void QCustomPlot::setupPaintBuffers()
     {
       ++bufferIndex;
       if (bufferIndex >= mPaintBuffers.size())
-        mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+        mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
       layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
       if (layerIndex < mLayers.size()-1 && mLayers.at(layerIndex+1)->mode() == QCPLayer::lmLogical) // not last layer, and next one is logical, so prepare another buffer for next layerables
       {
         ++bufferIndex;
         if (bufferIndex >= mPaintBuffers.size())
-          mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+          mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
       }
     }
   }

@@ -33,16 +33,18 @@ class QCPPainter;
 class QCP_LIB_DECL QCPPaintBuffer
 {
 public:
-  explicit QCPPaintBuffer(const QSize &size);
+  explicit QCPPaintBuffer(const QSize &size, double devicePixelRatio);
   virtual ~QCPPaintBuffer();
   
   // getters:
   QSize size() const { return mBuffer.size(); }
   bool invalidated() const { return mInvalidated; }
+  double devicePixelRatio() const { return mDevicePixelRatio; }
   
   // setters:
   void setSize(const QSize &size);
   void setInvalidated(bool invalidated=true);
+  void setDevicePixelRatio(double ratio);
   
   // non-property methods:
   virtual QCPPainter *createPainter();
@@ -52,9 +54,14 @@ public:
 protected:
   // property members:
   QPixmap mBuffer;
+  QSize mSize;
+  double mDevicePixelRatio;
   
   // non-property members:
   bool mInvalidated;
+  
+  // non-virtual methods:
+  void reallocateBuffer();
   
 };
 

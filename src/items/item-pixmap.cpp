@@ -198,13 +198,21 @@ void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz, bool flip
   
   if (mScaled)
   {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    double devicePixelRatio = mPixmap.devicePixelRatio();
+#else
+    double devicePixelRatio = 1.0;
+#endif
     if (finalRect.isNull())
       finalRect = getFinalRect(&flipHorz, &flipVert);
-    if (mScaledPixmapInvalidated || finalRect.size() != mScaledPixmap.size())
+    if (mScaledPixmapInvalidated || finalRect.size() != mScaledPixmap.size()/devicePixelRatio)
     {
-      mScaledPixmap = mPixmap.scaled(finalRect.size(), mAspectRatioMode, mTransformationMode);
+      mScaledPixmap = mPixmap.scaled(finalRect.size()*devicePixelRatio, mAspectRatioMode, mTransformationMode);
       if (flipHorz || flipVert)
         mScaledPixmap = QPixmap::fromImage(mScaledPixmap.toImage().mirrored(flipHorz, flipVert));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+      mScaledPixmap.setDevicePixelRatio(devicePixelRatio);
+#endif
     }
   } else if (!mScaledPixmap.isNull())
     mScaledPixmap = QPixmap();
@@ -251,11 +259,20 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
       topLeft.setY(p2.y());
     }
     QSize scaledSize = mPixmap.size();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    scaledSize /= mPixmap.devicePixelRatio();
+    scaledSize.scale(newSize*mPixmap.devicePixelRatio(), mAspectRatioMode);
+#else
     scaledSize.scale(newSize, mAspectRatioMode);
+#endif
     result = QRect(topLeft, scaledSize);
   } else
   {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+    result = QRect(p1, mPixmap.size()/mPixmap.devicePixelRatio());
+#else
     result = QRect(p1, mPixmap.size());
+#endif
   }
   if (flippedHorz)
     *flippedHorz = flipHorz;

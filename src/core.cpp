@@ -404,7 +404,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mLayers.append(new QCPLayer(this, QLatin1String("overlay")));
   updateLayerIndices();
   setCurrentLayer(QLatin1String("main"));
-  layer("overlay")->setMode(QCPLayer::lmBuffered);
+  layer(QLatin1String("overlay"))->setMode(QCPLayer::lmBuffered);
   
   // create initial layout, axis rect and legend:
   mPlotLayout = new QCPLayoutGrid;
@@ -435,7 +435,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   
   // create selection rect instance:
   mSelectionRect = new QCPSelectionRect(this);
-  mSelectionRect->setLayer("overlay");
+  mSelectionRect->setLayer(QLatin1String("overlay"));
   
   setViewport(rect()); // needs to be called after mPlotLayout has been created
   

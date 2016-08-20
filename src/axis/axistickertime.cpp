@@ -251,7 +251,7 @@ QString QCPAxisTickerTime::getTickLabel(double tick, const QLocale &locale, QCha
     replaceUnit(result, iUnit, qRound(iUnit == mBiggestUnit ? restValues[iUnit] : values[iUnit]));
   }
   if (negative)
-    result.prepend('-');
+    result.prepend(QLatin1Char('-'));
   return result;
 }
 
@@ -264,7 +264,7 @@ void QCPAxisTickerTime::replaceUnit(QString &text, QCPAxisTickerTime::TimeUnit u
 {
   QString valueStr = QString::number(value);
   while (valueStr.size() < mFieldWidth.value(unit))
-    valueStr.prepend('0');
+    valueStr.prepend(QLatin1Char('0'));
   
   text.replace(mFormatPattern.value(unit), valueStr);
 }

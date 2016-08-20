@@ -27,6 +27,7 @@
 #define QCP_LAYER_H
 
 #include "global.h"
+#include "paintbuffer.h"
 
 class QCPPainter;
 class QCustomPlot;
@@ -45,6 +46,15 @@ class QCP_LIB_DECL QCPLayer : public QObject
   Q_PROPERTY(bool visible READ visible WRITE setVisible)
   /// \endcond
 public:
+  
+  /*!
+    TODO
+  */
+  enum LayerMode { lmLogical   ///< Layer is used only for rendering order, and shares paint buffer with other layers.
+                   ,lmBuffered ///< Layer has its own paint buffer and may be replotted individually (see \ref replot).
+                 };
+  Q_ENUMS(LayerMode)
+  
   QCPLayer(QCustomPlot* parentPlot, const QString &layerName);
   ~QCPLayer();
   
@@ -54,9 +64,14 @@ public:
   int index() const { return mIndex; }
   QList<QCPLayerable*> children() const { return mChildren; }
   bool visible() const { return mVisible; }
+  LayerMode mode() const { return mMode; }
   
   // setters:
   void setVisible(bool visible);
+  void setMode(LayerMode mode);
+  
+  // non-virtual methods:
+  void replot();
   
 protected:
   // property members:
@@ -65,8 +80,14 @@ protected:
   int mIndex;
   QList<QCPLayerable*> mChildren;
   bool mVisible;
+  LayerMode mMode;
+  
+  // non-property members:
+  QWeakPointer<QCPPaintBuffer> mPaintBuffer;
   
   // non-virtual methods:
+  void draw(QCPPainter *painter);
+  void drawToPaintBuffer();
   void addChild(QCPLayerable *layerable, bool prepend);
   void removeChild(QCPLayerable *layerable);
   
@@ -147,6 +168,7 @@ private:
   Q_DISABLE_COPY(QCPLayerable)
   
   friend class QCustomPlot;
+  friend class QCPLayer;
   friend class QCPAxisRect;
 };
 

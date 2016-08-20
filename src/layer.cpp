@@ -107,7 +107,8 @@ QCPLayer::QCPLayer(QCustomPlot *parentPlot, const QString &layerName) :
   mParentPlot(parentPlot),
   mName(layerName),
   mIndex(-1), // will be set to a proper value by the QCustomPlot layer creation function
-  mVisible(true)
+  mVisible(true),
+  mMode(lmLogical)
 {
   // Note: no need to make sure layerName is unique, because layer
   // management is done with QCustomPlot functions.
@@ -140,6 +141,64 @@ void QCPLayer::setVisible(bool visible)
   mVisible = visible;
 }
 
+void QCPLayer::setMode(QCPLayer::LayerMode mode)
+{
+  if (mMode != mode)
+  {
+    mMode = mode;
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
+  }
+}
+
+void QCPLayer::draw(QCPPainter *painter)
+{
+  foreach (QCPLayerable *child, mChildren)
+  {
+    if (child->realVisibility())
+    {
+      painter->save();
+      painter->setClipRect(child->clipRect().translated(0, -1));
+      child->applyDefaultAntialiasingHint(painter);
+      child->draw(painter);
+      painter->restore();
+    }
+  }
+}
+
+void QCPLayer::drawToPaintBuffer()
+{
+  if (!mPaintBuffer.isNull())
+  {
+    if (QCPPainter *painter = mPaintBuffer.data()->createPainter())
+    {
+      if (painter->isActive())
+        draw(painter);
+      else
+        qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
+      delete painter;
+    } else
+      qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
+  } else
+    qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
+}
+
+void QCPLayer::replot()
+{
+  if (mMode == lmBuffered && !mParentPlot->hasInvalidatedPaintBuffers())
+  {
+    if (!mPaintBuffer.isNull())
+    {
+      mPaintBuffer.data()->fill(Qt::transparent);
+      drawToPaintBuffer();
+      mPaintBuffer.data()->setInvalidated(false);
+      mParentPlot->update();
+    } else
+      qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
+  } else if (mMode == lmLogical)
+    mParentPlot->replot();
+}
+
 /*! \internal
   
   Adds the \a layerable to the list of this layer. If \a prepend is set to true, the layerable will
@@ -158,6 +217,8 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
       mChildren.prepend(layerable);
     else
       mChildren.append(layerable);
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is already child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
@@ -173,7 +234,11 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
 */
 void QCPLayer::removeChild(QCPLayerable *layerable)
 {
-  if (!mChildren.removeOne(layerable))
+  if (mChildren.removeOne(layerable))
+  {
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
+  } else
     qDebug() << Q_FUNC_INFO << "layerable is not child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
 

@@ -29,6 +29,7 @@
 #include "global.h"
 #include "axis/range.h"
 #include "axis/axis.h"
+#include "paintbuffer.h"
 
 class QCPPainter;
 class QCPLayer;
@@ -81,6 +82,7 @@ public:
   
   // getters:
   QRect viewport() const { return mViewport; }
+  double devicePixelRatio() const { return mDevicePixelRatio; }
   QPixmap background() const { return mBackgroundPixmap; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
@@ -98,6 +100,7 @@ public:
   
   // setters:
   void setViewport(const QRect &rect);
+  void setDevicePixelRatio(double ratio);
   void setBackground(const QPixmap &pm);
   void setBackground(const QPixmap &pm, bool scaled, Qt::AspectRatioMode mode=Qt::KeepAspectRatioByExpanding);
   void setBackground(const QBrush &brush);
@@ -209,6 +212,7 @@ signals:
 protected:
   // property members:
   QRect mViewport;
+  double mDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;
@@ -231,7 +235,7 @@ protected:
   QCPSelectionRect *mSelectionRect;
   
   // non-property members:
-  QPixmap mPaintBuffer;
+  QList<QSharedPointer<QCPPaintBuffer> > mPaintBuffers;
   QPoint mMousePressPos;
   bool mMouseHasMoved;
   QPointer<QCPLayerable> mMouseEventLayerable;
@@ -252,6 +256,7 @@ protected:
   
   // introduced virtual methods:
   virtual void draw(QCPPainter *painter);
+  virtual void updateLayout();
   virtual void axisRemoved(QCPAxis *axis);
   virtual void legendRemoved(QCPLegend *legend);
   Q_SLOT virtual void processRectSelection(QRect rect, QMouseEvent *event);
@@ -266,6 +271,8 @@ protected:
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
   QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
+  void setupPaintBuffers();
+  bool hasInvalidatedPaintBuffers();
   
   friend class QCPLegend;
   friend class QCPAxis;

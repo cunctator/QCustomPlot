@@ -23,54 +23,46 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_H
-#define QCP_H
+#ifndef QCP_PAINTBUFFER_H
+#define QCP_PAINTBUFFER_H
 
 #include "global.h"
-#include "qcpvector2d.h"
-#include "painter.h"
-#include "paintbuffer.h"
-#include "layer.h"
-#include "axis/range.h"
-#include "selection.h"
-#include "selectionrect.h"
-#include "layout.h"
-#include "lineending.h"
-#include "axis/axisticker.h"
-#include "axis/axistickerdatetime.h"
-#include "axis/axistickertime.h"
-#include "axis/axistickerfixed.h"
-#include "axis/axistickertext.h"
-#include "axis/axistickerpi.h"
-#include "axis/axistickerlog.h"
-#include "axis/axis.h"
-#include "scatterstyle.h"
-#include "datacontainer.h"
-#include "plottable.h"
-#include "item.h"
-#include "core.h"
-#include "plottable1d.h"
-#include "colorgradient.h"
-#include "selectiondecorator-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-textelement.h"
-#include "layoutelements/layoutelement-colorscale.h"
-#include "plottables/plottable-graph.h"
-#include "plottables/plottable-curve.h"
-#include "plottables/plottable-bars.h"
-#include "plottables/plottable-statisticalbox.h"
-#include "plottables/plottable-colormap.h"
-#include "plottables/plottable-financial.h"
-#include "plottables/plottable-errorbar.h"
-#include "items/item-straightline.h"
-#include "items/item-line.h"
-#include "items/item-curve.h"
-#include "items/item-rect.h"
-#include "items/item-text.h"
-#include "items/item-ellipse.h"
-#include "items/item-pixmap.h"
-#include "items/item-tracer.h"
-#include "items/item-bracket.h"
 
-#endif // QCP_H
+class QCPPainter;
+
+class QCP_LIB_DECL QCPPaintBuffer
+{
+public:
+  explicit QCPPaintBuffer(const QSize &size, double devicePixelRatio);
+  virtual ~QCPPaintBuffer();
+  
+  // getters:
+  QSize size() const { return mBuffer.size(); }
+  bool invalidated() const { return mInvalidated; }
+  double devicePixelRatio() const { return mDevicePixelRatio; }
+  
+  // setters:
+  void setSize(const QSize &size);
+  void setInvalidated(bool invalidated=true);
+  void setDevicePixelRatio(double ratio);
+  
+  // non-property methods:
+  virtual QCPPainter *createPainter();
+  virtual void draw(QCPPainter *painter) const;
+  void fill(const QColor &color);
+  
+protected:
+  // property members:
+  QPixmap mBuffer;
+  QSize mSize;
+  double mDevicePixelRatio;
+  
+  // non-property members:
+  bool mInvalidated;
+  
+  // non-virtual methods:
+  void reallocateBuffer();
+  
+};
+
+#endif // QCP_PAINTBUFFER_H

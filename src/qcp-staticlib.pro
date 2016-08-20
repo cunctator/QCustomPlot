@@ -29,6 +29,7 @@ CONFIG(debug, debug|release) {
 HEADERS += \
 global.h \
 painter.h \
+paintbuffer.h \
 layer.h \
 axis/range.h \
 axis/axis.h \
@@ -75,6 +76,7 @@ layoutelements/layoutelement-axisrect.h \
 
 SOURCES += \
 painter.cpp \
+paintbuffer.cpp \
 layer.cpp \
 axis/range.cpp \
 axis/axis.cpp \

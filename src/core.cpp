@@ -379,7 +379,6 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMultiSelectModifier(Qt::ControlModifier),
   mSelectionRectMode(QCP::srmNone),
   mSelectionRect(0),
-  mPaintBuffer(size()),
   mMouseHasMoved(false),
   mMouseEventLayerable(0),
   mReplotting(false),
@@ -401,6 +400,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mLayers.append(new QCPLayer(this, QLatin1String("overlay")));
   updateLayerIndices();
   setCurrentLayer(QLatin1String("main"));
+  layer("overlay")->setMode(QCPLayer::lmBuffered);
   
   // create initial layout, axis rect and legend:
   mPlotLayout = new QCPLayoutGrid;
@@ -1459,6 +1459,7 @@ bool QCustomPlot::addLayer(const QString &name, QCPLayer *otherLayer, QCustomPlo
   QCPLayer *newLayer = new QCPLayer(this, name);
   mLayers.insert(otherLayer->index() + (insertMode==limAbove ? 1:0), newLayer);
   updateLayerIndices();
+  setupPaintBuffers(); // associates new layer with the appropriate paint buffer
   return true;
 }
 
@@ -1506,6 +1507,9 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   // if removed layer is current layer, change current layer to layer below/above:
   if (layer == mCurrentLayer)
     setCurrentLayer(targetLayer);
+  // invalidate the paint buffer that was responsible for this layer:
+  if (!layer->mPaintBuffer.isNull())
+    layer->mPaintBuffer.data()->setInvalidated();
   // remove layer:
   delete layer;
   mLayers.removeOne(layer);
@@ -1539,6 +1543,12 @@ bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::
     mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
   else if (layer->index() < otherLayer->index())
     mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 0:-1));
+  
+  // invalidate the paint buffers that are responsible for the layers:
+  if (!layer->mPaintBuffer.isNull())
+    layer->mPaintBuffer.data()->setInvalidated();
+  if (!otherLayer->mPaintBuffer.isNull())
+    otherLayer->mPaintBuffer.data()->setInvalidated();
   
   updateLayerIndices();
   return true;
@@ -1775,22 +1785,19 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   mReplotQueued = false;
   emit beforeReplot();
   
-  mPaintBuffer.fill(mBackgroundBrush.style() == Qt::SolidPattern ? mBackgroundBrush.color() : Qt::transparent);
-  QCPPainter painter;
-  painter.begin(&mPaintBuffer);
-  if (painter.isActive())
-  {
-    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
-    if (mBackgroundBrush.style() != Qt::SolidPattern && mBackgroundBrush.style() != Qt::NoBrush)
-      painter.fillRect(mViewport, mBackgroundBrush);
-    draw(&painter);
-    painter.end();
-    if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
-      repaint();
-    else
-      update();
-  } else // might happen if QCustomPlot has width or height zero
-    qDebug() << Q_FUNC_INFO << "Couldn't activate painter on buffer. This usually happens because QCustomPlot has width or height zero.";
+  updateLayout();
+  
+  // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
+  setupPaintBuffers();
+  foreach (QCPLayer *layer, mLayers)
+    layer->drawToPaintBuffer();
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+    mPaintBuffers.at(i)->setInvalidated(false);
+  
+  if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
+    repaint();
+  else
+    update();
   
   emit afterReplot();
   mReplotting = false;
@@ -2062,20 +2069,27 @@ QSize QCustomPlot::sizeHint() const
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED(event);
-  QPainter painter(this);
-  painter.drawPixmap(0, 0, mPaintBuffer);
+  QCPPainter painter(this);
+  if (painter.isActive())
+  {
+    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+    if (mBackgroundBrush.style() != Qt::NoBrush)
+      painter.fillRect(mViewport, mBackgroundBrush);
+    drawBackground(&painter);
+    for (int bufferIndex = 0; bufferIndex < mPaintBuffers.size(); ++bufferIndex)
+      mPaintBuffers.at(bufferIndex)->draw(&painter);
+  }
 }
 
 /*! \internal
   
-  Event handler for a resize of the QCustomPlot widget. Causes the internal buffer to be resized to
-  the new size. The viewport (which becomes the outer rect of mPlotLayout) is resized
-  appropriately. Finally a \ref replot is performed.
+  Event handler for a resize of the QCustomPlot widget. The viewport (which becomes the outer rect
+  of mPlotLayout) is resized appropriately. Finally a \ref replot is performed.
 */
 void QCustomPlot::resizeEvent(QResizeEvent *event)
 {
+  Q_UNUSED(event)
   // resize and repaint the buffer:
-  mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
   replot(rpQueuedRefresh); // queued refresh is important here, to prevent painting issues in some contexts (e.g. MDI subwindow)
 }
@@ -2193,13 +2207,9 @@ void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
     mMouseHasMoved = true; // moved too far from mouse press position, don't handle as click on mouse release
   
   if (mSelectionRect && mSelectionRect->isActive())
-  {
     mSelectionRect->moveSelection(event);
-    replot(rpQueuedReplot); // TODO: replace by selective replot of "overlay" layer
-  } else if (mMouseEventLayerable) // call event of affected layerable:
-  {
+  else if (mMouseEventLayerable) // call event of affected layerable:
     mMouseEventLayerable->mouseMoveEvent(event, mMousePressPos);
-  }
   
   event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
@@ -2295,29 +2305,14 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 */
 void QCustomPlot::draw(QCPPainter *painter)
 {
-  // run through layout phases:
-  mPlotLayout->update(QCPLayoutElement::upPreparation);
-  mPlotLayout->update(QCPLayoutElement::upMargins);
-  mPlotLayout->update(QCPLayoutElement::upLayout);
+  updateLayout();
   
   // draw viewport background pixmap:
   drawBackground(painter);
 
   // draw all layered objects (grid, axes, plottables, items, legend,...):
   foreach (QCPLayer *layer, mLayers)
-  {
-    foreach (QCPLayerable *child, layer->children())
-    {
-      if (child->realVisibility())
-      {
-        painter->save();
-        painter->setClipRect(child->clipRect().translated(0, -1));
-        child->applyDefaultAntialiasingHint(painter);
-        child->draw(painter);
-        painter->restore();
-      }
-    }
-  }
+    layer->draw(painter);
   
   /* Debug code to draw all layout element rects
   foreach (QCPLayoutElement* el, findChildren<QCPLayoutElement*>())
@@ -2329,6 +2324,14 @@ void QCustomPlot::draw(QCPPainter *painter)
     painter->drawRect(el->outerRect());
   }
   */
+}
+
+void QCustomPlot::updateLayout()
+{
+  // run through layout phases:
+  mPlotLayout->update(QCPLayoutElement::upPreparation);
+  mPlotLayout->update(QCPLayoutElement::upMargins);
+  mPlotLayout->update(QCPLayoutElement::upLayout);
 }
 
 /*! \internal
@@ -2368,6 +2371,54 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
       painter->drawPixmap(mViewport.topLeft(), mBackgroundPixmap, QRect(0, 0, mViewport.width(), mViewport.height()));
     }
   }
+}
+
+void QCustomPlot::setupPaintBuffers()
+{
+  int bufferIndex = 0;
+  if (mPaintBuffers.isEmpty())
+    mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+  
+  for (int layerIndex = 0; layerIndex < mLayers.size(); ++layerIndex)
+  {
+    QCPLayer *layer = mLayers.at(layerIndex);
+    if (layer->mode() == QCPLayer::lmLogical)
+    {
+      layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
+    } else if (layer->mode() == QCPLayer::lmBuffered)
+    {
+      ++bufferIndex;
+      if (bufferIndex >= mPaintBuffers.size())
+        mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+      layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
+      if (layerIndex < mLayers.size()-1 && mLayers.at(layerIndex+1)->mode() == QCPLayer::lmLogical) // not last layer, and next one is logical, so prepare another buffer for next layerables
+      {
+        ++bufferIndex;
+        if (bufferIndex >= mPaintBuffers.size())
+          mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size())));
+      }
+    }
+  }
+  // remove unneeded buffers:
+  while (mPaintBuffers.size()-1 > bufferIndex)
+    mPaintBuffers.removeLast();
+  // resize buffers to viewport size and clear contents:
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+  {
+    mPaintBuffers.at(i)->setSize(viewport().size()); // won't do anything if already correct size
+    mPaintBuffers.at(i)->fill(Qt::transparent);
+    mPaintBuffers.at(i)->setInvalidated();
+  }
+}
+
+bool QCustomPlot::hasInvalidatedPaintBuffers()
+{
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+  {
+    if (mPaintBuffers.at(i)->invalidated())
+      return true;
+  }
+  return false;
 }
 
 /*! \internal

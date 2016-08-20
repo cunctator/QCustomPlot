@@ -28,6 +28,7 @@
 
 //amalgamation: add qcpvector2d.cpp
 //amalgamation: add painter.cpp
+//amalgamation: add paintbuffer.cpp
 //amalgamation: add layer.cpp
 //amalgamation: add axis/range.cpp
 //amalgamation: add selection.cpp

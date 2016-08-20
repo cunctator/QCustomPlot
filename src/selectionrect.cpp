@@ -27,6 +27,7 @@
 
 #include "axis/axis.h"
 #include "painter.h"
+#include "core.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPSelectionRect
@@ -199,6 +200,7 @@ void QCPSelectionRect::moveSelection(QMouseEvent *event)
 {
   mRect.setBottomRight(event->pos());
   emit changed(mRect, event);
+  layer()->replot();
 }
 
 /*! \internal

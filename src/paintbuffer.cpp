@@ -23,54 +23,63 @@
 **          Version: 1.3.1                                                **
 ****************************************************************************/
 
-#ifndef QCP_H
-#define QCP_H
-
-#include "global.h"
-#include "qcpvector2d.h"
-#include "painter.h"
 #include "paintbuffer.h"
-#include "layer.h"
-#include "axis/range.h"
-#include "selection.h"
-#include "selectionrect.h"
-#include "layout.h"
-#include "lineending.h"
-#include "axis/axisticker.h"
-#include "axis/axistickerdatetime.h"
-#include "axis/axistickertime.h"
-#include "axis/axistickerfixed.h"
-#include "axis/axistickertext.h"
-#include "axis/axistickerpi.h"
-#include "axis/axistickerlog.h"
-#include "axis/axis.h"
-#include "scatterstyle.h"
-#include "datacontainer.h"
-#include "plottable.h"
-#include "item.h"
-#include "core.h"
-#include "plottable1d.h"
-#include "colorgradient.h"
-#include "selectiondecorator-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-textelement.h"
-#include "layoutelements/layoutelement-colorscale.h"
-#include "plottables/plottable-graph.h"
-#include "plottables/plottable-curve.h"
-#include "plottables/plottable-bars.h"
-#include "plottables/plottable-statisticalbox.h"
-#include "plottables/plottable-colormap.h"
-#include "plottables/plottable-financial.h"
-#include "plottables/plottable-errorbar.h"
-#include "items/item-straightline.h"
-#include "items/item-line.h"
-#include "items/item-curve.h"
-#include "items/item-rect.h"
-#include "items/item-text.h"
-#include "items/item-ellipse.h"
-#include "items/item-pixmap.h"
-#include "items/item-tracer.h"
-#include "items/item-bracket.h"
 
-#endif // QCP_H
+#include "painter.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPPaintBuffer
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPPaintBuffer
+  \brief 
+
+
+*/
+
+QCPPaintBuffer::QCPPaintBuffer(const QSize &size) :
+  mBuffer(size),
+  mInvalidated(true)
+{
+}
+
+QCPPaintBuffer::~QCPPaintBuffer()
+{
+}
+
+/*
+  note: invalidates painters previously created by \ref createPainter
+*/
+void QCPPaintBuffer::setSize(const QSize &size)
+{
+  if (mBuffer.size() != size)
+    mBuffer = QPixmap(size);
+}
+
+void QCPPaintBuffer::setInvalidated(bool invalidated)
+{
+  mInvalidated = invalidated;
+}
+
+QCPPainter *QCPPaintBuffer::createPainter()
+{
+  QCPPainter *result = new QCPPainter(&mBuffer);
+  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  return result;
+}
+
+void QCPPaintBuffer::draw(QCPPainter *painter) const
+{
+  if (painter && painter->isActive())
+    painter->drawPixmap(0, 0, mBuffer);
+  else
+    qDebug() << Q_FUNC_INFO << "invalid or inactive painter passed";
+}
+
+/*
+  note: don't call while painters (returned from \ref createPainter) are active.
+*/
+void QCPPaintBuffer::fill(const QColor &color)
+{
+  mBuffer.fill(color);
+}

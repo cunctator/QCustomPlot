@@ -26,6 +26,8 @@
 #ifndef QCP_GLOBAL_H
 #define QCP_GLOBAL_H
 
+#define QCP_USE_OPENGL // DBG
+
 // amalgamation: include begin
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
@@ -54,6 +56,9 @@
 #  include <QtGui/QPrinter>
 #  include <QtGui/QPrintEngine>
 #else
+#  ifdef QCP_USE_OPENGL
+#    include <QtOpenGL/QtOpenGL>
+#  endif
 #  include <QtNumeric>
 #  include <QtWidgets/QWidget>
 #  include <QtPrintSupport/QtPrintSupport>

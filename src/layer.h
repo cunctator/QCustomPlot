@@ -83,7 +83,7 @@ protected:
   LayerMode mMode;
   
   // non-property members:
-  QWeakPointer<QCPPaintBuffer> mPaintBuffer;
+  QWeakPointer<QCPAbstractPaintBuffer> mPaintBuffer;
   
   // non-virtual methods:
   void draw(QCPPainter *painter);

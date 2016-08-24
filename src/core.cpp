@@ -380,6 +380,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMultiSelectModifier(Qt::ControlModifier),
   mSelectionRectMode(QCP::srmNone),
   mSelectionRect(0),
+  mOpenGl(false),
   mMouseHasMoved(false),
   mMouseEventLayerable(0),
   mReplotting(false),
@@ -776,6 +777,35 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
     else if (mSelectionRectMode == QCP::srmZoom)
       connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
   }
+}
+
+void QCustomPlot::setOpenGl(bool enabled, int multisampling)
+{
+#ifdef QCP_USE_OPENGL
+  mOpenGl = enabled;
+  if (mOpenGl)
+  {
+    if (!setupOpenGl(multisampling))
+    {
+      qDebug() << Q_FUNC_INFO << "Failed to enable OpenGL, continuing plotting without hardware acceleration.";
+      mOpenGl = false;
+    } else
+    {
+      setAntialiasedElements(QCP::aeAll);
+      setPlottingHint(QCP::phCacheLabels, false);
+    }
+  } else
+    freeOpenGl();
+  
+  // recreate all paint buffers:
+  mPaintBuffers.clear();
+  setupPaintBuffers();
+  
+#else
+  Q_UNUSED(enabled)
+  Q_UNUSED(multisampling)
+  qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCP_USE_OPENGL was not defined during compilation (#define QCP_USE_OPENGL before including qcustomplot.h)";
+#endif
 }
 
 /*!
@@ -1806,7 +1836,6 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   emit beforeReplot();
   
   updateLayout();
-  
   // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
   setupPaintBuffers();
   foreach (QCPLayer *layer, mLayers)
@@ -2397,7 +2426,7 @@ void QCustomPlot::setupPaintBuffers()
 {
   int bufferIndex = 0;
   if (mPaintBuffers.isEmpty())
-    mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+    mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
   
   for (int layerIndex = 0; layerIndex < mLayers.size(); ++layerIndex)
   {
@@ -2409,13 +2438,13 @@ void QCustomPlot::setupPaintBuffers()
     {
       ++bufferIndex;
       if (bufferIndex >= mPaintBuffers.size())
-        mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+        mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
       layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
       if (layerIndex < mLayers.size()-1 && mLayers.at(layerIndex+1)->mode() == QCPLayer::lmLogical) // not last layer, and next one is logical, so prepare another buffer for next layerables
       {
         ++bufferIndex;
         if (bufferIndex >= mPaintBuffers.size())
-          mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+          mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
       }
     }
   }
@@ -2426,7 +2455,7 @@ void QCustomPlot::setupPaintBuffers()
   for (int i=0; i<mPaintBuffers.size(); ++i)
   {
     mPaintBuffers.at(i)->setSize(viewport().size()); // won't do anything if already correct size
-    mPaintBuffers.at(i)->fill(Qt::transparent);
+    mPaintBuffers.at(i)->clear(Qt::transparent);
     mPaintBuffers.at(i)->setInvalidated();
   }
 }
@@ -2439,6 +2468,66 @@ bool QCustomPlot::hasInvalidatedPaintBuffers()
       return true;
   }
   return false;
+}
+
+bool QCustomPlot::setupOpenGl(int multisampling)
+{
+#ifdef QCP_USE_OPENGL
+  freeOpenGl();
+  QSurfaceFormat proposedSurfaceFormat;
+  proposedSurfaceFormat.setSamples(multisampling);
+#if QT_VERSION < QT_VERSION_CHECK(5, 3, 0)
+  QWindow *surface = new QWindow;
+  surface->setSurfaceType(QSurface::OpenGLSurface);
+#else
+  QOffscreenSurface *surface = new QOffscreenSurface;
+#endif
+  surface->setFormat(proposedSurfaceFormat);
+  surface->create();
+  mGlSurface = QSharedPointer<QSurface>(surface);
+  mGlContext = QSharedPointer<QOpenGLContext>(new QOpenGLContext);
+  mGlContext->setFormat(mGlSurface->format());
+  if (!mGlContext->create())
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to create OpenGL context";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  if (!mGlContext->makeCurrent(mGlSurface.data())) // context needs to be current to create paint device
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to make opengl context current";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  mGlPaintDevice = QSharedPointer<QOpenGLPaintDevice>(new QOpenGLPaintDevice);
+  //mGlContext->doneCurrent();
+  return true;
+#else
+  return false;
+#endif
+}
+
+void QCustomPlot::freeOpenGl()
+{
+#ifdef QCP_USE_OPENGL
+  mGlPaintDevice.clear();
+  mGlContext.clear();
+  mGlSurface.clear();
+#endif
+}
+
+QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
+{
+#ifdef QCP_USE_OPENGL
+  if (mOpenGl)
+    return new QCPPaintBufferOpenGl(viewport().size(), mDevicePixelRatio, mGlContext, mGlPaintDevice);
+  else
+    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+#else
+  return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+#endif
 }
 
 /*! \internal

@@ -170,13 +170,14 @@ void QCPLayer::drawToPaintBuffer()
 {
   if (!mPaintBuffer.isNull())
   {
-    if (QCPPainter *painter = mPaintBuffer.data()->createPainter())
+    if (QCPPainter *painter = mPaintBuffer.data()->startPainting())
     {
       if (painter->isActive())
         draw(painter);
       else
         qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
       delete painter;
+      mPaintBuffer.data()->donePainting();
     } else
       qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
   } else
@@ -189,7 +190,7 @@ void QCPLayer::replot()
   {
     if (!mPaintBuffer.isNull())
     {
-      mPaintBuffer.data()->fill(Qt::transparent);
+      mPaintBuffer.data()->clear(Qt::transparent);
       drawToPaintBuffer();
       mPaintBuffer.data()->setInvalidated(false);
       mParentPlot->update();

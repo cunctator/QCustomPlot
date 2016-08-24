@@ -53,6 +53,7 @@ class QCP_LIB_DECL QCustomPlot : public QWidget
   Q_PROPERTY(int selectionTolerance READ selectionTolerance WRITE setSelectionTolerance)
   Q_PROPERTY(bool noAntialiasingOnDrag READ noAntialiasingOnDrag WRITE setNoAntialiasingOnDrag)
   Q_PROPERTY(Qt::KeyboardModifier multiSelectModifier READ multiSelectModifier WRITE setMultiSelectModifier)
+  Q_PROPERTY(bool openGl READ openGl WRITE setOpenGl)
   /// \endcond
 public:
   /*!
@@ -97,6 +98,7 @@ public:
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
   QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
   QCPSelectionRect *selectionRect() const { return mSelectionRect; }
+  bool openGl() const { return mOpenGl; }
   
   // setters:
   void setViewport(const QRect &rect);
@@ -120,6 +122,7 @@ public:
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
   void setSelectionRectMode(QCP::SelectionRectMode mode);
   void setSelectionRect(QCPSelectionRect *selectionRect);
+  void setOpenGl(bool enabled, int multisampling=16);
   
   // non-property methods:
   // plottable interface:
@@ -233,15 +236,21 @@ protected:
   Qt::KeyboardModifier mMultiSelectModifier;
   QCP::SelectionRectMode mSelectionRectMode;
   QCPSelectionRect *mSelectionRect;
+  bool mOpenGl;
   
   // non-property members:
-  QList<QSharedPointer<QCPPaintBuffer> > mPaintBuffers;
+  QList<QSharedPointer<QCPAbstractPaintBuffer> > mPaintBuffers;
   QPoint mMousePressPos;
   bool mMouseHasMoved;
   QPointer<QCPLayerable> mMouseEventLayerable;
   QVariant mMouseEventLayerableDetails;
   bool mReplotting;
   bool mReplotQueued;
+#ifdef QCP_USE_OPENGL
+  QSharedPointer<QOpenGLContext> mGlContext;
+  QSharedPointer<QSurface> mGlSurface;
+  QSharedPointer<QOpenGLPaintDevice> mGlPaintDevice;
+#endif
   
   // reimplemented virtual methods:
   virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
@@ -273,6 +282,9 @@ protected:
   void drawBackground(QCPPainter *painter);
   void setupPaintBuffers();
   bool hasInvalidatedPaintBuffers();
+  bool setupOpenGl(int multisampling);
+  void freeOpenGl();
+  QCPAbstractPaintBuffer *createPaintBuffer();
   
   friend class QCPLegend;
   friend class QCPAxis;

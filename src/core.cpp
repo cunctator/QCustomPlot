@@ -384,7 +384,8 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMouseHasMoved(false),
   mMouseEventLayerable(0),
   mReplotting(false),
-  mReplotQueued(false)
+  mReplotQueued(false),
+  mOpenGlMultisamples(16)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -781,29 +782,27 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 
 void QCustomPlot::setOpenGl(bool enabled, int multisampling)
 {
+  mOpenGlMultisamples = qMax(0, multisampling);
 #ifdef QCP_USE_OPENGL
   mOpenGl = enabled;
   if (mOpenGl)
   {
-    if (!setupOpenGl(multisampling))
-    {
-      qDebug() << Q_FUNC_INFO << "Failed to enable OpenGL, continuing plotting without hardware acceleration.";
-      mOpenGl = false;
-    } else
+    if (setupOpenGl())
     {
       setAntialiasedElements(QCP::aeAll);
       setPlottingHint(QCP::phCacheLabels, false);
+    } else
+    {
+      qDebug() << Q_FUNC_INFO << "Failed to enable OpenGL, continuing plotting without hardware acceleration.";
+      mOpenGl = false;
     }
   } else
     freeOpenGl();
-  
   // recreate all paint buffers:
   mPaintBuffers.clear();
   setupPaintBuffers();
-  
 #else
   Q_UNUSED(enabled)
-  Q_UNUSED(multisampling)
   qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCP_USE_OPENGL was not defined during compilation (#define QCP_USE_OPENGL before including qcustomplot.h)";
 #endif
 }
@@ -2470,17 +2469,17 @@ bool QCustomPlot::hasInvalidatedPaintBuffers()
   return false;
 }
 
-bool QCustomPlot::setupOpenGl(int multisampling)
+bool QCustomPlot::setupOpenGl()
 {
-#ifdef QCP_USE_OPENGL
+#ifdef QCP_OPENGL_FBO
   freeOpenGl();
   QSurfaceFormat proposedSurfaceFormat;
-  proposedSurfaceFormat.setSamples(multisampling);
-#if QT_VERSION < QT_VERSION_CHECK(5, 3, 0)
+  proposedSurfaceFormat.setSamples(mOpenGlMultisamples);
+#ifdef QCP_OPENGL_OFFSCREENSURFACE
+  QOffscreenSurface *surface = new QOffscreenSurface;
+#else
   QWindow *surface = new QWindow;
   surface->setSurfaceType(QSurface::OpenGLSurface);
-#else
-  QOffscreenSurface *surface = new QOffscreenSurface;
 #endif
   surface->setFormat(proposedSurfaceFormat);
   surface->create();
@@ -2502,7 +2501,8 @@ bool QCustomPlot::setupOpenGl(int multisampling)
     return false;
   }
   mGlPaintDevice = QSharedPointer<QOpenGLPaintDevice>(new QOpenGLPaintDevice);
-  //mGlContext->doneCurrent();
+  return true;
+#elif defined(QCP_OPENGL_PBUFFER)
   return true;
 #else
   return false;
@@ -2511,7 +2511,7 @@ bool QCustomPlot::setupOpenGl(int multisampling)
 
 void QCustomPlot::freeOpenGl()
 {
-#ifdef QCP_USE_OPENGL
+#ifdef QCP_OPENGL_FBO
   mGlPaintDevice.clear();
   mGlContext.clear();
   mGlSurface.clear();
@@ -2520,14 +2520,18 @@ void QCustomPlot::freeOpenGl()
 
 QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
 {
-#ifdef QCP_USE_OPENGL
   if (mOpenGl)
-    return new QCPPaintBufferOpenGl(viewport().size(), mDevicePixelRatio, mGlContext, mGlPaintDevice);
-  else
-    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+  {
+#if defined(QCP_OPENGL_FBO)
+    return new QCPPaintBufferGlFbo(viewport().size(), mDevicePixelRatio, mGlContext, mGlPaintDevice);
+#elif defined(QCP_OPENGL_PBUFFER)
+    return new QCPPaintBufferGlPbuffer(viewport().size(), mDevicePixelRatio, mOpenGlMultisamples);
 #else
-  return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+    qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
+    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
 #endif
+  } else
+    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
 }
 
 /*! \internal

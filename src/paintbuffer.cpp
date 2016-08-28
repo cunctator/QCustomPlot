@@ -153,34 +153,108 @@ void QCPPaintBufferPixmap::reallocateBuffer()
 }
 
 
+#ifdef QCP_OPENGL_PBUFFER
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////// QCPPaintBufferOpenGl
+//////////////////// QCPPaintBufferGlPbuffer
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*! \class QCPPaintBufferOpenGl
-  \brief 
-
+/*! \class QCPPaintBufferGlPbuffer
+  \brief
 
 */
 
-#ifdef QCP_USE_OPENGL
+QCPPaintBufferGlPbuffer::QCPPaintBufferGlPbuffer(const QSize &size, double devicePixelRatio, int multisamples) :
+  QCPAbstractPaintBuffer(size, devicePixelRatio),
+  mGlPBuffer(0),
+  mMultisamples(qMax(0, multisamples))
+{
+  QCPPaintBufferGlPbuffer::reallocateBuffer();
+}
 
-QCPPaintBufferOpenGl::QCPPaintBufferOpenGl(const QSize &size, double devicePixelRatio, QWeakPointer<QOpenGLContext> glContext, QWeakPointer<QOpenGLPaintDevice> glPaintDevice) :
+QCPPaintBufferGlPbuffer::~QCPPaintBufferGlPbuffer()
+{
+  if (mGlPBuffer)
+    delete mGlPBuffer;
+}
+
+QCPPainter *QCPPaintBufferGlPbuffer::startPainting()
+{
+  if (!mGlPBuffer->isValid())
+  {
+    qDebug() << Q_FUNC_INFO << "OpenGL frame buffer object doesn't exist, reallocateBuffer was not called?";
+    return 0;
+  }
+  
+  QCPPainter *result = new QCPPainter(mGlPBuffer);
+  result->setRenderHint(QPainter::HighQualityAntialiasing);
+  return result;
+}
+
+void QCPPaintBufferGlPbuffer::draw(QCPPainter *painter) const
+{
+  if (!painter || !painter->isActive())
+  {
+    qDebug() << Q_FUNC_INFO << "invalid or inactive painter passed";
+    return;
+  }
+  if (!mGlPBuffer->isValid())
+  {
+    qDebug() << Q_FUNC_INFO << "OpenGL pbuffer isn't valid, reallocateBuffer was not called?";
+    return;
+  }
+  painter->drawImage(0, 0, mGlPBuffer->toImage());
+}
+
+void QCPPaintBufferGlPbuffer::clear(const QColor &color)
+{
+  if (mGlPBuffer->isValid())
+  {
+    mGlPBuffer->makeCurrent();
+    glClearColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    mGlPBuffer->doneCurrent();
+  } else
+    qDebug() << Q_FUNC_INFO << "OpenGL pbuffer invalid or context not current";
+}
+
+void QCPPaintBufferGlPbuffer::reallocateBuffer()
+{
+  if (mGlPBuffer)
+    delete mGlPBuffer;
+  
+  QGLFormat format;
+  format.setAlpha(true);
+  format.setSamples(mMultisamples);
+  mGlPBuffer = new QGLPixelBuffer(mSize, format);
+}
+#endif // QCP_OPENGL_PBUFFER
+
+
+#ifdef QCP_OPENGL_FBO
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////// QCPPaintBufferGlFbo
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*! \class QCPPaintBufferGlFbo
+  \brief 
+
+*/
+QCPPaintBufferGlFbo::QCPPaintBufferGlFbo(const QSize &size, double devicePixelRatio, QWeakPointer<QOpenGLContext> glContext, QWeakPointer<QOpenGLPaintDevice> glPaintDevice) :
   QCPAbstractPaintBuffer(size, devicePixelRatio),
   mGlContext(glContext),
   mGlPaintDevice(glPaintDevice),
   mGlFrameBuffer(0)
 {
-  QCPPaintBufferOpenGl::reallocateBuffer();
+  QCPPaintBufferGlFbo::reallocateBuffer();
 }
 
-QCPPaintBufferOpenGl::~QCPPaintBufferOpenGl()
+QCPPaintBufferGlFbo::~QCPPaintBufferGlFbo()
 {
   if (mGlFrameBuffer)
     delete mGlFrameBuffer;
 }
 
-QCPPainter *QCPPaintBufferOpenGl::startPainting()
+QCPPainter *QCPPaintBufferGlFbo::startPainting()
 {
   if (mGlPaintDevice.isNull())
   {
@@ -193,13 +267,15 @@ QCPPainter *QCPPaintBufferOpenGl::startPainting()
     return 0;
   }
   
+  if (QOpenGLContext::currentContext() != mGlContext.data())
+    mGlContext.data()->makeCurrent(mGlContext.data()->surface());
   mGlFrameBuffer->bind();
   QCPPainter *result = new QCPPainter(mGlPaintDevice.data());
   result->setRenderHint(QPainter::HighQualityAntialiasing);
   return result;
 }
 
-void QCPPaintBufferOpenGl::donePainting()
+void QCPPaintBufferGlFbo::donePainting()
 {
   if (mGlFrameBuffer && mGlFrameBuffer->isBound())
     mGlFrameBuffer->release();
@@ -207,7 +283,7 @@ void QCPPaintBufferOpenGl::donePainting()
     qDebug() << Q_FUNC_INFO << "Either OpenGL frame buffer not valid or was not bound";
 }
 
-void QCPPaintBufferOpenGl::draw(QCPPainter *painter) const
+void QCPPaintBufferGlFbo::draw(QCPPainter *painter) const
 {
   if (!painter || !painter->isActive())
   {
@@ -222,7 +298,7 @@ void QCPPaintBufferOpenGl::draw(QCPPainter *painter) const
   painter->drawImage(0, 0, mGlFrameBuffer->toImage());
 }
 
-void QCPPaintBufferOpenGl::clear(const QColor &color)
+void QCPPaintBufferGlFbo::clear(const QColor &color)
 {
   if (mGlContext.isNull())
   {
@@ -235,13 +311,15 @@ void QCPPaintBufferOpenGl::clear(const QColor &color)
     return;
   }
   
+  if (QOpenGLContext::currentContext() != mGlContext.data())
+    mGlContext.data()->makeCurrent(mGlContext.data()->surface());
   mGlFrameBuffer->bind();
   glClearColor(color.redF(), color.greenF(), color.blueF(), color.alphaF());
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mGlFrameBuffer->release();
 }
 
-void QCPPaintBufferOpenGl::reallocateBuffer()
+void QCPPaintBufferGlFbo::reallocateBuffer()
 {
   // release and delete possibly existing framebuffer:
   if (mGlFrameBuffer)
@@ -264,6 +342,7 @@ void QCPPaintBufferOpenGl::reallocateBuffer()
   }
   
   // create new fbo with appropriate size:
+  mGlContext.data()->makeCurrent(mGlContext.data()->surface());
   QOpenGLFramebufferObjectFormat frameBufferFormat;
   frameBufferFormat.setSamples(mGlContext.data()->format().samples());
   frameBufferFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
@@ -274,5 +353,4 @@ void QCPPaintBufferOpenGl::reallocateBuffer()
   mGlPaintDevice.data()->setDevicePixelRatio(mDevicePixelRatio);
 #endif
 }
-
-#endif // QCP_USE_OPENGL
+#endif // QCP_OPENGL_FBO

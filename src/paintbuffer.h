@@ -84,12 +84,36 @@ protected:
   virtual void reallocateBuffer() Q_DECL_OVERRIDE;
 };
 
-#ifdef QCP_USE_OPENGL
-class QCP_LIB_DECL QCPPaintBufferOpenGl : public QCPAbstractPaintBuffer
+
+#ifdef QCP_OPENGL_PBUFFER
+class QCP_LIB_DECL QCPPaintBufferGlPbuffer : public QCPAbstractPaintBuffer
 {
 public:
-  explicit QCPPaintBufferOpenGl(const QSize &size, double devicePixelRatio, QWeakPointer<QOpenGLContext> glContext, QWeakPointer<QOpenGLPaintDevice> glPaintDevice);
-  virtual ~QCPPaintBufferOpenGl();
+  explicit QCPPaintBufferGlPbuffer(const QSize &size, double devicePixelRatio, int multisamples);
+  virtual ~QCPPaintBufferGlPbuffer();
+  
+  // reimplemented virtual methods:
+  virtual QCPPainter *startPainting() Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  void clear(const QColor &color) Q_DECL_OVERRIDE;
+  
+protected:
+  // non-property members:
+  QGLPixelBuffer *mGlPBuffer;
+  int mMultisamples;
+  
+  // reimplemented virtual methods:
+  virtual void reallocateBuffer() Q_DECL_OVERRIDE;
+};
+#endif // QCP_OPENGL_PBUFFER
+
+
+#ifdef QCP_OPENGL_FBO
+class QCP_LIB_DECL QCPPaintBufferGlFbo : public QCPAbstractPaintBuffer
+{
+public:
+  explicit QCPPaintBufferGlFbo(const QSize &size, double devicePixelRatio, QWeakPointer<QOpenGLContext> glContext, QWeakPointer<QOpenGLPaintDevice> glPaintDevice);
+  virtual ~QCPPaintBufferGlFbo();
   
   // reimplemented virtual methods:
   virtual QCPPainter *startPainting() Q_DECL_OVERRIDE;
@@ -106,6 +130,6 @@ protected:
   // reimplemented virtual methods:
   virtual void reallocateBuffer() Q_DECL_OVERRIDE;
 };
-#endif // QCP_USE_OPENGL
+#endif // QCP_OPENGL_FBO
 
 #endif // QCP_PAINTBUFFER_H

@@ -246,7 +246,8 @@ protected:
   QVariant mMouseEventLayerableDetails;
   bool mReplotting;
   bool mReplotQueued;
-#ifdef QCP_USE_OPENGL
+  int mOpenGlMultisamples;
+#ifdef QCP_OPENGL_FBO
   QSharedPointer<QOpenGLContext> mGlContext;
   QSharedPointer<QSurface> mGlSurface;
   QSharedPointer<QOpenGLPaintDevice> mGlPaintDevice;
@@ -282,7 +283,7 @@ protected:
   void drawBackground(QCPPainter *painter);
   void setupPaintBuffers();
   bool hasInvalidatedPaintBuffers();
-  bool setupOpenGl(int multisampling);
+  bool setupOpenGl();
   void freeOpenGl();
   QCPAbstractPaintBuffer *createPaintBuffer();
   

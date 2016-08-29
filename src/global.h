@@ -156,8 +156,8 @@ Q_DECLARE_FLAGS(AntialiasedElements, AntialiasedElement)
   \see QCustomPlot::setPlottingHints
 */
 enum PlottingHint { phNone              = 0x000 ///< <tt>0x000</tt> No hints are set
-                    ,phFastPolylines    = 0x001 ///< <tt>0x001</tt> Graph/Curve lines are drawn with a faster method. This reduces the quality
-                                                ///<                especially of the line segment joins. (Only relevant for solid line pens.)
+                    ,phFastPolylines    = 0x001 ///< <tt>0x001</tt> Graph/Curve lines are drawn with a faster method. This reduces the quality especially of the line segment
+                                                ///<                joins, thus is most effective for pen sizes larger than 1. It is only used for solid line pens.
                     ,phImmediateRefresh = 0x002 ///< <tt>0x002</tt> causes an immediate repaint() instead of a soft update() when QCustomPlot::replot() is called with parameter \ref QCustomPlot::rpRefreshHint.
                                                 ///<                This is set by default to prevent the plot from freezing on fast consecutive replots (e.g. user drags ranges with mouse).
                     ,phCacheLabels      = 0x004 ///< <tt>0x004</tt> axis (tick) labels will be cached as pixmaps, increasing replot performance.

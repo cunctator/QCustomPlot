@@ -2500,10 +2500,17 @@ bool QCustomPlot::setupOpenGl()
     mGlSurface.clear();
     return false;
   }
+  if (!QOpenGLFramebufferObject::hasOpenGLFramebufferObjects())
+  {
+    qDebug() << Q_FUNC_INFO << "OpenGL of this system doesn't support frame buffer objects";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
   mGlPaintDevice = QSharedPointer<QOpenGLPaintDevice>(new QOpenGLPaintDevice);
   return true;
 #elif defined(QCP_OPENGL_PBUFFER)
-  return true;
+  return QGLFormat::hasOpenGL();
 #else
   return false;
 #endif

@@ -190,11 +190,16 @@ void QCPAbstractPaintBuffer::setDevicePixelRatio(double ratio)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPaintBufferPixmap
-  \brief 
+  \brief A paint buffer based on QPixmap, using software raster rendering
 
-
+  This paint buffer is the default and fall-back paint buffer which uses software rendering and
+  QPixmap as internal buffer. It is used if \ref QCustomPlot::setOpenGl is false.
 */
 
+/*!
+  Creates a pixmap paint buffer instancen with the specified \a size and \a devicePixelRatio, if
+  applicable.
+*/
 QCPPaintBufferPixmap::QCPPaintBufferPixmap(const QSize &size, double devicePixelRatio) :
   QCPAbstractPaintBuffer(size, devicePixelRatio)
 {
@@ -205,6 +210,7 @@ QCPPaintBufferPixmap::~QCPPaintBufferPixmap()
 {
 }
 
+/* inherits documentation from base class */
 QCPPainter *QCPPaintBufferPixmap::startPainting()
 {
   QCPPainter *result = new QCPPainter(&mBuffer);
@@ -212,6 +218,7 @@ QCPPainter *QCPPaintBufferPixmap::startPainting()
   return result;
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferPixmap::draw(QCPPainter *painter) const
 {
   if (painter && painter->isActive())
@@ -220,11 +227,13 @@ void QCPPaintBufferPixmap::draw(QCPPainter *painter) const
     qDebug() << Q_FUNC_INFO << "invalid or inactive painter passed";
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferPixmap::clear(const QColor &color)
 {
   mBuffer.fill(color);
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferPixmap::reallocateBuffer()
 {
   setInvalidated();
@@ -251,10 +260,24 @@ void QCPPaintBufferPixmap::reallocateBuffer()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPaintBufferGlPbuffer
-  \brief
+  \brief A paint buffer based on OpenGL pixel buffers, using hardware accelerated rendering
 
+  This paint buffer is one of the OpenGL paint buffers which facilitate hardware accelerated plot
+  rendering. It is based on OpenGL pixel buffers (pbuffer) and is used in Qt versions before 5.0.
+  (See \ref QCPPaintBufferGlFbo used in newer Qt versions.)
+
+  The OpenGL paint buffers are used if \ref QCustomPlot::setOpenGl is set to true, and if they are
+  supported by the system.
 */
 
+/*!
+  Creates a \ref QCPPaintBufferGlPbuffer instance with the specified \a size and \a
+  devicePixelRatio, if applicable.
+
+  The parameter \a multisamples defines how many samples are used per pixel. Higher values thus
+  result in higher quality antialiasing. If the specified \a multisamples value exceeds the
+  capability of the graphics hardware, the highest supported multisampling is used.
+*/
 QCPPaintBufferGlPbuffer::QCPPaintBufferGlPbuffer(const QSize &size, double devicePixelRatio, int multisamples) :
   QCPAbstractPaintBuffer(size, devicePixelRatio),
   mGlPBuffer(0),
@@ -269,6 +292,7 @@ QCPPaintBufferGlPbuffer::~QCPPaintBufferGlPbuffer()
     delete mGlPBuffer;
 }
 
+/* inherits documentation from base class */
 QCPPainter *QCPPaintBufferGlPbuffer::startPainting()
 {
   if (!mGlPBuffer->isValid())
@@ -282,6 +306,7 @@ QCPPainter *QCPPaintBufferGlPbuffer::startPainting()
   return result;
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlPbuffer::draw(QCPPainter *painter) const
 {
   if (!painter || !painter->isActive())
@@ -297,6 +322,7 @@ void QCPPaintBufferGlPbuffer::draw(QCPPainter *painter) const
   painter->drawImage(0, 0, mGlPBuffer->toImage());
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlPbuffer::clear(const QColor &color)
 {
   if (mGlPBuffer->isValid())
@@ -309,6 +335,7 @@ void QCPPaintBufferGlPbuffer::clear(const QColor &color)
     qDebug() << Q_FUNC_INFO << "OpenGL pbuffer invalid or context not current";
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlPbuffer::reallocateBuffer()
 {
   if (mGlPBuffer)
@@ -328,8 +355,24 @@ void QCPPaintBufferGlPbuffer::reallocateBuffer()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPaintBufferGlFbo
-  \brief 
+  \brief A paint buffer based on OpenGL frame buffers objects, using hardware accelerated rendering
 
+  This paint buffer is one of the OpenGL paint buffers which facilitate hardware accelerated plot
+  rendering. It is based on OpenGL frame buffer objects (fbo) and is used in Qt versions 5.0 and
+  higher. (See \ref QCPPaintBufferGlPbuffer used in older Qt versions.)
+
+  The OpenGL paint buffers are used if \ref QCustomPlot::setOpenGl is set to true, and if they are
+  supported by the system.
+*/
+
+/*!
+  Creates a \ref QCPPaintBufferGlFbo instance with the specified \a size and \a devicePixelRatio,
+  if applicable.
+
+  All frame buffer objects shall share one OpenGL context and paint device, which need to be set up
+  externally and passed via \a glContext and \a glPaintDevice. The set-up is done in \ref
+  QCustomPlot::setupOpenGl and the context and paint device are managed by the parent QCustomPlot
+  instance.
 */
 QCPPaintBufferGlFbo::QCPPaintBufferGlFbo(const QSize &size, double devicePixelRatio, QWeakPointer<QOpenGLContext> glContext, QWeakPointer<QOpenGLPaintDevice> glPaintDevice) :
   QCPAbstractPaintBuffer(size, devicePixelRatio),
@@ -346,6 +389,7 @@ QCPPaintBufferGlFbo::~QCPPaintBufferGlFbo()
     delete mGlFrameBuffer;
 }
 
+/* inherits documentation from base class */
 QCPPainter *QCPPaintBufferGlFbo::startPainting()
 {
   if (mGlPaintDevice.isNull())
@@ -367,6 +411,7 @@ QCPPainter *QCPPaintBufferGlFbo::startPainting()
   return result;
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlFbo::donePainting()
 {
   if (mGlFrameBuffer && mGlFrameBuffer->isBound())
@@ -375,6 +420,7 @@ void QCPPaintBufferGlFbo::donePainting()
     qDebug() << Q_FUNC_INFO << "Either OpenGL frame buffer not valid or was not bound";
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlFbo::draw(QCPPainter *painter) const
 {
   if (!painter || !painter->isActive())
@@ -390,6 +436,7 @@ void QCPPaintBufferGlFbo::draw(QCPPainter *painter) const
   painter->drawImage(0, 0, mGlFrameBuffer->toImage());
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlFbo::clear(const QColor &color)
 {
   if (mGlContext.isNull())
@@ -411,6 +458,7 @@ void QCPPaintBufferGlFbo::clear(const QColor &color)
   mGlFrameBuffer->release();
 }
 
+/* inherits documentation from base class */
 void QCPPaintBufferGlFbo::reallocateBuffer()
 {
   // release and delete possibly existing framebuffer:

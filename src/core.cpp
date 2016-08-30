@@ -2655,8 +2655,11 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   }
   
   if (selectionStateChanged)
+  {
     emit selectionChangedByUser();
-  replot(rpQueuedReplot); // always replot to make selection rect disappear, TODO: if selection rect is drawn on dedicated replot-layer, only replot here if selection has changed
+    replot(rpQueuedReplot);
+  } else if (mSelectionRect)
+    mSelectionRect->layer()->replot();
 }
 
 /*! \internal

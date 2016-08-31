@@ -14,7 +14,7 @@ linenumber = 0;
 while line:
   linenumber = linenumber + 1;
   # warn for undocumented functions and ctors:
-  if (re.search("^\w+ ", line) or re.search("^\w+::[^~]", line)) and not hasdoc:
+  if (re.search("^[<>\w]+ ", line) or re.search("^[<>\w]+::[^~]", line)) and not hasdoc:
      print "line "+str(linenumber)+": "+line[0:-1];
      foundProblem = True;
   # warn for documented dtors:

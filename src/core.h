@@ -53,6 +53,7 @@ class QCP_LIB_DECL QCustomPlot : public QWidget
   Q_PROPERTY(int selectionTolerance READ selectionTolerance WRITE setSelectionTolerance)
   Q_PROPERTY(bool noAntialiasingOnDrag READ noAntialiasingOnDrag WRITE setNoAntialiasingOnDrag)
   Q_PROPERTY(Qt::KeyboardModifier multiSelectModifier READ multiSelectModifier WRITE setMultiSelectModifier)
+  Q_PROPERTY(bool openGl READ openGl WRITE setOpenGl)
   /// \endcond
 public:
   /*!
@@ -82,7 +83,7 @@ public:
   
   // getters:
   QRect viewport() const { return mViewport; }
-  double devicePixelRatio() const { return mDevicePixelRatio; }
+  double bufferDevicePixelRatio() const { return mBufferDevicePixelRatio; }
   QPixmap background() const { return mBackgroundPixmap; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
@@ -97,10 +98,11 @@ public:
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
   QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
   QCPSelectionRect *selectionRect() const { return mSelectionRect; }
+  bool openGl() const { return mOpenGl; }
   
   // setters:
   void setViewport(const QRect &rect);
-  void setDevicePixelRatio(double ratio);
+  void setBufferDevicePixelRatio(double ratio);
   void setBackground(const QPixmap &pm);
   void setBackground(const QPixmap &pm, bool scaled, Qt::AspectRatioMode mode=Qt::KeepAspectRatioByExpanding);
   void setBackground(const QBrush &brush);
@@ -120,6 +122,7 @@ public:
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
   void setSelectionRectMode(QCP::SelectionRectMode mode);
   void setSelectionRect(QCPSelectionRect *selectionRect);
+  void setOpenGl(bool enabled, int multisampling=16);
   
   // non-property methods:
   // plottable interface:
@@ -212,7 +215,7 @@ signals:
 protected:
   // property members:
   QRect mViewport;
-  double mDevicePixelRatio;
+  double mBufferDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;
@@ -233,15 +236,24 @@ protected:
   Qt::KeyboardModifier mMultiSelectModifier;
   QCP::SelectionRectMode mSelectionRectMode;
   QCPSelectionRect *mSelectionRect;
+  bool mOpenGl;
   
   // non-property members:
-  QList<QSharedPointer<QCPPaintBuffer> > mPaintBuffers;
+  QList<QSharedPointer<QCPAbstractPaintBuffer> > mPaintBuffers;
   QPoint mMousePressPos;
   bool mMouseHasMoved;
   QPointer<QCPLayerable> mMouseEventLayerable;
   QVariant mMouseEventLayerableDetails;
   bool mReplotting;
   bool mReplotQueued;
+  int mOpenGlMultisamples;
+  QCP::AntialiasedElements mOpenGlAntialiasedElementsBackup;
+  bool mOpenGlCacheLabelsBackup;
+#ifdef QCP_OPENGL_FBO
+  QSharedPointer<QOpenGLContext> mGlContext;
+  QSharedPointer<QSurface> mGlSurface;
+  QSharedPointer<QOpenGLPaintDevice> mGlPaintDevice;
+#endif
   
   // reimplemented virtual methods:
   virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
@@ -272,7 +284,10 @@ protected:
   QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
   void setupPaintBuffers();
+  QCPAbstractPaintBuffer *createPaintBuffer();
   bool hasInvalidatedPaintBuffers();
+  bool setupOpenGl();
+  void freeOpenGl();
   
   friend class QCPLegend;
   friend class QCPAxis;

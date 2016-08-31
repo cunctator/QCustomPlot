@@ -2223,7 +2223,7 @@ void QCPAxisPainterPrivate::clearCache()
 QByteArray QCPAxisPainterPrivate::generateLabelParameterHash() const
 {
   QByteArray result;
-  result.append(QByteArray::number(mParentPlot->devicePixelRatio()));
+  result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(tickLabelRotation));
   result.append(QByteArray::number((int)tickLabelSide));
   result.append(QByteArray::number((int)substituteExponent));
@@ -2273,9 +2273,9 @@ void QCPAxisPainterPrivate::placeTickLabel(QCPPainter *painter, double position,
       cachedLabel = new CachedLabel;
       TickLabelData labelData = getTickLabelData(painter->font(), text);
       cachedLabel->offset = getTickLabelDrawOffset(labelData)+labelData.rotatedTotalBounds.topLeft();
-      if (!qFuzzyCompare(1.0, mParentPlot->devicePixelRatio()))
+      if (!qFuzzyCompare(1.0, mParentPlot->bufferDevicePixelRatio()))
       {
-        cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size()*mParentPlot->devicePixelRatio());
+        cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size()*mParentPlot->bufferDevicePixelRatio());
 #if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
         cachedLabel->pixmap.setDevicePixelRatio(mParentPlot->devicePixelRatio());
 #endif
@@ -2292,14 +2292,14 @@ void QCPAxisPainterPrivate::placeTickLabel(QCPPainter *painter, double position,
     if (tickLabelSide == QCPAxis::lsOutside)
     {
       if (QCPAxis::orientation(type) == Qt::Horizontal)
-        labelClippedByBorder = labelAnchor.x()+cachedLabel->offset.x()+cachedLabel->pixmap.width()/mParentPlot->devicePixelRatio() > viewportRect.right() || labelAnchor.x()+cachedLabel->offset.x() < viewportRect.left();
+        labelClippedByBorder = labelAnchor.x()+cachedLabel->offset.x()+cachedLabel->pixmap.width()/mParentPlot->bufferDevicePixelRatio() > viewportRect.right() || labelAnchor.x()+cachedLabel->offset.x() < viewportRect.left();
       else
-        labelClippedByBorder = labelAnchor.y()+cachedLabel->offset.y()+cachedLabel->pixmap.height()/mParentPlot->devicePixelRatio() > viewportRect.bottom() || labelAnchor.y()+cachedLabel->offset.y() < viewportRect.top();
+        labelClippedByBorder = labelAnchor.y()+cachedLabel->offset.y()+cachedLabel->pixmap.height()/mParentPlot->bufferDevicePixelRatio() > viewportRect.bottom() || labelAnchor.y()+cachedLabel->offset.y() < viewportRect.top();
     }
     if (!labelClippedByBorder)
     {
       painter->drawPixmap(labelAnchor+cachedLabel->offset, cachedLabel->pixmap);
-      finalSize = cachedLabel->pixmap.size()/mParentPlot->devicePixelRatio();
+      finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio();
     }
     mLabelCache.insert(text, cachedLabel); // return label to cache or insert for the first time if newly created
   } else // label caching disabled, draw text directly on surface:
@@ -2566,7 +2566,7 @@ void QCPAxisPainterPrivate::getMaxTickLabelSize(const QFont &font, const QString
   if (mParentPlot->plottingHints().testFlag(QCP::phCacheLabels) && mLabelCache.contains(text)) // label caching enabled and have cached label
   {
     const CachedLabel *cachedLabel = mLabelCache.object(text);
-    finalSize = cachedLabel->pixmap.size()/mParentPlot->devicePixelRatio();
+    finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio();
   } else // label caching disabled or no label with this text cached:
   {
     TickLabelData labelData = getTickLabelData(font, text);

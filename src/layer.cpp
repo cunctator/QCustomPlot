@@ -41,10 +41,12 @@
   It is based on the two classes QCPLayer and QCPLayerable. QCustomPlot holds an ordered list of
   one or more instances of QCPLayer (see QCustomPlot::addLayer, QCustomPlot::layer,
   QCustomPlot::moveLayer, etc.). When replotting, QCustomPlot goes through the list of layers
-  bottom to top and successively draws the layerables of the layers.
+  bottom to top and successively draws the layerables of the layers into the paint buffer(s).
 
   A QCPLayer contains an ordered list of QCPLayerable instances. QCPLayerable is an abstract base
   class from which almost all visible objects derive, like axes, grids, graphs, items, etc.
+
+  \section qcplayer-defaultlayers Default layers
 
   Initially, QCustomPlot has six layers: "background", "grid", "main", "axes", "legend" and
   "overlay" (in that order). On top is the "overlay" layer, which only contains the QCustomPlot's
@@ -58,12 +60,14 @@
   course, the layer affiliation of the individual objects can be changed as required (\ref
   QCPLayerable::setLayer).
 
-  Controlling the ordering of objects is easy: Create a new layer in the position you want it to
-  be, e.g. above "main", with QCustomPlot::addLayer. Then set the current layer with
-  QCustomPlot::setCurrentLayer to that new layer and finally create the objects normally. They will
-  be placed on the new layer automatically, due to the current layer setting. Alternatively you
-  could have also ignored the current layer setting and just moved the objects with
-  QCPLayerable::setLayer to the desired layer after creating them.
+  \section qcplayer-ordering Controlling the rendering order via layers
+
+  Controlling the ordering of layerables in the plot is easy: Create a new layer in the position
+  you want the layerable to be in, e.g. above "main", with \ref QCustomPlot::addLayer. Then set the
+  current layer with \ref QCustomPlot::setCurrentLayer to that new layer and finally create the
+  objects normally. They will be placed on the new layer automatically, due to the current layer
+  setting. Alternatively you could have also ignored the current layer setting and just moved the
+  objects with \ref QCPLayerable::setLayer to the desired layer after creating them.
 
   It is also possible to move whole layers. For example, If you want the grid to be shown in front
   of all plottables/items on the "main" layer, just move it above "main" with
@@ -74,6 +78,14 @@
 
   When a layer is deleted, the objects on it are not deleted with it, but fall on the layer below
   the deleted layer, see QCustomPlot::removeLayer.
+
+  \section qcplayer-buffering Replotting only a specific layer
+
+  If the layer mode (\ref setMode) is set to \ref lmBuffered, you can replot only this specific
+  layer by calling \ref replot. In certain situations this can provide better replot performance,
+  compared with a full replot of all layers. Upon creation of a new layer, the layer mode is
+  initialized to \ref lmLogical. The only layer that is set to \ref lmBuffered in a new \ref
+  QCustomPlot instance is the "overlay" layer, containing the selection rect.
 */
 
 /* start documentation of inline functions */
@@ -141,6 +153,27 @@ void QCPLayer::setVisible(bool visible)
   mVisible = visible;
 }
 
+/*!
+  Sets the rendering mode of this layer.
+
+  If \a mode is set to \ref lmBuffered for a layer, it will be given a dedicated paint buffer by
+  the parent QCustomPlot instance. This means it may be replotted individually by calling \ref
+  QCPLayer::replot, without needing to replot all other layers.
+
+  Layers which are set to \ref lmLogical (the default) are used only to define the rendering order
+  and can't be replotted individually.
+
+  Note that each layer which is set to \ref lmBuffered requires additional paint buffers for the
+  layers below, above and for the layer itself. This increases the memory consumption and
+  (slightly) decreases the repainting speed because multiple paint buffers need to be joined. So
+  you should carefully choose which layers benefit from having their own paint buffer. A typical
+  example would be a layer which contains certain layerables (e.g. items) that need to be changed
+  and thus replotted regularly, while all other layerables on other layers stay static. By default,
+  only the topmost layer called "overlay" is in mode \ref lmBuffered, and contains the selection
+  rect.
+
+  \see replot
+*/
 void QCPLayer::setMode(QCPLayer::LayerMode mode)
 {
   if (mMode != mode)
@@ -151,6 +184,12 @@ void QCPLayer::setMode(QCPLayer::LayerMode mode)
   }
 }
 
+/*! \internal
+
+  Draws the contents of this layer with the provided \a painter.
+
+  \see replot, drawToPaintBuffer
+*/
 void QCPLayer::draw(QCPPainter *painter)
 {
   foreach (QCPLayerable *child, mChildren)
@@ -166,30 +205,52 @@ void QCPLayer::draw(QCPPainter *painter)
   }
 }
 
+/*! \internal
+
+  Draws the contents of this layer into the paint buffer which is associated with this layer. The
+  association is established by the parent QCustomPlot, which manages all paint buffers (see \ref
+  QCustomPlot::setupPaintBuffers).
+
+  \see draw
+*/
 void QCPLayer::drawToPaintBuffer()
 {
   if (!mPaintBuffer.isNull())
   {
-    if (QCPPainter *painter = mPaintBuffer.data()->createPainter())
+    if (QCPPainter *painter = mPaintBuffer.data()->startPainting())
     {
       if (painter->isActive())
         draw(painter);
       else
         qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
       delete painter;
+      mPaintBuffer.data()->donePainting();
     } else
       qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
   } else
     qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
 }
 
+/*!
+  If the layer mode (\ref setMode) is set to \ref lmBuffered, this method allows replotting only
+  the layerables on this specific layer, without the need to replot all other layers (as a call to
+  \ref QCustomPlot::replot would do).
+
+  If the layer mode is \ref lmLogical however, this method simply calls \ref QCustomPlot::replot on
+  the parent QCustomPlot instance.
+
+  QCustomPlot also makes sure to replot all layers instead of only this one, if the layer ordering
+  has changed since the last full replot and the other paint buffers were thus invalidated.
+
+  \see draw
+*/
 void QCPLayer::replot()
 {
   if (mMode == lmBuffered && !mParentPlot->hasInvalidatedPaintBuffers())
   {
     if (!mPaintBuffer.isNull())
     {
-      mPaintBuffer.data()->fill(Qt::transparent);
+      mPaintBuffer.data()->clear(Qt::transparent);
       drawToPaintBuffer();
       mPaintBuffer.data()->setInvalidated(false);
       mParentPlot->update();

@@ -27,6 +27,20 @@
 #define QCP_GLOBAL_H
 
 // amalgamation: include begin
+#include <QtCore/qglobal.h>
+
+// some Qt version/configuration dependent macros to include or exclude certain code paths:
+#ifdef QCP_USE_OPENGL
+#  if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#    define QCP_OPENGL_PBUFFER
+#  else
+#    define QCP_OPENGL_FBO
+#  endif
+#  if QT_VERSION >= QT_VERSION_CHECK(5, 3, 0)
+#    define QCP_OPENGL_OFFSCREENSURFACE
+#  endif
+#endif
+
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QSharedPointer>
@@ -48,6 +62,18 @@
 #include <qmath.h>
 #include <limits>
 #include <algorithm>
+#ifdef QCP_OPENGL_FBO
+#  include <QtGui/QOpenGLContext>
+#  include <QtGui/QOpenGLFramebufferObject>
+#  ifdef QCP_OPENGL_OFFSCREENSURFACE
+#    include <QtGui/QOffscreenSurface>
+#  else
+#    include <QtGui/QWindow>
+#  endif
+#endif
+#ifdef QCP_OPENGL_PBUFFER
+#  include <QtOpenGL/QGLPixelBuffer>
+#endif
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #  include <qnumeric.h>
 #  include <QtGui/QWidget>

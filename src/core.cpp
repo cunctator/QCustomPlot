@@ -364,7 +364,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(0),
   yAxis2(0),
   legend(0),
-  mDevicePixelRatio(1.0), // will be adapted to primary screen below
+  mBufferDevicePixelRatio(1.0), // will be adapted to primary screen below
   mPlotLayout(0),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -380,10 +380,14 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMultiSelectModifier(Qt::ControlModifier),
   mSelectionRectMode(QCP::srmNone),
   mSelectionRect(0),
+  mOpenGl(false),
   mMouseHasMoved(false),
   mMouseEventLayerable(0),
   mReplotting(false),
-  mReplotQueued(false)
+  mReplotQueued(false),
+  mOpenGlMultisamples(16),
+  mOpenGlAntialiasedElementsBackup(QCP::aeNone),
+  mOpenGlCacheLabelsBackup(true)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -392,9 +396,11 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-  setDevicePixelRatio(qApp->primaryScreen()->devicePixelRatio());
+  setBufferDevicePixelRatio(QWidget::devicePixelRatio());
 #endif
   
+  mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+  mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
   // create initial layers:
   mLayers.append(new QCPLayer(this, QLatin1String("background")));
   mLayers.append(new QCPLayer(this, QLatin1String("grid")));
@@ -779,6 +785,76 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 }
 
 /*!
+  This method allows to enable OpenGL plot rendering, for increased plotting performance of
+  graphically demanding plots (thick lines, translucent fills, etc.).
+
+  If \a enabled is set to true, QCustomPlot will try to initialize OpenGL and, if successful,
+  continue plotting with hardware acceleration. The parameter \a multisampling controls how many
+  samples will be used per pixel, it essentially controls the antialiasing quality. If \a
+  multisampling is set too high for the current graphics hardware, the maximum allowed value will
+  be used.
+
+  You can test whether switching to OpenGL rendering was successful by checking whether the
+  according getter \a QCustomPlot::openGl() returns true. If the OpenGL initialization fails,
+  rendering continues with the regular software rasterizer, and an according qDebug output is
+  generated.
+
+  If switching to OpenGL was successful, this method disables label caching (\ref setPlottingHint
+  "setPlottingHint(QCP::phCacheLabels, false)") and turns on QCustomPlot's antialiasing override
+  for all elements (\ref setAntialiasedElements "setAntialiasedElements(QCP::aeAll)"), leading to a
+  higher quality output. The antialiasing override allows for pixel-grid aligned drawing in the
+  OpenGL paint device. As stated before, in OpenGL rendering the actual antialiasing of the plot is
+  controlled with \a multisampling. If \a enabled is set to false, the antialiasing/label caching
+  settings are restored to what they were before OpenGL was enabled, if they weren't altered in the
+  mean time.
+
+  \note OpenGL support is only enabled if QCustomPlot is compiled with the macro \c QCP_USE_OPENGL
+  defined. This define must be set before including the QCustomPlot header both during compilation
+  of the QCustomPlot library as well as when compiling your application. It is best to just include
+  the line <tt>DEFINES += QCP_USE_OPENGL</tt> in the respective qmake project files.
+  \note If you are using a Qt version before 5.0, you must also add the module "opengl" to your \c
+  QT variable in the qmake project files. For Qt versions 5.0 and higher, QCustomPlot switches to a
+  newer OpenGL interface which is already in the "gui" module.
+*/
+void QCustomPlot::setOpenGl(bool enabled, int multisampling)
+{
+  mOpenGlMultisamples = qMax(0, multisampling);
+#ifdef QCP_USE_OPENGL
+  mOpenGl = enabled;
+  if (mOpenGl)
+  {
+    if (setupOpenGl())
+    {
+      // backup antialiasing override and labelcaching setting so we can restore upon disabling OpenGL
+      mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+      mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
+      // set antialiasing override to antialias all (aligns gl pixel grid properly), and disable label caching (would use software rasterizer for pixmap caches):
+      setAntialiasedElements(QCP::aeAll);
+      setPlottingHint(QCP::phCacheLabels, false);
+    } else
+    {
+      qDebug() << Q_FUNC_INFO << "Failed to enable OpenGL, continuing plotting without hardware acceleration.";
+      mOpenGl = false;
+    }
+  } else
+  {
+    // restore antialiasing override and labelcaching to what it was before enabling OpenGL, if nobody changed it in the meantime:
+    if (mAntialiasedElements == QCP::aeAll)
+      setAntialiasedElements(mOpenGlAntialiasedElementsBackup);
+    if (!mPlottingHints.testFlag(QCP::phCacheLabels))
+      setPlottingHint(QCP::phCacheLabels, mOpenGlCacheLabelsBackup);
+    freeOpenGl();
+  }
+  // recreate all paint buffers:
+  mPaintBuffers.clear();
+  setupPaintBuffers();
+#else
+  Q_UNUSED(enabled)
+  qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCP_USE_OPENGL was not defined during compilation (add 'DEFINES += QCP_USE_OPENGL' to your qmake .pro file)";
+#endif
+}
+
+/*!
   Sets the viewport of this QCustomPlot. The Viewport is the area that the top level layout
   (QCustomPlot::plotLayout()) uses as its rect. Normally, the viewport is the entire widget rect.
   
@@ -792,18 +868,29 @@ void QCustomPlot::setViewport(const QRect &rect)
     mPlotLayout->setOuterRect(mViewport);
 }
 
-void QCustomPlot::setDevicePixelRatio(double ratio)
+/*!
+  Sets the device pixel ratio used by the paint buffers of this QCustomPlot instance.
+
+  Normally, this doesn't need to be set manually, because it is initialized with the regular \a
+  QWidget::devicePixelRatio which is configured by Qt to fit the display device (e.g. 1 for normal
+  displays, 2 for High-DPI displays).
+
+  Device pixel ratios are supported by Qt only for Qt versions since 5.4. If this method is called
+  when QCustomPlot is being used with older Qt versions, outputs an according qDebug message and
+  leaves the internal buffer device pixel ratio at 1.0.
+*/
+void QCustomPlot::setBufferDevicePixelRatio(double ratio)
 {
-  if (!qFuzzyCompare(ratio, mDevicePixelRatio))
+  if (!qFuzzyCompare(ratio, mBufferDevicePixelRatio))
   {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-    mDevicePixelRatio = ratio;
+    mBufferDevicePixelRatio = ratio;
     for (int i=0; i<mPaintBuffers.size(); ++i)
-      mPaintBuffers.at(i)->setDevicePixelRatio(mDevicePixelRatio);
+      mPaintBuffers.at(i)->setDevicePixelRatio(mBufferDevicePixelRatio);
     // Note: axis label cache has devicePixelRatio as part of cache hash, so no need to manually clear cache here
 #else
     qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
-    mDevicePixelRatio = 1.0;
+    mBufferDevicePixelRatio = 1.0;
 #endif
   }
 }
@@ -1775,17 +1862,29 @@ void QCustomPlot::deselectAll()
 }
 
 /*!
-  Causes a complete replot into the internal buffer. Finally, update() is called, to redraw the
-  buffer on the QCustomPlot widget surface. This is the method that must be called to make changes,
-  for example on the axis ranges or data points of graphs, visible.
-  
+  Causes a complete replot into the internal paint buffer(s). Finally, the widget surface is
+  refreshed with the new buffer contents. This is the method that must be called to make changes to
+  the plot, e.g. on the axis ranges or data points of graphs, visible.
+
+  The parameter \a refreshPriority can be used to fine-tune the timing of the replot. For example
+  if your application calls \ref replot very quickly in succession (e.g. multiple independent
+  functions change some aspects of the plot and each wants to make sure the change gets replotted),
+  it is advisable to set \a refreshPriority to \ref QCustomPlot::rpQueuedReplot. This way, the
+  actual replotting is deferred to the next event loop iteration. Multiple successive calls of \ref
+  replot with this priority will only cause a single replot, avoiding redundant replots and
+  improving performance.
+
   Under a few circumstances, QCustomPlot causes a replot by itself. Those are resize events of the
   QCustomPlot widget and user interactions (object selection and range dragging/zooming).
-  
+
   Before the replot happens, the signal \ref beforeReplot is emitted. After the replot, \ref
   afterReplot is emitted. It is safe to mutually connect the replot slot with any of those two
   signals on two QCustomPlots to make them replot synchronously, it won't cause an infinite
   recursion.
+
+  If a layer is in mode \ref QCPLayer::lmBuffered (\ref QCPLayer::setMode), it is also possible to
+  replot only that specific layer via \ref QCPLayer::replot. See the documentation there for
+  details.
 */
 void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
 {
@@ -1806,7 +1905,6 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   emit beforeReplot();
   
   updateLayout();
-  
   // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
   setupPaintBuffers();
   foreach (QCPLayer *layer, mLayers)
@@ -2318,10 +2416,13 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 
 /*! \internal
   
-  This is the main draw function. It draws the entire plot, including background pixmap, with the
-  specified \a painter. Note that it does not fill the background with the background brush (as the
-  user may specify with \ref setBackground(const QBrush &brush)), this is up to the respective
-  functions calling this method (e.g. \ref replot, \ref toPixmap and \ref toPainter).
+  This function draws the entire plot, including background pixmap, with the specified \a painter.
+  It does not make use of the paint buffers like \ref replot, so this is the function typically
+  used by saving/exporting methods such as \ref savePdf or \ref toPainter.
+
+  Note that it does not fill the background with the background brush (as the user may specify with
+  \ref setBackground(const QBrush &brush)), this is up to the respective functions calling this
+  method.
 */
 void QCustomPlot::draw(QCPPainter *painter)
 {
@@ -2346,6 +2447,14 @@ void QCustomPlot::draw(QCPPainter *painter)
   */
 }
 
+/*! \internal
+
+  Performs the layout update steps defined by \ref QCPLayoutElement::UpdatePhase, by calling \ref
+  QCPLayoutElement::update on the main plot layout.
+
+  Here, the layout elements calculate their positions and margins, and prepare for the following
+  draw call.
+*/
 void QCustomPlot::updateLayout()
 {
   // run through layout phases:
@@ -2393,11 +2502,30 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
   }
 }
 
+/*! \internal
+
+  Goes through the layers and makes sure this QCustomPlot instance holds the correct number of
+  paint buffers and that they have the correct configuration (size, pixel ratio, etc.).
+  Allocations, reallocations and deletions of paint buffers are performed as necessary. It also
+  associates the paint buffers with the layers, so they draw themselves into the right buffer when
+  \ref QCPLayer::drawToPaintBuffer is called. This means it associates \ref QCPLayer::lmLogical
+  layers to one mutual paint buffer and creates dedicated paint buffers for layers with \ref
+  QCPLayer::lmBuffered mode.
+
+  This method uses \ref createPaintBuffer to create new paint buffers.
+
+  After this method, the paint buffers are empty (filled with \c Qt::transparent) and invalidated
+  (so an attempt to replot only a single buffered layer causes a full replot).
+
+  This method is called in every \ref replot call, prior to actually drawing the layers (into their
+  associated paint buffer). If the paint buffers don't need changing/reallocating, this method
+  basically leaves them alone and thus finishes very fast.
+*/
 void QCustomPlot::setupPaintBuffers()
 {
   int bufferIndex = 0;
   if (mPaintBuffers.isEmpty())
-    mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+    mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
   
   for (int layerIndex = 0; layerIndex < mLayers.size(); ++layerIndex)
   {
@@ -2409,13 +2537,13 @@ void QCustomPlot::setupPaintBuffers()
     {
       ++bufferIndex;
       if (bufferIndex >= mPaintBuffers.size())
-        mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+        mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
       layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
       if (layerIndex < mLayers.size()-1 && mLayers.at(layerIndex+1)->mode() == QCPLayer::lmLogical) // not last layer, and next one is logical, so prepare another buffer for next layerables
       {
         ++bufferIndex;
         if (bufferIndex >= mPaintBuffers.size())
-          mPaintBuffers.append(QSharedPointer<QCPPaintBuffer>(new QCPPaintBuffer(viewport().size(), mDevicePixelRatio)));
+          mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
       }
     }
   }
@@ -2426,11 +2554,46 @@ void QCustomPlot::setupPaintBuffers()
   for (int i=0; i<mPaintBuffers.size(); ++i)
   {
     mPaintBuffers.at(i)->setSize(viewport().size()); // won't do anything if already correct size
-    mPaintBuffers.at(i)->fill(Qt::transparent);
+    mPaintBuffers.at(i)->clear(Qt::transparent);
     mPaintBuffers.at(i)->setInvalidated();
   }
 }
 
+/*! \internal
+
+  This method is used by \ref setupPaintBuffers when it needs to create new paint buffers.
+
+  Depending on the current setting of \ref setOpenGl, and the current Qt version, different
+  backends (subclasses of \ref QCPAbstractPaintBuffer) are created, initialized with the proper
+  size and device pixel ratio, and returned.
+*/
+QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
+{
+  if (mOpenGl)
+  {
+#if defined(QCP_OPENGL_FBO)
+    return new QCPPaintBufferGlFbo(viewport().size(), mBufferDevicePixelRatio, mGlContext, mGlPaintDevice);
+#elif defined(QCP_OPENGL_PBUFFER)
+    return new QCPPaintBufferGlPbuffer(viewport().size(), mBufferDevicePixelRatio, mOpenGlMultisamples);
+#else
+    qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+#endif
+  } else
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+}
+
+/*!
+  This method returns whether any of the paint buffers held by this QCustomPlot instance are
+  invalidated.
+
+  If any buffer is invalidated, a partial replot (\ref QCPLayer::replot) is not allowed and always
+  causes a full replot (\ref QCustomPlot::replot) of all layers. This is the case when for example
+  the layer order has changed, new layers were added, layers were removed, or layer modes were
+  changed (\ref QCPLayer::setMode).
+
+  \see QCPAbstractPaintBuffer::setInvalidated
+*/
 bool QCustomPlot::hasInvalidatedPaintBuffers()
 {
   for (int i=0; i<mPaintBuffers.size(); ++i)
@@ -2439,6 +2602,86 @@ bool QCustomPlot::hasInvalidatedPaintBuffers()
       return true;
   }
   return false;
+}
+
+/*! \internal
+
+  When \ref setOpenGl is set to true, this method is used to initialize OpenGL (create a context,
+  surface, paint device).
+
+  Returns true on success.
+
+  If this method is successful, all paint buffers should be deleted and then reallocated by calling
+  \ref setupPaintBuffers, so the OpenGL-based paint buffer subclasses (\ref
+  QCPPaintBufferGlPbuffer, \ref QCPPaintBufferGlFbo) are used for subsequent replots.
+
+  \see freeOpenGl
+*/
+bool QCustomPlot::setupOpenGl()
+{
+#ifdef QCP_OPENGL_FBO
+  freeOpenGl();
+  QSurfaceFormat proposedSurfaceFormat;
+  proposedSurfaceFormat.setSamples(mOpenGlMultisamples);
+#ifdef QCP_OPENGL_OFFSCREENSURFACE
+  QOffscreenSurface *surface = new QOffscreenSurface;
+#else
+  QWindow *surface = new QWindow;
+  surface->setSurfaceType(QSurface::OpenGLSurface);
+#endif
+  surface->setFormat(proposedSurfaceFormat);
+  surface->create();
+  mGlSurface = QSharedPointer<QSurface>(surface);
+  mGlContext = QSharedPointer<QOpenGLContext>(new QOpenGLContext);
+  mGlContext->setFormat(mGlSurface->format());
+  if (!mGlContext->create())
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to create OpenGL context";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  if (!mGlContext->makeCurrent(mGlSurface.data())) // context needs to be current to create paint device
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to make opengl context current";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  if (!QOpenGLFramebufferObject::hasOpenGLFramebufferObjects())
+  {
+    qDebug() << Q_FUNC_INFO << "OpenGL of this system doesn't support frame buffer objects";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  mGlPaintDevice = QSharedPointer<QOpenGLPaintDevice>(new QOpenGLPaintDevice);
+  return true;
+#elif defined(QCP_OPENGL_PBUFFER)
+  return QGLFormat::hasOpenGL();
+#else
+  return false;
+#endif
+}
+
+/*! \internal
+
+  When \ref setOpenGl is set to false, this method is used to deinitialize OpenGL (releases the
+  context and frees resources).
+
+  After OpenGL is disabled, all paint buffers should be deleted and then reallocated by calling
+  \ref setupPaintBuffers, so the standard software rendering paint buffer subclass (\ref
+  QCPPaintBufferPixmap) is used for subsequent replots.
+
+  \see setupOpenGl
+*/
+void QCustomPlot::freeOpenGl()
+{
+#ifdef QCP_OPENGL_FBO
+  mGlPaintDevice.clear();
+  mGlContext.clear();
+  mGlSurface.clear();
+#endif
 }
 
 /*! \internal
@@ -2555,8 +2798,11 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
   }
   
   if (selectionStateChanged)
+  {
     emit selectionChangedByUser();
-  replot(rpQueuedReplot); // always replot to make selection rect disappear, TODO: if selection rect is drawn on dedicated replot-layer, only replot here if selection has changed
+    replot(rpQueuedReplot);
+  } else if (mSelectionRect)
+    mSelectionRect->layer()->replot();
 }
 
 /*! \internal

@@ -83,7 +83,7 @@ public:
   
   // getters:
   QRect viewport() const { return mViewport; }
-  double devicePixelRatio() const { return mDevicePixelRatio; }
+  double bufferDevicePixelRatio() const { return mBufferDevicePixelRatio; }
   QPixmap background() const { return mBackgroundPixmap; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
@@ -102,7 +102,7 @@ public:
   
   // setters:
   void setViewport(const QRect &rect);
-  void setDevicePixelRatio(double ratio);
+  void setBufferDevicePixelRatio(double ratio);
   void setBackground(const QPixmap &pm);
   void setBackground(const QPixmap &pm, bool scaled, Qt::AspectRatioMode mode=Qt::KeepAspectRatioByExpanding);
   void setBackground(const QBrush &brush);
@@ -215,7 +215,7 @@ signals:
 protected:
   // property members:
   QRect mViewport;
-  double mDevicePixelRatio;
+  double mBufferDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;

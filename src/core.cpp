@@ -364,7 +364,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(0),
   yAxis2(0),
   legend(0),
-  mDevicePixelRatio(1.0), // will be adapted to primary screen below
+  mBufferDevicePixelRatio(1.0), // will be adapted to primary screen below
   mPlotLayout(0),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -396,7 +396,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-  setDevicePixelRatio(qApp->primaryScreen()->devicePixelRatio());
+  setBufferDevicePixelRatio(QWidget::devicePixelRatio());
 #endif
   
   mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
@@ -836,18 +836,18 @@ void QCustomPlot::setViewport(const QRect &rect)
     mPlotLayout->setOuterRect(mViewport);
 }
 
-void QCustomPlot::setDevicePixelRatio(double ratio)
+void QCustomPlot::setBufferDevicePixelRatio(double ratio)
 {
-  if (!qFuzzyCompare(ratio, mDevicePixelRatio))
+  if (!qFuzzyCompare(ratio, mBufferDevicePixelRatio))
   {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
-    mDevicePixelRatio = ratio;
+    mBufferDevicePixelRatio = ratio;
     for (int i=0; i<mPaintBuffers.size(); ++i)
-      mPaintBuffers.at(i)->setDevicePixelRatio(mDevicePixelRatio);
+      mPaintBuffers.at(i)->setDevicePixelRatio(mBufferDevicePixelRatio);
     // Note: axis label cache has devicePixelRatio as part of cache hash, so no need to manually clear cache here
 #else
     qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
-    mDevicePixelRatio = 1.0;
+    mBufferDevicePixelRatio = 1.0;
 #endif
   }
 }
@@ -2545,15 +2545,15 @@ QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
   if (mOpenGl)
   {
 #if defined(QCP_OPENGL_FBO)
-    return new QCPPaintBufferGlFbo(viewport().size(), mDevicePixelRatio, mGlContext, mGlPaintDevice);
+    return new QCPPaintBufferGlFbo(viewport().size(), mBufferDevicePixelRatio, mGlContext, mGlPaintDevice);
 #elif defined(QCP_OPENGL_PBUFFER)
-    return new QCPPaintBufferGlPbuffer(viewport().size(), mDevicePixelRatio, mOpenGlMultisamples);
+    return new QCPPaintBufferGlPbuffer(viewport().size(), mBufferDevicePixelRatio, mOpenGlMultisamples);
 #else
     qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
-    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
 #endif
   } else
-    return new QCPPaintBufferPixmap(viewport().size(), mDevicePixelRatio);
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
 }
 
 /*! \internal

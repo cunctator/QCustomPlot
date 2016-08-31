@@ -2474,6 +2474,22 @@ void QCustomPlot::setupPaintBuffers()
   }
 }
 
+QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
+{
+  if (mOpenGl)
+  {
+#if defined(QCP_OPENGL_FBO)
+    return new QCPPaintBufferGlFbo(viewport().size(), mBufferDevicePixelRatio, mGlContext, mGlPaintDevice);
+#elif defined(QCP_OPENGL_PBUFFER)
+    return new QCPPaintBufferGlPbuffer(viewport().size(), mBufferDevicePixelRatio, mOpenGlMultisamples);
+#else
+    qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+#endif
+  } else
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+}
+
 bool QCustomPlot::hasInvalidatedPaintBuffers()
 {
   for (int i=0; i<mPaintBuffers.size(); ++i)
@@ -2538,22 +2554,6 @@ void QCustomPlot::freeOpenGl()
   mGlContext.clear();
   mGlSurface.clear();
 #endif
-}
-
-QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
-{
-  if (mOpenGl)
-  {
-#if defined(QCP_OPENGL_FBO)
-    return new QCPPaintBufferGlFbo(viewport().size(), mBufferDevicePixelRatio, mGlContext, mGlPaintDevice);
-#elif defined(QCP_OPENGL_PBUFFER)
-    return new QCPPaintBufferGlPbuffer(viewport().size(), mBufferDevicePixelRatio, mOpenGlMultisamples);
-#else
-    qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
-    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
-#endif
-  } else
-    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
 }
 
 /*! \internal

@@ -284,10 +284,10 @@ protected:
   QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
   void setupPaintBuffers();
+  QCPAbstractPaintBuffer *createPaintBuffer();
   bool hasInvalidatedPaintBuffers();
   bool setupOpenGl();
   void freeOpenGl();
-  QCPAbstractPaintBuffer *createPaintBuffer();
   
   friend class QCPLegend;
   friend class QCPAxis;

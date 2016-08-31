@@ -401,7 +401,9 @@ bool QCPErrorBars::sortKeyIsMainKey() const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::selectTestRect
+*/
 QCPDataSelection QCPErrorBars::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;

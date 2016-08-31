@@ -454,6 +454,9 @@ void QCPFinancial::addData(double key, double open, double high, double low, dou
   mDataContainer->add(QCPFinancialData(key, open, high, low, close));
 }
 
+/*!
+  \copydoc QCPPlottableInterface1D::selectTestRect
+*/
 QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;

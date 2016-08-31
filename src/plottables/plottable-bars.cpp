@@ -811,6 +811,9 @@ void QCPBars::moveAbove(QCPBars *bars)
   }
 }
 
+/*!
+  \copydoc QCPPlottableInterface1D::selectTestRect
+*/
 QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;

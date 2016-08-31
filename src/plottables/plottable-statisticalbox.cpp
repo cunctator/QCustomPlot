@@ -453,6 +453,9 @@ void QCPStatisticalBox::addData(double key, double minimum, double lowerQuartile
   mDataContainer->add(QCPStatisticalBoxData(key, minimum, lowerQuartile, median, upperQuartile, maximum, outliers));
 }
 
+/*!
+  \copydoc QCPPlottableInterface1D::selectTestRect
+*/
 QCPDataSelection QCPStatisticalBox::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
   QCPDataSelection result;

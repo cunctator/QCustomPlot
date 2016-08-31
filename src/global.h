@@ -30,7 +30,7 @@
 #include <QtCore/qglobal.h>
 
 // some Qt version/configuration dependent macros to include or exclude certain code paths:
-#ifdef QCP_USE_OPENGL
+#ifdef QCUSTOMPLOT_USE_OPENGL
 #  if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #    define QCP_OPENGL_PBUFFER
 #  else

@@ -808,10 +808,10 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
   settings are restored to what they were before OpenGL was enabled, if they weren't altered in the
   mean time.
 
-  \note OpenGL support is only enabled if QCustomPlot is compiled with the macro \c QCP_USE_OPENGL
+  \note OpenGL support is only enabled if QCustomPlot is compiled with the macro \c QCUSTOMPLOT_USE_OPENGL
   defined. This define must be set before including the QCustomPlot header both during compilation
   of the QCustomPlot library as well as when compiling your application. It is best to just include
-  the line <tt>DEFINES += QCP_USE_OPENGL</tt> in the respective qmake project files.
+  the line <tt>DEFINES += QCUSTOMPLOT_USE_OPENGL</tt> in the respective qmake project files.
   \note If you are using a Qt version before 5.0, you must also add the module "opengl" to your \c
   QT variable in the qmake project files. For Qt versions 5.0 and higher, QCustomPlot switches to a
   newer OpenGL interface which is already in the "gui" module.
@@ -819,7 +819,7 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 void QCustomPlot::setOpenGl(bool enabled, int multisampling)
 {
   mOpenGlMultisamples = qMax(0, multisampling);
-#ifdef QCP_USE_OPENGL
+#ifdef QCUSTOMPLOT_USE_OPENGL
   mOpenGl = enabled;
   if (mOpenGl)
   {
@@ -850,7 +850,7 @@ void QCustomPlot::setOpenGl(bool enabled, int multisampling)
   setupPaintBuffers();
 #else
   Q_UNUSED(enabled)
-  qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCP_USE_OPENGL was not defined during compilation (add 'DEFINES += QCP_USE_OPENGL' to your qmake .pro file)";
+  qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCUSTOMPLOT_USE_OPENGL was not defined during compilation (add 'DEFINES += QCUSTOMPLOT_USE_OPENGL' to your qmake .pro file)";
 #endif
 }
 

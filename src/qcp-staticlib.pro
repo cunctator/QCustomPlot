@@ -15,7 +15,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TEMPLATE = lib
 CONFIG += qt staticlib debug_and_release build_all
 
-DEFINES += QCP_USE_OPENGL
+DEFINES += QCUSTOMPLOT_USE_OPENGL
 
 VERSION = 1.3.1
 TARGET = qcustomplot

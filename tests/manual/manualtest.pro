@@ -8,7 +8,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 TARGET = test
 TEMPLATE = app
 
-DEFINES += QCP_USE_OPENGL
+DEFINES += QCUSTOMPLOT_USE_OPENGL
 
 CONFIG(debug, debug|release) {
   qcplib.commands = cd ../../src && $(MAKE) debug

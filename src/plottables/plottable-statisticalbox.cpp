@@ -396,8 +396,10 @@ void QCPStatisticalBox::setMedianPen(const QPen &pen)
 
 /*!
   Sets the appearance of the outlier data points.
-*/
 
+  Outliers can be specified with the method
+  \ref addData(double key, double minimum, double lowerQuartile, double median, double upperQuartile, double maximum, const QVector<double> &outliers)
+*/
 void QCPStatisticalBox::setOutlierStyle(const QCPScatterStyle &style)
 {
   mOutlierStyle = style;
@@ -414,7 +416,7 @@ void QCPStatisticalBox::setOutlierStyle(const QCPScatterStyle &style)
    
   Alternatively, you can also access and modify the data directly via the \ref data method, which
   returns a pointer to the internal data container.
- */
+*/
 void QCPStatisticalBox::addData(const QVector<double> &keys, const QVector<double> &minimum, const QVector<double> &lowerQuartile, const QVector<double> &median, const QVector<double> &upperQuartile, const QVector<double> &maximum, bool alreadySorted)
 {
   if (keys.size() != minimum.size() || minimum.size() != lowerQuartile.size() || lowerQuartile.size() != median.size() ||
@@ -617,6 +619,14 @@ void QCPStatisticalBox::drawLegendIcon(QCPPainter *painter, const QRectF &rect) 
   painter->drawRect(r);
 }
 
+/*!
+  Draws the graphical representation of a single statistical box with the data given by the
+  iterator \a it with the provided \a painter.
+
+  If the statistical box has a set of outlier data points, they are drawn with \a outlierStyle.
+
+  \see getQuartileBox, getWhiskerBackboneLines, getWhiskerBarLines
+*/
 void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const
 {
   // draw quartile box:
@@ -668,6 +678,13 @@ void QCPStatisticalBox::getVisibleDataBounds(QCPStatisticalBoxDataContainer::con
   end = mDataContainer->findEnd(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of box to include partially visible data points
 }
 
+/*!  \internal
+
+  Returns the box in plot coordinates (keys in x, values in y of the returned rect) that covers the
+  value range from the lower to the upper quartile, of the data given by \a it.
+
+  \see drawStatisticalBox, getWhiskerBackboneLines, getWhiskerBarLines
+*/
 QRectF QCPStatisticalBox::getQuartileBox(QCPStatisticalBoxDataContainer::const_iterator it) const
 {
   QRectF result;
@@ -676,6 +693,14 @@ QRectF QCPStatisticalBox::getQuartileBox(QCPStatisticalBoxDataContainer::const_i
   return result;
 }
 
+/*!  \internal
+
+  Returns the whisker backbones (keys in x, values in y of the returned lines) that cover the value
+  range from the minimum to the lower quartile, and from the upper quartile to the maximum of the
+  data given by \a it.
+
+  \see drawStatisticalBox, getQuartileBox, getWhiskerBarLines
+*/
 QVector<QLineF> QCPStatisticalBox::getWhiskerBackboneLines(QCPStatisticalBoxDataContainer::const_iterator it) const
 {
   QVector<QLineF> result(2);
@@ -684,6 +709,13 @@ QVector<QLineF> QCPStatisticalBox::getWhiskerBackboneLines(QCPStatisticalBoxData
   return result;
 }
 
+/*!  \internal
+
+  Returns the whisker bars (keys in x, values in y of the returned lines) that are placed at the
+  end of the whisker backbones, at the minimum and maximum of the data given by \a it.
+
+  \see drawStatisticalBox, getQuartileBox, getWhiskerBackboneLines
+*/
 QVector<QLineF> QCPStatisticalBox::getWhiskerBarLines(QCPStatisticalBoxDataContainer::const_iterator it) const
 {
   QVector<QLineF> result(2);

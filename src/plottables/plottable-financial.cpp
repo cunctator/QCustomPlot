@@ -956,6 +956,11 @@ void QCPFinancial::getVisibleDataBounds(QCPFinancialDataContainer::const_iterato
   end = mDataContainer->findEnd(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
 }
 
+/*!  \internal
+
+  Returns the hit box in pixel coordinates that will be used for data selection with the selection
+  rect (\ref selectTestRect), of the data point given by \a it.
+*/
 QRectF QCPFinancial::selectionHitBox(QCPFinancialDataContainer::const_iterator it) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();

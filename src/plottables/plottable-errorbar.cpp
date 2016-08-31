@@ -379,6 +379,7 @@ QCPRange QCPErrorBars::dataValueRange(int index) const
   }
 }
 
+/* inherits documentation from base class */
 QPointF QCPErrorBars::dataPixelPosition(int index) const
 {
   if (mDataPlottable)

@@ -247,6 +247,8 @@ protected:
   bool mReplotting;
   bool mReplotQueued;
   int mOpenGlMultisamples;
+  QCP::AntialiasedElements mOpenGlAntialiasedElementsBackup;
+  bool mOpenGlCacheLabelsBackup;
 #ifdef QCP_OPENGL_FBO
   QSharedPointer<QOpenGLContext> mGlContext;
   QSharedPointer<QSurface> mGlSurface;

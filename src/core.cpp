@@ -385,7 +385,9 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMouseEventLayerable(0),
   mReplotting(false),
   mReplotQueued(false),
-  mOpenGlMultisamples(16)
+  mOpenGlMultisamples(16),
+  mOpenGlAntialiasedElementsBackup(QCP::aeNone),
+  mOpenGlCacheLabelsBackup(true)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
@@ -397,6 +399,8 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   setDevicePixelRatio(qApp->primaryScreen()->devicePixelRatio());
 #endif
   
+  mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+  mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
   // create initial layers:
   mLayers.append(new QCPLayer(this, QLatin1String("background")));
   mLayers.append(new QCPLayer(this, QLatin1String("grid")));
@@ -789,6 +793,10 @@ void QCustomPlot::setOpenGl(bool enabled, int multisampling)
   {
     if (setupOpenGl())
     {
+      // backup antialiasing override and labelcaching setting so we can restore upon disabling OpenGL
+      mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+      mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
+      // set antialiasing override to antialias all (aligns gl pixel grid properly), and disable label caching (would use software rasterizer for pixmap caches):
       setAntialiasedElements(QCP::aeAll);
       setPlottingHint(QCP::phCacheLabels, false);
     } else
@@ -797,7 +805,14 @@ void QCustomPlot::setOpenGl(bool enabled, int multisampling)
       mOpenGl = false;
     }
   } else
+  {
+    // restore antialiasing override and labelcaching to what it was before enabling OpenGL, if nobody changed it in the meantime:
+    if (mAntialiasedElements == QCP::aeAll)
+      setAntialiasedElements(mOpenGlAntialiasedElementsBackup);
+    if (!mPlottingHints.testFlag(QCP::phCacheLabels))
+      setPlottingHint(QCP::phCacheLabels, mOpenGlCacheLabelsBackup);
     freeOpenGl();
+  }
   // recreate all paint buffers:
   mPaintBuffers.clear();
   setupPaintBuffers();

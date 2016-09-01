@@ -59,9 +59,24 @@
 */
 
 /*!
+  Constructs a new, empty QCPColorGradient with no predefined color stops. You can add own color
+  stops with \ref setColorStopAt.
+
+  The color level count is initialized to 350.
+*/
+QCPColorGradient::QCPColorGradient() :
+  mLevelCount(350),
+  mColorInterpolation(ciRGB),
+  mPeriodic(false),
+  mColorBufferInvalidated(true)
+{
+  mColorBuffer.fill(qRgb(0, 0, 0), mLevelCount);
+}
+
+/*!
   Constructs a new QCPColorGradient initialized with the colors and color interpolation according
   to \a preset.
-  
+
   The color level count is initialized to 350.
 */
 QCPColorGradient::QCPColorGradient(GradientPreset preset) :
@@ -109,7 +124,8 @@ void QCPColorGradient::setLevelCount(int n)
   is interpolated according to \ref setColorInterpolation.
   
   A more convenient way to create a custom gradient may be to clear all color stops with \ref
-  clearColorStops and then adding them one by one with \ref setColorStopAt.
+  clearColorStops (or creating a new, empty QCPColorGradient) and then adding them one by one with
+  \ref setColorStopAt.
   
   \see clearColorStops
 */

@@ -62,7 +62,8 @@ public:
                       };
   Q_ENUMS(GradientPreset)
   
-  QCPColorGradient(GradientPreset preset=gpCold);
+  QCPColorGradient();
+  QCPColorGradient(GradientPreset preset);
   bool operator==(const QCPColorGradient &other) const;
   bool operator!=(const QCPColorGradient &other) const { return !(*this == other); }
   

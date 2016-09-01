@@ -800,53 +800,91 @@ void QCPAbstractPlottable::rescaleValueAxis(bool onlyEnlarge, bool inKeyRange) c
   }
 }
 
-/*!
-  Adds this plottable to the legend of the parent QCustomPlot (QCustomPlot::legend).
-    
+/*! \overload
+
+  Adds this plottable to the specified \a legend.
+
   Creates a QCPPlottableLegendItem which is inserted into the legend. Returns true on success, i.e.
   when the legend exists and a legend item associated with this plottable isn't already in the
   legend.
 
   If the plottable needs a more specialized representation in the legend, you can create a
-  corresponding subclass of QCPAbstractLegendItem and add it to the legend manually instead of
-  calling this method.
-    
+  corresponding subclass of \ref QCPPlottableLegendItem and add it to the legend manually instead
+  of calling this method.
+
   \see removeFromLegend, QCPLegend::addItem
 */
-bool QCPAbstractPlottable::addToLegend()
+bool QCPAbstractPlottable::addToLegend(QCPLegend *legend)
 {
-  if (!mParentPlot || !mParentPlot->legend)
-    return false;
-  
-  if (!mParentPlot->legend->hasItemWithPlottable(this))
+  if (!legend)
   {
-    mParentPlot->legend->addItem(new QCPPlottableLegendItem(mParentPlot->legend, this));
+    qDebug() << Q_FUNC_INFO << "passed legend is null";
+    return false;
+  }
+  if (legend->parentPlot() != mParentPlot)
+  {
+    qDebug() << Q_FUNC_INFO << "passed legend isn't in the same QCustomPlot as this plottable";
+    return false;
+  }
+  
+  if (!legend->hasItemWithPlottable(this))
+  {
+    legend->addItem(new QCPPlottableLegendItem(legend, this));
     return true;
   } else
     return false;
 }
 
-/*!
-  Removes the plottable from the legend of the parent QCustomPlot. This means the
-  QCPPlottableLegendItem that is associated with this plottable is removed.
-    
+/*! \overload
+
+  Adds this plottable to the legend of the parent QCustomPlot (\ref QCustomPlot::legend).
+
+  \see removeFromLegend
+*/
+bool QCPAbstractPlottable::addToLegend()
+{
+  if (!mParentPlot || !mParentPlot->legend)
+    return false;
+  else
+    return addToLegend(mParentPlot->legend);
+}
+
+/*! \overload
+
+  Removes the plottable from the specifed \a legend. This means the \ref QCPPlottableLegendItem
+  that is associated with this plottable is removed.
+
   Returns true on success, i.e. if the legend exists and a legend item associated with this
   plottable was found and removed.
-  
-  Note that if this plottable uses a more specialized subclass of QCPAbstractLegendItem, you have
-  to remove it from the legend manually instead of calling this method.
-    
+
   \see addToLegend, QCPLegend::removeItem
+*/
+bool QCPAbstractPlottable::removeFromLegend(QCPLegend *legend) const
+{
+  if (!legend)
+  {
+    qDebug() << Q_FUNC_INFO << "passed legend is null";
+    return false;
+  }
+  
+  if (QCPPlottableLegendItem *lip = legend->itemWithPlottable(this))
+    return legend->removeItem(lip);
+  else
+    return false;
+}
+
+/*! \overload
+
+  Removes the plottable from the legend of the parent QCustomPlot.
+
+  \see addToLegend
 */
 bool QCPAbstractPlottable::removeFromLegend() const
 {
-  if (!mParentPlot->legend)
+  if (!mParentPlot || !mParentPlot->legend)
     return false;
-  
-  if (QCPPlottableLegendItem *lip = mParentPlot->legend->itemWithPlottable(this))
-    return mParentPlot->legend->removeItem(lip);
   else
-    return false;
+    return removeFromLegend(mParentPlot->legend);
 }
 
 /* inherits documentation from base class */

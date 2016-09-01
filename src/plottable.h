@@ -37,6 +37,7 @@
 class QCPPainter;
 class QCPAbstractPlottable;
 class QCPPlottableInterface1D;
+class QCPLegend;
 
 class QCP_LIB_DECL QCPSelectionDecorator
 {
@@ -143,7 +144,9 @@ public:
   void rescaleAxes(bool onlyEnlarge=false) const;
   void rescaleKeyAxis(bool onlyEnlarge=false) const;
   void rescaleValueAxis(bool onlyEnlarge=false, bool inKeyRange=false) const;
+  bool addToLegend(QCPLegend *legend);
   bool addToLegend();
+  bool removeFromLegend(QCPLegend *legend) const;
   bool removeFromLegend() const;
   
 signals:

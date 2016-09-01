@@ -82,6 +82,7 @@ class QCP_LIB_DECL QCPStatisticalBox : public QCPAbstractPlottable1D<QCPStatisti
   Q_PROPERTY(double whiskerWidth READ whiskerWidth WRITE setWhiskerWidth)
   Q_PROPERTY(QPen whiskerPen READ whiskerPen WRITE setWhiskerPen)
   Q_PROPERTY(QPen whiskerBarPen READ whiskerBarPen WRITE setWhiskerBarPen)
+  Q_PROPERTY(bool whiskerAntialiased READ whiskerAntialiased WRITE setWhiskerAntialiased)
   Q_PROPERTY(QPen medianPen READ medianPen WRITE setMedianPen)
   Q_PROPERTY(QCPScatterStyle outlierStyle READ outlierStyle WRITE setOutlierStyle)
   /// \endcond
@@ -94,6 +95,7 @@ public:
   double whiskerWidth() const { return mWhiskerWidth; }
   QPen whiskerPen() const { return mWhiskerPen; }
   QPen whiskerBarPen() const { return mWhiskerBarPen; }
+  bool whiskerAntialiased() const { return mWhiskerAntialiased; }
   QPen medianPen() const { return mMedianPen; }
   QCPScatterStyle outlierStyle() const { return mOutlierStyle; }
 
@@ -104,6 +106,7 @@ public:
   void setWhiskerWidth(double width);
   void setWhiskerPen(const QPen &pen);
   void setWhiskerBarPen(const QPen &pen);
+  void setWhiskerAntialiased(bool enabled);
   void setMedianPen(const QPen &pen);
   void setOutlierStyle(const QCPScatterStyle &style);
   
@@ -121,7 +124,9 @@ protected:
   // property members:
   double mWidth;
   double mWhiskerWidth;
-  QPen mWhiskerPen, mWhiskerBarPen, mMedianPen;
+  QPen mWhiskerPen, mWhiskerBarPen;
+  bool mWhiskerAntialiased;
+  QPen mMedianPen;
   QCPScatterStyle mOutlierStyle;
   
   // reimplemented virtual methods:

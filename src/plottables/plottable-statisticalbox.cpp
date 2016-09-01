@@ -289,6 +289,7 @@ QCPStatisticalBox::QCPStatisticalBox(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mWhiskerWidth(0.2),
   mWhiskerPen(Qt::black, 0, Qt::DashLine, Qt::FlatCap),
   mWhiskerBarPen(Qt::black),
+  mWhiskerAntialiased(false),
   mMedianPen(Qt::black, 3, Qt::SolidLine, Qt::FlatCap),
   mOutlierStyle(QCPScatterStyle::ssCircle, Qt::blue, 6)
 {
@@ -384,6 +385,17 @@ void QCPStatisticalBox::setWhiskerPen(const QPen &pen)
 void QCPStatisticalBox::setWhiskerBarPen(const QPen &pen)
 {
   mWhiskerBarPen = pen;
+}
+
+/*!
+  Sets whether the statistical boxes whiskers are drawn with antialiasing or not.
+
+  Note that antialiasing settings may be overridden by QCustomPlot::setAntialiasedElements and
+  QCustomPlot::setNotAntialiasedElements.
+*/
+void QCPStatisticalBox::setWhiskerAntialiased(bool enabled)
+{
+  mWhiskerAntialiased = enabled;
 }
 
 /*!
@@ -640,6 +652,7 @@ void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBo
   painter->drawLine(QLineF(coordsToPixels(it->key-mWidth*0.5, it->median), coordsToPixels(it->key+mWidth*0.5, it->median)));
   painter->restore();
   // draw whisker lines:
+  applyAntialiasingHint(painter, mWhiskerAntialiased, QCP::aePlottables);
   painter->setPen(mWhiskerPen);
   painter->drawLines(getWhiskerBackboneLines(it));
   painter->setPen(mWhiskerBarPen);

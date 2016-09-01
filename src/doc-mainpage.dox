@@ -127,16 +127,21 @@
   
   \section mainpage-flags Preprocessor Define Flags
   
-  QCustomPlot understands some preprocessor defines that are useful for debugging and compilation:
+  QCustomPlot understands some preprocessor defines that are useful for debugging and compilation. The flags must be defined before including the QCustomPlot header. Usually it's best to add them
+  to your qmake project file, using e.g. <tt>DEFINES += QCUSTOMPLOT_USE_OPENGL</tt>
+  
   <dl>
-  <dt>\c QCUSTOMPLOT_COMPILE_LIBRARY
-  <dd>Define this flag when compiling QCustomPlot as a shared library (.so/.dll)
-  <dt>\c QCUSTOMPLOT_USE_LIBRARY
-  <dd>Define this flag before including the header, when using QCustomPlot as a shared library
-  <dt>\c QCUSTOMPLOT_CHECK_DATA
+  <dt>\c QCUSTOMPLOT_USE_OPENGL </dt>
+  <dd>If this flag is defined, QCustomPlot can use OpenGL to improve plot performance for graphically
+      demanding plots, see \ref QCustomPlot::setOpenGl. </dd>
+  <dt>\c QCUSTOMPLOT_COMPILE_LIBRARY </dt>
+  <dd>Define this flag when compiling QCustomPlot as a shared library (.so/.dll)</dd>
+  <dt>\c QCUSTOMPLOT_USE_LIBRARY </dt>
+  <dd>Define this flag before including the header, when using QCustomPlot as a shared library</dd>
+  <dt>\c QCUSTOMPLOT_CHECK_DATA </dt>
   <dd>If this flag is defined, the QCustomPlot plottables will perform data validity checks on every redraw.
       They will give qDebug output when encountering \e inf or \e nan values (also if silent NaNs are used
-      intentionally to create gaps in graphs).
+      intentionally to create gaps in graphs).</dd>
   </dl>
   
   \section mainpage-specialqtflags Using QCustomPlot with special Qt flags
@@ -144,4 +149,7 @@
   See the page \link specialqtflags Special Qt Flags\endlink if your project uses
   <tt>QT_NO_CAST_FROM_ASCII</tt>, <tt>QT_NO_CAST_TO_ASCII</tt> or <tt>QT_NO_KEYWORDS</tt>.
 
+
+  <br><br><br>
+  <br><br><br>
 */

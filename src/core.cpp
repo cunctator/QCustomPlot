@@ -806,7 +806,7 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
   OpenGL paint device. As stated before, in OpenGL rendering the actual antialiasing of the plot is
   controlled with \a multisampling. If \a enabled is set to false, the antialiasing/label caching
   settings are restored to what they were before OpenGL was enabled, if they weren't altered in the
-  mean time.
+  meantime.
 
   \note OpenGL support is only enabled if QCustomPlot is compiled with the macro \c QCUSTOMPLOT_USE_OPENGL
   defined. This define must be set before including the QCustomPlot header both during compilation
@@ -2508,9 +2508,9 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
   paint buffers and that they have the correct configuration (size, pixel ratio, etc.).
   Allocations, reallocations and deletions of paint buffers are performed as necessary. It also
   associates the paint buffers with the layers, so they draw themselves into the right buffer when
-  \ref QCPLayer::drawToPaintBuffer is called. This means it associates \ref QCPLayer::lmLogical
-  layers to one mutual paint buffer and creates dedicated paint buffers for layers with \ref
-  QCPLayer::lmBuffered mode.
+  \ref QCPLayer::drawToPaintBuffer is called. This means it associates adjacent \ref
+  QCPLayer::lmLogical layers to a mutual paint buffer and creates dedicated paint buffers for
+  layers in \ref QCPLayer::lmBuffered mode.
 
   This method uses \ref createPaintBuffer to create new paint buffers.
 

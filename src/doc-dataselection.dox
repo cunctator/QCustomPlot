@@ -83,4 +83,6 @@
   Of course, the data selections returned by \ref QCPAbstractPlottable::selection are always within
   the plottable's data bounds, as long as they aren't changed after retrieving the selection.
 
+  <br><br><br>
+  <br><br><br>
 */

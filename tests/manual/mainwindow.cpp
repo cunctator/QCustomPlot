@@ -229,8 +229,8 @@ void MainWindow::setupExportTest(QCustomPlot *customPlot)
     customPlot->graph()->setPen(QPen(Qt::blue, penWidth));
   }
   customPlot->rescaleAxes();
-  qDebug() << customPlot->savePdf(dir.filePath("exportTest_cosmetic.pdf"), false, 500, 400);
-  qDebug() << customPlot->savePdf(dir.filePath("exportTest_noncosmetic.pdf"), true, 500, 400);
+  qDebug() << customPlot->savePdf(dir.filePath("exportTest_cosmetic.pdf"), 500, 400, QCP::epAllowCosmetic);
+  qDebug() << customPlot->savePdf(dir.filePath("exportTest_noncosmetic.pdf"), 500, 400, QCP::epNoCosmetic);
   qDebug() << customPlot->savePng(dir.filePath("exportTest_1x.png"), 500, 400);
   qDebug() << customPlot->savePng(dir.filePath("exportTest_2x.png"), 500, 400, 2);
   qDebug() << customPlot->saveJpg(dir.filePath("exportTest_1x.jpg"), 500, 400);
@@ -256,7 +256,7 @@ void MainWindow::setupExportTest(QCustomPlot *customPlot)
   qDebug() << customPlot->savePng(dir.filePath("float-precision-raster0.2x.png"), 500, 400, 0.2);
   qDebug() << customPlot->savePng(dir.filePath("float-precision-raster1x.png"), 500, 400);
   qDebug() << customPlot->savePng(dir.filePath("float-precision-raster5x.png"), 500, 400, 5);
-  qDebug() << customPlot->savePdf(dir.filePath("float-precision-vector.pdf"), false, 500, 400);
+  qDebug() << customPlot->savePdf(dir.filePath("float-precision-vector.pdf"), 500, 400);
   customPlot->clearPlottables();
   
   // test transparent/colored background:
@@ -272,10 +272,10 @@ void MainWindow::setupExportTest(QCustomPlot *customPlot)
   customPlot->rescaleAxes();
   customPlot->setBackground(Qt::transparent);
   qDebug() << customPlot->savePng(dir.filePath("exportTest_bg_transparent.png"), 500, 400);
-  qDebug() << customPlot->savePdf(dir.filePath("exportTest_bg_transparent.pdf"), true, 500, 400);
+  qDebug() << customPlot->savePdf(dir.filePath("exportTest_bg_transparent.pdf"), 500, 400, QCP::epNoCosmetic);
   customPlot->setBackground(QColor(100, 100, 155));
   qDebug() << customPlot->savePng(dir.filePath("exportTest_bg_color.png"), 500, 400);
-  qDebug() << customPlot->savePdf(dir.filePath("exportTest_bg_color.pdf"), true, 500, 400);
+  qDebug() << customPlot->savePdf(dir.filePath("exportTest_bg_color.pdf"), 500, 400, QCP::epNoCosmetic);
   customPlot->clearPlottables();
   
   QTimer::singleShot(100, qApp, SLOT(quit()));
@@ -313,7 +313,7 @@ void MainWindow::setupExportMapTest(QCustomPlot *customPlot)
   customPlot->yAxis->setRange(1, 10000);
   customPlot->setAntialiasedElement(QCP::aeAxes, true);
   customPlot->setAntialiasedElement(QCP::aeGrid, true);
-  customPlot->savePdf("./out.pdf", false, 400, 300);
+  customPlot->savePdf("./out.pdf", 400, 300);
   customPlot->savePng("./out.png", 400, 300, 3.0);
 }
 

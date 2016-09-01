@@ -1946,20 +1946,20 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
   pixel width and height. If either \a width or \a height is zero, the exported image will have the
   same dimensions as the QCustomPlot widget currently has.
 
-  \a noCosmeticPen disables the use of cosmetic pens when drawing to the PDF file. Cosmetic pens
-  are pens with numerical width 0, which are always drawn as a one pixel wide line, no matter what
-  zoom factor is set in the PDF-Viewer. For more information about cosmetic pens, see the QPainter
-  and QPen documentation.
-  
+  Setting \a exportPen to \ref QCP::epNoCosmetic allows to disable the use of cosmetic pens when
+  drawing to the PDF file. Cosmetic pens are pens with numerical width 0, which are always drawn as
+  a one pixel wide line, no matter what zoom factor is set in the PDF-Viewer. For more information
+  about cosmetic pens, see the QPainter and QPen documentation.
+
   The objects of the plot will appear in the current selection state. If you don't want any
   selected objects to be painted in their selected look, deselect everything with \ref deselectAll
   before calling this function.
 
   Returns true on success.
-  
+
   \warning
-  \li If you plan on editing the exported PDF file with a vector graphics editor like
-  Inkscape, it is advised to set \a noCosmeticPen to true to avoid losing those cosmetic lines
+  \li If you plan on editing the exported PDF file with a vector graphics editor like Inkscape, it
+  is advised to set \a exportPen to \ref QCP::epNoCosmetic to avoid losing those cosmetic lines
   (which might be quite many, because cosmetic pens are the default for e.g. axes and tick marks).
   \li If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -1967,21 +1967,21 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
   function uses the current width and height of the QCustomPlot widget. However, in Qt, these
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
-  
+
   \a pdfCreator and \a pdfTitle may be used to set the according metadata fields in the resulting
   PDF file.
-  
+
   \note On Android systems, this method does nothing and issues an according qDebug warning
-  message. This is also the case if for other reasons the define flag QT_NO_PRINTER is set.
-  
+  message. This is also the case if for other reasons the define flag \c QT_NO_PRINTER is set.
+
   \see savePng, saveBmp, saveJpg, saveRastered
 */
-bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width, int height, const QString &pdfCreator, const QString &pdfTitle)
+bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::ExportPen exportPen, const QString &pdfCreator, const QString &pdfTitle)
 {
   bool success = false;
 #ifdef QT_NO_PRINTER
   Q_UNUSED(fileName)
-  Q_UNUSED(noCosmeticPen)
+  Q_UNUSED(exportPen)
   Q_UNUSED(width)
   Q_UNUSED(height)
   Q_UNUSED(pdfCreator)
@@ -2023,7 +2023,7 @@ bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
   {
     printpainter.setMode(QCPPainter::pmVectorized);
     printpainter.setMode(QCPPainter::pmNoCaching);
-    printpainter.setMode(QCPPainter::pmNonCosmetic, noCosmeticPen);
+    printpainter.setMode(QCPPainter::pmNonCosmetic, exportPen==QCP::epNoCosmetic);
     printpainter.setWindow(mViewport);
     if (mBackgroundBrush.style() != Qt::NoBrush &&
         mBackgroundBrush.color() != Qt::white &&

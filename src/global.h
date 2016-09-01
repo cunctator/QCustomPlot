@@ -115,6 +115,7 @@ namespace QCP {
 #else
 class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q_ENUMS/Q_FLAGS features in namespace
   Q_GADGET
+  Q_ENUMS(ExportPen)
   Q_ENUMS(SignDomain)
   Q_ENUMS(MarginSide)
   Q_FLAGS(MarginSides)
@@ -128,6 +129,15 @@ class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q
   Q_ENUMS(SelectionType)
 public:
 #endif
+
+/*!
+  Defines how cosmetic pens (pens with numerical width 0) are handled during export.
+
+  \see QCustomPlot::savePdf
+*/
+enum ExportPen { epNoCosmetic     ///< Cosmetic pens are converted to pens with pixel width 1 when exporting
+                 ,epAllowCosmetic ///< Cosmetic pens are exported normally (e.g. in PDF exports, cosmetic pens always appear as 1 pixel on screen, independent of viewer zoom level)
+               };
 
 /*!
   Represents negative and positive sign domain, e.g. for passing to \ref
@@ -316,6 +326,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::AntialiasedElements)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::PlottingHints)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::MarginSides)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::Interactions)
+Q_DECLARE_METATYPE(QCP::ExportPen)
 Q_DECLARE_METATYPE(QCP::SignDomain)
 Q_DECLARE_METATYPE(QCP::MarginSide)
 Q_DECLARE_METATYPE(QCP::AntialiasedElement)

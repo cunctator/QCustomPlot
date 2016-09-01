@@ -53,6 +53,7 @@ public:
   
   // getters:
   QPixmap background() const { return mBackgroundPixmap; }
+  QBrush backgroundBrush() const { return mBackgroundBrush; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
   Qt::Orientations rangeDrag() const { return mRangeDrag; }

@@ -175,7 +175,7 @@ void QCPAbstractPaintBuffer::setDevicePixelRatio(double ratio)
 {
   if (!qFuzzyCompare(ratio, mDevicePixelRatio))
   {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
     mDevicePixelRatio = ratio;
     reallocateBuffer();
 #else
@@ -239,7 +239,7 @@ void QCPPaintBufferPixmap::reallocateBuffer()
   setInvalidated();
   if (!qFuzzyCompare(1.0, mDevicePixelRatio))
   {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
     mBuffer = QPixmap(mSize*mDevicePixelRatio);
     mBuffer.setDevicePixelRatio(mDevicePixelRatio);
 #else
@@ -489,7 +489,7 @@ void QCPPaintBufferGlFbo::reallocateBuffer()
   mGlFrameBuffer = new QOpenGLFramebufferObject(mSize*mDevicePixelRatio, frameBufferFormat);
   if (mGlPaintDevice.data()->size() != mSize*mDevicePixelRatio)
     mGlPaintDevice.data()->setSize(mSize*mDevicePixelRatio);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
   mGlPaintDevice.data()->setDevicePixelRatio(mDevicePixelRatio);
 #endif
 }

@@ -41,6 +41,10 @@
 #  endif
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+  #define QCP_DEVICEPIXELRATIO_SUPPORTED
+#endif
+
 #include <QtCore/QObject>
 #include <QtCore/QPointer>
 #include <QtCore/QSharedPointer>

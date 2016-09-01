@@ -395,7 +395,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   QLocale currentLocale = locale();
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
   setBufferDevicePixelRatio(QWidget::devicePixelRatio());
 #endif
   
@@ -883,7 +883,7 @@ void QCustomPlot::setBufferDevicePixelRatio(double ratio)
 {
   if (!qFuzzyCompare(ratio, mBufferDevicePixelRatio))
   {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
     mBufferDevicePixelRatio = ratio;
     for (int i=0; i<mPaintBuffers.size(); ++i)
       mPaintBuffers.at(i)->setDevicePixelRatio(mBufferDevicePixelRatio);

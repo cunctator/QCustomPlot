@@ -2276,7 +2276,7 @@ void QCPAxisPainterPrivate::placeTickLabel(QCPPainter *painter, double position,
       if (!qFuzzyCompare(1.0, mParentPlot->bufferDevicePixelRatio()))
       {
         cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size()*mParentPlot->bufferDevicePixelRatio());
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
         cachedLabel->pixmap.setDevicePixelRatio(mParentPlot->devicePixelRatio());
 #endif
       } else

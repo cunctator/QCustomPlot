@@ -392,7 +392,7 @@ QCPLegend::QCPLegend()
   setSelectableParts(spLegendBox | spItems);
   setSelectedParts(spNone);
   
-  setBorderPen(QPen(Qt::black));
+  setBorderPen(QPen(Qt::black, 0));
   setSelectedBorderPen(QPen(Qt::blue, 2));
   setIconBorderPen(Qt::NoPen);
   setSelectedIconBorderPen(QPen(Qt::blue, 2));

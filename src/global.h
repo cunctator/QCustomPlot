@@ -116,6 +116,7 @@ namespace QCP {
 class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q_ENUMS/Q_FLAGS features in namespace
   Q_GADGET
   Q_ENUMS(ExportPen)
+  Q_ENUMS(ResolutionUnit)
   Q_ENUMS(SignDomain)
   Q_ENUMS(MarginSide)
   Q_FLAGS(MarginSides)
@@ -129,6 +130,17 @@ class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q
   Q_ENUMS(SelectionType)
 public:
 #endif
+
+/*!
+  Defines the different units in which the image resolution can be specified in the export
+  functions.
+
+  \see QCustomPlot::savePng, QCustomPlot::saveJpg, QCustomPlot::saveBmp, QCustomPlot::saveRastered
+*/
+enum ResolutionUnit { ruDotsPerMeter       ///< Resolution is given in dots per meter (dpm)
+                      ,ruDotsPerCentimeter ///< Resolution is given in dots per centimeter (dpcm)
+                      ,ruDotsPerInch       ///< Resolution is given in dots per inch (DPI/PPI)
+                    };
 
 /*!
   Defines how cosmetic pens (pens with numerical width 0) are handled during export.
@@ -327,6 +339,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::PlottingHints)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::MarginSides)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCP::Interactions)
 Q_DECLARE_METATYPE(QCP::ExportPen)
+Q_DECLARE_METATYPE(QCP::ResolutionUnit)
 Q_DECLARE_METATYPE(QCP::SignDomain)
 Q_DECLARE_METATYPE(QCP::MarginSide)
 Q_DECLARE_METATYPE(QCP::AntialiasedElement)

@@ -2041,26 +2041,33 @@ bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::E
 
 /*!
   Saves a PNG image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
 
   For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
   image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
   texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
   200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
   temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
   QCustomPlot to place objects with sub-pixel accuracy.
 
-  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
-  (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
-  explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
-  function uses the current width and height of the QCustomPlot widget. However, in Qt, these
-  aren't defined yet inside the constructor, so you would get an image that has strange
-  widths/heights.
-  
+  image compression can be controlled with the \a quality parameter which must be between 0 and 100
+  or -1 to use the default setting.
+
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
+
+  Returns true on success. If this function fails, most likely the PNG format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
   The objects of the plot will appear in the current selection state. If you don't want any selected
   objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
   this function.
@@ -2068,33 +2075,52 @@ bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::E
   If you want the PNG to have a transparent background, call \ref setBackground(const QBrush &brush)
   with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
 
-  PNG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
-  -1 to use the default setting.
-  
-  Returns true on success. If this function fails, most likely the PNG format isn't supported by
-  the system, see Qt docs about QImageWriter::supportedImageFormats().
+  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
+  (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
+  explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
+  function uses the current width and height of the QCustomPlot widget. However, in Qt, these
+  aren't defined yet inside the constructor, so you would get an image that has strange
+  widths/heights.
 
   \see savePdf, saveBmp, saveJpg, saveRastered
 */
-bool QCustomPlot::savePng(const QString &fileName, int width, int height, double scale, int quality)
+bool QCustomPlot::savePng(const QString &fileName, int width, int height, double scale, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  return saveRastered(fileName, width, height, scale, "PNG", quality);
+  return saveRastered(fileName, width, height, scale, "PNG", quality, resolution, resolutionUnit);
 }
 
 /*!
-  Saves a JPG image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+  Saves a JPEG image file to \a fileName on disc. The output plot will have the dimensions \a width
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
 
   For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
   image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
   texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
   200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
   temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
   QCustomPlot to place objects with sub-pixel accuracy.
+
+  image compression can be controlled with the \a quality parameter which must be between 0 and 100
+  or -1 to use the default setting.
+
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
+
+  Returns true on success. If this function fails, most likely the JPEG format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
 
   \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -2103,37 +2129,42 @@ bool QCustomPlot::savePng(const QString &fileName, int width, int height, double
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
 
-  The objects of the plot will appear in the current selection state. If you don't want any selected
-  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
-  this function.
-
-  JPG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
-  -1 to use the default setting.
-  
-  Returns true on success. If this function fails, most likely the JPG format isn't supported by
-  the system, see Qt docs about QImageWriter::supportedImageFormats().
-
   \see savePdf, savePng, saveBmp, saveRastered
 */
-bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double scale, int quality)
+bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double scale, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  return saveRastered(fileName, width, height, scale, "JPG", quality);
+  return saveRastered(fileName, width, height, scale, "JPG", quality, resolution, resolutionUnit);
 }
 
 /*!
   Saves a BMP image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
 
   For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
   image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
   texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
   200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
   temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
   QCustomPlot to place objects with sub-pixel accuracy.
+
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
+
+  Returns true on success. If this function fails, most likely the BMP format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
 
   \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -2142,18 +2173,11 @@ bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
 
-  The objects of the plot will appear in the current selection state. If you don't want any selected
-  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
-  this function.
-  
-  Returns true on success. If this function fails, most likely the BMP format isn't supported by
-  the system, see Qt docs about QImageWriter::supportedImageFormats().
-
   \see savePdf, savePng, saveJpg, saveRastered
 */
-bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double scale)
+bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double scale, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  return saveRastered(fileName, width, height, scale, "BMP");
+  return saveRastered(fileName, width, height, scale, "BMP", -1, resolution, resolutionUnit);
 }
 
 /*! \internal
@@ -3054,15 +3078,32 @@ QList<QCPLayerable*> QCustomPlot::layerableListAt(const QPointF &pos, bool onlyS
   sized to \a width and \a height in pixels and scaled with \a scale. (width 100 and scale 2.0 lead
   to a full resolution file with width 200.) If the \a format supports compression, \a quality may
   be between 0 and 100 to control it.
-  
+
   Returns true on success. If this function fails, most likely the given \a format isn't supported
   by the system, see Qt docs about QImageWriter::supportedImageFormats().
-  
+
+  The \a resolution will be written to the image file header (if the file format supports this) and
+  has no direct consequence for the quality or the pixel size. However, if opening the image with a
+  tool which respects the metadata, it will be able to scale the image to match either a given size
+  in real units of length (inch, centimeters, etc.), or the target display DPI. You can specify in
+  which units \a resolution is given, by setting \a resolutionUnit. The \a resolution is converted
+  to the format's expected resolution unit internally.
+
   \see saveBmp, saveJpg, savePng, savePdf
 */
-bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality)
+bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  QPixmap buffer = toPixmap(width, height, scale);
+  QImage buffer = toPixmap(width, height, scale).toImage();
+  
+  int dotsPerMeter = 0;
+  switch (resolutionUnit)
+  {
+    case QCP::ruDotsPerMeter: dotsPerMeter = resolution; break;
+    case QCP::ruDotsPerCentimeter: dotsPerMeter = resolution*100; break;
+    case QCP::ruDotsPerInch: dotsPerMeter = resolution/0.0254; break;
+  }
+  buffer.setDotsPerMeterX(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools
+  buffer.setDotsPerMeterY(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools
   if (!buffer.isNull())
     return buffer.save(fileName, format, quality);
   else

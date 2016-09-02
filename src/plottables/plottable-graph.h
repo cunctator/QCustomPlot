@@ -72,6 +72,7 @@ class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable1D<QCPGraphData>
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
+  Q_PROPERTY(int scatterSkip READ scatterSkip WRITE setScatterSkip)
   Q_PROPERTY(QCPGraph* channelFillGraph READ channelFillGraph WRITE setChannelFillGraph)
   Q_PROPERTY(bool adaptiveSampling READ adaptiveSampling WRITE setAdaptiveSampling)
   /// \endcond
@@ -98,6 +99,7 @@ public:
   QSharedPointer<QCPGraphDataContainer> data() const { return mDataContainer; }
   LineStyle lineStyle() const { return mLineStyle; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  int scatterSkip() const { return mScatterSkip; }
   QCPGraph *channelFillGraph() const { return mChannelFillGraph.data(); }
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
@@ -106,6 +108,7 @@ public:
   void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
+  void setScatterSkip(int skip);
   void setChannelFillGraph(QCPGraph *targetGraph);
   void setAdaptiveSampling(bool enabled);
   
@@ -122,6 +125,7 @@ protected:
   // property members:
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
+  int mScatterSkip;
   QPointer<QCPGraph> mChannelFillGraph;
   bool mAdaptiveSampling;
   
@@ -136,7 +140,7 @@ protected:
   virtual void drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
   
   virtual void getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
-  virtual void getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
+  virtual void getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGraphDataContainer::const_iterator begin, QCPGraphDataContainer::const_iterator end) const;
   
   // non-virtual methods:
   void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end, const QCPDataRange &rangeRestriction) const;

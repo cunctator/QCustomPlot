@@ -254,6 +254,7 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   setBrush(Qt::NoBrush);
   
   setLineStyle(lsLine);
+  setScatterSkip(0);
   setChannelFillGraph(0);
   setAdaptiveSampling(true);
 }
@@ -319,6 +320,22 @@ void QCPGraph::setLineStyle(LineStyle ls)
 void QCPGraph::setScatterStyle(const QCPScatterStyle &style)
 {
   mScatterStyle = style;
+}
+
+/*!
+  If scatters are displayed (scatter style not \ref QCPScatterStyle::ssNone), \a skip number of
+  scatter points are skipped/not drawn after every drawn scatter point.
+
+  This can be used to make the data appear sparser while for example still having a smooth line,
+  and to improve performance for very high density plots.
+
+  If \a skip is set to 0 (default), all scatter points are drawn.
+
+  \see setScatterStyle
+*/
+void QCPGraph::setScatterSkip(int skip)
+{
+  mScatterSkip = qMax(0, skip);
 }
 
 /*!
@@ -1113,14 +1130,23 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
 
   \see getOptimizedLineData
 */
-void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const
+void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGraphDataContainer::const_iterator begin, QCPGraphDataContainer::const_iterator end) const
 {
   if (!scatterData) return;
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
-  if (begin == end) return;
   
+  const int scatterModulo = mScatterSkip+1;
+  const bool doScatterSkip = mScatterSkip > 0;
+  int beginIndex = begin-mDataContainer->constBegin();
+  int endIndex = end-mDataContainer->constBegin();
+  while (doScatterSkip && begin != end && beginIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
+  {
+    ++beginIndex;
+    ++begin;
+  }
+  if (begin == end) return;
   int dataCount = end-begin;
   int maxCount = std::numeric_limits<int>::max();
   if (mAdaptiveSampling)
@@ -1134,6 +1160,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
     double valueMaxRange = valueAxis->range().upper;
     double valueMinRange = valueAxis->range().lower;
     QCPGraphDataContainer::const_iterator it = begin;
+    int itIndex = beginIndex;
     double minValue = it->value;
     double maxValue = it->value;
     QCPGraphDataContainer::const_iterator minValueIt = it;
@@ -1145,7 +1172,21 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
     double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
     bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
     int intervalDataCount = 1;
-    ++it; // advance iterator to second data point because adaptive sampling works in 1 point retrospect
+    // advance iterator to second (non-skipped) data point because adaptive sampling works in 1 point retrospect:
+    if (!doScatterSkip)
+      ++it;
+    else
+    {
+      itIndex += scatterModulo;
+      if (itIndex < endIndex) // make sure we didn't jump over end
+        it += scatterModulo;
+      else
+      {
+        it = end;
+        itIndex = endIndex;
+      }
+    }
+    // main loop over data points:
     while (it != end)
     {
       if (it->key < currentIntervalStartKey+keyEpsilon) // data point is still within same pixel, so skip it and expand value span of this pixel if necessary
@@ -1174,7 +1215,10 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
             if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt->value > valueMinRange && intervalIt->value < valueMaxRange)
               scatterData->append(*intervalIt);
             ++c;
-            ++intervalIt;
+            if (!doScatterSkip)
+              ++intervalIt;
+            else
+              intervalIt += scatterModulo; // since we know indices of "currentIntervalStart", "intervalIt" and "it" are multiples of scatterModulo, we can't accidentally jump over "it" here
           }
         } else if (currentIntervalStart->value > valueMinRange && currentIntervalStart->value < valueMaxRange)
           scatterData->append(*currentIntervalStart);
@@ -1186,7 +1230,20 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
           keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
         intervalDataCount = 1;
       }
-      ++it;
+      // advance to next data point:
+      if (!doScatterSkip)
+        ++it;
+      else
+      {
+        itIndex += scatterModulo;
+        if (itIndex < endIndex) // make sure we didn't jump over end
+          it += scatterModulo;
+        else
+        {
+          it = end;
+          itIndex = endIndex;
+        }
+      }
     }
     // handle last interval:
     if (intervalDataCount >= 2) // last pixel had multiple data points, consolidate them
@@ -1195,13 +1252,26 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
       double valuePixelSpan = qAbs(valueAxis->coordToPixel(minValue)-valueAxis->coordToPixel(maxValue));
       int dataModulo = qMax(1, qRound(intervalDataCount/(valuePixelSpan/4.0))); // approximately every 4 value pixels one data point on average
       QCPGraphDataContainer::const_iterator intervalIt = currentIntervalStart;
+      int intervalItIndex = intervalIt-mDataContainer->constBegin();
       int c = 0;
       while (intervalIt != it)
       {
         if ((c % dataModulo == 0 || intervalIt == minValueIt || intervalIt == maxValueIt) && intervalIt->value > valueMinRange && intervalIt->value < valueMaxRange)
           scatterData->append(*intervalIt);
         ++c;
-        ++intervalIt;
+        if (!doScatterSkip)
+          ++intervalIt;
+        else // here we can't guarantee that adding scatterModulo doesn't exceed "it" (because "it" is equal to "end" here, and "end" isn't scatterModulo-aligned), so check via index comparison:
+        {
+          intervalItIndex += scatterModulo;
+          if (intervalItIndex < itIndex)
+            intervalIt += scatterModulo;
+          else
+          {
+            intervalIt = it;
+            intervalItIndex = itIndex;
+          }
+        }
       }
     } else if (currentIntervalStart->value > valueMinRange && currentIntervalStart->value < valueMaxRange)
       scatterData->append(*currentIntervalStart);
@@ -1209,11 +1279,25 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, const
   } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output
   {
     QCPGraphDataContainer::const_iterator it = begin;
+    int itIndex = beginIndex;
     scatterData->reserve(dataCount);
     while (it != end)
     {
       scatterData->append(*it);
-      ++it;
+      // advance to next data point:
+      if (!doScatterSkip)
+        ++it;
+      else
+      {
+        itIndex += scatterModulo;
+        if (itIndex < endIndex)
+          it += scatterModulo;
+        else
+        {
+          it = end;
+          itIndex = endIndex;
+        }
+      }
     }
   }
 }

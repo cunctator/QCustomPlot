@@ -137,45 +137,46 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   \brief A plottable representing a financial stock chart
 
   \image html QCPFinancial.png
-  
+
   This plottable represents time series data binned to certain intervals, mainly used for stock
   charts. The two common representations OHLC (Open-High-Low-Close) bars and Candlesticks can be
   set via \ref setChartStyle.
-  
+
   The data is passed via \ref setData as a set of open/high/low/close values at certain keys
   (typically times). This means the data must be already binned appropriately. If data is only
   available as a series of values (e.g. \a price against \a time), you can use the static
   convenience function \ref timeSeriesToOhlc to generate binned OHLC-data which can then be passed
   to \ref setData.
-  
-  The width of the OHLC bars/candlesticks can be controlled with \ref setWidth and is given in plot
-  key coordinates. A typical choice is to set it to (or slightly less than) one bin interval width.
-  
+
+  The width of the OHLC bars/candlesticks can be controlled with \ref setWidth and \ref
+  setWidthType. A typical choice is to set the width type to \ref wtPlotCoords (the default) and
+  the width to (or slightly less than) one time bin interval width.
+
   \section qcpfinancial-appearance Changing the appearance
-  
+
   Charts can be either single- or two-colored (\ref setTwoColored). If set to be single-colored,
   lines are drawn with the plottable's pen (\ref setPen) and fills with the brush (\ref setBrush).
-  
+
   If set to two-colored, positive changes of the value during an interval (\a close >= \a open) are
   represented with a different pen and brush than negative changes (\a close < \a open). These can
   be configured with \ref setPenPositive, \ref setPenNegative, \ref setBrushPositive, and \ref
   setBrushNegative. In two-colored mode, the normal plottable pen/brush is ignored. Upon selection
   however, the normal selected pen/brush (provided by the \ref selectionDecorator) is used,
   irrespective of whether the chart is single- or two-colored.
-  
+
   \section qcpfinancial-usage Usage
-  
+
   Like all data representing objects in QCustomPlot, the QCPFinancial is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
   (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
-  
+
   Usually, you first create an instance:
-  
+
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-1
   which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot
   instance takes ownership of the plottable, so do not delete it manually but use
   QCustomPlot::removePlottable() instead. The newly created plottable can be modified, e.g.:
-  
+
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-2
   Here we have used the static helper method \ref timeSeriesToOhlc, to turn a time-price data
   series into a 24-hour binned open-high-low-close data series as QCPFinancial uses.
@@ -263,8 +264,9 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable1D<QCPFinancialData>(keyAxis, valueAxis),
-  mChartStyle(csOhlc),
+  mChartStyle(csCandlestick),
   mWidth(0.5),
+  mWidthType(wtPlotCoords),
   mTwoColored(true),
   mBrushPositive(QBrush(QColor(50, 160, 0))),
   mBrushNegative(QBrush(QColor(180, 0, 15))),
@@ -331,6 +333,19 @@ void QCPFinancial::setChartStyle(QCPFinancial::ChartStyle style)
 void QCPFinancial::setWidth(double width)
 {
   mWidth = width;
+}
+
+/*!
+  Sets how the width of the financial bars is defined. See the documentation of \ref WidthType for
+  an explanation of the possible values for \a widthType.
+
+  The default value is \ref wtPlotCoords.
+
+  \see setWidth
+*/
+void QCPFinancial::setWidthType(QCPFinancial::WidthType widthType)
+{
+  mWidthType = widthType;
 }
 
 /*!
@@ -708,10 +723,10 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
       // draw backbone:
       painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it->high)), QPointF(keyPixel, valueAxis->coordToPixel(it->low)));
       // draw open:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5); // sign of this makes sure open/close are on correct sides
-      painter->drawLine(QPointF(keyPixel-keyWidthPixels, openPixel), QPointF(keyPixel, openPixel));
+      double pixelWidth = getPixelWidth(it->key, keyPixel); // sign of this makes sure open/close are on correct sides
+      painter->drawLine(QPointF(keyPixel-pixelWidth, openPixel), QPointF(keyPixel, openPixel));
       // draw close:
-      painter->drawLine(QPointF(keyPixel, closePixel), QPointF(keyPixel+keyWidthPixels, closePixel));
+      painter->drawLine(QPointF(keyPixel, closePixel), QPointF(keyPixel+pixelWidth, closePixel));
     }
   } else
   {
@@ -729,10 +744,10 @@ void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataConta
       // draw backbone:
       painter->drawLine(QPointF(valueAxis->coordToPixel(it->high), keyPixel), QPointF(valueAxis->coordToPixel(it->low), keyPixel));
       // draw open:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5); // sign of this makes sure open/close are on correct sides
-      painter->drawLine(QPointF(openPixel, keyPixel-keyWidthPixels), QPointF(openPixel, keyPixel));
+      double pixelWidth = getPixelWidth(it->key, keyPixel); // sign of this makes sure open/close are on correct sides
+      painter->drawLine(QPointF(openPixel, keyPixel-pixelWidth), QPointF(openPixel, keyPixel));
       // draw close:
-      painter->drawLine(QPointF(closePixel, keyPixel), QPointF(closePixel, keyPixel+keyWidthPixels));
+      painter->drawLine(QPointF(closePixel, keyPixel), QPointF(closePixel, keyPixel+pixelWidth));
     }
   }
 }
@@ -774,8 +789,8 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
       // draw low:
       painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it->low)), QPointF(keyPixel, valueAxis->coordToPixel(qMin(it->open, it->close))));
       // draw open-close box:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5);
-      painter->drawRect(QRectF(QPointF(keyPixel-keyWidthPixels, closePixel), QPointF(keyPixel+keyWidthPixels, openPixel)));
+      double pixelWidth = getPixelWidth(it->key, keyPixel);
+      painter->drawRect(QRectF(QPointF(keyPixel-pixelWidth, closePixel), QPointF(keyPixel+pixelWidth, openPixel)));
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
@@ -802,14 +817,67 @@ void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDa
       // draw low:
       painter->drawLine(QPointF(valueAxis->coordToPixel(it->low), keyPixel), QPointF(valueAxis->coordToPixel(qMin(it->open, it->close)), keyPixel));
       // draw open-close box:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5);
-      painter->drawRect(QRectF(QPointF(closePixel, keyPixel-keyWidthPixels), QPointF(openPixel, keyPixel+keyWidthPixels)));
+      double pixelWidth = getPixelWidth(it->key, keyPixel);
+      painter->drawRect(QRectF(QPointF(closePixel, keyPixel-pixelWidth), QPointF(openPixel, keyPixel+pixelWidth)));
     }
   }
 }
 
 /*! \internal
-  
+
+  This function is used to determine the width of the bar at coordinate \a key, according to the
+  specified width (\ref setWidth) and width type (\ref setWidthType). Provide the pixel position of
+  \a key in \a keyPixel (because usually this was already calculated via \ref QCPAxis::coordToPixel
+  when this function is called).
+
+  It returns the number of pixels the bar extends to higher keys, relative to the \a key
+  coordinate. So with a non-reversed horizontal axis, the return value is positive. With a reversed
+  horizontal axis, the return value is negative. This is important so the open/close flags on the
+  \ref csOhlc bar are drawn to the correct side.
+*/
+double QCPFinancial::getPixelWidth(double key, double keyPixel) const
+{
+  double result = 0;
+  switch (mWidthType)
+  {
+    case wtAbsolute:
+    {
+      result = mWidth*0.5;
+      if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
+        result *= -1;
+      break;
+    }
+    case wtAxisRectRatio:
+    {
+      if (mKeyAxis && mKeyAxis.data()->axisRect())
+      {
+        if (mKeyAxis.data()->orientation() == Qt::Horizontal)
+          result = mKeyAxis.data()->axisRect()->width()*mWidth*0.5;
+        else
+          result = mKeyAxis.data()->axisRect()->height()*mWidth*0.5;
+        if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
+          result *= -1;
+      } else
+        qDebug() << Q_FUNC_INFO << "No key axis or axis rect defined";
+      break;
+    }
+    case wtPlotCoords:
+    {
+      if (mKeyAxis)
+      {
+        result = mKeyAxis.data()->coordToPixel(key+mWidth*0.5)-keyPixel;
+        // no need to negate result when range reversed, because value is gained by
+        // coordinate transform which includes range direction
+      } else
+        qDebug() << Q_FUNC_INFO << "No key axis defined";
+      break;
+    }
+  }
+  return result;
+}
+
+/*! \internal
+
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csOhlc. It only tests against the data points between \a begin and \a end.
   

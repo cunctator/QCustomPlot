@@ -67,7 +67,7 @@
 QCPSelectionDecorator::QCPSelectionDecorator() :
   mPen(QColor(80, 80, 255), 2.5),
   mBrush(Qt::NoBrush),
-  mScatterStyle(QCPScatterStyle::ssNone, Qt::blue, 6.0),
+  mScatterStyle(QCPScatterStyle::ssNone, QPen(Qt::blue, 2), Qt::NoBrush, 6.0),
   mUsedScatterProperties(QCPScatterStyle::spPen),
   mPlottable(0)
 {

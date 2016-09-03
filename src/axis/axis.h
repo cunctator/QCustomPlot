@@ -284,6 +284,7 @@ public:
   
   // non-property methods:
   Qt::Orientation orientation() const { return mOrientation; }
+  int pixelOrientation() const { return rangeReversed() != (orientation()==Qt::Vertical) ? -1 : 1; }
   void moveRange(double diff);
   void scaleRange(double factor);
   void scaleRange(double factor, double center);

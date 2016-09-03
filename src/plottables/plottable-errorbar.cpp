@@ -758,7 +758,7 @@ void QCPErrorBars::getErrorBarLines(QCPErrorBarsDataContainer::const_iterator it
   const double centerErrorAxisPixel = errorAxis->orientation() == Qt::Horizontal ? centerPixel.x() : centerPixel.y();
   const double centerOrthoAxisPixel = orthoAxis->orientation() == Qt::Horizontal ? centerPixel.x() : centerPixel.y();
   const double centerErrorAxisCoord = errorAxis->pixelToCoord(centerErrorAxisPixel); // depending on plottable, this might be different from just mDataPlottable->interface1D()->dataMainKey/Value
-  const double symbolGap = mSymbolGap*0.5*(errorAxis->rangeReversed() ? -1 : 1)*(errorAxis->orientation()==Qt::Vertical ? -1 : 1);
+  const double symbolGap = mSymbolGap*0.5*errorAxis->pixelOrientation();
   // plus error:
   double errorStart, errorEnd;
   if (!qIsNaN(it->errorPlus))
@@ -953,8 +953,8 @@ bool QCPErrorBars::errorBarVisible(int index) const
     keyMin = centerKey-(qIsNaN(errorMinus) ? 0 : errorMinus);
   } else // mErrorType == etValueError
   {
-    keyMax = mKeyAxis->pixelToCoord(centerKeyPixel+mWhiskerWidth*0.5*(mKeyAxis->rangeReversed() ? -1 : 1));
-    keyMin = mKeyAxis->pixelToCoord(centerKeyPixel-mWhiskerWidth*0.5*(mKeyAxis->rangeReversed() ? -1 : 1));
+    keyMax = mKeyAxis->pixelToCoord(centerKeyPixel+mWhiskerWidth*0.5*mKeyAxis->pixelOrientation());
+    keyMin = mKeyAxis->pixelToCoord(centerKeyPixel-mWhiskerWidth*0.5*mKeyAxis->pixelOrientation());
   }
   return ((keyMax > mKeyAxis->range().lower) && (keyMin < mKeyAxis->range().upper));
 }

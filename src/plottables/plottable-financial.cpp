@@ -842,9 +842,8 @@ double QCPFinancial::getPixelWidth(double key, double keyPixel) const
   {
     case wtAbsolute:
     {
-      result = mWidth*0.5;
-      if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
-        result *= -1;
+      if (mKeyAxis)
+        result = mWidth*0.5*mKeyAxis.data()->pixelOrientation();
       break;
     }
     case wtAxisRectRatio:
@@ -852,11 +851,9 @@ double QCPFinancial::getPixelWidth(double key, double keyPixel) const
       if (mKeyAxis && mKeyAxis.data()->axisRect())
       {
         if (mKeyAxis.data()->orientation() == Qt::Horizontal)
-          result = mKeyAxis.data()->axisRect()->width()*mWidth*0.5;
+          result = mKeyAxis.data()->axisRect()->width()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
         else
-          result = mKeyAxis.data()->axisRect()->height()*mWidth*0.5;
-        if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
-          result *= -1;
+          result = mKeyAxis.data()->axisRect()->height()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
       } else
         qDebug() << Q_FUNC_INFO << "No key axis or axis rect defined";
       break;
@@ -864,11 +861,8 @@ double QCPFinancial::getPixelWidth(double key, double keyPixel) const
     case wtPlotCoords:
     {
       if (mKeyAxis)
-      {
         result = mKeyAxis.data()->coordToPixel(key+mWidth*0.5)-keyPixel;
-        // no need to negate result when range reversed, because value is gained by
-        // coordinate transform which includes range direction
-      } else
+      else
         qDebug() << Q_FUNC_INFO << "No key axis defined";
       break;
     }

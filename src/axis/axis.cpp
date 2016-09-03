@@ -291,8 +291,8 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   
   Returns the orientation of this axis. The axis orientation (horizontal or vertical) is deduced
   from the axis type (left, top, right or bottom).
-  
-  \see orientation(AxisType type)
+
+  \see orientation(AxisType type), pixelOrientation
 */
 
 /*! \fn QCPGrid *QCPAxis::grid() const
@@ -302,10 +302,29 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
 */
 
 /*! \fn static Qt::Orientation QCPAxis::orientation(AxisType type)
-  
+
   Returns the orientation of the specified axis type
-  
-  \see orientation()
+
+  \see orientation(), pixelOrientation
+*/
+
+/*! \fn int QCPAxis::pixelOrientation() const
+
+  Returns which direction points towards higher coordinate values/keys, in pixel space.
+
+  This method returns either 1 or -1. If it returns 1, then going in the positive direction along
+  the orientation of the axis in pixels corresponds to going from lower to higher axis coordinates.
+  On the other hand, if this method returns -1, going to smaller pixel values corresponds to going
+  from lower to higher axis coordinates.
+
+  For example, this is useful to easily shift axis coordinates by a certain amount given in pixels,
+  without having to care about reversed or vertically aligned axes:
+
+  \code
+  double newKey = keyAxis->pixelToCoord(keyAxis->coordToPixel(oldKey)+10*keyAxis->pixelOrientation());
+  \endcode
+
+  \a newKey will then contain a key that is ten pixels towards higher keys, starting from \a oldKey.
 */
 
 /*! \fn QSharedPointer<QCPAxisTicker> QCPAxis::ticker() const

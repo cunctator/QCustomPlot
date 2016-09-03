@@ -644,10 +644,10 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
   double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
   if (!mScatterStyle.isNone())
     strokeMargin = qMax(strokeMargin, mScatterStyle.size());
-  double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
-  double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*((keyAxis->orientation()==Qt::Vertical)!=keyAxis->rangeReversed()?-1:1));
-  double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)+strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
-  double valueMax = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)-strokeMargin*((valueAxis->orientation()==Qt::Horizontal)!=valueAxis->rangeReversed()?-1:1));
+  double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*keyAxis->pixelOrientation());
+  double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*keyAxis->pixelOrientation());
+  double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)-strokeMargin*valueAxis->pixelOrientation());
+  double valueMax = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)+strokeMargin*valueAxis->pixelOrientation());
   int currentRegion;
   QCPCurveDataContainer::const_iterator itBegin = mDataContainer->constBegin();
   QCPCurveDataContainer::const_iterator itEnd = mDataContainer->constEnd();

@@ -311,7 +311,7 @@ double QCPBarsGroup::keyPixelOffset(const QCPBars *bars, double keyCoord)
       baseBars.at(index)->getPixelWidth(keyCoord, lowerPixelWidth, upperPixelWidth);
       result += qAbs(upperPixelWidth-lowerPixelWidth)*0.5;
       // correct sign of result depending on orientation and direction of key axis:
-      result *= dir*(thisBase->keyAxis()->orientation() == Qt::Vertical ? -1 : 1)*(thisBase->keyAxis()->rangeReversed() ? -1 : 1);
+      result *= dir*thisBase->keyAxis()->pixelOrientation();
     }
   }
   return result;
@@ -1108,7 +1108,7 @@ QRectF QCPBars::getBarRect(double key, double value) const
     keyPixel += mBarsGroup->keyPixelOffset(this, key);
   double bottomOffset = (mBarBelow && mPen != Qt::NoPen ? 1 : 0)*(mPen.isCosmetic() ? 1 : mPen.widthF());
   bottomOffset += mBarBelow ? mStackingGap : 0;
-  bottomOffset *= (valueAxis->rangeReversed() ? -1 : 1)*(value<0 ? -1 : 1)*(valueAxis->orientation()==Qt::Vertical ? -1 : 1);
+  bottomOffset *= (value<0 ? -1 : 1)*valueAxis->pixelOrientation();
   if (qAbs(valuePixel-basePixel) <= qAbs(bottomOffset))
     bottomOffset = valuePixel-basePixel;
   if (keyAxis->orientation() == Qt::Horizontal)
@@ -1137,10 +1137,8 @@ void QCPBars::getPixelWidth(double key, double &lower, double &upper) const
   {
     case wtAbsolute:
     {
-      upper = mWidth*0.5;
+      upper = mWidth*0.5*mKeyAxis.data()->pixelOrientation();
       lower = -upper;
-      if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
-        qSwap(lower, upper);
       break;
     }
     case wtAxisRectRatio:
@@ -1148,12 +1146,10 @@ void QCPBars::getPixelWidth(double key, double &lower, double &upper) const
       if (mKeyAxis && mKeyAxis.data()->axisRect())
       {
         if (mKeyAxis.data()->orientation() == Qt::Horizontal)
-          upper = mKeyAxis.data()->axisRect()->width()*mWidth*0.5;
+          upper = mKeyAxis.data()->axisRect()->width()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
         else
-          upper = mKeyAxis.data()->axisRect()->height()*mWidth*0.5;
+          upper = mKeyAxis.data()->axisRect()->height()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
         lower = -upper;
-        if (mKeyAxis && (mKeyAxis.data()->rangeReversed() ^ (mKeyAxis.data()->orientation() == Qt::Vertical)))
-          qSwap(lower, upper);
       } else
         qDebug() << Q_FUNC_INFO << "No key axis or axis rect defined";
       break;

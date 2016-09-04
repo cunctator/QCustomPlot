@@ -50,7 +50,7 @@ public:
   void setupMultiValueGraph(QCustomPlot *customPlot);
   void setupErrorBarTest(QCustomPlot *customPlot);
   void setupDataSelectTest(QCustomPlot *customPlot);
-  
+  void setupScatterSkipTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   

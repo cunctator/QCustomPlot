@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupMultiValueGraph(mCustomPlot);
   //setupDataSelectTest(mCustomPlot);
   //setupErrorBarTest(mCustomPlot);
+  //setupScatterSkipTest(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -1185,6 +1186,36 @@ void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
   financial->setTwoColored(true);
   financial->setChartStyle(QCPFinancial::csCandlestick);
   financial->setSelectable(QCP::stMultipleDataRanges);
+  
+  customPlot->rescaleAxes();
+}
+
+void MainWindow::setupScatterSkipTest(QCustomPlot *customPlot)
+{
+  QCPCurve *c = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  c->setLineStyle(QCPCurve::lsLine);
+  c->setScatterStyle(QCPScatterStyle::ssPlus);
+  c->setScatterSkip(4);
+  int n = 1000;
+  for (int i=0; i<n; ++i)
+    c->addData(qCos(i/(double)n*10*M_PI)*i/(double)n*2+2, qSin(i/(double)n*10*M_PI)*i/(double)n*2);
+  
+  QCPGraph *g = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
+  n = 10000;
+  QVector<double> x, y;
+  x << -6;
+  y << 2;
+  for (int i=0; i<n/2; ++i)
+  {
+    x << i/(double)(n/2-1)*4-5;
+    if (qrand()%(n/25) == 0)
+      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    else
+      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + 5*qSin(x[i]);
+  }
+  g->setData(x, y);
+  g->setScatterStyle(QCPScatterStyle::ssPlus);
+  g->setScatterSkip(4);
   
   customPlot->rescaleAxes();
 }

@@ -44,6 +44,7 @@ class QCP_LIB_DECL QCPLayer : public QObject
   Q_PROPERTY(int index READ index)
   Q_PROPERTY(QList<QCPLayerable*> children READ children)
   Q_PROPERTY(bool visible READ visible WRITE setVisible)
+  Q_PROPERTY(LayerMode mode READ mode WRITE setMode)
   /// \endcond
 public:
   
@@ -101,6 +102,7 @@ private:
   friend class QCustomPlot;
   friend class QCPLayerable;
 };
+Q_DECLARE_METATYPE(QCPLayer::LayerMode)
 
 class QCP_LIB_DECL QCPLayerable : public QObject
 {

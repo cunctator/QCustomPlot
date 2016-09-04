@@ -37,7 +37,7 @@ class QCP_LIB_DECL QCPSelectionRect : public QCPLayerable
   Q_OBJECT
 public:
   explicit QCPSelectionRect(QCustomPlot *parentPlot);
-  ~QCPSelectionRect();
+  virtual ~QCPSelectionRect();
   
   // getters:
   QRect rect() const { return mRect; }

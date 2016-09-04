@@ -47,7 +47,6 @@ public:
   
   QCPPainter();
   QCPPainter(QPaintDevice *device);
-  ~QCPPainter();
   
   // getters:
   bool antialiasing() const { return testRenderHint(QPainter::Antialiasing); }

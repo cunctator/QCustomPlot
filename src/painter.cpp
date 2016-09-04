@@ -71,10 +71,6 @@ QCPPainter::QCPPainter(QPaintDevice *device) :
 #endif
 }
 
-QCPPainter::~QCPPainter()
-{
-}
-
 /*!
   Sets the pen of the painter and applies certain fixes to it, depending on the mode of this
   QCPPainter.

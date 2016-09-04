@@ -61,7 +61,7 @@ public:
   Q_ENUMS(LayerMode)
   
   QCPLayer(QCustomPlot* parentPlot, const QString &layerName);
-  ~QCPLayer();
+  virtual ~QCPLayer();
   
   // getters:
   QCustomPlot *parentPlot() const { return mParentPlot; }
@@ -116,7 +116,7 @@ class QCP_LIB_DECL QCPLayerable : public QObject
   /// \endcond
 public:
   QCPLayerable(QCustomPlot *plot, QString targetLayer=QString(), QCPLayerable *parentLayerable=0);
-  ~QCPLayerable();
+  virtual ~QCPLayerable();
   
   // getters:
   bool visible() const { return mVisible; }

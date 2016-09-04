@@ -38,7 +38,7 @@ class QCP_LIB_DECL QCPMarginGroup : public QObject
   Q_OBJECT
 public:
   QCPMarginGroup(QCustomPlot *parentPlot);
-  ~QCPMarginGroup();
+  virtual ~QCPMarginGroup();
   
   // non-virtual methods:
   QList<QCPLayoutElement*> elements(QCP::MarginSide side) const { return mChildren.value(side); }

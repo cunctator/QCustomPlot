@@ -133,6 +133,16 @@
   description of this class.
 */
 
+/*! \fn QCPDataContainer::const_iterator QCPDataContainer<DataType>::at(int index) const
+
+  Returns a const iterator to the element with the specified \a index. If \a index points beyond
+  the available elements in this container, returns \ref constEnd, i.e. an iterator past the last
+  valid element.
+
+  You can use this method to easily obtain iterators from a \ref QCPDataRange, see the \ref
+  dataselection-accessing "data selection page" for an example.
+*/
+
 /*! \fn QCPDataRange QCPDataContainer::dataRange() const
 
   Returns a \ref QCPDataRange encompassing the entire data set of this container. This means the

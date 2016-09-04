@@ -75,6 +75,7 @@ public:
   QCPDataContainer::iterator end() { return mData.end(); }
   QCPDataContainer::const_iterator findBegin(double sortKey, bool expandedRange=true) const;
   QCPDataContainer::const_iterator findEnd(double sortKey, bool expandedRange=true) const;
+  QCPDataContainer::const_iterator at(int index) const { return constBegin()+qBound(0, index, size()); }
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange());
   QCPDataRange dataRange() const { return QCPDataRange(0, size()); }

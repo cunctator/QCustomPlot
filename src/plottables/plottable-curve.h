@@ -125,7 +125,7 @@ protected:
   virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &points, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
-  QVector<QPointF> getCurveLines(const QCPDataRange &dataRange, double penWidth) const;
+  void getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRange, double penWidth) const;
   int getRegion(double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;

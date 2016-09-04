@@ -498,7 +498,7 @@ void QCPCurve::draw(QCPPainter *painter)
       finalScatterStyle = mSelectionDecorator->getFinalScatterStyle(mScatterStyle);
     
     QCPDataRange lineDataRange = isSelectedSegment ? allSegments.at(i) : allSegments.at(i).adjusted(-1, 1); // unselected segments extend lines to bordering selected data point (safe to exceed total data bounds in first/last segment, getCurveLines takes care)
-    lines = getCurveLines(lineDataRange, qMax(finalCurvePen.widthF(), finalScatterStyle.size()));
+    getCurveLines(&lines, lineDataRange, finalCurvePen.widthF());
     
     // check data validity if flag set:
   #ifdef QCUSTOMPLOT_CHECK_DATA
@@ -618,6 +618,9 @@ void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &poin
   regarding point count. The algorithm makes sure to preserve appearance of lines and fills inside
   the visible axis rect by generating new temporary points on the outer rect if necessary.
 
+  \a lines will be filled with points in pixel coordinates, that can be drawn with \ref
+  drawCurveLine.
+
   \a dataRange specifies the beginning and ending data indices that will be taken into account for
   conversion. In this function, the specified range may exceed the total data bounds without harm:
   a correspondingly trimmed data range will be used. This takes the burden off the user of this
@@ -633,17 +636,16 @@ void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &poin
 
   \see drawCurveLine, drawScatterPlot
 */
-QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double penWidth) const
+void QCPCurve::getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRange, double penWidth) const
 {
-  QVector<QPointF> result;
+  if (!lines) return;
+  lines->clear();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return result; }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
   // add margins to rect to compensate for stroke width
   double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
-  if (!mScatterStyle.isNone())
-    strokeMargin = qMax(strokeMargin, mScatterStyle.size());
   double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*keyAxis->pixelOrientation());
   double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*keyAxis->pixelOrientation());
   double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)-strokeMargin*valueAxis->pixelOrientation());
@@ -653,7 +655,7 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
   QCPCurveDataContainer::const_iterator itEnd = mDataContainer->constEnd();
   mDataContainer->limitIteratorsToDataRange(itBegin, itEnd, dataRange);
   if (itBegin == itEnd)
-    return result;
+    return;
   QCPCurveDataContainer::const_iterator it = itBegin;
   QCPCurveDataContainer::const_iterator prevIt = itEnd-1;
   int prevRegion = getRegion(prevIt->key, prevIt->value, keyMin, valueMax, keyMax, valueMin);
@@ -668,9 +670,9 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
         QPointF crossA, crossB;
         if (prevRegion == 5) // we're coming from R, so add this point optimized
         {
-          result.append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, keyMin, valueMax, keyMax, valueMin));
+          lines->append(getOptimizedPoint(currentRegion, it->key, it->value, prevIt->key, prevIt->value, keyMin, valueMax, keyMax, valueMin));
           // in the situations 5->1/7/9/3 the segment may leave R and directly cross through two outer regions. In these cases we need to add an additional corner point
-          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
+          *lines << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         } else if (mayTraverse(prevRegion, currentRegion) &&
                    getTraverse(prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin, crossA, crossB))
         {
@@ -679,33 +681,33 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
           getTraverseCornerPoints(prevRegion, currentRegion, keyMin, valueMax, keyMax, valueMin, beforeTraverseCornerPoints, afterTraverseCornerPoints);
           if (it != itBegin)
           {
-            result << beforeTraverseCornerPoints;
-            result.append(crossA);
-            result.append(crossB);
-            result << afterTraverseCornerPoints;
+            *lines << beforeTraverseCornerPoints;
+            lines->append(crossA);
+            lines->append(crossB);
+            *lines << afterTraverseCornerPoints;
           } else
           {
-            result.append(crossB);
-            result << afterTraverseCornerPoints;
+            lines->append(crossB);
+            *lines << afterTraverseCornerPoints;
             trailingPoints << beforeTraverseCornerPoints << crossA ;
           }
         } else // doesn't cross R, line is just moving around in outside regions, so only need to add optimized point(s) at the boundary corner(s)
         {
-          result << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
+          *lines << getOptimizedCornerPoints(prevRegion, currentRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         }
       } else // segment does end in R, so we add previous point optimized and this point at original position
       {
         if (it == itBegin) // it is first point in curve and prevIt is last one. So save optimized point for adding it to the lineData in the end
           trailingPoints << getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin);
         else
-          result.append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin));
-        result.append(coordsToPixels(it->key, it->value));
+          lines->append(getOptimizedPoint(prevRegion, prevIt->key, prevIt->value, it->key, it->value, keyMin, valueMax, keyMax, valueMin));
+        lines->append(coordsToPixels(it->key, it->value));
       }
     } else // region didn't change
     {
       if (currentRegion == 5) // still in R, keep adding original points
       {
-        result.append(coordsToPixels(it->key, it->value));
+        lines->append(coordsToPixels(it->key, it->value));
       } else // still outside R, no need to add anything
       {
         // see how this is not doing anything? That's the main optimization...
@@ -715,8 +717,8 @@ QVector<QPointF> QCPCurve::getCurveLines(const QCPDataRange &dataRange, double p
     prevRegion = currentRegion;
     ++it;
   }
-  result << trailingPoints;
-  return result;
+  *lines << trailingPoints;
+}
 }
 
 /*! \internal
@@ -1374,7 +1376,8 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer:
   // calculate distance to line if there is one (if so, will probably be smaller than distance to closest data point):
   if (mLineStyle != lsNone)
   {
-    QVector<QPointF> lines = getCurveLines(QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
+    QVector<QPointF> lines;
+    getCurveLines(&lines, QCPDataRange(0, dataCount()), mParentPlot->selectionTolerance()*1.2); // optimized lines outside axis rect shouldn't respond to clicks at the edge, so use 1.2*tolerance as pen width
     for (int i=0; i<lines.size()-1; ++i)
     {
       double currentDistSqr = QCPVector2D(pixelPoint).distanceSquaredToLine(lines.at(i), lines.at(i+1));

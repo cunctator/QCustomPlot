@@ -50,8 +50,10 @@ protected:
   QCustomPlot *mParentPlot;
   QHash<QCP::MarginSide, QList<QCPLayoutElement*> > mChildren;
   
+  // introduced virtual methods:
+  virtual int commonMargin(QCP::MarginSide side) const;
+  
   // non-virtual methods:
-  int commonMargin(QCP::MarginSide side) const;
   void addChild(QCP::MarginSide side, QCPLayoutElement *element);
   void removeChild(QCP::MarginSide side, QCPLayoutElement *element);
   

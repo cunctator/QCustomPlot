@@ -288,7 +288,7 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
 /* start of documentation of inline functions */
 
 /*! \fn Qt::Orientation QCPAxis::orientation() const
-  
+
   Returns the orientation of this axis. The axis orientation (horizontal or vertical) is deduced
   from the axis type (left, top, right or bottom).
 
@@ -328,39 +328,19 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
 */
 
 /*! \fn QSharedPointer<QCPAxisTicker> QCPAxis::ticker() const
-  
+
   Returns a modifiable shared pointer to the currently installed axis ticker. The axis ticker is
   responsible for generating the tick positions and tick labels of this axis. You can access the
-  QCPAxisTicker with this method and modify basic properties such as the approximate tick count
+  \ref QCPAxisTicker with this method and modify basic properties such as the approximate tick count
   (\ref QCPAxisTicker::setTickCount).
-  
-  You can gain more control over the axis ticks by setting a different QCPAxisTicker subclass, see
-  the documentation there. A new axis ticker can be set with setTicker.
-  
+
+  You can gain more control over the axis ticks by setting a different \ref QCPAxisTicker subclass, see
+  the documentation there. A new axis ticker can be set with \ref setTicker.
+
   Since the ticker is stored in the axis as a shared pointer, multiple axes may share the same axis
   ticker simply by passing the same shared pointer to multiple axes.
-  
+
   \see setTicker
-*/
-
-/*! \fn QVector<double> QCPAxis::tickVector() const
-  
-  Returns a vector of coordinates which correspond to the currently displayed axis ticks.
-  
-  This tick vector is read-only. If you wish to control the ticks, access or subclass the
-  \ref QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
-  
-  \see tickVectorLabels
-*/
-
-/*! \fn QVector<QString> QCPAxis::tickVectorLabels() const
-  
-  Returns a vector of strings which correspond to the currently displayed axis ticks labels.
-  
-  This tick label vector is read-only. If you wish to control the tick labels, access or subclass
-  the \ref QCPAxisTicker of the axis (see \ref QCPAxis::ticker and QCPAxis::setTicker).
-  
-  \see tickVector
 */
 
 /* end of documentation of inline functions */

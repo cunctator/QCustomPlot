@@ -72,6 +72,7 @@ class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable1D<QCPCurveData>
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
+  Q_PROPERTY(int scatterSkip READ scatterSkip WRITE setScatterSkip)
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   /// \endcond
 public:
@@ -91,6 +92,7 @@ public:
   // getters:
   QSharedPointer<QCPCurveDataContainer> data() const { return mDataContainer; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  int scatterSkip() const { return mScatterSkip; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
@@ -98,6 +100,7 @@ public:
   void setData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setData(const QVector<double> &keys, const QVector<double> &values);
   void setScatterStyle(const QCPScatterStyle &style);
+  void setScatterSkip(int skip);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
@@ -114,6 +117,7 @@ public:
 protected:
   // property members:
   QCPScatterStyle mScatterStyle;
+  int mScatterSkip;
   LineStyle mLineStyle;
   
   // reimplemented virtual methods:
@@ -126,6 +130,7 @@ protected:
   
   // non-virtual methods:
   void getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRange, double penWidth) const;
+  void getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange, double scatterWidth) const;
   int getRegion(double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;

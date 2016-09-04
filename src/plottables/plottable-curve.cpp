@@ -248,10 +248,8 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis)
 {
   // modify inherited properties from abstract plottable:
-  mPen.setColor(Qt::blue);
-  mPen.setStyle(Qt::SolidLine);
-  mBrush.setColor(Qt::blue);
-  mBrush.setStyle(Qt::NoBrush);
+  setPen(QPen(Qt::blue, 0));
+  setBrush(Qt::NoBrush);
   
   setScatterStyle(QCPScatterStyle());
   setLineStyle(lsLine);

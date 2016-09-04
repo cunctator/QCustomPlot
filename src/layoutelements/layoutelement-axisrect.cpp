@@ -525,7 +525,7 @@ QList<QCPAbstractPlottable*> QCPAxisRect::plottables() const
   QList<QCPAbstractPlottable*> result;
   for (int i=0; i<mParentPlot->mPlottables.size(); ++i)
   {
-    if (mParentPlot->mPlottables.at(i)->keyAxis()->axisRect() == this ||mParentPlot->mPlottables.at(i)->valueAxis()->axisRect() == this)
+    if (mParentPlot->mPlottables.at(i)->keyAxis()->axisRect() == this || mParentPlot->mPlottables.at(i)->valueAxis()->axisRect() == this)
       result.append(mParentPlot->mPlottables.at(i));
   }
   return result;

@@ -1106,7 +1106,7 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
     } else
       lineData->append(QCPGraphData(currentIntervalFirstPoint->key, currentIntervalFirstPoint->value));
     
-  } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output
+  } else // don't use adaptive sampling algorithm, transfer points one-to-one from the data container into the output
   {
     QCPGraphDataContainer::const_iterator it = begin;
     lineData->reserve(dataCount+2); // +2 for possible fill end points
@@ -1276,7 +1276,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
     } else if (currentIntervalStart->value > valueMinRange && currentIntervalStart->value < valueMaxRange)
       scatterData->append(*currentIntervalStart);
     
-  } else // don't use adaptive sampling algorithm, transfer points one-to-one from the map into the output
+  } else // don't use adaptive sampling algorithm, transfer points one-to-one from the data container into the output
   {
     QCPGraphDataContainer::const_iterator it = begin;
     int itIndex = beginIndex;

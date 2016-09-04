@@ -867,6 +867,15 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
 /* inherits documentation from base class */
 QCPRange QCPBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
 {
+  /* Note: If this QCPBars uses absolute pixels as width (or is in a QCPBarsGroup with spacing in
+  absolute pixels), using this method to adapt the key axis range to fit the bars into the
+  currently visible axis range will not work perfectly. Because in the moment the axis range is
+  changed to the new range, the fixed pixel widths/spacings will represent different coordinate
+  spans than before, which in turn would require a different key range to perfectly fit, and so on.
+  The only solution would be to iteratively approach the perfect fitting axis range, but the
+  mismatch isn't large enough in most applications, to warrant this here. If a user does need a
+  better fit, he should call the corresponding axis rescale multiple times in a row.
+  */
   QCPRange range;
   range = mDataContainer->keyRange(foundRange, inSignDomain);
   

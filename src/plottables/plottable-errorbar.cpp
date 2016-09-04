@@ -160,10 +160,11 @@ QCPErrorBars::~QCPErrorBars()
   containers wrapped in shared pointers:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcperrorbars-datasharing-1
 
-  If you do not wish to share containers, but create a copy from an existing container, rather use
-  the \ref QCPDataContainer<DataType>::set method on the \ref QCPErrorBars's data container
-  directly:
+  If you do not wish to share containers, but create a copy from an existing container, assign the
+  data containers directly:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcperrorbars-datasharing-2
+  (This uses different notation compared with other plottables, because the \ref QCPErrorBars
+  uses a \c QVector<QCPErrorBarsData> as its data container, instead of a \ref QCPDataContainer.)
 
   \see addData
 */

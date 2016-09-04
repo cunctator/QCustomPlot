@@ -299,7 +299,7 @@ void MainWindow::snippetQCPErrorBarsDataSharing()
   //! [qcperrorbars-datasharing-1]
   
   //! [qcperrorbars-datasharing-2]
-  errorBars2->data()->set(*errorBars1->data()); // errorBars2 now has copy of errorBars1's data in its container
+  *errorBars2->data() = *errorBars1->data(); // errorBars2 now has copy of errorBars1's data in its container
   //! [qcperrorbars-datasharing-2]
 }
 

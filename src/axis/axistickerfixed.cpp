@@ -117,7 +117,6 @@ double QCPAxisTickerFixed::getTickStep(const QCPRange &range)
     {
       double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
       return qPow(mTickStep, (int)(qLn(exactStep)/qLn(mTickStep)+0.5));
-      break;
     }
   }
   return mTickStep;

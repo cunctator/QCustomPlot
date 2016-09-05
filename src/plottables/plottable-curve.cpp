@@ -658,12 +658,11 @@ void QCPCurve::getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRa
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
   // add margins to rect to compensate for stroke width
-  double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
-  double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*keyAxis->pixelOrientation());
-  double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*keyAxis->pixelOrientation());
-  double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)-strokeMargin*valueAxis->pixelOrientation());
-  double valueMax = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)+strokeMargin*valueAxis->pixelOrientation());
-  int currentRegion;
+  const double strokeMargin = qMax(qreal(1.0), qreal(penWidth*0.75)); // stroke radius + 50% safety
+  const double keyMin = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().lower)-strokeMargin*keyAxis->pixelOrientation());
+  const double keyMax = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyAxis->range().upper)+strokeMargin*keyAxis->pixelOrientation());
+  const double valueMin = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().lower)-strokeMargin*valueAxis->pixelOrientation());
+  const double valueMax = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueAxis->range().upper)+strokeMargin*valueAxis->pixelOrientation());
   QCPCurveDataContainer::const_iterator itBegin = mDataContainer->constBegin();
   QCPCurveDataContainer::const_iterator itEnd = mDataContainer->constEnd();
   mDataContainer->limitIteratorsToDataRange(itBegin, itEnd, dataRange);
@@ -675,7 +674,7 @@ void QCPCurve::getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRa
   QVector<QPointF> trailingPoints; // points that must be applied after all other points (are generated only when handling first point to get virtual segment between last and first point right)
   while (it != itEnd)
   {
-    currentRegion = getRegion(it->key, it->value, keyMin, valueMax, keyMax, valueMin);
+    const int currentRegion = getRegion(it->key, it->value, keyMin, valueMax, keyMax, valueMin);
     if (currentRegion != prevRegion) // changed region, possibly need to add some optimized edge points or original points if entering R
     {
       if (currentRegion != 5) // segment doesn't end in R, so it's a candidate for removal

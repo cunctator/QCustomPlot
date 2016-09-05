@@ -639,7 +639,7 @@ void QCPStatisticalBox::drawLegendIcon(QCPPainter *painter, const QRectF &rect) 
 
   \see getQuartileBox, getWhiskerBackboneLines, getWhiskerBarLines
 */
-void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle outlierStyle) const
+void QCPStatisticalBox::drawStatisticalBox(QCPPainter *painter, QCPStatisticalBoxDataContainer::const_iterator it, const QCPScatterStyle &outlierStyle) const
 {
   // draw quartile box:
   applyDefaultAntialiasingHint(painter);

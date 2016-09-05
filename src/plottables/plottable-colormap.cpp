@@ -1072,13 +1072,13 @@ void QCPColorMap::draw(QCPPainter *painter)
     updateMapImage();
   
   // use buffer if painting vectorized (PDF):
-  bool useBuffer = painter->modes().testFlag(QCPPainter::pmVectorized);
+  const bool useBuffer = painter->modes().testFlag(QCPPainter::pmVectorized);
   QCPPainter *localPainter = painter; // will be redirected to paint on mapBuffer if painting vectorized
   QRectF mapBufferTarget; // the rect in absolute widget coordinates where the visible map portion/buffer will end up in
   QPixmap mapBuffer;
-  double mapBufferPixelRatio = 3; // factor by which DPI is increased in embedded bitmaps
   if (useBuffer)
   {
+    const double mapBufferPixelRatio = 3; // factor by which DPI is increased in embedded bitmaps
     mapBufferTarget = painter->clipRegion().boundingRect();
     mapBuffer = QPixmap((mapBufferTarget.size()*mapBufferPixelRatio).toSize());
     mapBuffer.fill(Qt::transparent);
@@ -1106,9 +1106,9 @@ void QCPColorMap::draw(QCPPainter *painter)
       halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->valueSize()-1);
   }
   imageRect.adjust(-halfCellWidth, -halfCellHeight, halfCellWidth, halfCellHeight);
-  bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();
-  bool mirrorY = (valueAxis()->orientation() == Qt::Vertical ? valueAxis() : keyAxis())->rangeReversed();
-  bool smoothBackup = localPainter->renderHints().testFlag(QPainter::SmoothPixmapTransform);
+  const bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();
+  const bool mirrorY = (valueAxis()->orientation() == Qt::Vertical ? valueAxis() : keyAxis())->rangeReversed();
+  const bool smoothBackup = localPainter->renderHints().testFlag(QPainter::SmoothPixmapTransform);
   localPainter->setRenderHint(QPainter::SmoothPixmapTransform, mInterpolate);
   QRegion clipBackup;
   if (mTightBoundary)

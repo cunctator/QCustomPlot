@@ -745,10 +745,9 @@ QVector<QPointF> QCPGraph::dataToStepLeftLines(const QVector<QCPGraphData> &data
   if (keyAxis->orientation() == Qt::Vertical)
   {
     double lastValue = valueAxis->coordToPixel(data.first().value);
-    double key;
     for (int i=0; i<data.size(); ++i)
     {
-      key = keyAxis->coordToPixel(data.at(i).key);
+      const double key = keyAxis->coordToPixel(data.at(i).key);
       result[i*2+0].setX(lastValue);
       result[i*2+0].setY(key);
       lastValue = valueAxis->coordToPixel(data.at(i).value);
@@ -758,10 +757,9 @@ QVector<QPointF> QCPGraph::dataToStepLeftLines(const QVector<QCPGraphData> &data
   } else // key axis is horizontal
   {
     double lastValue = valueAxis->coordToPixel(data.first().value);
-    double key;
     for (int i=0; i<data.size(); ++i)
     {
-      key = keyAxis->coordToPixel(data.at(i).key);
+      const double key = keyAxis->coordToPixel(data.at(i).key);
       result[i*2+0].setX(key);
       result[i*2+0].setY(lastValue);
       lastValue = valueAxis->coordToPixel(data.at(i).value);
@@ -796,10 +794,9 @@ QVector<QPointF> QCPGraph::dataToStepRightLines(const QVector<QCPGraphData> &dat
   if (keyAxis->orientation() == Qt::Vertical)
   {
     double lastKey = keyAxis->coordToPixel(data.first().key);
-    double value;
     for (int i=0; i<data.size(); ++i)
     {
-      value = valueAxis->coordToPixel(data.at(i).value);
+      const double value = valueAxis->coordToPixel(data.at(i).value);
       result[i*2+0].setX(value);
       result[i*2+0].setY(lastKey);
       lastKey = keyAxis->coordToPixel(data.at(i).key);
@@ -809,10 +806,9 @@ QVector<QPointF> QCPGraph::dataToStepRightLines(const QVector<QCPGraphData> &dat
   } else // key axis is horizontal
   {
     double lastKey = keyAxis->coordToPixel(data.first().key);
-    double value;
     for (int i=0; i<data.size(); ++i)
     {
-      value = valueAxis->coordToPixel(data.at(i).value);
+      const double value = valueAxis->coordToPixel(data.at(i).value);
       result[i*2+0].setX(lastKey);
       result[i*2+0].setY(value);
       lastKey = keyAxis->coordToPixel(data.at(i).key);
@@ -848,12 +844,11 @@ QVector<QPointF> QCPGraph::dataToStepCenterLines(const QVector<QCPGraphData> &da
   {
     double lastKey = keyAxis->coordToPixel(data.first().key);
     double lastValue = valueAxis->coordToPixel(data.first().value);
-    double key;
     result[0].setX(lastValue);
     result[0].setY(lastKey);
     for (int i=1; i<data.size(); ++i)
     {
-      key = (keyAxis->coordToPixel(data.at(i).key)+lastKey)*0.5;
+      const double key = (keyAxis->coordToPixel(data.at(i).key)+lastKey)*0.5;
       result[i*2-1].setX(lastValue);
       result[i*2-1].setY(key);
       lastValue = valueAxis->coordToPixel(data.at(i).value);
@@ -867,12 +862,11 @@ QVector<QPointF> QCPGraph::dataToStepCenterLines(const QVector<QCPGraphData> &da
   {
     double lastKey = keyAxis->coordToPixel(data.first().key);
     double lastValue = valueAxis->coordToPixel(data.first().value);
-    double key;
     result[0].setX(lastKey);
     result[0].setY(lastValue);
     for (int i=1; i<data.size(); ++i)
     {
-      key = (keyAxis->coordToPixel(data.at(i).key)+lastKey)*0.5;
+      const double key = (keyAxis->coordToPixel(data.at(i).key)+lastKey)*0.5;
       result[i*2-1].setX(key);
       result[i*2-1].setY(lastValue);
       lastValue = valueAxis->coordToPixel(data.at(i).value);
@@ -908,25 +902,21 @@ QVector<QPointF> QCPGraph::dataToImpulseLines(const QVector<QCPGraphData> &data)
   // transform data points to pixels:
   if (keyAxis->orientation() == Qt::Vertical)
   {
-    double zeroPointX = valueAxis->coordToPixel(0);
-    double key;
     for (int i=0; i<data.size(); ++i)
     {
-      key = keyAxis->coordToPixel(data.at(i).key);
-      result[i*2+0].setX(zeroPointX);
+      const double key = keyAxis->coordToPixel(data.at(i).key);
+      result[i*2+0].setX(valueAxis->coordToPixel(0));
       result[i*2+0].setY(key);
       result[i*2+1].setX(valueAxis->coordToPixel(data.at(i).value));
       result[i*2+1].setY(key);
     }
   } else // key axis is horizontal
   {
-    double zeroPointY = valueAxis->coordToPixel(0);
-    double key;
     for (int i=0; i<data.size(); ++i)
     {
-      key = keyAxis->coordToPixel(data.at(i).key);
+      const double key = keyAxis->coordToPixel(data.at(i).key);
       result[i*2+0].setX(key);
-      result[i*2+0].setY(zeroPointY);
+      result[i*2+0].setY(valueAxis->coordToPixel(0));
       result[i*2+1].setX(key);
       result[i*2+1].setY(valueAxis->coordToPixel(data.at(i).value));
     }

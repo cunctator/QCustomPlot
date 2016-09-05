@@ -282,13 +282,13 @@ double QCPBarsGroup::keyPixelOffset(const QCPBars *bars, double keyCoord)
   int index = baseBars.indexOf(thisBase);
   if (index >= 0)
   {
-    int startIndex;
-    double lowerPixelWidth, upperPixelWidth;
     if (baseBars.size() % 2 == 1 && index == (baseBars.size()-1)/2) // is center bar (int division on purpose)
     {
       return result;
     } else
     {
+      double lowerPixelWidth, upperPixelWidth;
+      int startIndex;
       int dir = (index <= (baseBars.size()-1)/2) ? -1 : 1; // if bar is to lower keys of center, dir is negative
       if (baseBars.size() % 2 == 0) // even number of bars
       {

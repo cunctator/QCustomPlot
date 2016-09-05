@@ -601,7 +601,7 @@ QCPDataSelection QCPDataSelection::intersection(const QCPDataSelection &other) c
   to the full data range of the plottable, and calling this method on a data selection holding the
   selected segments.
 */
-QCPDataSelection QCPDataSelection::inverse(const QCPDataRange outerRange) const
+QCPDataSelection QCPDataSelection::inverse(const QCPDataRange &outerRange) const
 {
   if (isEmpty())
     return QCPDataSelection(outerRange);

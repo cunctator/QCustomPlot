@@ -28,7 +28,7 @@
 
 #include "../global.h"
 #include "range.h"
-#include "../qcpvector2d.h"
+#include "../vector2d.h"
 #include "../layer.h"
 #include "../layout.h"
 #include "../lineending.h"

@@ -27,7 +27,7 @@
 #define QCP_H
 
 #include "global.h"
-#include "qcpvector2d.h"
+#include "vector2d.h"
 #include "painter.h"
 #include "paintbuffer.h"
 #include "layer.h"

@@ -26,7 +26,7 @@
 #include "qcustomplot.h"
 //amalgamation: place implementation includes
 
-//amalgamation: add qcpvector2d.cpp
+//amalgamation: add vector2d.cpp
 //amalgamation: add painter.cpp
 //amalgamation: add paintbuffer.cpp
 //amalgamation: add layer.cpp

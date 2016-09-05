@@ -62,7 +62,7 @@ HEADERS += \
     layoutelements/layoutelement-textelement.h \
     layoutelements/layoutelement-colorscale.h \
     colorgradient.h \
-    qcpvector2d.h \
+    vector2d.h \
     axis/axistickerdatetime.h \
     axis/axistickertime.h \
     axis/axistickerfixed.h \
@@ -109,7 +109,7 @@ SOURCES += \
     layoutelements/layoutelement-textelement.cpp \
     layoutelements/layoutelement-colorscale.cpp \
     colorgradient.cpp \
-    qcpvector2d.cpp \
+    vector2d.cpp \
     axis/axistickerdatetime.cpp \
     axis/axistickertime.cpp \
     axis/axistickerfixed.cpp \

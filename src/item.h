@@ -27,7 +27,7 @@
 #define QCP_ITEM_H
 
 #include "global.h"
-#include "qcpvector2d.h"
+#include "vector2d.h"
 #include "layer.h"
 #include "axis/axis.h"
 

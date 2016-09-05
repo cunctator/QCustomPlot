@@ -27,7 +27,7 @@
 #define QCP_LINEENDING_H
 
 #include "global.h"
-#include "qcpvector2d.h"
+#include "vector2d.h"
 
 class QCPPainter;
 

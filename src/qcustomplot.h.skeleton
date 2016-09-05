@@ -30,7 +30,7 @@
 
 //amalgamation: place forward declarations
 //amalgamation: add global.h
-//amalgamation: add qcpvector2d.h
+//amalgamation: add vector2d.h
 //amalgamation: add painter.h
 //amalgamation: add paintbuffer.h
 //amalgamation: add layer.h

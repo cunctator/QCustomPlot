@@ -27,7 +27,7 @@
 #define QCP_SELECTIONDECORATOR_BRACKET_H
 
 #include "plottable.h"
-#include "qcpvector2d.h"
+#include "vector2d.h"
 
 class QCP_LIB_DECL QCPSelectionDecoratorBracket : public QCPSelectionDecorator
 {

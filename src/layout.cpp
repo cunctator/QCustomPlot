@@ -316,7 +316,7 @@ void QCPLayoutElement::setMinimumMargins(const QMargins &margins)
   Margin sides that are under automatic control may participate in a \ref QCPMarginGroup (see \ref
   setMarginGroup), to synchronize (align) it with other layout elements in the plot.
   
-  \see setMinimumMargins, setMargins
+  \see setMinimumMargins, setMargins, QCP::MarginSide
 */
 void QCPLayoutElement::setAutoMargins(QCP::MarginSides sides)
 {
@@ -384,6 +384,8 @@ void QCPLayoutElement::setMaximumSize(int width, int height)
   
   Note that margin groups only work for margin sides that are set to automatic (\ref
   setAutoMargins).
+  
+  \see QCP::MarginSide
 */
 void QCPLayoutElement::setMarginGroup(QCP::MarginSides sides, QCPMarginGroup *group)
 {

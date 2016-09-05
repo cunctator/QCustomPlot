@@ -48,9 +48,9 @@
   
   \image html QCPColorGradient.png
   
-  The fact that the \ref QCPColorGradient(GradientPreset preset) constructor allows directly
-  converting a \ref GradientPreset to a QCPColorGradient, you can also directly pass \ref
-  GradientPreset to all the \a setGradient methods, e.g.:
+  The \ref QCPColorGradient(GradientPreset preset) constructor allows directly converting a \ref
+  GradientPreset to a QCPColorGradient. This means that you can directly pass \ref GradientPreset
+  to all the \a setGradient methods, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorgradient-setgradient
   
   The total number of levels used in the gradient can be set with \ref setLevelCount. Whether the
@@ -100,8 +100,8 @@ bool QCPColorGradient::operator==(const QCPColorGradient &other) const
 
 /*!
   Sets the number of discretization levels of the color gradient to \a n. The default is 350 which
-  is typically enough to create a smooth appearance.
-  
+  is typically enough to create a smooth appearance. The minimum number of levels is 2.
+
   \image html QCPColorGradient-levelcount.png
 */
 void QCPColorGradient::setLevelCount(int n)

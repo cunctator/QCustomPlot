@@ -455,9 +455,8 @@ void QCPDataSelection::clear()
 
 /*!
   Sorts all data ranges by range begin index in ascending order, and then joins directly adjacent
-  or even overlapping ranges. This can reduce the number of individual data ranges in the
-  selection, and prevents possible double-counting when iterating over the data points held by the
-  data ranges.
+  or overlapping ranges. This can reduce the number of individual data ranges in the selection, and
+  prevents possible double-counting when iterating over the data points held by the data ranges.
 
   This method is automatically called when using the addition/subtraction operators. The only case
   when \ref simplify is left to the user, is when calling \ref addDataRange, with the parameter \a

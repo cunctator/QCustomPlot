@@ -1737,7 +1737,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
   pixelsToCoords(pixelPoint+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, dummy);
   if (posKeyMin > posKeyMax)
     qSwap(posKeyMin, posKeyMax);
-  // iterate over found data points and then choose the one with the sortest distance to pos:
+  // iterate over found data points and then choose the one with the shortest distance to pos:
   QCPGraphDataContainer::const_iterator begin = mDataContainer->findBegin(posKeyMin, true);
   QCPGraphDataContainer::const_iterator end = mDataContainer->findEnd(posKeyMax, true);
   for (QCPGraphDataContainer::const_iterator it=begin; it!=end; ++it)

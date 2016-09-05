@@ -323,7 +323,7 @@ double QCPBarsGroup::keyPixelOffset(const QCPBars *bars, double keyCoord)
   key coordinate \a keyCoord.
   
   \note Typically the returned value doesn't depend on \a bars or \a keyCoord. \a bars is only
-  needed to get acces to the key axis transformation and axis rect for the modes \ref
+  needed to get access to the key axis transformation and axis rect for the modes \ref
   stAxisRectRatio and \ref stPlotCoords. The \a keyCoord is only relevant for spacings given in
   \ref stPlotCoords on a logarithmic axis.
 */

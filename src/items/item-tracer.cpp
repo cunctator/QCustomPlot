@@ -58,7 +58,7 @@
   QCPItemPosition::setParentAnchor.
   
   \note The tracer position is only automatically updated upon redraws. So when the data of the
-  graph changes and immediately afterwards (without a redraw) the a position coordinates of the
+  graph changes and immediately afterwards (without a redraw) the position coordinates of the
   tracer are retrieved, they will not reflect the updated data of the graph. In this case \ref
   updatePosition must be called manually, prior to reading the tracer coordinates.
 */

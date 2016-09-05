@@ -285,21 +285,22 @@ QList<QCPAxis*> QCPAxisRect::axes() const
 
 /*!
   Adds a new axis to the axis rect side specified with \a type, and returns it. If \a axis is 0, a
-  new QCPAxis instance is created internally.
+  new QCPAxis instance is created internally. QCustomPlot owns the returned axis, so if you want to
+  remove an axis, use \ref removeAxis instead of deleting it manually.
 
   You may inject QCPAxis instances (or sublasses of QCPAxis) by setting \a axis to an axis that was
   previously created outside QCustomPlot. It is important to note that QCustomPlot takes ownership
   of the axis, so you may not delete it afterwards. Further, the \a axis must have been created
   with this axis rect as parent and with the same axis type as specified in \a type. If this is not
   the case, a debug output is generated, the axis is not added, and the method returns 0.
-  
+
   This method can not be used to move \a axis between axis rects. The same \a axis instance must
   not be added multiple times to the same or different axis rects.
-  
+
   If an axis rect side already contains one or more axes, the lower and upper endings of the new
   axis (\ref QCPAxis::setLowerEnding, \ref QCPAxis::setUpperEnding) are set to \ref
   QCPLineEnding::esHalfBar.
-  
+
   \see addAxes, setupFullAxesBox
 */
 QCPAxis *QCPAxisRect::addAxis(QCPAxis::AxisType type, QCPAxis *axis)
@@ -441,17 +442,17 @@ void QCPAxisRect::zoom(const QRectF &pixelRect, const QList<QCPAxis*> &affectedA
   Convenience function to create an axis on each side that doesn't have any axes yet and set their
   visibility to true. Further, the top/right axes are assigned the following properties of the
   bottom/left axes:
-  
+
   \li range (\ref QCPAxis::setRange)
   \li range reversed (\ref QCPAxis::setRangeReversed)
   \li scale type (\ref QCPAxis::setScaleType)
-  \li ticks (\ref QCPAxis::setTicks)
+  \li tick visibility (\ref QCPAxis::setTicks)
   \li number format (\ref QCPAxis::setNumberFormat)
   \li number precision (\ref QCPAxis::setNumberPrecision)
   \li tick count of ticker (\ref QCPAxisTicker::setTickCount)
   \li tick origin of ticker (\ref QCPAxisTicker::setTickOrigin)
-  
-  Tick labels (\ref QCPAxis::setTickLabels) of the right and top axes are set to false.
+
+  Tick label visibility (\ref QCPAxis::setTickLabels) of the right and top axes are set to false.
 
   If \a connectRanges is true, the \ref QCPAxis::rangeChanged "rangeChanged" signals of the bottom
   and left axes are connected to the \ref QCPAxis::setRange slots of the top and right axes.
@@ -1261,7 +1262,7 @@ void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
   Event handler for mouse wheel events. If rangeZoom is Qt::Horizontal, Qt::Vertical or both, the
   ranges of the axes defined as rangeZoomHorzAxis and rangeZoomVertAxis are scaled. The center of
   the scaling operation is the current cursor position inside the axis rect. The scaling factor is
-  dependant on the mouse wheel delta (which direction the wheel was rotated) to provide a natural
+  dependent on the mouse wheel delta (which direction the wheel was rotated) to provide a natural
   zooming feel. The Strength of the zoom can be controlled via \ref setRangeZoomFactor.
   
   Note, that event->delta() is usually +/-120 for single rotation steps. However, if the mouse

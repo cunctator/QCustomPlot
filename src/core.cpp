@@ -60,22 +60,6 @@
   \see setSelectionRect
 */
 
-/*! \fn QRect QCustomPlot::viewport() const
-  
-  Returns the viewport rect of this QCustomPlot instance. The viewport is the area the plot is
-  drawn in, all mechanisms, e.g. margin caluclation take the viewport to be the outer border of the
-  plot. The viewport normally is the rect() of the QCustomPlot widget, i.e. a rect with top left
-  (0, 0) and size of the QCustomPlot widget.
-  
-  Don't confuse the viewport with the axis rect (QCustomPlot::axisRect). An axis rect is typically
-  an area enclosed by four axes, where the graphs/plottables are drawn in. The viewport is larger
-  and contains also the axes themselves, their tick numbers, their labels, or even additional axis
-  rects, color scales and other layout elements.
-  
-  Only when saving to a file (see \ref savePng, \ref savePdf etc.) the viewport is temporarily
-  modified to allow saving plots with sizes independent of the current widget size.
-*/
-
 /*! \fn QCPLayoutGrid *QCustomPlot::plotLayout() const
   
   Returns the top level layout of this QCustomPlot instance. It is a \ref QCPLayoutGrid, initially containing just
@@ -131,23 +115,25 @@
   QCPAxisRect::setRangeZoomAxes or \ref QCPAxisRect::setRangeZoomFactor.
 */
 
-/*! \fn void QCustomPlot::plottableClick(QCPAbstractPlottable *plottable, QMouseEvent *event)
-  
+/*! \fn void QCustomPlot::plottableClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
+
   This signal is emitted when a plottable is clicked.
 
   \a event is the mouse event that caused the click and \a plottable is the plottable that received
-  the click.
-  
+  the click. The parameter \a dataIndex indicates the data point that was closest to the click
+  position.
+
   \see plottableDoubleClick
 */
 
-/*! \fn void QCustomPlot::plottableDoubleClick(QCPAbstractPlottable *plottable, QMouseEvent *event)
-  
+/*! \fn void QCustomPlot::plottableDoubleClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
+
   This signal is emitted when a plottable is double clicked.
-  
+
   \a event is the mouse event that caused the click and \a plottable is the plottable that received
-  the click.
-  
+  the click. The parameter \a dataIndex indicates the data point that was closest to the click
+  position.
+
   \see plottableClick
 */
 
@@ -856,9 +842,18 @@ void QCustomPlot::setOpenGl(bool enabled, int multisampling)
 }
 
 /*!
-  Sets the viewport of this QCustomPlot. The Viewport is the area that the top level layout
-  (QCustomPlot::plotLayout()) uses as its rect. Normally, the viewport is the entire widget rect.
-  
+  Sets the viewport of this QCustomPlot. Usually users of QCustomPlot don't need to change the
+  viewport manually.
+
+  The viewport is the area in which the plot is drawn. All mechanisms, e.g. margin caluclation take
+  the viewport to be the outer border of the plot. The viewport normally is the rect() of the
+  QCustomPlot widget, i.e. a rect with top left (0, 0) and size of the QCustomPlot widget.
+
+  Don't confuse the viewport with the axis rect (QCustomPlot::axisRect). An axis rect is typically
+  an area enclosed by four axes, where the graphs/plottables are drawn in. The viewport is larger
+  and contains also the axes themselves, their tick numbers, their labels, or even additional axis
+  rects, color scales and other layout elements.
+
   This function is used to allow arbitrary size exports with \ref toPixmap, \ref savePng, \ref
   savePdf, etc. by temporarily changing the viewport size.
 */

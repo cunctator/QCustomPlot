@@ -1470,7 +1470,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer:
   
   // calculate minimum distances to curve data points and find closestData iterator:
   double minDistSqr = std::numeric_limits<double>::max();
-  // iterate over found data points and then choose the one with the sortest distance to pos:
+  // iterate over found data points and then choose the one with the shortest distance to pos:
   QCPCurveDataContainer::const_iterator begin = mDataContainer->constBegin();
   QCPCurveDataContainer::const_iterator end = mDataContainer->constEnd();
   for (QCPCurveDataContainer::const_iterator it=begin; it!=end; ++it)

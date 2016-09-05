@@ -331,7 +331,7 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   Note that a parent layerable is not necessarily also the QObject parent for memory management.
   Further, a layerable doesn't always have a parent layerable, so this function may return 0.
   
-  A parent layerable is set implicitly with when placed inside layout elements and doesn't need to be
+  A parent layerable is set implicitly when placed inside layout elements and doesn't need to be
   set manually by the user.
 */
 
@@ -496,16 +496,13 @@ void QCPLayerable::setAntialiased(bool enabled)
 
 /*!
   Returns whether this layerable is visible, taking the visibility of the layerable parent and the
-  visibility of the layer this layerable is on into account. This is the method that is consulted
-  to decide whether a layerable shall be drawn or not.
+  visibility of this layerable's layer into account. This is the method that is consulted to decide
+  whether a layerable shall be drawn or not.
   
   If this layerable has a direct layerable parent (usually set via hierarchies implemented in
-  subclasses, like in the case of QCPLayoutElement), this function returns true only if this
+  subclasses, like in the case of \ref QCPLayoutElement), this function returns true only if this
   layerable has its visibility set to true and the parent layerable's \ref realVisibility returns
   true.
-  
-  If this layerable doesn't have a direct layerable parent, returns the state of this layerable's
-  visibility.
 */
 bool QCPLayerable::realVisibility() const
 {
@@ -531,7 +528,7 @@ bool QCPLayerable::realVisibility() const
   
   The actual setting of the selection state is not done by this function. This is handled by the
   parent QCustomPlot when the mouseReleaseEvent occurs, and the finally selected object is notified
-  via the selectEvent/deselectEvent methods.
+  via the \ref selectEvent/\ref deselectEvent methods.
   
   \a details is an optional output parameter. Every layerable subclass may place any information
   in \a details. This information will be passed to \ref selectEvent when the parent QCustomPlot

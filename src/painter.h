@@ -46,7 +46,7 @@ public:
   Q_DECLARE_FLAGS(PainterModes, PainterMode)
   
   QCPPainter();
-  QCPPainter(QPaintDevice *device);
+  explicit QCPPainter(QPaintDevice *device);
   
   // getters:
   bool antialiasing() const { return testRenderHint(QPainter::Antialiasing); }

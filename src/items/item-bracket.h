@@ -55,7 +55,7 @@ public:
   };
   Q_ENUMS(BracketStyle)
 
-  QCPItemBracket(QCustomPlot *parentPlot);
+  explicit QCPItemBracket(QCustomPlot *parentPlot);
   virtual ~QCPItemBracket();
   
   // getters:

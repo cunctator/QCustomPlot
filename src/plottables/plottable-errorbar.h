@@ -38,7 +38,7 @@ class QCP_LIB_DECL QCPErrorBarsData
 {
 public:
   QCPErrorBarsData();
-  QCPErrorBarsData(double error);
+  explicit QCPErrorBarsData(double error);
   QCPErrorBarsData(double errorMinus, double errorPlus);
   
   double errorMinus, errorPlus;

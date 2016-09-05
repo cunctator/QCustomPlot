@@ -40,7 +40,7 @@ class QCP_LIB_DECL QCPItemStraightLine : public QCPAbstractItem
   Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   /// \endcond
 public:
-  QCPItemStraightLine(QCustomPlot *parentPlot);
+  explicit QCPItemStraightLine(QCustomPlot *parentPlot);
   virtual ~QCPItemStraightLine();
   
   // getters:

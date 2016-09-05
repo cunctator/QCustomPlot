@@ -155,7 +155,7 @@ class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable
   Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
   /// \endcond
 public:
-  QCPAbstractItem(QCustomPlot *parentPlot);
+  explicit QCPAbstractItem(QCustomPlot *parentPlot);
   virtual ~QCPAbstractItem();
   
   // getters:

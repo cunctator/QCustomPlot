@@ -42,7 +42,7 @@ class QCP_LIB_DECL QCPItemEllipse : public QCPAbstractItem
   Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   /// \endcond
 public:
-  QCPItemEllipse(QCustomPlot *parentPlot);
+  explicit QCPItemEllipse(QCustomPlot *parentPlot);
   virtual ~QCPItemEllipse();
   
   // getters:

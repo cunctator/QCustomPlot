@@ -44,7 +44,7 @@ class QCP_LIB_DECL QCPItemPixmap : public QCPAbstractItem
   Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   /// \endcond
 public:
-  QCPItemPixmap(QCustomPlot *parentPlot);
+  explicit QCPItemPixmap(QCustomPlot *parentPlot);
   virtual ~QCPItemPixmap();
   
   // getters:

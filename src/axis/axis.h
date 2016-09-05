@@ -55,7 +55,7 @@ class QCP_LIB_DECL QCPGrid :public QCPLayerable
   Q_PROPERTY(QPen zeroLinePen READ zeroLinePen WRITE setZeroLinePen)
   /// \endcond
 public:
-  QCPGrid(QCPAxis *parentAxis);
+  explicit QCPGrid(QCPAxis *parentAxis);
   
   // getters:
   bool subGridVisible() const { return mSubGridVisible; }

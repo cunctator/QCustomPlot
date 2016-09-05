@@ -37,7 +37,7 @@ class QCP_LIB_DECL QCPMarginGroup : public QObject
 {
   Q_OBJECT
 public:
-  QCPMarginGroup(QCustomPlot *parentPlot);
+  explicit QCPMarginGroup(QCustomPlot *parentPlot);
   virtual ~QCPMarginGroup();
   
   // non-virtual methods:

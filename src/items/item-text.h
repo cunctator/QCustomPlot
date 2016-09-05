@@ -51,7 +51,7 @@ class QCP_LIB_DECL QCPItemText : public QCPAbstractItem
   Q_PROPERTY(QMargins padding READ padding WRITE setPadding)
   /// \endcond
 public:
-  QCPItemText(QCustomPlot *parentPlot);
+  explicit QCPItemText(QCustomPlot *parentPlot);
   virtual ~QCPItemText();
   
   // getters:

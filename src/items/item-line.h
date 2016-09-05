@@ -43,7 +43,7 @@ class QCP_LIB_DECL QCPItemLine : public QCPAbstractItem
   Q_PROPERTY(QCPLineEnding tail READ tail WRITE setTail)
   /// \endcond
 public:
-  QCPItemLine(QCustomPlot *parentPlot);
+  explicit QCPItemLine(QCustomPlot *parentPlot);
   virtual ~QCPItemLine();
   
   // getters:

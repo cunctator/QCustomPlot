@@ -42,7 +42,7 @@ class QCP_LIB_DECL QCPItemRect : public QCPAbstractItem
   Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   /// \endcond
 public:
-  QCPItemRect(QCustomPlot *parentPlot);
+  explicit QCPItemRect(QCustomPlot *parentPlot);
   virtual ~QCPItemRect();
   
   // getters:

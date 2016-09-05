@@ -61,7 +61,7 @@ public:
                    };
   Q_ENUMS(TracerStyle)
 
-  QCPItemTracer(QCustomPlot *parentPlot);
+  explicit QCPItemTracer(QCustomPlot *parentPlot);
   virtual ~QCPItemTracer();
 
   // getters:

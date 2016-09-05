@@ -62,14 +62,13 @@ QCPItemText::QCPItemText(QCustomPlot *parentPlot) :
   bottomRight(createAnchor(QLatin1String("bottomRight"), aiBottomRight)),
   bottom(createAnchor(QLatin1String("bottom"), aiBottom)),
   bottomLeft(createAnchor(QLatin1String("bottomLeft"), aiBottomLeft)),
-  left(createAnchor(QLatin1String("left"), aiLeft))
+  left(createAnchor(QLatin1String("left"), aiLeft)),
+  mText(QLatin1String("text")),
+  mPositionAlignment(Qt::AlignCenter),
+  mTextAlignment(Qt::AlignTop|Qt::AlignHCenter),
+  mRotation(0)
 {
   position->setCoords(0, 0);
-  
-  setRotation(0);
-  setTextAlignment(Qt::AlignTop|Qt::AlignHCenter);
-  setPositionAlignment(Qt::AlignCenter);
-  setText(QLatin1String("text"));
   
   setPen(Qt::NoPen);
   setSelectedPen(Qt::NoPen);

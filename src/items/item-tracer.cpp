@@ -72,7 +72,11 @@
 QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
   position(createPosition(QLatin1String("position"))),
-  mGraph(0)
+  mSize(6),
+  mStyle(tsCrosshair),
+  mGraph(0),
+  mGraphKey(0),
+  mInterpolating(false)
 {
   position->setCoords(0, 0);
 
@@ -80,10 +84,6 @@ QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   setSelectedBrush(Qt::NoBrush);
   setPen(QPen(Qt::black));
   setSelectedPen(QPen(Qt::blue, 2));
-  setStyle(tsCrosshair);
-  setSize(6);
-  setInterpolating(false);
-  setGraphKey(0);
 }
 
 QCPItemTracer::~QCPItemTracer()

@@ -62,15 +62,15 @@ QCPItemBracket::QCPItemBracket(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
   left(createPosition(QLatin1String("left"))),
   right(createPosition(QLatin1String("right"))),
-  center(createAnchor(QLatin1String("center"), aiCenter))
+  center(createAnchor(QLatin1String("center"), aiCenter)),
+  mLength(8),
+  mStyle(bsCalligraphic)
 {
   left->setCoords(0, 0);
   right->setCoords(1, 1);
   
   setPen(QPen(Qt::black));
   setSelectedPen(QPen(Qt::blue, 2));
-  setLength(8);
-  setStyle(bsCalligraphic);
 }
 
 QCPItemBracket::~QCPItemBracket()

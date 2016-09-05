@@ -52,7 +52,8 @@ QCPAxisTickerPi::QCPAxisTickerPi() :
   mPiSymbol(QLatin1String(" ")+QChar(0x03C0)),
   mPiValue(M_PI),
   mPeriodicity(0),
-  mFractionStyle(fsUnicodeFractions)
+  mFractionStyle(fsUnicodeFractions),
+  mPiTickStep(0)
 {
   setTickCount(4);
 }

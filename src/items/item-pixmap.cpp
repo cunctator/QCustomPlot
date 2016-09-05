@@ -62,14 +62,16 @@ QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
   bottom(createAnchor(QLatin1String("bottom"), aiBottom)),
   bottomLeft(createAnchor(QLatin1String("bottomLeft"), aiBottomLeft)),
   left(createAnchor(QLatin1String("left"), aiLeft)),
-  mScaledPixmapInvalidated(true)
+  mScaled(false),
+  mScaledPixmapInvalidated(true),
+  mAspectRatioMode(Qt::KeepAspectRatio),
+  mTransformationMode(Qt::SmoothTransformation)
 {
   topLeft->setCoords(0, 1);
   bottomRight->setCoords(1, 0);
   
   setPen(Qt::NoPen);
   setSelectedPen(QPen(Qt::blue));
-  setScaled(false, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 QCPItemPixmap::~QCPItemPixmap()

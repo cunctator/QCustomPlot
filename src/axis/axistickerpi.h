@@ -65,7 +65,7 @@ protected:
   FractionStyle mFractionStyle;
   
   // non-property members:
-  double mPiTickStep;
+  double mPiTickStep; // size of one tick step in units of mPiValue
   
   // reimplemented virtual methods:
   virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE;

@@ -255,7 +255,7 @@ QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
   (\ref setFractionStyle) is \ref fsUnicodeFractions.
   
   This method doesn't use the single-character common fractions but builds each fraction from a
-  superscript unicode digit, the unicode fraction character, and a subscript unicode digit.
+  superscript unicode number, the unicode fraction character, and a subscript unicode number.
 */
 QString QCPAxisTickerPi::unicodeFraction(int numerator, int denominator) const
 {
@@ -264,7 +264,7 @@ QString QCPAxisTickerPi::unicodeFraction(int numerator, int denominator) const
 
 /*! \internal
   
-  Returns the unicode character representing \a number as superscript. This is used to build
+  Returns the unicode string representing \a number as superscript. This is used to build
   unicode fractions in \ref unicodeFraction.
 */
 QString QCPAxisTickerPi::unicodeSuperscript(int number) const
@@ -290,7 +290,7 @@ QString QCPAxisTickerPi::unicodeSuperscript(int number) const
 
 /*! \internal
   
-  Returns the unicode character representing \a number as subscript. This is used to build unicode
+  Returns the unicode string representing \a number as subscript. This is used to build unicode
   fractions in \ref unicodeFraction.
 */
 QString QCPAxisTickerPi::unicodeSubscript(int number) const

@@ -29,35 +29,35 @@ CONFIG(debug, debug|release) {
 }
 
 HEADERS += \
-global.h \
-painter.h \
-paintbuffer.h \
-layer.h \
-axis/range.h \
-axis/axis.h \
-axis/axisticker.h \
-plottable.h \
-item.h \
-lineending.h \
-core.h \
-layout.h \
-plottables/plottable-graph.h \
-plottables/plottable-curve.h \
-plottables/plottable-bars.h \
-plottables/plottable-statisticalbox.h \
-plottables/plottable-colormap.h \
-plottables/plottable-financial.h \
-plottables/plottable-errorbar.h \
-items/item-straightline.h \
-items/item-line.h \
-items/item-curve.h \
-items/item-rect.h \
-items/item-text.h \
-items/item-ellipse.h \
-items/item-pixmap.h \
-items/item-tracer.h \
-items/item-bracket.h \
-layoutelements/layoutelement-axisrect.h \
+    global.h \
+    painter.h \
+    paintbuffer.h \
+    layer.h \
+    axis/range.h \
+    axis/axis.h \
+    axis/axisticker.h \
+    plottable.h \
+    item.h \
+    lineending.h \
+    core.h \
+    layout.h \
+    plottables/plottable-graph.h \
+    plottables/plottable-curve.h \
+    plottables/plottable-bars.h \
+    plottables/plottable-statisticalbox.h \
+    plottables/plottable-colormap.h \
+    plottables/plottable-financial.h \
+    plottables/plottable-errorbar.h \
+    items/item-straightline.h \
+    items/item-line.h \
+    items/item-curve.h \
+    items/item-rect.h \
+    items/item-text.h \
+    items/item-ellipse.h \
+    items/item-pixmap.h \
+    items/item-tracer.h \
+    items/item-bracket.h \
+    layoutelements/layoutelement-axisrect.h \
     layoutelements/layoutelement-legend.h \
     layoutelements/layoutelement-textelement.h \
     layoutelements/layoutelement-colorscale.h \
@@ -77,34 +77,34 @@ layoutelements/layoutelement-axisrect.h \
     selectiondecorator-bracket.h
 
 SOURCES += \
-painter.cpp \
-paintbuffer.cpp \
-layer.cpp \
-axis/range.cpp \
-axis/axis.cpp \
-axis/axisticker.cpp \
-plottable.cpp \
-item.cpp \
-lineending.cpp \
-core.cpp \
-layout.cpp \
-plottables/plottable-graph.cpp \
-plottables/plottable-curve.cpp \
-plottables/plottable-bars.cpp \
-plottables/plottable-statisticalbox.cpp \
-plottables/plottable-colormap.cpp \
-plottables/plottable-financial.cpp \
-plottables/plottable-errorbar.cpp \
-items/item-straightline.cpp \
-items/item-line.cpp \
-items/item-curve.cpp \
-items/item-rect.cpp \
-items/item-text.cpp \
-items/item-ellipse.cpp \
-items/item-pixmap.cpp \
-items/item-tracer.cpp \
-items/item-bracket.cpp \
-layoutelements/layoutelement-axisrect.cpp \
+    painter.cpp \
+    paintbuffer.cpp \
+    layer.cpp \
+    axis/range.cpp \
+    axis/axis.cpp \
+    axis/axisticker.cpp \
+    plottable.cpp \
+    item.cpp \
+    lineending.cpp \
+    core.cpp \
+    layout.cpp \
+    plottables/plottable-graph.cpp \
+    plottables/plottable-curve.cpp \
+    plottables/plottable-bars.cpp \
+    plottables/plottable-statisticalbox.cpp \
+    plottables/plottable-colormap.cpp \
+    plottables/plottable-financial.cpp \
+    plottables/plottable-errorbar.cpp \
+    items/item-straightline.cpp \
+    items/item-line.cpp \
+    items/item-curve.cpp \
+    items/item-rect.cpp \
+    items/item-text.cpp \
+    items/item-ellipse.cpp \
+    items/item-pixmap.cpp \
+    items/item-tracer.cpp \
+    items/item-bracket.cpp \
+    layoutelements/layoutelement-axisrect.cpp \
     layoutelements/layoutelement-legend.cpp \
     layoutelements/layoutelement-textelement.cpp \
     layoutelements/layoutelement-colorscale.cpp \

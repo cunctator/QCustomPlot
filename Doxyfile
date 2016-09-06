@@ -1339,13 +1339,13 @@ ENABLE_PREPROCESSING   = YES
 # compilation will be performed. Macro expansion can be done in a controlled
 # way by setting EXPAND_ONLY_PREDEF to YES.
 
-MACRO_EXPANSION        = NO
+MACRO_EXPANSION        = YES
 
 # If the EXPAND_ONLY_PREDEF and MACRO_EXPANSION tags are both set to YES
 # then the macro expansion is limited to the macros specified with the
 # PREDEFINED and EXPAND_AS_DEFINED tags.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES (the default) the includes files
 # in the INCLUDE_PATH (see below) will be search if a #include is found.
@@ -1376,6 +1376,8 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED            += QCP_USE_OPENGL
 PREDEFINED            += QCP_OPENGL_PBUFFER
 PREDEFINED            += QCP_OPENGL_FBO
+# set Q_DECL_OVERRIDE to an empty macro so doxygen doesn't attach it to function names in the documentation:
+PREDEFINED            += Q_DECL_OVERRIDE= 
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

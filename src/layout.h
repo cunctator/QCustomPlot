@@ -219,8 +219,8 @@ public:
   virtual ~QCPLayoutGrid();
   
   // getters:
-  int rowCount() const;
-  int columnCount() const;
+  int rowCount() const { return mElements.size(); }
+  int columnCount() const { return mElements.size() > 0 ? mElements.first().size() : 0; }
   QList<double> columnStretchFactors() const { return mColumnStretchFactors; }
   QList<double> rowStretchFactors() const { return mRowStretchFactors; }
   int columnSpacing() const { return mColumnSpacing; }
@@ -240,7 +240,7 @@ public:
   
   // reimplemented virtual methods:
   virtual void updateLayout() Q_DECL_OVERRIDE;
-  virtual int elementCount() const Q_DECL_OVERRIDE;
+  virtual int elementCount() const Q_DECL_OVERRIDE { return rowCount()*columnCount(); }
   virtual QCPLayoutElement* elementAt(int index) const Q_DECL_OVERRIDE;
   virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
   virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;

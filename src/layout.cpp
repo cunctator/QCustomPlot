@@ -1010,6 +1010,24 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
   Row and column insertion can be performed with \ref insertRow and \ref insertColumn.
 */
 
+/* start documentation of inline functions */
+
+/*! \fn int QCPLayoutGrid::rowCount() const
+
+  Returns the number of rows in the layout.
+
+  \see columnCount
+*/
+
+/*! \fn int QCPLayoutGrid::columnCount() const
+
+  Returns the number of columns in the layout.
+
+  \see rowCount
+*/
+
+/* end documentation of inline functions */
+
 /*!
   Creates an instance of QCPLayoutGrid and sets default values.
 */
@@ -1053,28 +1071,6 @@ QCPLayoutElement *QCPLayoutGrid::element(int row, int column) const
   return 0;
 }
 
-/*!
-  Returns the number of rows in the layout.
-  
-  \see columnCount
-*/
-int QCPLayoutGrid::rowCount() const
-{
-  return mElements.size();
-}
-
-/*!
-  Returns the number of columns in the layout.
-  
-  \see rowCount
-*/
-int QCPLayoutGrid::columnCount() const
-{
-  if (mElements.size() > 0)
-    return mElements.first().size();
-  else
-    return 0;
-}
 
 /*! \overload
 
@@ -1537,12 +1533,6 @@ void QCPLayoutGrid::updateLayout()
         mElements.at(row).at(col)->setOuterRect(QRect(xOffset, yOffset, colWidths.at(col), rowHeights.at(row)));
     }
   }
-}
-
-/* inherits documentation from base class */
-int QCPLayoutGrid::elementCount() const
-{
-  return rowCount()*columnCount();
 }
 
 /*!

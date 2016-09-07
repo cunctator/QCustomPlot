@@ -198,8 +198,23 @@ class QCP_LIB_DECL QCPLayoutGrid : public QCPLayout
   Q_PROPERTY(QList<double> rowStretchFactors READ rowStretchFactors WRITE setRowStretchFactors)
   Q_PROPERTY(int columnSpacing READ columnSpacing WRITE setColumnSpacing)
   Q_PROPERTY(int rowSpacing READ rowSpacing WRITE setRowSpacing)
+  Q_PROPERTY(FillOrder fillOrder READ fillOrder WRITE setFillOrder)
+  Q_PROPERTY(int wrap READ wrap WRITE setWrap)
   /// \endcond
 public:
+  
+  /*!
+    Defines in which direction the grid is filled when using \ref addElement(QCPLayoutElement*).
+    The column/row at which wrapping into the next row/column occurs can be specified with \ref
+    setWrap.
+
+    \see setFillOrder
+  */
+  enum FillOrder { foRowsFirst    ///< Rows are filled first, and a new element is wrapped to the next column if the row count would exceed \ref setWrap.
+                  ,foColumnsFirst ///< Columns are filled first, and a new element is wrapped to the next row if the column count would exceed \ref setWrap.
+                };
+  Q_ENUMS(FillOrder)
+  
   explicit QCPLayoutGrid();
   virtual ~QCPLayoutGrid();
   
@@ -210,6 +225,8 @@ public:
   QList<double> rowStretchFactors() const { return mRowStretchFactors; }
   int columnSpacing() const { return mColumnSpacing; }
   int rowSpacing() const { return mRowSpacing; }
+  int wrap() const { return mWrap; }
+  FillOrder fillOrder() const { return mFillOrder; }
   
   // setters:
   void setColumnStretchFactor(int column, double factor);
@@ -218,6 +235,8 @@ public:
   void setRowStretchFactors(const QList<double> &factors);
   void setColumnSpacing(int pixels);
   void setRowSpacing(int pixels);
+  void setWrap(int count);
+  void setFillOrder(FillOrder order, bool rearrange=true);
   
   // reimplemented virtual methods:
   virtual void updateLayout() Q_DECL_OVERRIDE;
@@ -233,10 +252,13 @@ public:
   // non-virtual methods:
   QCPLayoutElement *element(int row, int column) const;
   bool addElement(int row, int column, QCPLayoutElement *element);
+  bool addElement(QCPLayoutElement *element);
   bool hasElement(int row, int column);
   void expandTo(int newRowCount, int newColumnCount);
   void insertRow(int newIndex);
   void insertColumn(int newIndex);
+  int rowColToIndex(int row, int column) const;
+  void indexToRowCol(int index, int &row, int &column) const;
   
 protected:
   // property members:
@@ -244,6 +266,8 @@ protected:
   QList<double> mColumnStretchFactors;
   QList<double> mRowStretchFactors;
   int mColumnSpacing, mRowSpacing;
+  int mWrap;
+  FillOrder mFillOrder;
   
   // non-virtual methods:
   void getMinimumRowColSizes(QVector<int> *minColWidths, QVector<int> *minRowHeights) const;
@@ -252,6 +276,7 @@ protected:
 private:
   Q_DISABLE_COPY(QCPLayoutGrid)
 };
+Q_DECLARE_METATYPE(QCPLayoutGrid::FillOrder)
 
 
 class QCP_LIB_DECL QCPLayoutInset : public QCPLayout

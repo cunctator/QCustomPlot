@@ -251,6 +251,7 @@ QCPPlottableLegendItem::QCPPlottableLegendItem(QCPLegend *parent, QCPAbstractPlo
   QCPAbstractLegendItem(parent),
   mPlottable(plottable)
 {
+  setAntialiased(false);
 }
 
 /*! \internal
@@ -309,6 +310,8 @@ void QCPPlottableLegendItem::draw(QCPPainter *painter)
   {
     painter->setPen(getIconBorderPen());
     painter->setBrush(Qt::NoBrush);
+    int halfPen = qCeil(painter->pen().widthF()*0.5)+1;
+    painter->setClipRect(mOuterRect.adjusted(-halfPen, -halfPen, halfPen, halfPen)); // extend default clip rect so thicker pens (especially during selection) are not clipped
     painter->drawRect(iconRect);
   }
 }

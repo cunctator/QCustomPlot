@@ -1,0 +1,22 @@
+<img src="Untitled" width="804" height="432" border="0" usemap="#map" />
+
+<map name="map">
+<area shape="rect" coords="229,15,528,56" href="./classQCustomPlot.html" />
+<area shape="rect" coords="58,86,160,118" href="./classQCPLayer.html" />
+<area shape="rect" coords="59,164,159,195" href="./classQCPLayerable.html" />
+<area shape="rect" coords="230,85,369,116" href="./classQCPAbstractItem.html" />
+<area shape="rect" coords="388,86,527,118" href="./classQCPAbstractPlottable.html" />
+<area shape="rect" coords="246,145,354,163" href="./classQCPItemAnchor.html" />
+<area shape="rect" coords="247,178,356,194" href="./classQCPItemPosition.html" />
+<area shape="rect" coords="651,85,789,119" href="./classQCPLayoutGrid.html" />
+<area shape="rect" coords="649,146,789,181" href="./classQCPLayoutElement.html" />
+<area shape="rect" coords="397,202,510,220" href="./classQCPTextElement.html" />
+<area shape="rect" coords="526,202,644,233" href="./classQCPAxisRect.html" />
+<area shape="rect" coords="442,279,543,310" href="./classQCPAxis.html" />
+<area shape="rect" coords="595,279,719,310" href="./classQCPLayoutInset.html" />
+<area shape="rect" coords="430,329,500,350" href="./classQCPRange.html" />
+<area shape="rect" coords="443,360,545,381" href="./classQCPGrid.html" />
+<area shape="rect" coords="606,331,707,349" href="./classQCPLegend.html" />
+<area shape="rect" coords="573,366,739,382" href="./classQCPAbstractLegendItem.html" />
+<area shape="rect" coords="573,398,741,417" href="./classQCPPlottableLegendItem.html" />
+</map>

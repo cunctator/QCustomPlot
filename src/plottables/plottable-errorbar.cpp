@@ -207,8 +207,8 @@ void QCPErrorBars::setData(const QVector<double> &errorMinus, const QVector<doub
 /*!
   Sets the data plottable to which the error bars will be applied. The error values specified e.g.
   via \ref setData will be associated one-to-one by the data point index to the data points of \a
-  plottable. This means that the key/value coordinates of the error bar centers will be adopted
-  from the data plottable's data points at the same index.
+  plottable. This means that the error bars will adopt the key/value coordinates of the data point
+  with the same index.
 
   The passed \a plottable must be a one-dimensional plottable, i.e. it must implement the \ref
   QCPPlottableInterface1D. Further, it must not be a \ref QCPErrorBars instance itself. If either

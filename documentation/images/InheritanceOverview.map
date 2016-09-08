@@ -1,0 +1,34 @@
+<img src="Untitled" width="1098" height="491" border="0" usemap="#map" />
+
+<map name="map">
+<area shape="rect" coords="17,334,184,380" href="./classQCPLayerable.html" />
+<area shape="rect" coords="306,335,477,380" href="./classQCPLayoutElement.html" />
+<area shape="rect" coords="306,404,444,434" href="./classQCPGrid.html" />
+<area shape="rect" coords="306,445,443,475" href="./classQCPAxis.html" />
+<area shape="rect" coords="306,242,445,272" href="./classQCPAbstractItem.html" />
+<area shape="rect" coords="306,201,445,234" href="./classQCPAbstractPlottable.html" />
+<area shape="rect" coords="472,14,609,36" href="./classQCPGraph.html" />
+<area shape="rect" coords="471,40,610,59" href="./classQCPCurve.html" />
+<area shape="rect" coords="472,65,609,85" href="./classQCPBars.html" />
+<area shape="rect" coords="472,90,609,110" href="./classQCPStatisticalBox.html" />
+<area shape="rect" coords="471,115,609,135" href="./classQCPColorMap.html" />
+<area shape="rect" coords="471,140,610,161" href="./classQCPFinancial.html" />
+<area shape="rect" coords="625,15,764,35" href="./classQCPItemStraightLine.html" />
+<area shape="rect" coords="625,40,764,60" href="./classQCPItemLine.html" />
+<area shape="rect" coords="626,64,765,84" href="./classQCPItemCurve.html" />
+<area shape="rect" coords="624,88,763,108" href="./classQCPItemRect.html" />
+<area shape="rect" coords="625,113,764,133" href="./classQCPItemEllipse.html" />
+<area shape="rect" coords="624,137,763,157" href="./classQCPItemText.html" />
+<area shape="rect" coords="624,163,763,183" href="./classQCPItemBracket.html" />
+<area shape="rect" coords="624,187,763,207" href="./classQCPItemTracer.html" />
+<area shape="rect" coords="624,213,763,233" href="./classQCPItemPixmap.html" />
+<area shape="rect" coords="581,284,739,317" href="./classQCPAbstractLegendItem.html" />
+<area shape="rect" coords="582,322,740,355" href="./classQCPLayout.html" />
+<area shape="rect" coords="582,363,740,396" href="./classQCPAxisRect.html" />
+<area shape="rect" coords="581,404,739,437" href="./classQCPTextElement.html" />
+<area shape="rect" coords="580,443,738,476" href="./classQCPColorScale.html" />
+<area shape="rect" coords="777,290,915,309" href="./classQCPPlottableLegendItem.html" />
+<area shape="rect" coords="778,318,916,337" href="./classQCPLayoutGrid.html" />
+<area shape="rect" coords="777,342,915,361" href="./classQCPLayoutInset.html" />
+<area shape="rect" coords="942,318,1080,337" href="./classQCPLegend.html" />
+</map>

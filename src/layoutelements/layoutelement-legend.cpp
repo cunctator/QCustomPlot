@@ -345,24 +345,28 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
   \brief Manages a legend inside a QCustomPlot.
 
   A legend is a small box somewhere in the plot which lists plottables with their name and icon.
-  
+
   Normally, the legend is populated by calling \ref QCPAbstractPlottable::addToLegend. The
   respective legend item can be removed with \ref QCPAbstractPlottable::removeFromLegend. However,
   QCPLegend also offers an interface to add and manipulate legend items directly: \ref item, \ref
   itemWithPlottable, \ref itemCount, \ref addItem, \ref removeItem, etc.
-  
-  The QCPLegend derives from QCPLayoutGrid and as such can be placed in any position a
-  QCPLayoutElement may be positioned. The legend items are themselves QCPLayoutElements which are
-  placed in the grid layout of the legend. QCPLegend only adds an interface specialized for
-  handling child elements of type QCPAbstractLegendItem, as mentioned above. In principle, any
-  other layout elements may also be added to a legend via the normal \ref QCPLayoutGrid interface.
-  However, the QCPAbstractLegendItem-Interface will ignore those elements (e.g. \ref itemCount will
-  only return the number of items with QCPAbstractLegendItems type).
 
-  By default, every QCustomPlot has one legend (QCustomPlot::legend) which is placed in the inset
-  layout of the main axis rect (\ref QCPAxisRect::insetLayout). To move the legend to another
+  Since \ref QCPLegend derives from \ref QCPLayoutGrid, it can be placed in any position a \ref
+  QCPLayoutElement may be positioned. The legend items are themselves \ref QCPLayoutElement
+  "QCPLayoutElements" which are placed in the grid layout of the legend. \ref QCPLegend only adds
+  an interface specialized for handling child elements of type \ref QCPAbstractLegendItem, as
+  mentioned above. In principle, any other layout elements may also be added to a legend via the
+  normal \ref QCPLayoutGrid interface.
+
+  Use the methods \ref setFillOrder and \ref setWrap inherited from \ref QCPLayoutGrid to control
+  in which order (column first or row first) the legend is filled up when calling \ref addItem, and
+  at which column or row wrapping occurs.
+
+  By default, every QCustomPlot has one legend (\ref QCustomPlot::legend) which is placed in the
+  inset layout of the main axis rect (\ref QCPAxisRect::insetLayout). To move the legend to another
   position inside the axis rect, use the methods of the \ref QCPLayoutInset. To move the legend
-  outside of the axis rect, place it anywhere else with the QCPLayout/QCPLayoutElement interface.
+  outside of the axis rect, place it anywhere else with the \ref QCPLayout/\ref QCPLayoutElement
+  interface.
 */
 
 /* start of documentation of signals */
@@ -384,6 +388,9 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
 */
 QCPLegend::QCPLegend()
 {
+  setFillOrder(QCPLayoutGrid::foRowsFirst);
+  setWrap(0);
+  
   setRowSpacing(3);
   setColumnSpacing(8);
   setMargins(QMargins(7, 5, 7, 4));
@@ -656,8 +663,10 @@ void QCPLegend::setSelectedTextColor(const QColor &color)
 
 /*!
   Returns the item with index \a i.
-  
-  \see itemCount
+
+  Note that the linear index depends on the current fill order (\ref setFillOrder).
+
+  \see itemCount, addItem, itemWithPlottable
 */
 QCPAbstractLegendItem *QCPLegend::item(int index) const
 {
@@ -685,6 +694,10 @@ QCPPlottableLegendItem *QCPLegend::itemWithPlottable(const QCPAbstractPlottable 
 
 /*!
   Returns the number of items currently in the legend.
+
+  Note that if empty cells are in the legend (e.g. by calling methods of the \ref QCPLayoutGrid
+  base class which allows creating empty cells), they are included in the returned count.
+
   \see item
 */
 int QCPLegend::itemCount() const
@@ -693,7 +706,9 @@ int QCPLegend::itemCount() const
 }
 
 /*!
-  Returns whether the legend contains \a itm.
+  Returns whether the legend contains \a item.
+  
+  \see hasItemWithPlottable
 */
 bool QCPLegend::hasItem(QCPAbstractLegendItem *item) const
 {
@@ -717,26 +732,31 @@ bool QCPLegend::hasItemWithPlottable(const QCPAbstractPlottable *plottable) cons
 }
 
 /*!
-  Adds \a item to the legend, if it's not present already.
-  
+  Adds \a item to the legend, if it's not present already. The element is arranged according to the
+  current fill order (\ref setFillOrder) and wrapping (\ref setWrap).
+
   Returns true on sucess, i.e. if the item wasn't in the list already and has been successfuly added.
-  
+
   The legend takes ownership of the item.
+
+  \see removeItem, item, hasItem
 */
 bool QCPLegend::addItem(QCPAbstractLegendItem *item)
 {
-  if (!hasItem(item))
-  {
-    return addElement(rowCount(), 0, item);
-  } else
-    return false;
+  return addElement(item);
 }
 
-/*!
+/*! \overload
+
   Removes the item with the specified \a index from the legend and deletes it.
 
-  Returns true, if successful.
-  
+  After successful removal, the legend is reordered according to the current fill order (\ref
+  setFillOrder) and wrapping (\ref setWrap), so no empty cell remains where the removed \a item
+  was. If you don't want this, rather use the raw element interface of \ref QCPLayoutGrid.
+
+  Returns true, if successful. Unlike \ref QCPLayoutGrid::removeAt, this method only removes
+  elements derived from \ref QCPAbstractLegendItem.
+
   \see itemCount, clearItems
 */
 bool QCPLegend::removeItem(int index)
@@ -744,24 +764,30 @@ bool QCPLegend::removeItem(int index)
   if (QCPAbstractLegendItem *ali = item(index))
   {
     bool success = remove(ali);
-    simplify();
+    if (success)
+      setFillOrder(fillOrder(), true); // gets rid of empty cell by reordering
     return success;
   } else
     return false;
 }
 
 /*! \overload
-  
+
   Removes \a item from the legend and deletes it.
 
+  After successful removal, the legend is reordered according to the current fill order (\ref
+  setFillOrder) and wrapping (\ref setWrap), so no empty cell remains where the removed \a item
+  was. If you don't want this, rather use the raw element interface of \ref QCPLayoutGrid.
+
   Returns true, if successful.
-  
+
   \see clearItems
 */
 bool QCPLegend::removeItem(QCPAbstractLegendItem *item)
 {
   bool success = remove(item);
-  simplify();
+  if (success)
+    setFillOrder(fillOrder(), true); // gets rid of empty cell by reordering
   return success;
 }
 

@@ -82,7 +82,7 @@ QCPAbstractLegendItem::QCPAbstractLegendItem(QCPLegend *parent) :
   mSelected(false)
 {
   setLayer(QLatin1String("legend"));
-  setMargins(QMargins(8, 2, 8, 2));
+  setMargins(QMargins(0, 0, 0, 0));
 }
 
 /*!
@@ -381,9 +381,9 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
 */
 QCPLegend::QCPLegend()
 {
-  setRowSpacing(0);
-  setColumnSpacing(10);
-  setMargins(QMargins(2, 3, 2, 2));
+  setRowSpacing(3);
+  setColumnSpacing(8);
+  setMargins(QMargins(7, 5, 7, 4));
   setAntialiased(false);
   setIconSize(32, 18);
   

@@ -1019,22 +1019,34 @@ void MainWindow::genQCPSelectionType()
   rectItem->setBrush(customPlot->selectionRect()->brush());
   rectItem->setAntialiased(false);
   QRect rect(rectItem->topLeft->pixelPosition().toPoint(), rectItem->bottomRight->pixelPosition().toPoint());
-  QMouseEvent fakeEvent(QEvent::MouseButtonRelease, customPlot->axisRect()->center(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   
   g->setSelectable(QCP::stNone);
-  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
   customPlot->savePng(dir.filePath("selectiontype-none.png"), imageWidth, imageHeight);
   g->setSelectable(QCP::stWhole);
-  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
   customPlot->savePng(dir.filePath("selectiontype-whole.png"), imageWidth, imageHeight);
   g->setSelectable(QCP::stSingleData);
-  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
   customPlot->savePng(dir.filePath("selectiontype-singledata.png"), imageWidth, imageHeight);
   g->setSelectable(QCP::stDataRange);
-  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
   customPlot->savePng(dir.filePath("selectiontype-datarange.png"), imageWidth, imageHeight);
   g->setSelectable(QCP::stMultipleDataRanges);
-  emit customPlot->selectionRect()->accepted(rect, &fakeEvent);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
   customPlot->savePng(dir.filePath("selectiontype-multipledataranges.png"), imageWidth, imageHeight);
 }
 

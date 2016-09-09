@@ -286,8 +286,8 @@ bool TestDatacontainer::isSameData(QVector<QCPGraphData> data, const QCPGraphDat
     bool success = true;
     for (int i=0; i<data.size(); ++i)
     {
-      QCPGraphDataContainer::const_iterator it = container->findBeginBelowKey(data.at(i).key);
-      QCPGraphDataContainer::const_iterator itEnd = container->findEndAboveKey(data.at(i).key);
+      QCPGraphDataContainer::const_iterator it = container->findBegin(data.at(i).key);
+      QCPGraphDataContainer::const_iterator itEnd = container->findEnd(data.at(i).key);
       bool found = false;
       while (it != itEnd)
       {

@@ -80,6 +80,7 @@ void TestQCPAxisRect::axisRemovalConsequencesToPlottables()
   mPlot->replot();
   mPlot->rescaleAxes();
   QTest::ignoreMessage(QtDebugMsg, "void QCPAbstractPlottable::rescaleKeyAxis(bool) const invalid key axis ");
+  QTest::ignoreMessage(QtDebugMsg, "void QCPAbstractPlottable::rescaleValueAxis(bool, bool) const invalid key or value axis ");
   graph->rescaleAxes();
   
   // test replacement of previously removed axis:
@@ -142,7 +143,7 @@ void TestQCPAxisRect::axisRectRemovalConsequencesToPlottables()
   mPlot->replot();
   mPlot->rescaleAxes();
   QTest::ignoreMessage(QtDebugMsg, "void QCPAbstractPlottable::rescaleKeyAxis(bool) const invalid key axis ");
-  QTest::ignoreMessage(QtDebugMsg, "void QCPAbstractPlottable::rescaleValueAxis(bool) const invalid value axis ");
+  QTest::ignoreMessage(QtDebugMsg, "void QCPAbstractPlottable::rescaleValueAxis(bool, bool) const invalid key or value axis ");
   graph->rescaleAxes();
   
   // test replacement of previously removed axis:

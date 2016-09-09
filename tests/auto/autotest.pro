@@ -1,5 +1,6 @@
 
 QT += core gui testlib
+#lessThan(QT_MAJOR_VERSION, 5): QT += opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TEMPLATE = app

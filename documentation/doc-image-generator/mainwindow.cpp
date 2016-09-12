@@ -547,6 +547,30 @@ void MainWindow::genLayoutsystem_MultipleAxisRects()
   customPlot->savePng(dir.filePath("layoutsystem-multipleaxisrects.png"), 400, 300);
 }
 
+void MainWindow::genLayoutsystem_AddingLegendTitle()
+{
+  resetPlot(false);
+  
+  //! [legendtitle-example]
+  // prepare legend and some graphs:
+  customPlot->legend->setVisible(true);
+  customPlot->addGraph()->setName("Torque");
+  customPlot->addGraph()->setName("Power");
+  customPlot->addGraph()->setName("Efficiency");
+  // create and prepare a text layout element:
+  QCPTextElement *legendTitle = new QCPTextElement(customPlot);
+  legendTitle->setLayer(customPlot->legend->layer()); // place text element on same layer as legend, or it may end up below legend
+  legendTitle->setText("Engine Status");
+  legendTitle->setFont(QFont("sans", 9, QFont::Bold));
+  // then we add it to the QCPLegend (which is a subclass of QCPLayoutGrid):
+  if (customPlot->legend->hasElement(0, 0)) // if top cell isn't empty (because legend items were already added), insert an empty row at top
+    customPlot->legend->insertRow(0);
+  customPlot->legend->addElement(0, 0, legendTitle); // place the text element into the empty cell
+  //! [legendtitle-example]
+  
+  customPlot->savePng(dir.filePath("layoutsystem-addinglegendtitle.png"), 300, 200);
+}
+
 void MainWindow::genQCPGraph()
 {
   // generate main doc image of plottable:

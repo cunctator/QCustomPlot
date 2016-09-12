@@ -42,6 +42,7 @@ public slots:
   
   void genLayoutsystem_AddingPlotTitle();
   void genLayoutsystem_MultipleAxisRects();
+  void genLayoutsystem_AddingLegendTitle();
   
   void genQCPGraph();
   void genQCPCurve();

@@ -73,6 +73,12 @@
   \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
   \image html layoutsystem-addingplottitle.png
 
+  <b>Adding custom elements to the legend</b> is quite simple, since the \ref QCPLegend is itself
+  just a subclass of \ref QCPLayoutGrid. So we can manipulate it just like the main plot layout as
+  before:
+  \snippet documentation/doc-image-generator/mainwindow.cpp legendtitle-example
+  \image html layoutsystem-addinglegendtitle.png
+
   <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.
   \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
   \image html layoutsystem-multipleaxisrects.png

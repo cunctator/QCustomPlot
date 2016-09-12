@@ -66,23 +66,38 @@
   QCustomPlot::plotLayout and contains (directly or indirectly via other sub-layouts) all layout
   elements in the QCustomPlot. By default, this top level grid layout contains a single cell which
   holds the main axis rect.
- 
-  \subsection layoutsystem-examples Examples
-  
-  <b>Adding a plot title</b> is a typical and simple case to demonstrate basic workings of the layout system.
-  \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
-  \image html layoutsystem-addingplottitle.png
 
+  \subsection layoutsystem-examples Examples
+  <b>Adding a plot title</b> is a typical and simple case to demonstrate basic workings of the layout system.
+  <div style="float:left">\image html layoutsystem-addingplottitle.png
+  </div>
+  \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
+
+
+  <br><br>
+  <div style="clear:both">
+  <br><br>
   <b>Adding custom elements to the legend</b> is quite simple, since the \ref QCPLegend is itself
   just a subclass of \ref QCPLayoutGrid. So we can manipulate it just like the main plot layout as
-  before:
+  before:</div>
+  <div style="float:left">\image html layoutsystem-addinglegendtitle.png
+  </div>
   \snippet documentation/doc-image-generator/mainwindow.cpp legendtitle-example
-  \image html layoutsystem-addinglegendtitle.png
 
-  <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.
+  <br><br>
+  <div style="clear:both">
+  <b >Moving the legend outside the axis rect</b> can be achieved as follows:</div>
+  <div style="float:left">\image html layoutsystem-movinglegend.png
+  </div>
+  \snippet documentation/doc-image-generator/mainwindow.cpp movinglegend-example
+
+  <br><br>
+  <div style="clear:both">
+  <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.</div>
+  <div style="float:left">\image html layoutsystem-multipleaxisrects.png
+  </div>
   \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
-  \image html layoutsystem-multipleaxisrects.png
-  
+
   <br><br><br>
   <br><br><br>
 */

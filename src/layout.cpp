@@ -1337,6 +1337,7 @@ void QCPLayoutGrid::setFillOrder(FillOrder order, bool rearrange)
       if (elementAt(i))
         tempElements.append(takeAt(i));
     }
+    simplify();
   }
   // change fill order as requested:
   mFillOrder = order;

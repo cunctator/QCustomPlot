@@ -563,16 +563,42 @@ void MainWindow::genLayoutsystem_AddingLegendTitle()
   customPlot->addGraph()->setName("Efficiency");
   // create and prepare a text layout element:
   QCPTextElement *legendTitle = new QCPTextElement(customPlot);
-  legendTitle->setLayer(customPlot->legend->layer()); // place text element on same layer as legend, or it may end up below legend
+  legendTitle->setLayer(customPlot->legend->layer()); // place text element on same layer as legend, or it ends up below legend
   legendTitle->setText("Engine Status");
   legendTitle->setFont(QFont("sans", 9, QFont::Bold));
   // then we add it to the QCPLegend (which is a subclass of QCPLayoutGrid):
-  if (customPlot->legend->hasElement(0, 0)) // if top cell isn't empty (because legend items were already added), insert an empty row at top
+  if (customPlot->legend->hasElement(0, 0)) // if top cell isn't empty, insert an empty row at top
     customPlot->legend->insertRow(0);
   customPlot->legend->addElement(0, 0, legendTitle); // place the text element into the empty cell
   //! [legendtitle-example]
   
   customPlot->savePng(dir.filePath("layoutsystem-addinglegendtitle.png"), 300, 200);
+}
+
+void MainWindow::genLayoutsystem_MovingLegend()
+{
+  resetPlot(false);
+  
+  //! [movinglegend-example]
+  // prepare some graphs:
+  customPlot->legend->setVisible(true);
+  customPlot->addGraph()->setName("Torque");
+  customPlot->addGraph()->setName("Power");
+  customPlot->addGraph()->setName("Efficiency");
+  // now we move the legend from the inset layout of the axis rect into the main grid layout.
+  // We create a sub layout so we can generate a small gap between the plot layout cell border
+  // and the legend border:
+  QCPLayoutGrid *subLayout = new QCPLayoutGrid;
+  customPlot->plotLayout()->addElement(1, 0, subLayout);
+  subLayout->setMargins(QMargins(5, 0, 5, 5));
+  subLayout->addElement(0, 0, customPlot->legend);
+  // change the fill order of the legend, so it's filled left to right in columns:
+  customPlot->legend->setFillOrder(QCPLegend::foColumnsFirst);
+  // set legend's row stretch factor very small so it ends up with minimum height:
+  customPlot->plotLayout()->setRowStretchFactor(1, 0.001);
+  //! [movinglegend-example]
+  
+  customPlot->savePng(dir.filePath("layoutsystem-movinglegend.png"), 300, 200);
 }
 
 void MainWindow::genQCPGraph()

@@ -68,35 +68,39 @@
   holds the main axis rect.
 
   \subsection layoutsystem-examples Examples
+
   <b>Adding a plot title</b> is a typical and simple case to demonstrate basic workings of the layout system.
-  <div style="float:left">\image html layoutsystem-addingplottitle.png
-  </div>
-  \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
+  <table><tr><td>
+    \image html layoutsystem-addingplottitle.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
+  </td></tr></table>
 
-
-  <br><br>
-  <div style="clear:both">
   <br><br>
   <b>Adding custom elements to the legend</b> is quite simple, since the \ref QCPLegend is itself
   just a subclass of \ref QCPLayoutGrid. So we can manipulate it just like the main plot layout as
-  before:</div>
-  <div style="float:left">\image html layoutsystem-addinglegendtitle.png
-  </div>
-  \snippet documentation/doc-image-generator/mainwindow.cpp legendtitle-example
+  before:
+  <table><tr><td>
+    \image html layoutsystem-addinglegendtitle.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp legendtitle-example
+  </td></tr></table>
 
   <br><br>
-  <div style="clear:both">
-  <b >Moving the legend outside the axis rect</b> can be achieved as follows:</div>
-  <div style="float:left">\image html layoutsystem-movinglegend.png
-  </div>
-  \snippet documentation/doc-image-generator/mainwindow.cpp movinglegend-example
+  <b >Moving the legend outside the axis rect</b> can be achieved as follows:
+  <table><tr><td>
+    \image html layoutsystem-movinglegend.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp movinglegend-example
+  </td></tr></table>
 
   <br><br>
-  <div style="clear:both">
-  <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.</div>
-  <div style="float:left">\image html layoutsystem-multipleaxisrects.png
-  </div>
-  \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
+  <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.
+  <table><tr><td>
+    \image html layoutsystem-multipleaxisrects.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
+  </td></tr></table>
 
   <br><br><br>
   <br><br><br>

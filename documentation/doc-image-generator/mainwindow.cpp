@@ -28,7 +28,11 @@ void MainWindow::run()
     if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
 #endif
     {
-      qDebug() << "executing" << this->metaObject()->method(i).name() << "...";
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+      qDebug() << "executing" << this->metaObject()->method(i).signature() << "...";
+#else
+      qDebug() << "executing" << this->metaObject()->method(i).methodSignature() << "...";
+#endif
       if (!this->metaObject()->method(i).invoke(this))
         qDebug() << "Failed to invoke doc-image-generator method" << i;
     }

@@ -19,7 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
         this->metaObject()->method(i).methodSignature().startsWith("website"))
 #endif
     {
-      qDebug() << "executing" << this->metaObject()->method(i).name() << "...";
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+      qDebug() << "executing" << this->metaObject()->method(i).signature() << "...";
+#else
+      qDebug() << "executing" << this->metaObject()->method(i).methodSignature() << "...";
+#endif
       resetPlot();
       if (!this->metaObject()->method(i).invoke(this))
         qDebug() << "Failed to invoke doc-code-snippet method" << i;

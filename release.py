@@ -10,7 +10,7 @@ def printerror(message):
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:
     printerror("qmake failed"); sys.exit(1)
-  if subprocess.call("make -j4", shell=True) != 0:
+  if subprocess.call("make -s -j5", shell=True) != 0:
     printerror("make failed"); sys.exit(1)
 
 tarcommand = "GZIP=\"-9\" tar -caf" # -a means determine compressor by archive suffix
@@ -31,6 +31,16 @@ if subprocess.call("git clean -dxf", shell=True) != 0:
 # amalgamate sources:
 printinfo("Amalgamating sources...")
 subprocess.call("./run-amalgamate.sh", shell=True)
+
+# look for undocumented methods via script:
+printinfo("Checking for undocumented methods...")
+if subprocess.call("./find-undocumented.py qcustomplot.cpp", shell=True) != 0:
+  printerror("Undocumented methods found in amalgamated sources!");
+# look for non-ascii characters in code files via script:
+printinfo("Checking for non-ascii characters...")
+if subprocess.call("./find-nonascii.py", shell=True) != 0:
+  printerror("Non-ASCII characters found in codebase!");
+
 # generate documentation images:
 printinfo("Generating documentation images...")
 os.chdir("./documentation/doc-image-generator")

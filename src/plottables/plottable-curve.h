@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,17 +19,18 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_CURVE_H
 #define QCP_PLOTTABLE_CURVE_H
 
 #include "../global.h"
-#include "../range.h"
-#include "../plottable.h"
+#include "../axis/range.h"
+#include "../plottable1d.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -39,28 +40,39 @@ class QCP_LIB_DECL QCPCurveData
 public:
   QCPCurveData();
   QCPCurveData(double t, double key, double value);
+  
+  inline double sortKey() const { return t; }
+  inline static QCPCurveData fromSortKey(double sortKey) { return QCPCurveData(sortKey, 0, 0); }
+  inline static bool sortKeyIsMainKey() { return false; }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  
   double t, key, value;
 };
-Q_DECLARE_TYPEINFO(QCPCurveData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPCurveData, Q_PRIMITIVE_TYPE);
 
-/*! \typedef QCPCurveDataMap
-  Container for storing \ref QCPCurveData items in a sorted fashion. The key of the map
-  is the t member of the QCPCurveData instance.
+
+/*! \typedef QCPCurveDataContainer
   
-  This is the container in which QCPCurve holds its data.
+  Container for storing \ref QCPCurveData points. The data is stored sorted by \a t, so the \a
+  sortKey() (returning \a t) is different from \a mainKey() (returning \a key).
+  
+  This template instantiation is the container in which QCPCurve holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
   \see QCPCurveData, QCPCurve::setData
 */
+typedef QCPDataContainer<QCPCurveData> QCPCurveDataContainer;
 
-typedef QMap<double, QCPCurveData> QCPCurveDataMap;
-typedef QMapIterator<double, QCPCurveData> QCPCurveDataMapIterator;
-typedef QMutableMapIterator<double, QCPCurveData> QCPCurveDataMutableMapIterator;
-
-
-class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPCurve : public QCPAbstractPlottable1D<QCPCurveData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
+  Q_PROPERTY(int scatterSkip READ scatterSkip WRITE setScatterSkip)
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   /// \endcond
 public:
@@ -72,63 +84,64 @@ public:
   enum LineStyle { lsNone  ///< No line is drawn between data points (e.g. only scatters)
                    ,lsLine ///< Data points are connected with a straight line
                  };
+  Q_ENUMS(LineStyle)
+  
   explicit QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPCurve();
   
   // getters:
-  QCPCurveDataMap *data() const { return mData; }
+  QSharedPointer<QCPCurveDataContainer> data() const { return mDataContainer; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  int scatterSkip() const { return mScatterSkip; }
   LineStyle lineStyle() const { return mLineStyle; }
   
   // setters:
-  void setData(QCPCurveDataMap *data, bool copy=false);
-  void setData(const QVector<double> &t, const QVector<double> &key, const QVector<double> &value);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setData(QSharedPointer<QCPCurveDataContainer> data);
+  void setData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void setData(const QVector<double> &keys, const QVector<double> &values);
   void setScatterStyle(const QCPScatterStyle &style);
+  void setScatterSkip(int skip);
   void setLineStyle(LineStyle style);
   
   // non-property methods:
-  void addData(const QCPCurveDataMap &dataMap);
-  void addData(const QCPCurveData &data);
+  void addData(const QVector<double> &t, const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void addData(const QVector<double> &keys, const QVector<double> &values);
   void addData(double t, double key, double value);
   void addData(double key, double value);
-  void addData(const QVector<double> &ts, const QVector<double> &keys, const QVector<double> &values);
-  void removeDataBefore(double t);
-  void removeDataAfter(double t);
-  void removeData(double fromt, double tot);
-  void removeData(double t);
   
   // reimplemented virtual methods:
-  virtual void clearData();
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
-  QCPCurveDataMap *mData;
   QCPScatterStyle mScatterStyle;
+  int mScatterSkip;
   LineStyle mLineStyle;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
-  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> *pointData) const;
+  virtual void drawCurveLine(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &points, const QCPScatterStyle &style) const;
   
   // non-virtual methods:
-  void getCurveData(QVector<QPointF> *lineData) const;
-  int getRegion(double x, double y, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
-  QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
-  QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom) const;
+  void getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRange, double penWidth) const;
+  void getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange, double scatterWidth) const;
+  int getRegion(double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
+  QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
+  QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   bool mayTraverse(int prevRegion, int currentRegion) const;
-  bool getTraverse(double prevKey, double prevValue, double key, double value, double rectLeft, double rectTop, double rectRight, double rectBottom, QPointF &crossA, QPointF &crossB) const;
-  void getTraverseCornerPoints(int prevRegion, int currentRegion, double rectLeft, double rectTop, double rectRight, double rectBottom, QVector<QPointF> &beforeTraverse, QVector<QPointF> &afterTraverse) const;
-  double pointDistance(const QPointF &pixelPoint) const;
+  bool getTraverse(double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin, QPointF &crossA, QPointF &crossB) const;
+  void getTraverseCornerPoints(int prevRegion, int currentRegion, double keyMin, double valueMax, double keyMax, double valueMin, QVector<QPointF> &beforeTraverse, QVector<QPointF> &afterTraverse) const;
+  double pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer::const_iterator &closestData) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;
 };
+Q_DECLARE_METATYPE(QCPCurve::LineStyle)
 
 #endif // QCP_PLOTTABLE_CURVE_H

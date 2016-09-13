@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 /*! \file */
@@ -29,13 +29,13 @@
 
 #include "painter.h"
 #include "layer.h"
-#include "axis.h"
+#include "axis/axis.h"
 #include "layoutelements/layoutelement-axisrect.h"
 #include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
 #include "plottable.h"
 #include "plottables/plottable-graph.h"
 #include "item.h"
+#include "selectionrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCustomPlot
@@ -52,19 +52,12 @@
 
 /* start of documentation of inline functions */
 
-/*! \fn QRect QCustomPlot::viewport() const
+/*! \fn QCPSelectionRect *QCustomPlot::selectionRect() const
   
-  Returns the viewport rect of this QCustomPlot instance. The viewport is the area the plot is
-  drawn in, all mechanisms, e.g. margin caluclation take the viewport to be the outer border of the
-  plot. The viewport normally is the rect() of the QCustomPlot widget, i.e. a rect with top left
-  (0, 0) and size of the QCustomPlot widget.
+  Allows access to the currently used QCPSelectionRect instance (or subclass thereof), that is used
+  to handle and draw selection rect interactions (see \ref setSelectionRectMode).
   
-  Don't confuse the viewport with the axis rect (QCustomPlot::axisRect). An axis rect is typically
-  an area enclosed by four axes, where the graphs/plottables are drawn in. The viewport is larger
-  and contains also the axes themselves, their tick numbers, their labels, the plot title etc.
-  
-  Only when saving to a file (see \ref savePng, \ref savePdf etc.) the viewport is temporarily
-  modified to allow saving plots with sizes independent of the current widget size.
+  \see setSelectionRect
 */
 
 /*! \fn QCPLayoutGrid *QCustomPlot::plotLayout() const
@@ -122,23 +115,25 @@
   QCPAxisRect::setRangeZoomAxes or \ref QCPAxisRect::setRangeZoomFactor.
 */
 
-/*! \fn void QCustomPlot::plottableClick(QCPAbstractPlottable *plottable, QMouseEvent *event)
-  
+/*! \fn void QCustomPlot::plottableClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
+
   This signal is emitted when a plottable is clicked.
 
   \a event is the mouse event that caused the click and \a plottable is the plottable that received
-  the click.
-  
+  the click. The parameter \a dataIndex indicates the data point that was closest to the click
+  position.
+
   \see plottableDoubleClick
 */
 
-/*! \fn void QCustomPlot::plottableDoubleClick(QCPAbstractPlottable *plottable, QMouseEvent *event)
-  
+/*! \fn void QCustomPlot::plottableDoubleClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
+
   This signal is emitted when a plottable is double clicked.
-  
+
   \a event is the mouse event that caused the click and \a plottable is the plottable that received
-  the click.
-  
+  the click. The parameter \a dataIndex indicates the data point that was closest to the click
+  position.
+
   \see plottableClick
 */
 
@@ -206,35 +201,16 @@
   \see legendClick
 */
 
-/*! \fn void QCustomPlot:: titleClick(QMouseEvent *event, QCPPlotTitle *title)
-
-  This signal is emitted when a plot title is clicked.
-  
-  \a event is the mouse event that caused the click and \a title is the plot title that received
-  the click.
-  
-  \see titleDoubleClick
-*/
-
-/*! \fn void QCustomPlot::titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title)
-
-  This signal is emitted when a plot title is double clicked.
-  
-  \a event is the mouse event that caused the click and \a title is the plot title that received
-  the click.
-  
-  \see titleClick
-*/
-
 /*! \fn void QCustomPlot::selectionChangedByUser()
   
   This signal is emitted after the user has changed the selection in the QCustomPlot, e.g. by
   clicking. It is not emitted when the selection state of an object has changed programmatically by
-  a direct call to setSelected() on an object or by calling \ref deselectAll.
+  a direct call to <tt>setSelected()</tt>/<tt>setSelection()</tt> on an object or by calling \ref
+  deselectAll.
   
-  In addition to this signal, selectable objects also provide individual signals, for example
-  QCPAxis::selectionChanged or QCPAbstractPlottable::selectionChanged. Note that those signals are
-  emitted even if the selection state is changed programmatically.
+  In addition to this signal, selectable objects also provide individual signals, for example \ref
+  QCPAxis::selectionChanged or \ref QCPAbstractPlottable::selectionChanged. Note that those signals
+  are emitted even if the selection state is changed programmatically.
   
   See the documentation of \ref setInteractions for details about the selection mechanism.
   
@@ -277,6 +253,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis
@@ -290,6 +271,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::xAxis2
@@ -305,6 +291,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis2
@@ -320,6 +311,11 @@
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointers become 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /*! \var QCPLegend *QCustomPlot::legend
@@ -335,6 +331,11 @@
   QCPAxisRect::insetLayout "inset layout", and must then also be accessed via the inset layout. If
   the default legend is removed due to manipulation of the layout system (e.g. by removing the main
   axis rect), the corresponding pointer becomes 0.
+  
+  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
+  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
+  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
+  added after the main legend was removed before.
 */
 
 /* end of documentation of public members */
@@ -349,6 +350,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(0),
   yAxis2(0),
   legend(0),
+  mBufferDevicePixelRatio(1.0), // will be adapted to primary screen below
   mPlotLayout(0),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -360,27 +362,42 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mBackgroundScaled(true),
   mBackgroundScaledMode(Qt::KeepAspectRatioByExpanding),
   mCurrentLayer(0),
-  mPlottingHints(QCP::phCacheLabels|QCP::phForceRepaint),
+  mPlottingHints(QCP::phCacheLabels|QCP::phImmediateRefresh),
   mMultiSelectModifier(Qt::ControlModifier),
-  mPaintBuffer(size()),
-  mMouseEventElement(0),
-  mReplotting(false)
+  mSelectionRectMode(QCP::srmNone),
+  mSelectionRect(0),
+  mOpenGl(false),
+  mMouseHasMoved(false),
+  mMouseEventLayerable(0),
+  mReplotting(false),
+  mReplotQueued(false),
+  mOpenGlMultisamples(16),
+  mOpenGlAntialiasedElementsBackup(QCP::aeNone),
+  mOpenGlCacheLabelsBackup(true)
 {
   setAttribute(Qt::WA_NoMousePropagation);
   setAttribute(Qt::WA_OpaquePaintEvent);
+  setFocusPolicy(Qt::ClickFocus);
   setMouseTracking(true);
   QLocale currentLocale = locale();
   currentLocale.setNumberOptions(QLocale::OmitGroupSeparator);
   setLocale(currentLocale);
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+  setBufferDevicePixelRatio(QWidget::devicePixelRatio());
+#endif
   
+  mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+  mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
   // create initial layers:
   mLayers.append(new QCPLayer(this, QLatin1String("background")));
   mLayers.append(new QCPLayer(this, QLatin1String("grid")));
   mLayers.append(new QCPLayer(this, QLatin1String("main")));
   mLayers.append(new QCPLayer(this, QLatin1String("axes")));
   mLayers.append(new QCPLayer(this, QLatin1String("legend")));
+  mLayers.append(new QCPLayer(this, QLatin1String("overlay")));
   updateLayerIndices();
   setCurrentLayer(QLatin1String("main"));
+  layer(QLatin1String("overlay"))->setMode(QCPLayer::lmBuffered);
   
   // create initial layout, axis rect and legend:
   mPlotLayout = new QCPLayoutGrid;
@@ -409,9 +426,13 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   yAxis2->grid()->setLayer(QLatin1String("grid"));
   legend->setLayer(QLatin1String("legend"));
   
+  // create selection rect instance:
+  mSelectionRect = new QCPSelectionRect(this);
+  mSelectionRect->setLayer(QLatin1String("overlay"));
+  
   setViewport(rect()); // needs to be called after mPlotLayout has been created
   
-  replot();
+  replot(rpQueuedReplot);
 }
 
 QCustomPlot::~QCustomPlot()
@@ -525,7 +546,7 @@ void QCustomPlot::setNotAntialiasedElement(QCP::AntialiasedElement notAntialiase
   If set to true, adding a plottable (e.g. a graph) to the QCustomPlot automatically also adds the
   plottable to the legend (QCustomPlot::legend).
   
-  \see addPlottable, addGraph, QCPLegend::addItem
+  \see addGraph, QCPLegend::addItem
 */
 void QCustomPlot::setAutoAddPlottableToLegend(bool on)
 {
@@ -542,14 +563,14 @@ void QCustomPlot::setAutoAddPlottableToLegend(bool on)
   QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeZoom, \ref QCPAxisRect::setRangeDragAxes,
   \ref QCPAxisRect::setRangeZoomAxes.
   
-  <b>Plottable selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref QCP::iSelectPlottables is
-  set, the user may select plottables (graphs, curves, bars,...) by clicking on them or in their
-  vicinity (\ref setSelectionTolerance). Whether the user can actually select a plottable can
-  further be restricted with the \ref QCPAbstractPlottable::setSelectable function on the specific
-  plottable. To find out whether a specific plottable is selected, call
-  QCPAbstractPlottable::selected(). To retrieve a list of all currently selected plottables, call
-  \ref selectedPlottables. If you're only interested in QCPGraphs, you may use the convenience
-  function \ref selectedGraphs.
+  <b>Plottable data selection</b> is controlled by \ref QCP::iSelectPlottables. If \ref
+  QCP::iSelectPlottables is set, the user may select plottables (graphs, curves, bars,...) and
+  their data by clicking on them or in their vicinity (\ref setSelectionTolerance). Whether the
+  user can actually select a plottable and its data can further be restricted with the \ref
+  QCPAbstractPlottable::setSelectable method on the specific plottable. For details, see the
+  special page about the \ref dataselection "data selection mechanism". To retrieve a list of all
+  currently selected plottables, call \ref selectedPlottables. If you're only interested in
+  QCPGraphs, you may use the convenience function \ref selectedGraphs.
   
   <b>Item selection</b> is controlled by \ref QCP::iSelectItems. If \ref QCP::iSelectItems is set, the user
   may select items (QCPItemLine, QCPItemText,...) by clicking on them or in their vicinity. To find
@@ -569,7 +590,7 @@ void QCustomPlot::setAutoAddPlottableToLegend(bool on)
   find out which child items are selected, call \ref QCPLegend::selectedItems.
   
   <b>All other selectable elements</b> The selection of all other selectable objects (e.g.
-  QCPPlotTitle, or your own layerable subclasses) is controlled with \ref QCP::iSelectOther. If set, the
+  QCPTextElement, or your own layerable subclasses) is controlled with \ref QCP::iSelectOther. If set, the
   user may select those objects by clicking on them. To find out which are currently selected, you
   need to check their selected state explicitly.
   
@@ -668,8 +689,8 @@ void QCustomPlot::setPlottingHint(QCP::PlottingHint hint, bool enabled)
 /*!
   Sets the keyboard modifier that will be recognized as multi-select-modifier.
   
-  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple objects
-  by clicking on them one after the other while holding down \a modifier.
+  If \ref QCP::iMultiSelect is specified in \ref setInteractions, the user may select multiple
+  objects (or data points) by clicking on them one after the other while holding down \a modifier.
   
   By default the multi-select-modifier is set to Qt::ControlModifier.
   
@@ -681,9 +702,158 @@ void QCustomPlot::setMultiSelectModifier(Qt::KeyboardModifier modifier)
 }
 
 /*!
-  Sets the viewport of this QCustomPlot. The Viewport is the area that the top level layout
-  (QCustomPlot::plotLayout()) uses as its rect. Normally, the viewport is the entire widget rect.
+  Sets how QCustomPlot processes mouse click-and-drag interactions by the user.
+
+  If \a mode is \ref QCP::srmNone, the mouse drag is forwarded to the underlying objects. For
+  example, QCPAxisRect may process a mouse drag by dragging axis ranges, see \ref
+  QCPAxisRect::setRangeDrag. If \a mode is not \ref QCP::srmNone, the current selection rect (\ref
+  selectionRect) becomes activated and allows e.g. rect zooming and data point selection.
   
+  If you wish to provide your user both with axis range dragging and data selection/range zooming,
+  use this method to switch between the modes just before the interaction is processed, e.g. in
+  reaction to the \ref mousePress or \ref mouseMove signals. For example you could check whether
+  the user is holding a certain keyboard modifier, and then decide which \a mode shall be set.
+  
+  If a selection rect interaction is currently active, and \a mode is set to \ref QCP::srmNone, the
+  interaction is canceled (\ref QCPSelectionRect::cancel). Switching between any of the other modes
+  will keep the selection rect active. Upon completion of the interaction, the behaviour is as
+  defined by the currently set \a mode, not the mode that was set when the interaction started.
+  
+  \see setInteractions, setSelectionRect, QCPSelectionRect
+*/
+void QCustomPlot::setSelectionRectMode(QCP::SelectionRectMode mode)
+{
+  if (mSelectionRect)
+  {
+    if (mode == QCP::srmNone)
+      mSelectionRect->cancel(); // when switching to none, we immediately want to abort a potentially active selection rect
+    
+    // disconnect old connections:
+    if (mSelectionRectMode == QCP::srmSelect)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      disconnect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+    
+    // establish new ones:
+    if (mode == QCP::srmSelect)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+  }
+  
+  mSelectionRectMode = mode;
+}
+
+/*!
+  Sets the \ref QCPSelectionRect instance that QCustomPlot will use if \a mode is not \ref
+  QCP::srmNone and the user performs a click-and-drag interaction. QCustomPlot takes ownership of
+  the passed \a selectionRect. It can be accessed later via \ref selectionRect.
+  
+  This method is useful if you wish to replace the default QCPSelectionRect instance with an
+  instance of a QCPSelectionRect subclass, to introduce custom behaviour of the selection rect.
+  
+  \see setSelectionRectMode
+*/
+void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
+{
+  if (mSelectionRect)
+    delete mSelectionRect;
+  
+  mSelectionRect = selectionRect;
+  
+  if (mSelectionRect)
+  {
+    // establish connections with new selection rect:
+    if (mSelectionRectMode == QCP::srmSelect)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectSelection(QRect,QMouseEvent*)));
+    else if (mSelectionRectMode == QCP::srmZoom)
+      connect(mSelectionRect, SIGNAL(accepted(QRect,QMouseEvent*)), this, SLOT(processRectZoom(QRect,QMouseEvent*)));
+  }
+}
+
+/*!
+  This method allows to enable OpenGL plot rendering, for increased plotting performance of
+  graphically demanding plots (thick lines, translucent fills, etc.).
+
+  If \a enabled is set to true, QCustomPlot will try to initialize OpenGL and, if successful,
+  continue plotting with hardware acceleration. The parameter \a multisampling controls how many
+  samples will be used per pixel, it essentially controls the antialiasing quality. If \a
+  multisampling is set too high for the current graphics hardware, the maximum allowed value will
+  be used.
+
+  You can test whether switching to OpenGL rendering was successful by checking whether the
+  according getter \a QCustomPlot::openGl() returns true. If the OpenGL initialization fails,
+  rendering continues with the regular software rasterizer, and an according qDebug output is
+  generated.
+
+  If switching to OpenGL was successful, this method disables label caching (\ref setPlottingHint
+  "setPlottingHint(QCP::phCacheLabels, false)") and turns on QCustomPlot's antialiasing override
+  for all elements (\ref setAntialiasedElements "setAntialiasedElements(QCP::aeAll)"), leading to a
+  higher quality output. The antialiasing override allows for pixel-grid aligned drawing in the
+  OpenGL paint device. As stated before, in OpenGL rendering the actual antialiasing of the plot is
+  controlled with \a multisampling. If \a enabled is set to false, the antialiasing/label caching
+  settings are restored to what they were before OpenGL was enabled, if they weren't altered in the
+  meantime.
+
+  \note OpenGL support is only enabled if QCustomPlot is compiled with the macro \c QCUSTOMPLOT_USE_OPENGL
+  defined. This define must be set before including the QCustomPlot header both during compilation
+  of the QCustomPlot library as well as when compiling your application. It is best to just include
+  the line <tt>DEFINES += QCUSTOMPLOT_USE_OPENGL</tt> in the respective qmake project files.
+  \note If you are using a Qt version before 5.0, you must also add the module "opengl" to your \c
+  QT variable in the qmake project files. For Qt versions 5.0 and higher, QCustomPlot switches to a
+  newer OpenGL interface which is already in the "gui" module.
+*/
+void QCustomPlot::setOpenGl(bool enabled, int multisampling)
+{
+  mOpenGlMultisamples = qMax(0, multisampling);
+#ifdef QCUSTOMPLOT_USE_OPENGL
+  mOpenGl = enabled;
+  if (mOpenGl)
+  {
+    if (setupOpenGl())
+    {
+      // backup antialiasing override and labelcaching setting so we can restore upon disabling OpenGL
+      mOpenGlAntialiasedElementsBackup = mAntialiasedElements;
+      mOpenGlCacheLabelsBackup = mPlottingHints.testFlag(QCP::phCacheLabels);
+      // set antialiasing override to antialias all (aligns gl pixel grid properly), and disable label caching (would use software rasterizer for pixmap caches):
+      setAntialiasedElements(QCP::aeAll);
+      setPlottingHint(QCP::phCacheLabels, false);
+    } else
+    {
+      qDebug() << Q_FUNC_INFO << "Failed to enable OpenGL, continuing plotting without hardware acceleration.";
+      mOpenGl = false;
+    }
+  } else
+  {
+    // restore antialiasing override and labelcaching to what it was before enabling OpenGL, if nobody changed it in the meantime:
+    if (mAntialiasedElements == QCP::aeAll)
+      setAntialiasedElements(mOpenGlAntialiasedElementsBackup);
+    if (!mPlottingHints.testFlag(QCP::phCacheLabels))
+      setPlottingHint(QCP::phCacheLabels, mOpenGlCacheLabelsBackup);
+    freeOpenGl();
+  }
+  // recreate all paint buffers:
+  mPaintBuffers.clear();
+  setupPaintBuffers();
+#else
+  Q_UNUSED(enabled)
+  qDebug() << Q_FUNC_INFO << "QCustomPlot can't use OpenGL because QCUSTOMPLOT_USE_OPENGL was not defined during compilation (add 'DEFINES += QCUSTOMPLOT_USE_OPENGL' to your qmake .pro file)";
+#endif
+}
+
+/*!
+  Sets the viewport of this QCustomPlot. Usually users of QCustomPlot don't need to change the
+  viewport manually.
+
+  The viewport is the area in which the plot is drawn. All mechanisms, e.g. margin caluclation take
+  the viewport to be the outer border of the plot. The viewport normally is the rect() of the
+  QCustomPlot widget, i.e. a rect with top left (0, 0) and size of the QCustomPlot widget.
+
+  Don't confuse the viewport with the axis rect (QCustomPlot::axisRect). An axis rect is typically
+  an area enclosed by four axes, where the graphs/plottables are drawn in. The viewport is larger
+  and contains also the axes themselves, their tick numbers, their labels, or even additional axis
+  rects, color scales and other layout elements.
+
   This function is used to allow arbitrary size exports with \ref toPixmap, \ref savePng, \ref
   savePdf, etc. by temporarily changing the viewport size.
 */
@@ -692,6 +862,33 @@ void QCustomPlot::setViewport(const QRect &rect)
   mViewport = rect;
   if (mPlotLayout)
     mPlotLayout->setOuterRect(mViewport);
+}
+
+/*!
+  Sets the device pixel ratio used by the paint buffers of this QCustomPlot instance.
+
+  Normally, this doesn't need to be set manually, because it is initialized with the regular \a
+  QWidget::devicePixelRatio which is configured by Qt to fit the display device (e.g. 1 for normal
+  displays, 2 for High-DPI displays).
+
+  Device pixel ratios are supported by Qt only for Qt versions since 5.4. If this method is called
+  when QCustomPlot is being used with older Qt versions, outputs an according qDebug message and
+  leaves the internal buffer device pixel ratio at 1.0.
+*/
+void QCustomPlot::setBufferDevicePixelRatio(double ratio)
+{
+  if (!qFuzzyCompare(ratio, mBufferDevicePixelRatio))
+  {
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+    mBufferDevicePixelRatio = ratio;
+    for (int i=0; i<mPaintBuffers.size(); ++i)
+      mPaintBuffers.at(i)->setDevicePixelRatio(mBufferDevicePixelRatio);
+    // Note: axis label cache has devicePixelRatio as part of cache hash, so no need to manually clear cache here
+#else
+    qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
+    mBufferDevicePixelRatio = 1.0;
+#endif
+  }
 }
 
 /*!
@@ -780,7 +977,7 @@ void QCustomPlot::setBackgroundScaledMode(Qt::AspectRatioMode mode)
   There is an overloaded version of this function with no parameter which returns the last added
   plottable, see QCustomPlot::plottable()
   
-  \see plottableCount, addPlottable
+  \see plottableCount
 */
 QCPAbstractPlottable *QCustomPlot::plottable(int index)
 {
@@ -796,10 +993,10 @@ QCPAbstractPlottable *QCustomPlot::plottable(int index)
 
 /*! \overload
   
-  Returns the last plottable that was added with \ref addPlottable. If there are no plottables in
-  the plot, returns 0.
+  Returns the last plottable that was added to the plot. If there are no plottables in the plot,
+  returns 0.
   
-  \see plottableCount, addPlottable
+  \see plottableCount
 */
 QCPAbstractPlottable *QCustomPlot::plottable()
 {
@@ -811,46 +1008,12 @@ QCPAbstractPlottable *QCustomPlot::plottable()
 }
 
 /*!
-  Adds the specified plottable to the plot and, if \ref setAutoAddPlottableToLegend is enabled, to
-  the legend (QCustomPlot::legend). QCustomPlot takes ownership of the plottable.
-  
-  Returns true on success, i.e. when \a plottable isn't already in the plot and the parent plot of
-  \a plottable is this QCustomPlot (the latter is controlled by what axes were passed in the
-  plottable's constructor).
-  
-  \see plottable, plottableCount, removePlottable, clearPlottables
-*/
-bool QCustomPlot::addPlottable(QCPAbstractPlottable *plottable)
-{
-  if (mPlottables.contains(plottable))
-  {
-    qDebug() << Q_FUNC_INFO << "plottable already added to this QCustomPlot:" << reinterpret_cast<quintptr>(plottable);
-    return false;
-  }
-  if (plottable->parentPlot() != this)
-  {
-    qDebug() << Q_FUNC_INFO << "plottable not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(plottable);
-    return false;
-  }
-  
-  mPlottables.append(plottable);
-  // possibly add plottable to legend:
-  if (mAutoAddPlottableToLegend)
-    plottable->addToLegend();
-  // special handling for QCPGraphs to maintain the simple graph interface:
-  if (QCPGraph *graph = qobject_cast<QCPGraph*>(plottable))
-    mGraphs.append(graph);
-  if (!plottable->layer()) // usually the layer is already set in the constructor of the plottable (via QCPLayerable constructor)
-    plottable->setLayer(currentLayer());
-  return true;
-}
-
-/*!
-  Removes the specified plottable from the plot and, if necessary, from the legend (QCustomPlot::legend).
+  Removes the specified plottable from the plot and deletes it. If necessary, the corresponding
+  legend item is also removed from the default legend (QCustomPlot::legend).
   
   Returns true on success.
   
-  \see addPlottable, clearPlottables
+  \see clearPlottables
 */
 bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
 {
@@ -873,7 +1036,7 @@ bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
 
 /*! \overload
   
-  Removes the plottable by its \a index.
+  Removes and deletes the plottable by its \a index.
 */
 bool QCustomPlot::removePlottable(int index)
 {
@@ -887,7 +1050,8 @@ bool QCustomPlot::removePlottable(int index)
 }
 
 /*!
-  Removes all plottables from the plot (and the QCustomPlot::legend, if necessary).
+  Removes all plottables from the plot and deletes them. Corresponding legend items are also
+  removed from the default legend (QCustomPlot::legend).
   
   Returns the number of plottables removed.
   
@@ -904,7 +1068,7 @@ int QCustomPlot::clearPlottables()
 /*!
   Returns the number of currently existing plottables in the plot
   
-  \see plottable, addPlottable
+  \see plottable
 */
 int QCustomPlot::plottableCount() const
 {
@@ -916,7 +1080,7 @@ int QCustomPlot::plottableCount() const
   
   There is a convenience function if you're only interested in selected graphs, see \ref selectedGraphs.
   
-  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
@@ -966,8 +1130,6 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySele
 
 /*!
   Returns whether this QCustomPlot instance contains the \a plottable.
-  
-  \see addPlottable
 */
 bool QCustomPlot::hasPlottable(QCPAbstractPlottable *plottable) const
 {
@@ -1038,21 +1200,15 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
   }
   
   QCPGraph *newGraph = new QCPGraph(keyAxis, valueAxis);
-  if (addPlottable(newGraph))
-  {
-    newGraph->setName(QLatin1String("Graph ")+QString::number(mGraphs.size()));
-    return newGraph;
-  } else
-  {
-    delete newGraph;
-    return 0;
-  }
+  newGraph->setName(QLatin1String("Graph ")+QString::number(mGraphs.size()));
+  return newGraph;
 }
 
 /*!
-  Removes the specified \a graph from the plot and, if necessary, from the QCustomPlot::legend. If
-  any other graphs in the plot have a channel fill set towards the removed graph, the channel fill
-  property of those graphs is reset to zero (no channel fill).
+  Removes the specified \a graph from the plot and deletes it. If necessary, the corresponding
+  legend item is also removed from the default legend (QCustomPlot::legend). If any other graphs in
+  the plot have a channel fill set towards the removed graph, the channel fill property of those
+  graphs is reset to zero (no channel fill).
   
   Returns true on success.
   
@@ -1065,7 +1221,7 @@ bool QCustomPlot::removeGraph(QCPGraph *graph)
 
 /*! \overload
   
-  Removes the graph by its \a index.
+  Removes and deletes the graph by its \a index.
 */
 bool QCustomPlot::removeGraph(int index)
 {
@@ -1076,7 +1232,8 @@ bool QCustomPlot::removeGraph(int index)
 }
 
 /*!
-  Removes all graphs from the plot (and the QCustomPlot::legend, if necessary).
+  Removes all graphs from the plot and deletes them. Corresponding legend items are also removed
+  from the default legend (QCustomPlot::legend).
 
   Returns the number of graphs removed.
   
@@ -1106,7 +1263,7 @@ int QCustomPlot::graphCount() const
   If you are not only interested in selected graphs but other plottables like QCPCurve, QCPBars,
   etc., use \ref selectedPlottables.
   
-  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelected
+  \see setInteractions, selectedPlottables, QCPAbstractPlottable::setSelectable, QCPAbstractPlottable::setSelection
 */
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {
@@ -1125,7 +1282,7 @@ QList<QCPGraph*> QCustomPlot::selectedGraphs() const
   There is an overloaded version of this function with no parameter which returns the last added
   item, see QCustomPlot::item()
   
-  \see itemCount, addItem
+  \see itemCount
 */
 QCPAbstractItem *QCustomPlot::item(int index) const
 {
@@ -1141,10 +1298,10 @@ QCPAbstractItem *QCustomPlot::item(int index) const
 
 /*! \overload
   
-  Returns the last item, that was added with \ref addItem. If there are no items in the plot,
+  Returns the last item that was added to this plot. If there are no items in the plot,
   returns 0.
   
-  \see itemCount, addItem
+  \see itemCount
 */
 QCPAbstractItem *QCustomPlot::item() const
 {
@@ -1156,32 +1313,11 @@ QCPAbstractItem *QCustomPlot::item() const
 }
 
 /*!
-  Adds the specified item to the plot. QCustomPlot takes ownership of the item.
-  
-  Returns true on success, i.e. when \a item wasn't already in the plot and the parent plot of \a
-  item is this QCustomPlot.
-  
-  \see item, itemCount, removeItem, clearItems
-*/
-bool QCustomPlot::addItem(QCPAbstractItem *item)
-{
-  if (!mItems.contains(item) && item->parentPlot() == this)
-  {
-    mItems.append(item);
-    return true;
-  } else
-  {
-    qDebug() << Q_FUNC_INFO << "item either already in list or not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(item);
-    return false;
-  }
-}
-
-/*!
-  Removes the specified item from the plot.
+  Removes the specified item from the plot and deletes it.
   
   Returns true on success.
   
-  \see addItem, clearItems
+  \see clearItems
 */
 bool QCustomPlot::removeItem(QCPAbstractItem *item)
 {
@@ -1199,7 +1335,7 @@ bool QCustomPlot::removeItem(QCPAbstractItem *item)
 
 /*! \overload
   
-  Removes the item by its \a index.
+  Removes and deletes the item by its \a index.
 */
 bool QCustomPlot::removeItem(int index)
 {
@@ -1213,7 +1349,7 @@ bool QCustomPlot::removeItem(int index)
 }
 
 /*!
-  Removes all items from the plot.
+  Removes all items from the plot and deletes them.
   
   Returns the number of items removed.
   
@@ -1230,7 +1366,7 @@ int QCustomPlot::clearItems()
 /*!
   Returns the number of currently existing items in the plot
   
-  \see item, addItem
+  \see item
 */
 int QCustomPlot::itemCount() const
 {
@@ -1292,7 +1428,7 @@ QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) co
 /*!
   Returns whether this QCustomPlot contains the \a item.
   
-  \see addItem
+  \see item
 */
 bool QCustomPlot::hasItem(QCPAbstractItem *item) const
 {
@@ -1426,6 +1562,7 @@ bool QCustomPlot::addLayer(const QString &name, QCPLayer *otherLayer, QCustomPlo
   QCPLayer *newLayer = new QCPLayer(this, name);
   mLayers.insert(otherLayer->index() + (insertMode==limAbove ? 1:0), newLayer);
   updateLayerIndices();
+  setupPaintBuffers(); // associates new layer with the appropriate paint buffer
   return true;
 }
 
@@ -1473,6 +1610,9 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   // if removed layer is current layer, change current layer to layer below/above:
   if (layer == mCurrentLayer)
     setCurrentLayer(targetLayer);
+  // invalidate the paint buffer that was responsible for this layer:
+  if (!layer->mPaintBuffer.isNull())
+    layer->mPaintBuffer.data()->setInvalidated();
   // remove layer:
   delete layer;
   mLayers.removeOne(layer);
@@ -1502,7 +1642,17 @@ bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::
     return false;
   }
   
-  mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
+  if (layer->index() > otherLayer->index())
+    mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 1:0));
+  else if (layer->index() < otherLayer->index())
+    mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 0:-1));
+  
+  // invalidate the paint buffers that are responsible for the layers:
+  if (!layer->mPaintBuffer.isNull())
+    layer->mPaintBuffer.data()->setInvalidated();
+  if (!otherLayer->mPaintBuffer.isNull())
+    otherLayer->mPaintBuffer.data()->setInvalidated();
+  
   updateLayerIndices();
   return true;
 }
@@ -1601,6 +1751,39 @@ QCPLayoutElement *QCustomPlot::layoutElementAt(const QPointF &pos) const
 }
 
 /*!
+  Returns the layout element of type \ref QCPAxisRect at pixel position \a pos. This method ignores
+  other layout elements even if they are visually in front of the axis rect (e.g. a \ref
+  QCPLegend). If there is no axis rect at that position, returns 0.
+
+  Only visible axis rects are used. If \ref QCPLayoutElement::setVisible on the axis rect itself or
+  on any of its parent elements is set to false, it will not be considered.
+
+  \see layoutElementAt
+*/
+QCPAxisRect *QCustomPlot::axisRectAt(const QPointF &pos) const
+{
+  QCPAxisRect *result = 0;
+  QCPLayoutElement *currentElement = mPlotLayout;
+  bool searchSubElements = true;
+  while (searchSubElements && currentElement)
+  {
+    searchSubElements = false;
+    foreach (QCPLayoutElement *subElement, currentElement->elements(false))
+    {
+      if (subElement && subElement->realVisibility() && subElement->selectTest(pos, false) >= 0)
+      {
+        currentElement = subElement;
+        searchSubElements = true;
+        if (QCPAxisRect *ar = qobject_cast<QCPAxisRect*>(currentElement))
+          result = ar;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+/*!
   Returns the axes that currently have selected parts, i.e. whose selection state is not \ref
   QCPAxis::spNone.
   
@@ -1675,41 +1858,60 @@ void QCustomPlot::deselectAll()
 }
 
 /*!
-  Causes a complete replot into the internal buffer. Finally, update() is called, to redraw the
-  buffer on the QCustomPlot widget surface. This is the method that must be called to make changes,
-  for example on the axis ranges or data points of graphs, visible.
-  
+  Causes a complete replot into the internal paint buffer(s). Finally, the widget surface is
+  refreshed with the new buffer contents. This is the method that must be called to make changes to
+  the plot, e.g. on the axis ranges or data points of graphs, visible.
+
+  The parameter \a refreshPriority can be used to fine-tune the timing of the replot. For example
+  if your application calls \ref replot very quickly in succession (e.g. multiple independent
+  functions change some aspects of the plot and each wants to make sure the change gets replotted),
+  it is advisable to set \a refreshPriority to \ref QCustomPlot::rpQueuedReplot. This way, the
+  actual replotting is deferred to the next event loop iteration. Multiple successive calls of \ref
+  replot with this priority will only cause a single replot, avoiding redundant replots and
+  improving performance.
+
   Under a few circumstances, QCustomPlot causes a replot by itself. Those are resize events of the
   QCustomPlot widget and user interactions (object selection and range dragging/zooming).
-  
+
   Before the replot happens, the signal \ref beforeReplot is emitted. After the replot, \ref
   afterReplot is emitted. It is safe to mutually connect the replot slot with any of those two
   signals on two QCustomPlots to make them replot synchronously, it won't cause an infinite
   recursion.
+
+  If a layer is in mode \ref QCPLayer::lmBuffered (\ref QCPLayer::setMode), it is also possible to
+  replot only that specific layer via \ref QCPLayer::replot. See the documentation there for
+  details.
 */
 void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
 {
+  if (refreshPriority == QCustomPlot::rpQueuedReplot)
+  {
+    if (!mReplotQueued)
+    {
+      mReplotQueued = true;
+      QTimer::singleShot(0, this, SLOT(replot()));
+    }
+    return;
+  }
+  
   if (mReplotting) // incase signals loop back to replot slot
     return;
   mReplotting = true;
+  mReplotQueued = false;
   emit beforeReplot();
   
-  mPaintBuffer.fill(mBackgroundBrush.style() == Qt::SolidPattern ? mBackgroundBrush.color() : Qt::transparent);
-  QCPPainter painter;
-  painter.begin(&mPaintBuffer);
-  if (painter.isActive())
-  {
-    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
-    if (mBackgroundBrush.style() != Qt::SolidPattern && mBackgroundBrush.style() != Qt::NoBrush)
-      painter.fillRect(mViewport, mBackgroundBrush);
-    draw(&painter);
-    painter.end();
-    if ((refreshPriority == rpHint && mPlottingHints.testFlag(QCP::phForceRepaint)) || refreshPriority==rpImmediate)
-      repaint();
-    else
-      update();
-  } else // might happen if QCustomPlot has width or height zero
-    qDebug() << Q_FUNC_INFO << "Couldn't activate painter on buffer. This usually happens because QCustomPlot has width or height zero.";
+  updateLayout();
+  // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
+  setupPaintBuffers();
+  foreach (QCPLayer *layer, mLayers)
+    layer->drawToPaintBuffer();
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+    mPaintBuffers.at(i)->setInvalidated(false);
+  
+  if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
+    repaint();
+  else
+    update();
   
   emit afterReplot();
   mReplotting = false;
@@ -1740,20 +1942,20 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
   pixel width and height. If either \a width or \a height is zero, the exported image will have the
   same dimensions as the QCustomPlot widget currently has.
 
-  \a noCosmeticPen disables the use of cosmetic pens when drawing to the PDF file. Cosmetic pens
-  are pens with numerical width 0, which are always drawn as a one pixel wide line, no matter what
-  zoom factor is set in the PDF-Viewer. For more information about cosmetic pens, see the QPainter
-  and QPen documentation.
-  
+  Setting \a exportPen to \ref QCP::epNoCosmetic allows to disable the use of cosmetic pens when
+  drawing to the PDF file. Cosmetic pens are pens with numerical width 0, which are always drawn as
+  a one pixel wide line, no matter what zoom factor is set in the PDF-Viewer. For more information
+  about cosmetic pens, see the QPainter and QPen documentation.
+
   The objects of the plot will appear in the current selection state. If you don't want any
   selected objects to be painted in their selected look, deselect everything with \ref deselectAll
   before calling this function.
 
   Returns true on success.
-  
+
   \warning
-  \li If you plan on editing the exported PDF file with a vector graphics editor like
-  Inkscape, it is advised to set \a noCosmeticPen to true to avoid losing those cosmetic lines
+  \li If you plan on editing the exported PDF file with a vector graphics editor like Inkscape, it
+  is advised to set \a exportPen to \ref QCP::epNoCosmetic to avoid losing those cosmetic lines
   (which might be quite many, because cosmetic pens are the default for e.g. axes and tick marks).
   \li If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -1761,21 +1963,21 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
   function uses the current width and height of the QCustomPlot widget. However, in Qt, these
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
-  
+
   \a pdfCreator and \a pdfTitle may be used to set the according metadata fields in the resulting
   PDF file.
-  
+
   \note On Android systems, this method does nothing and issues an according qDebug warning
-  message. This is also the case if for other reasons the define flag QT_NO_PRINTER is set.
-  
+  message. This is also the case if for other reasons the define flag \c QT_NO_PRINTER is set.
+
   \see savePng, saveBmp, saveJpg, saveRastered
 */
-bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width, int height, const QString &pdfCreator, const QString &pdfTitle)
+bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::ExportPen exportPen, const QString &pdfCreator, const QString &pdfTitle)
 {
   bool success = false;
 #ifdef QT_NO_PRINTER
   Q_UNUSED(fileName)
-  Q_UNUSED(noCosmeticPen)
+  Q_UNUSED(exportPen)
   Q_UNUSED(width)
   Q_UNUSED(height)
   Q_UNUSED(pdfCreator)
@@ -1817,7 +2019,7 @@ bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
   {
     printpainter.setMode(QCPPainter::pmVectorized);
     printpainter.setMode(QCPPainter::pmNoCaching);
-    printpainter.setMode(QCPPainter::pmNonCosmetic, noCosmeticPen);
+    printpainter.setMode(QCPPainter::pmNonCosmetic, exportPen==QCP::epNoCosmetic);
     printpainter.setWindow(mViewport);
     if (mBackgroundBrush.style() != Qt::NoBrush &&
         mBackgroundBrush.color() != Qt::white &&
@@ -1835,60 +2037,39 @@ bool QCustomPlot::savePdf(const QString &fileName, bool noCosmeticPen, int width
 
 /*!
   Saves a PNG image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
 
   For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
   image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
   texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
   200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
   temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
   QCustomPlot to place objects with sub-pixel accuracy.
 
-  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
-  (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
-  explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
-  function uses the current width and height of the QCustomPlot widget. However, in Qt, these
-  aren't defined yet inside the constructor, so you would get an image that has strange
-  widths/heights.
-  
-  The objects of the plot will appear in the current selection state. If you don't want any selected
-  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
-  this function.
+  image compression can be controlled with the \a quality parameter which must be between 0 and 100
+  or -1 to use the default setting.
 
-  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush
-  &brush) with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
 
-  PNG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
-  -1 to use the default setting.
-  
   Returns true on success. If this function fails, most likely the PNG format isn't supported by
   the system, see Qt docs about QImageWriter::supportedImageFormats().
 
-  \see savePdf, saveBmp, saveJpg, saveRastered
-*/
-bool QCustomPlot::savePng(const QString &fileName, int width, int height, double scale, int quality)
-{
-  return saveRastered(fileName, width, height, scale, "PNG", quality);
-}
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
 
-/*!
-  Saves a JPG image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
-
-  For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
-  image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
-  texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
-  200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
-  temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
-  QCustomPlot to place objects with sub-pixel accuracy.
+  If you want the PNG to have a transparent background, call \ref setBackground(const QBrush &brush)
+  with no brush (Qt::NoBrush) or a transparent color (Qt::transparent), before saving.
 
   \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -1897,37 +2078,89 @@ bool QCustomPlot::savePng(const QString &fileName, int width, int height, double
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
 
+  \see savePdf, saveBmp, saveJpg, saveRastered
+*/
+bool QCustomPlot::savePng(const QString &fileName, int width, int height, double scale, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
+{
+  return saveRastered(fileName, width, height, scale, "PNG", quality, resolution, resolutionUnit);
+}
+
+/*!
+  Saves a JPEG image file to \a fileName on disc. The output plot will have the dimensions \a width
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
+
+  For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
+  image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
+  texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
+  200*200 pixel resolution.
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
+  temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
+  QCustomPlot to place objects with sub-pixel accuracy.
+
+  image compression can be controlled with the \a quality parameter which must be between 0 and 100
+  or -1 to use the default setting.
+
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
+
+  Returns true on success. If this function fails, most likely the JPEG format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
   The objects of the plot will appear in the current selection state. If you don't want any selected
   objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
   this function.
 
-  JPG compression can be controlled with the \a quality parameter which must be between 0 and 100 or
-  -1 to use the default setting.
-  
-  Returns true on success. If this function fails, most likely the JPG format isn't supported by
-  the system, see Qt docs about QImageWriter::supportedImageFormats().
+  \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
+  (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
+  explicit non-zero widths and heights. If you leave \a width or \a height as 0 (default), this
+  function uses the current width and height of the QCustomPlot widget. However, in Qt, these
+  aren't defined yet inside the constructor, so you would get an image that has strange
+  widths/heights.
 
   \see savePdf, savePng, saveBmp, saveRastered
 */
-bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double scale, int quality)
+bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double scale, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  return saveRastered(fileName, width, height, scale, "JPG", quality);
+  return saveRastered(fileName, width, height, scale, "JPG", quality, resolution, resolutionUnit);
 }
 
 /*!
   Saves a BMP image file to \a fileName on disc. The output plot will have the dimensions \a width
-  and \a height in pixels. If either \a width or \a height is zero, the exported image will have
-  the same dimensions as the QCustomPlot widget currently has. Line widths and texts etc. are not
-  scaled up when larger widths/heights are used. If you want that effect, use the \a scale parameter.
+  and \a height in pixels, multiplied by \a scale. If either \a width or \a height is zero, the
+  current width and height of the QCustomPlot widget is used instead. Line widths and texts etc.
+  are not scaled up when larger widths/heights are used. If you want that effect, use the \a scale
+  parameter.
 
   For example, if you set both \a width and \a height to 100 and \a scale to 2, you will end up with an
   image file of size 200*200 in which all graphical elements are scaled up by factor 2 (line widths,
   texts, etc.). This scaling is not done by stretching a 100*100 image, the result will have full
   200*200 pixel resolution.
-  
-  If you use a high scaling factor, it is recommended to enable antialiasing for all elements via
+
+  If you use a high scaling factor, it is recommended to enable antialiasing for all elements by
   temporarily setting \ref QCustomPlot::setAntialiasedElements to \ref QCP::aeAll as this allows
   QCustomPlot to place objects with sub-pixel accuracy.
+
+  The \a resolution will be written to the image file header and has no direct consequence for the
+  quality or the pixel size. However, if opening the image with a tool which respects the metadata,
+  it will be able to scale the image to match either a given size in real units of length (inch,
+  centimeters, etc.), or the target display DPI. You can specify in which units \a resolution is
+  given, by setting \a resolutionUnit. The \a resolution is converted to the format's expected
+  resolution unit internally.
+
+  Returns true on success. If this function fails, most likely the BMP format isn't supported by
+  the system, see Qt docs about QImageWriter::supportedImageFormats().
+
+  The objects of the plot will appear in the current selection state. If you don't want any selected
+  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
+  this function.
 
   \warning If calling this function inside the constructor of the parent of the QCustomPlot widget
   (i.e. the MainWindow constructor, if QCustomPlot is inside the MainWindow), always provide
@@ -1936,18 +2169,11 @@ bool QCustomPlot::saveJpg(const QString &fileName, int width, int height, double
   aren't defined yet inside the constructor, so you would get an image that has strange
   widths/heights.
 
-  The objects of the plot will appear in the current selection state. If you don't want any selected
-  objects to be painted in their selected look, deselect everything with \ref deselectAll before calling
-  this function.
-  
-  Returns true on success. If this function fails, most likely the BMP format isn't supported by
-  the system, see Qt docs about QImageWriter::supportedImageFormats().
-
   \see savePdf, savePng, saveJpg, saveRastered
 */
-bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double scale)
+bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double scale, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  return saveRastered(fileName, width, height, scale, "BMP");
+  return saveRastered(fileName, width, height, scale, "BMP", -1, resolution, resolutionUnit);
 }
 
 /*! \internal
@@ -1981,245 +2207,253 @@ QSize QCustomPlot::sizeHint() const
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED(event);
-  QPainter painter(this);
-  painter.drawPixmap(0, 0, mPaintBuffer);
+  QCPPainter painter(this);
+  if (painter.isActive())
+  {
+    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+    if (mBackgroundBrush.style() != Qt::NoBrush)
+      painter.fillRect(mViewport, mBackgroundBrush);
+    drawBackground(&painter);
+    for (int bufferIndex = 0; bufferIndex < mPaintBuffers.size(); ++bufferIndex)
+      mPaintBuffers.at(bufferIndex)->draw(&painter);
+  }
 }
 
 /*! \internal
   
-  Event handler for a resize of the QCustomPlot widget. Causes the internal buffer to be resized to
-  the new size. The viewport (which becomes the outer rect of mPlotLayout) is resized
-  appropriately. Finally a \ref replot is performed.
+  Event handler for a resize of the QCustomPlot widget. The viewport (which becomes the outer rect
+  of mPlotLayout) is resized appropriately. Finally a \ref replot is performed.
 */
 void QCustomPlot::resizeEvent(QResizeEvent *event)
 {
+  Q_UNUSED(event)
   // resize and repaint the buffer:
-  mPaintBuffer = QPixmap(event->size());
   setViewport(rect());
-  replot(rpQueued); // queued update is important here, to prevent painting issues in some contexts
+  replot(rpQueuedRefresh); // queued refresh is important here, to prevent painting issues in some contexts (e.g. MDI subwindow)
 }
 
 /*! \internal
   
- Event handler for when a double click occurs. Emits the \ref mouseDoubleClick signal, then emits
- the specialized signals when certain objecs are clicked (e.g. \ref plottableDoubleClick, \ref
- axisDoubleClick, etc.). Finally determines the affected layout element and forwards the event to
- it.
+ Event handler for when a double click occurs. Emits the \ref mouseDoubleClick signal, then
+ determines the layerable under the cursor and forwards the event to it. Finally, emits the
+ specialized signals when certain objecs are clicked (e.g. \ref plottableDoubleClick, \ref
+ axisDoubleClick, etc.).
  
  \see mousePressEvent, mouseReleaseEvent
 */
 void QCustomPlot::mouseDoubleClickEvent(QMouseEvent *event)
 {
   emit mouseDoubleClick(event);
+  mMouseHasMoved = false;
+  mMousePressPos = event->pos();
   
-  QVariant details;
-  QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details);
-  
-  // emit specialized object double click signals:
-  if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-    emit plottableDoubleClick(ap, event);
-  else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
-    emit axisDoubleClick(ax, details.value<QCPAxis::SelectablePart>(), event);
-  else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
-    emit itemDoubleClick(ai, event);
-  else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
-    emit legendDoubleClick(lg, 0, event);
-  else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
-    emit legendDoubleClick(li->parentLegend(), li, event);
-  else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
-    emit titleDoubleClick(event, pt);
-  
-  // call double click event of affected layout element:
-  if (QCPLayoutElement *el = layoutElementAt(event->pos()))
-    el->mouseDoubleClickEvent(event);
-  
-  // call release event of affected layout element (as in mouseReleaseEvent, since the mouseDoubleClick replaces the second release event in double click case):
-  if (mMouseEventElement)
+  // determine layerable under the cursor (this event is called instead of the second press event in a double-click):
+  QList<QVariant> details;
+  QList<QCPLayerable*> candidates = layerableListAt(mMousePressPos, false, &details);
+  for (int i=0; i<candidates.size(); ++i)
   {
-    mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+    candidates.at(i)->mouseDoubleClickEvent(event, details.at(i));
+    if (event->isAccepted())
+    {
+      mMouseEventLayerable = candidates.at(i);
+      mMouseEventLayerableDetails = details.at(i);
+      break;
+    }
   }
   
-  //QWidget::mouseDoubleClickEvent(event); don't call base class implementation because it would just cause a mousePress/ReleaseEvent, which we don't want.
+  // emit specialized object double click signals:
+  if (!candidates.isEmpty())
+  {
+    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(candidates.first()))
+    {
+      int dataIndex = 0;
+      if (!details.first().value<QCPDataSelection>().isEmpty())
+        dataIndex = details.first().value<QCPDataSelection>().dataRange().begin();
+      emit plottableDoubleClick(ap, dataIndex, event);
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(candidates.first()))
+      emit axisDoubleClick(ax, details.first().value<QCPAxis::SelectablePart>(), event);
+    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(candidates.first()))
+      emit itemDoubleClick(ai, event);
+    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(candidates.first()))
+      emit legendDoubleClick(lg, 0, event);
+    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(candidates.first()))
+      emit legendDoubleClick(li->parentLegend(), li, event);
+  }
+  
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
   
-  Event handler for when a mouse button is pressed. Emits the mousePress signal. Then determines
-  the affected layout element and forwards the event to it.
+  Event handler for when a mouse button is pressed. Emits the mousePress signal.
+
+  If the current \ref setSelectionRectMode is not \ref QCP::srmNone, passes the event to the
+  selection rect. Otherwise determines the layerable under the cursor and forwards the event to it.
   
   \see mouseMoveEvent, mouseReleaseEvent
 */
 void QCustomPlot::mousePressEvent(QMouseEvent *event)
 {
   emit mousePress(event);
-  mMousePressPos = event->pos(); // need this to determine in releaseEvent whether it was a click (no position change between press and release)
+  // save some state to tell in releaseEvent whether it was a click:
+  mMouseHasMoved = false;
+  mMousePressPos = event->pos();
   
-  // call event of affected layout element:
-  mMouseEventElement = layoutElementAt(event->pos());
-  if (mMouseEventElement)
-    mMouseEventElement->mousePressEvent(event);
+  if (mSelectionRect && mSelectionRectMode != QCP::srmNone)
+  {
+    if (mSelectionRectMode != QCP::srmZoom || qobject_cast<QCPAxisRect*>(axisRectAt(mMousePressPos))) // in zoom mode only activate selection rect if on an axis rect
+      mSelectionRect->startSelection(event);
+  } else
+  {
+    // no selection rect interaction, so forward event to layerable under the cursor:
+    QList<QVariant> details;
+    QList<QCPLayerable*> candidates = layerableListAt(mMousePressPos, false, &details);
+    for (int i=0; i<candidates.size(); ++i)
+    {
+      event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+      candidates.at(i)->mousePressEvent(event, details.at(i));
+      if (event->isAccepted())
+      {
+        mMouseEventLayerable = candidates.at(i);
+        mMouseEventLayerableDetails = details.at(i);
+        break;
+      }
+    }
+  }
   
-  QWidget::mousePressEvent(event);
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
   
   Event handler for when the cursor is moved. Emits the \ref mouseMove signal.
 
-  If a layout element has mouse capture focus (a mousePressEvent happened on top of the layout
-  element before), the mouseMoveEvent is forwarded to that element.
+  If the selection rect (\ref setSelectionRect) is currently active, the event is forwarded to it
+  in order to update the rect geometry.
+  
+  Otherwise, if a layout element has mouse capture focus (a mousePressEvent happened on top of the
+  layout element before), the mouseMoveEvent is forwarded to that element.
   
   \see mousePressEvent, mouseReleaseEvent
 */
 void QCustomPlot::mouseMoveEvent(QMouseEvent *event)
 {
   emit mouseMove(event);
-
-  // call event of affected layout element:
-  if (mMouseEventElement)
-    mMouseEventElement->mouseMoveEvent(event);
   
-  QWidget::mouseMoveEvent(event);
+  if (!mMouseHasMoved && (mMousePressPos-event->pos()).manhattanLength() > 3)
+    mMouseHasMoved = true; // moved too far from mouse press position, don't handle as click on mouse release
+  
+  if (mSelectionRect && mSelectionRect->isActive())
+    mSelectionRect->moveSelection(event);
+  else if (mMouseEventLayerable) // call event of affected layerable:
+    mMouseEventLayerable->mouseMoveEvent(event, mMousePressPos);
+  
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
-  
+
   Event handler for when a mouse button is released. Emits the \ref mouseRelease signal.
-  
+
   If the mouse was moved less than a certain threshold in any direction since the \ref
   mousePressEvent, it is considered a click which causes the selection mechanism (if activated via
   \ref setInteractions) to possibly change selection states accordingly. Further, specialized mouse
   click signals are emitted (e.g. \ref plottableClick, \ref axisClick, etc.)
-  
-  If a layout element has mouse capture focus (a \ref mousePressEvent happened on top of the layout
-  element before), the \ref mouseReleaseEvent is forwarded to that element.
-  
+
+  If a layerable is the mouse capturer (a \ref mousePressEvent happened on top of the layerable
+  before), the \ref mouseReleaseEvent is forwarded to that element.
+
   \see mousePressEvent, mouseMoveEvent
 */
 void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 {
   emit mouseRelease(event);
-  bool doReplot = false;
   
-  if ((mMousePressPos-event->pos()).manhattanLength() < 5) // determine whether it was a click operation
+  if (!mMouseHasMoved) // mouse hasn't moved (much) between press and release, so handle as click
   {
+    if (mSelectionRect && mSelectionRect->isActive()) // a simple click shouldn't successfully finish a selection rect, so cancel it here
+      mSelectionRect->cancel();
     if (event->button() == Qt::LeftButton)
-    {
-      // handle selection mechanism:
-      QVariant details;
-      QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
-      bool selectionStateChanged = false;
-      bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
-      // deselect all other layerables if not additive selection:
-      if (!additive)
-      {
-        foreach (QCPLayer *layer, mLayers)
-        {
-          foreach (QCPLayerable *layerable, layer->children())
-          {
-            if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
-            {
-              bool selChanged = false;
-              layerable->deselectEvent(&selChanged);
-              selectionStateChanged |= selChanged;
-            }
-          }
-        }
-      }
-      if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
-      {
-        // a layerable was actually clicked, call its selectEvent:
-        bool selChanged = false;
-        clickedLayerable->selectEvent(event, additive, details, &selChanged);
-        selectionStateChanged |= selChanged;
-      }
-      if (selectionStateChanged)
-      {
-        doReplot = true;
-        emit selectionChangedByUser();
-      }
-    }
+      processPointSelection(event);
     
-    // emit specialized object click signals:
-    QVariant details;
-    QCPLayerable *clickedLayerable = layerableAt(event->pos(), false, &details); // for these signals, selectability is ignored, that's why we call this again with onlySelectable set to false
-    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(clickedLayerable))
-      emit plottableClick(ap, event);
-    else if (QCPAxis *ax = qobject_cast<QCPAxis*>(clickedLayerable))
-      emit axisClick(ax, details.value<QCPAxis::SelectablePart>(), event);
-    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(clickedLayerable))
+    // emit specialized click signals of QCustomPlot instance:
+    if (QCPAbstractPlottable *ap = qobject_cast<QCPAbstractPlottable*>(mMouseEventLayerable))
+    {
+      int dataIndex = 0;
+      if (!mMouseEventLayerableDetails.value<QCPDataSelection>().isEmpty())
+        dataIndex = mMouseEventLayerableDetails.value<QCPDataSelection>().dataRange().begin();
+      emit plottableClick(ap, dataIndex, event);
+    } else if (QCPAxis *ax = qobject_cast<QCPAxis*>(mMouseEventLayerable))
+      emit axisClick(ax, mMouseEventLayerableDetails.value<QCPAxis::SelectablePart>(), event);
+    else if (QCPAbstractItem *ai = qobject_cast<QCPAbstractItem*>(mMouseEventLayerable))
       emit itemClick(ai, event);
-    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(clickedLayerable))
+    else if (QCPLegend *lg = qobject_cast<QCPLegend*>(mMouseEventLayerable))
       emit legendClick(lg, 0, event);
-    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(clickedLayerable))
+    else if (QCPAbstractLegendItem *li = qobject_cast<QCPAbstractLegendItem*>(mMouseEventLayerable))
       emit legendClick(li->parentLegend(), li, event);
-    else if (QCPPlotTitle *pt = qobject_cast<QCPPlotTitle*>(clickedLayerable))
-      emit titleClick(event, pt);
   }
   
-  // call event of affected layout element:
-  if (mMouseEventElement)
+  if (mSelectionRect && mSelectionRect->isActive()) // Note: if a click was detected above, the selection rect is canceled there
   {
-    mMouseEventElement->mouseReleaseEvent(event);
-    mMouseEventElement = 0;
+    // finish selection rect, the appropriate action will be taken via signal-slot connection:
+    mSelectionRect->endSelection(event);
+  } else
+  {
+    // call event of affected layerable:
+    if (mMouseEventLayerable)
+    {
+      mMouseEventLayerable->mouseReleaseEvent(event, mMousePressPos);
+      mMouseEventLayerable = 0;
+    }
   }
   
-  if (doReplot || noAntialiasingOnDrag())
-    replot();
+  if (noAntialiasingOnDrag())
+    replot(rpQueuedReplot);
   
-  QWidget::mouseReleaseEvent(event);
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
-  
+
   Event handler for mouse wheel events. First, the \ref mouseWheel signal is emitted. Then
-  determines the affected layout element and forwards the event to it.
-  
+  determines the affected layerable and forwards the event to it.
 */
 void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
-  
-  // call event of affected layout element:
-  if (QCPLayoutElement *el = layoutElementAt(event->pos()))
-    el->wheelEvent(event);
-  
-  QWidget::wheelEvent(event);
+  // forward event to layerable under cursor:
+  QList<QCPLayerable*> candidates = layerableListAt(event->pos(), false);
+  for (int i=0; i<candidates.size(); ++i)
+  {
+    event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
+    candidates.at(i)->wheelEvent(event);
+    if (event->isAccepted())
+      break;
+  }
+  event->accept(); // in case QCPLayerable reimplementation manipulates event accepted state. In QWidget event system, QCustomPlot wants to accept the event.
 }
 
 /*! \internal
   
-  This is the main draw function. It draws the entire plot, including background pixmap, with the
-  specified \a painter. Note that it does not fill the background with the background brush (as the
-  user may specify with \ref setBackground(const QBrush &brush)), this is up to the respective
-  functions calling this method (e.g. \ref replot, \ref toPixmap and \ref toPainter).
+  This function draws the entire plot, including background pixmap, with the specified \a painter.
+  It does not make use of the paint buffers like \ref replot, so this is the function typically
+  used by saving/exporting methods such as \ref savePdf or \ref toPainter.
+
+  Note that it does not fill the background with the background brush (as the user may specify with
+  \ref setBackground(const QBrush &brush)), this is up to the respective functions calling this
+  method.
 */
 void QCustomPlot::draw(QCPPainter *painter)
 {
-  // run through layout phases:
-  mPlotLayout->update(QCPLayoutElement::upPreparation);
-  mPlotLayout->update(QCPLayoutElement::upMargins);
-  mPlotLayout->update(QCPLayoutElement::upLayout);
+  updateLayout();
   
   // draw viewport background pixmap:
   drawBackground(painter);
 
   // draw all layered objects (grid, axes, plottables, items, legend,...):
   foreach (QCPLayer *layer, mLayers)
-  {
-    foreach (QCPLayerable *child, layer->children())
-    {
-      if (child->realVisibility())
-      {
-        painter->save();
-        painter->setClipRect(child->clipRect().translated(0, -1));
-        child->applyDefaultAntialiasingHint(painter);
-        child->draw(painter);
-        painter->restore();
-      }
-    }
-  }
+    layer->draw(painter);
   
   /* Debug code to draw all layout element rects
   foreach (QCPLayoutElement* el, findChildren<QCPLayoutElement*>())
@@ -2234,6 +2468,22 @@ void QCustomPlot::draw(QCPPainter *painter)
 }
 
 /*! \internal
+
+  Performs the layout update steps defined by \ref QCPLayoutElement::UpdatePhase, by calling \ref
+  QCPLayoutElement::update on the main plot layout.
+
+  Here, the layout elements calculate their positions and margins, and prepare for the following
+  draw call.
+*/
+void QCustomPlot::updateLayout()
+{
+  // run through layout phases:
+  mPlotLayout->update(QCPLayoutElement::upPreparation);
+  mPlotLayout->update(QCPLayoutElement::upMargins);
+  mPlotLayout->update(QCPLayoutElement::upLayout);
+}
+
+/*! \internal
   
   Draws the viewport background pixmap of the plot.
   
@@ -2245,8 +2495,8 @@ void QCustomPlot::draw(QCPPainter *painter)
   dependent on the \ref setBackgroundScaledMode), or when a differend axis background pixmap was
   set.
   
-  Note that this function does not draw a fill with the background brush (\ref setBackground(const
-  QBrush &brush)) beneath the pixmap.
+  Note that this function does not draw a fill with the background brush
+  (\ref setBackground(const QBrush &brush)) beneath the pixmap.
   
   \see setBackground, setBackgroundScaled, setBackgroundScaledMode
 */
@@ -2272,6 +2522,187 @@ void QCustomPlot::drawBackground(QCPPainter *painter)
   }
 }
 
+/*! \internal
+
+  Goes through the layers and makes sure this QCustomPlot instance holds the correct number of
+  paint buffers and that they have the correct configuration (size, pixel ratio, etc.).
+  Allocations, reallocations and deletions of paint buffers are performed as necessary. It also
+  associates the paint buffers with the layers, so they draw themselves into the right buffer when
+  \ref QCPLayer::drawToPaintBuffer is called. This means it associates adjacent \ref
+  QCPLayer::lmLogical layers to a mutual paint buffer and creates dedicated paint buffers for
+  layers in \ref QCPLayer::lmBuffered mode.
+
+  This method uses \ref createPaintBuffer to create new paint buffers.
+
+  After this method, the paint buffers are empty (filled with \c Qt::transparent) and invalidated
+  (so an attempt to replot only a single buffered layer causes a full replot).
+
+  This method is called in every \ref replot call, prior to actually drawing the layers (into their
+  associated paint buffer). If the paint buffers don't need changing/reallocating, this method
+  basically leaves them alone and thus finishes very fast.
+*/
+void QCustomPlot::setupPaintBuffers()
+{
+  int bufferIndex = 0;
+  if (mPaintBuffers.isEmpty())
+    mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
+  
+  for (int layerIndex = 0; layerIndex < mLayers.size(); ++layerIndex)
+  {
+    QCPLayer *layer = mLayers.at(layerIndex);
+    if (layer->mode() == QCPLayer::lmLogical)
+    {
+      layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
+    } else if (layer->mode() == QCPLayer::lmBuffered)
+    {
+      ++bufferIndex;
+      if (bufferIndex >= mPaintBuffers.size())
+        mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
+      layer->mPaintBuffer = mPaintBuffers.at(bufferIndex).toWeakRef();
+      if (layerIndex < mLayers.size()-1 && mLayers.at(layerIndex+1)->mode() == QCPLayer::lmLogical) // not last layer, and next one is logical, so prepare another buffer for next layerables
+      {
+        ++bufferIndex;
+        if (bufferIndex >= mPaintBuffers.size())
+          mPaintBuffers.append(QSharedPointer<QCPAbstractPaintBuffer>(createPaintBuffer()));
+      }
+    }
+  }
+  // remove unneeded buffers:
+  while (mPaintBuffers.size()-1 > bufferIndex)
+    mPaintBuffers.removeLast();
+  // resize buffers to viewport size and clear contents:
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+  {
+    mPaintBuffers.at(i)->setSize(viewport().size()); // won't do anything if already correct size
+    mPaintBuffers.at(i)->clear(Qt::transparent);
+    mPaintBuffers.at(i)->setInvalidated();
+  }
+}
+
+/*! \internal
+
+  This method is used by \ref setupPaintBuffers when it needs to create new paint buffers.
+
+  Depending on the current setting of \ref setOpenGl, and the current Qt version, different
+  backends (subclasses of \ref QCPAbstractPaintBuffer) are created, initialized with the proper
+  size and device pixel ratio, and returned.
+*/
+QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
+{
+  if (mOpenGl)
+  {
+#if defined(QCP_OPENGL_FBO)
+    return new QCPPaintBufferGlFbo(viewport().size(), mBufferDevicePixelRatio, mGlContext, mGlPaintDevice);
+#elif defined(QCP_OPENGL_PBUFFER)
+    return new QCPPaintBufferGlPbuffer(viewport().size(), mBufferDevicePixelRatio, mOpenGlMultisamples);
+#else
+    qDebug() << Q_FUNC_INFO << "OpenGL enabled even though no support for it compiled in, this shouldn't have happened. Falling back to pixmap paint buffer.";
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+#endif
+  } else
+    return new QCPPaintBufferPixmap(viewport().size(), mBufferDevicePixelRatio);
+}
+
+/*!
+  This method returns whether any of the paint buffers held by this QCustomPlot instance are
+  invalidated.
+
+  If any buffer is invalidated, a partial replot (\ref QCPLayer::replot) is not allowed and always
+  causes a full replot (\ref QCustomPlot::replot) of all layers. This is the case when for example
+  the layer order has changed, new layers were added, layers were removed, or layer modes were
+  changed (\ref QCPLayer::setMode).
+
+  \see QCPAbstractPaintBuffer::setInvalidated
+*/
+bool QCustomPlot::hasInvalidatedPaintBuffers()
+{
+  for (int i=0; i<mPaintBuffers.size(); ++i)
+  {
+    if (mPaintBuffers.at(i)->invalidated())
+      return true;
+  }
+  return false;
+}
+
+/*! \internal
+
+  When \ref setOpenGl is set to true, this method is used to initialize OpenGL (create a context,
+  surface, paint device).
+
+  Returns true on success.
+
+  If this method is successful, all paint buffers should be deleted and then reallocated by calling
+  \ref setupPaintBuffers, so the OpenGL-based paint buffer subclasses (\ref
+  QCPPaintBufferGlPbuffer, \ref QCPPaintBufferGlFbo) are used for subsequent replots.
+
+  \see freeOpenGl
+*/
+bool QCustomPlot::setupOpenGl()
+{
+#ifdef QCP_OPENGL_FBO
+  freeOpenGl();
+  QSurfaceFormat proposedSurfaceFormat;
+  proposedSurfaceFormat.setSamples(mOpenGlMultisamples);
+#ifdef QCP_OPENGL_OFFSCREENSURFACE
+  QOffscreenSurface *surface = new QOffscreenSurface;
+#else
+  QWindow *surface = new QWindow;
+  surface->setSurfaceType(QSurface::OpenGLSurface);
+#endif
+  surface->setFormat(proposedSurfaceFormat);
+  surface->create();
+  mGlSurface = QSharedPointer<QSurface>(surface);
+  mGlContext = QSharedPointer<QOpenGLContext>(new QOpenGLContext);
+  mGlContext->setFormat(mGlSurface->format());
+  if (!mGlContext->create())
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to create OpenGL context";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  if (!mGlContext->makeCurrent(mGlSurface.data())) // context needs to be current to create paint device
+  {
+    qDebug() << Q_FUNC_INFO << "Failed to make opengl context current";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  if (!QOpenGLFramebufferObject::hasOpenGLFramebufferObjects())
+  {
+    qDebug() << Q_FUNC_INFO << "OpenGL of this system doesn't support frame buffer objects";
+    mGlContext.clear();
+    mGlSurface.clear();
+    return false;
+  }
+  mGlPaintDevice = QSharedPointer<QOpenGLPaintDevice>(new QOpenGLPaintDevice);
+  return true;
+#elif defined(QCP_OPENGL_PBUFFER)
+  return QGLFormat::hasOpenGL();
+#else
+  return false;
+#endif
+}
+
+/*! \internal
+
+  When \ref setOpenGl is set to false, this method is used to deinitialize OpenGL (releases the
+  context and frees resources).
+
+  After OpenGL is disabled, all paint buffers should be deleted and then reallocated by calling
+  \ref setupPaintBuffers, so the standard software rendering paint buffer subclass (\ref
+  QCPPaintBufferPixmap) is used for subsequent replots.
+
+  \see setupOpenGl
+*/
+void QCustomPlot::freeOpenGl()
+{
+#ifdef QCP_OPENGL_FBO
+  mGlPaintDevice.clear();
+  mGlContext.clear();
+  mGlSurface.clear();
+#endif
+}
 
 /*! \internal
   
@@ -2305,6 +2736,261 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 
 /*! \internal
   
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmSelect.
+
+  First, it determines which axis rect was the origin of the selection rect judging by the starting
+  point of the selection. Then it goes through the plottables (\ref QCPAbstractPlottable1D to be
+  precise) associated with that axis rect and finds the data points that are in \a rect. It does
+  this by querying their \ref QCPAbstractPlottable1D::selectTestRect method.
+  
+  Then, the actual selection is done by calling the plottables' \ref
+  QCPAbstractPlottable::selectEvent, placing the found selected data points in the \a details
+  parameter as <tt>QVariant(\ref QCPDataSelection)</tt>. All plottables that weren't touched by \a
+  rect receive a \ref QCPAbstractPlottable::deselectEvent.
+  
+  \see processRectZoom
+*/
+void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
+{
+  bool selectionStateChanged = false;
+  
+  if (mInteractions.testFlag(QCP::iSelectPlottables))
+  {
+    QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
+    QRectF rectF(rect.normalized());
+    if (QCPAxisRect *affectedAxisRect = axisRectAt(rectF.topLeft()))
+    {
+      // determine plottables that were hit by the rect and thus are candidates for selection:
+      foreach (QCPAbstractPlottable *plottable, affectedAxisRect->plottables())
+      {
+        if (QCPPlottableInterface1D *plottableInterface = plottable->interface1D())
+        {
+          QCPDataSelection dataSel = plottableInterface->selectTestRect(rectF, true);
+          if (!dataSel.isEmpty())
+            potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
+        }
+      }
+      
+      if (!mInteractions.testFlag(QCP::iMultiSelect))
+      {
+        // only leave plottable with most selected points in map, since we will only select a single plottable:
+        if (!potentialSelections.isEmpty())
+        {
+          QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::iterator it = potentialSelections.begin();
+          while (it != potentialSelections.end()-1) // erase all except last element
+            it = potentialSelections.erase(it);
+        }
+      }
+      
+      bool additive = event->modifiers().testFlag(mMultiSelectModifier);
+      // deselect all other layerables if not additive selection:
+      if (!additive)
+      {
+        // emit deselection except to those plottables who will be selected afterwards:
+        foreach (QCPLayer *layer, mLayers)
+        {
+          foreach (QCPLayerable *layerable, layer->children())
+          {
+            if ((potentialSelections.isEmpty() || potentialSelections.constBegin()->first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
+            {
+              bool selChanged = false;
+              layerable->deselectEvent(&selChanged);
+              selectionStateChanged |= selChanged;
+            }
+          }
+        }
+      }
+      
+      // go through selections in reverse (largest selection first) and emit select events:
+      QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::const_iterator it = potentialSelections.constEnd();
+      while (it != potentialSelections.constBegin())
+      {
+        --it;
+        if (mInteractions.testFlag(it.value().first->selectionCategory()))
+        {
+          bool selChanged = false;
+          it.value().first->selectEvent(event, additive, QVariant::fromValue(it.value().second), &selChanged);
+          selectionStateChanged |= selChanged;
+        }
+      }
+    }
+  }
+  
+  if (selectionStateChanged)
+  {
+    emit selectionChangedByUser();
+    replot(rpQueuedReplot);
+  } else if (mSelectionRect)
+    mSelectionRect->layer()->replot();
+}
+
+/*! \internal
+  
+  This slot is connected to the selection rect's \ref QCPSelectionRect::accepted signal when \ref
+  setSelectionRectMode is set to \ref QCP::srmZoom.
+
+  It determines which axis rect was the origin of the selection rect judging by the starting point
+  of the selection, and then zooms the axes defined via \ref QCPAxisRect::setRangeZoomAxes to the
+  provided \a rect (see \ref QCPAxisRect::zoom).
+  
+  \see processRectSelection
+*/
+void QCustomPlot::processRectZoom(QRect rect, QMouseEvent *event)
+{
+  Q_UNUSED(event)
+  if (QCPAxisRect *axisRect = axisRectAt(rect.topLeft()))
+  {
+    QList<QCPAxis*> affectedAxes = QList<QCPAxis*>() << axisRect->rangeZoomAxes(Qt::Horizontal) << axisRect->rangeZoomAxes(Qt::Vertical);
+    affectedAxes.removeAll(static_cast<QCPAxis*>(0));
+    axisRect->zoom(QRectF(rect), affectedAxes);
+  }
+  replot(rpQueuedReplot); // always replot to make selection rect disappear
+}
+
+/*! \internal
+
+  This method is called when a simple left mouse click was detected on the QCustomPlot surface.
+
+  It first determines the layerable that was hit by the click, and then calls its \ref
+  QCPLayerable::selectEvent. All other layerables receive a QCPLayerable::deselectEvent (unless the
+  multi-select modifier was pressed, see \ref setMultiSelectModifier).
+
+  In this method the hit layerable is determined a second time using \ref layerableAt (after the
+  one in \ref mousePressEvent), because we want \a onlySelectable set to true this time. This
+  implies that the mouse event grabber (mMouseEventLayerable) may be a different one from the
+  clicked layerable determined here. For example, if a non-selectable layerable is in front of a
+  selectable layerable at the click position, the front layerable will receive mouse events but the
+  selectable one in the back will receive the \ref QCPLayerable::selectEvent.
+
+  \see processRectSelection, QCPLayerable::selectTest
+*/
+void QCustomPlot::processPointSelection(QMouseEvent *event)
+{
+  QVariant details;
+  QCPLayerable *clickedLayerable = layerableAt(event->pos(), true, &details);
+  bool selectionStateChanged = false;
+  bool additive = mInteractions.testFlag(QCP::iMultiSelect) && event->modifiers().testFlag(mMultiSelectModifier);
+  // deselect all other layerables if not additive selection:
+  if (!additive)
+  {
+    foreach (QCPLayer *layer, mLayers)
+    {
+      foreach (QCPLayerable *layerable, layer->children())
+      {
+        if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
+        {
+          bool selChanged = false;
+          layerable->deselectEvent(&selChanged);
+          selectionStateChanged |= selChanged;
+        }
+      }
+    }
+  }
+  if (clickedLayerable && mInteractions.testFlag(clickedLayerable->selectionCategory()))
+  {
+    // a layerable was actually clicked, call its selectEvent:
+    bool selChanged = false;
+    clickedLayerable->selectEvent(event, additive, details, &selChanged);
+    selectionStateChanged |= selChanged;
+  }
+  if (selectionStateChanged)
+  {
+    emit selectionChangedByUser();
+    replot(rpQueuedReplot);
+  }
+}
+
+/*! \internal
+  
+  Registers the specified plottable with this QCustomPlot and, if \ref setAutoAddPlottableToLegend
+  is enabled, adds it to the legend (QCustomPlot::legend). QCustomPlot takes ownership of the
+  plottable.
+  
+  Returns true on success, i.e. when \a plottable isn't already in this plot and the parent plot of
+  \a plottable is this QCustomPlot.
+  
+  This method is called automatically in the QCPAbstractPlottable base class constructor.
+*/
+bool QCustomPlot::registerPlottable(QCPAbstractPlottable *plottable)
+{
+  if (mPlottables.contains(plottable))
+  {
+    qDebug() << Q_FUNC_INFO << "plottable already added to this QCustomPlot:" << reinterpret_cast<quintptr>(plottable);
+    return false;
+  }
+  if (plottable->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "plottable not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(plottable);
+    return false;
+  }
+  
+  mPlottables.append(plottable);
+  // possibly add plottable to legend:
+  if (mAutoAddPlottableToLegend)
+    plottable->addToLegend();
+  if (!plottable->layer()) // usually the layer is already set in the constructor of the plottable (via QCPLayerable constructor)
+    plottable->setLayer(currentLayer());
+  return true;
+}
+
+/*! \internal
+  
+  In order to maintain the simplified graph interface of QCustomPlot, this method is called by the
+  QCPGraph constructor to register itself with this QCustomPlot's internal graph list. Returns true
+  on success, i.e. if \a graph is valid and wasn't already registered with this QCustomPlot.
+  
+  This graph specific registration happens in addition to the call to \ref registerPlottable by the
+  QCPAbstractPlottable base class.
+*/
+bool QCustomPlot::registerGraph(QCPGraph *graph)
+{
+  if (!graph)
+  {
+    qDebug() << Q_FUNC_INFO << "passed graph is zero";
+    return false;
+  }
+  if (mGraphs.contains(graph))
+  {
+    qDebug() << Q_FUNC_INFO << "graph already registered with this QCustomPlot";
+    return false;
+  }
+  
+  mGraphs.append(graph);
+  return true;
+}
+
+
+/*! \internal
+
+  Registers the specified item with this QCustomPlot. QCustomPlot takes ownership of the item.
+  
+  Returns true on success, i.e. when \a item wasn't already in the plot and the parent plot of \a
+  item is this QCustomPlot.
+  
+  This method is called automatically in the QCPAbstractItem base class constructor.
+*/
+bool QCustomPlot::registerItem(QCPAbstractItem *item)
+{
+  if (mItems.contains(item))
+  {
+    qDebug() << Q_FUNC_INFO << "item already added to this QCustomPlot:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+  if (item->parentPlot() != this)
+  {
+    qDebug() << Q_FUNC_INFO << "item not created with this QCustomPlot as parent:" << reinterpret_cast<quintptr>(item);
+    return false;
+  }
+  
+  mItems.append(item);
+  if (!item->layer()) // usually the layer is already set in the constructor of the item (via QCPLayerable constructor)
+    item->setLayer(currentLayer());
+  return true;
+}
+
+/*! \internal
+  
   Assigns all layers their index (QCPLayer::mIndex) in the mLayers list. This method is thus called
   after every operation that changes the layer indices, like layer removal, layer creation, layer
   moving.
@@ -2316,41 +3002,71 @@ void QCustomPlot::updateLayerIndices() const
 }
 
 /*! \internal
-  
-  Returns the layerable at pixel position \a pos. If \a onlySelectable is set to true, only those
-  layerables that are selectable will be considered. (Layerable subclasses communicate their
-  selectability via the QCPLayerable::selectTest method, by returning -1.)
+
+  Returns the top-most layerable at pixel position \a pos. If \a onlySelectable is set to true,
+  only those layerables that are selectable will be considered. (Layerable subclasses communicate
+  their selectability via the QCPLayerable::selectTest method, by returning -1.)
 
   \a selectionDetails is an output parameter that contains selection specifics of the affected
   layerable. This is useful if the respective layerable shall be given a subsequent
   QCPLayerable::selectEvent (like in \ref mouseReleaseEvent). \a selectionDetails usually contains
   information about which part of the layerable was hit, in multi-part layerables (e.g.
-  QCPAxis::SelectablePart).
+  QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
+  QCPDataSelection instance with the single data point which is closest to \a pos.
+  
+  \see layerableListAt, layoutElementAt, axisRectAt
 */
 QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails) const
 {
+  QList<QVariant> details;
+  QList<QCPLayerable*> candidates = layerableListAt(pos, onlySelectable, selectionDetails ? &details : 0);
+  if (selectionDetails && !details.isEmpty())
+    *selectionDetails = details.first();
+  if (!candidates.isEmpty())
+    return candidates.first();
+  else
+    return 0;
+}
+
+/*! \internal
+
+  Returns the layerables at pixel position \a pos. If \a onlySelectable is set to true, only those
+  layerables that are selectable will be considered. (Layerable subclasses communicate their
+  selectability via the QCPLayerable::selectTest method, by returning -1.)
+
+  The returned list is sorted by the layerable/drawing order. If you only need to know the top-most
+  layerable, rather use \ref layerableAt.
+
+  \a selectionDetails is an output parameter that contains selection specifics of the affected
+  layerable. This is useful if the respective layerable shall be given a subsequent
+  QCPLayerable::selectEvent (like in \ref mouseReleaseEvent). \a selectionDetails usually contains
+  information about which part of the layerable was hit, in multi-part layerables (e.g.
+  QCPAxis::SelectablePart). If the layerable is a plottable, \a selectionDetails contains a \ref
+  QCPDataSelection instance with the single data point which is closest to \a pos.
+  
+  \see layerableAt, layoutElementAt, axisRectAt
+*/
+QList<QCPLayerable*> QCustomPlot::layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails) const
+{
+  QList<QCPLayerable*> result;
   for (int layerIndex=mLayers.size()-1; layerIndex>=0; --layerIndex)
   {
     const QList<QCPLayerable*> layerables = mLayers.at(layerIndex)->children();
-    double minimumDistance = selectionTolerance()*1.1;
-    QCPLayerable *minimumDistanceLayerable = 0;
     for (int i=layerables.size()-1; i>=0; --i)
     {
       if (!layerables.at(i)->realVisibility())
         continue;
       QVariant details;
-      double dist = layerables.at(i)->selectTest(pos, onlySelectable, &details);
-      if (dist >= 0 && dist < minimumDistance)
+      double dist = layerables.at(i)->selectTest(pos, onlySelectable, selectionDetails ? &details : 0);
+      if (dist >= 0 && dist < selectionTolerance())
       {
-        minimumDistance = dist;
-        minimumDistanceLayerable = layerables.at(i);
-        if (selectionDetails) *selectionDetails = details;
+        result.append(layerables.at(i));
+        if (selectionDetails)
+          selectionDetails->append(details);
       }
     }
-    if (minimumDistance < selectionTolerance())
-      return minimumDistanceLayerable;
   }
-  return 0;
+  return result;
 }
 
 /*!
@@ -2358,15 +3074,32 @@ QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, 
   sized to \a width and \a height in pixels and scaled with \a scale. (width 100 and scale 2.0 lead
   to a full resolution file with width 200.) If the \a format supports compression, \a quality may
   be between 0 and 100 to control it.
-  
+
   Returns true on success. If this function fails, most likely the given \a format isn't supported
   by the system, see Qt docs about QImageWriter::supportedImageFormats().
-  
+
+  The \a resolution will be written to the image file header (if the file format supports this) and
+  has no direct consequence for the quality or the pixel size. However, if opening the image with a
+  tool which respects the metadata, it will be able to scale the image to match either a given size
+  in real units of length (inch, centimeters, etc.), or the target display DPI. You can specify in
+  which units \a resolution is given, by setting \a resolutionUnit. The \a resolution is converted
+  to the format's expected resolution unit internally.
+
   \see saveBmp, saveJpg, savePng, savePdf
 */
-bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality)
+bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality, int resolution, QCP::ResolutionUnit resolutionUnit)
 {
-  QPixmap buffer = toPixmap(width, height, scale);
+  QImage buffer = toPixmap(width, height, scale).toImage();
+  
+  int dotsPerMeter = 0;
+  switch (resolutionUnit)
+  {
+    case QCP::ruDotsPerMeter: dotsPerMeter = resolution; break;
+    case QCP::ruDotsPerCentimeter: dotsPerMeter = resolution*100; break;
+    case QCP::ruDotsPerInch: dotsPerMeter = resolution/0.0254; break;
+  }
+  buffer.setDotsPerMeterX(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools
+  buffer.setDotsPerMeterY(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools
   if (!buffer.isNull())
     return buffer.save(fileName, format, quality);
   else

@@ -19,7 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
         this->metaObject()->method(i).methodSignature().startsWith("website"))
 #endif
     {
-      qDebug() << "executing" << this->metaObject()->method(i).name() << "...";
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+      qDebug() << "executing" << this->metaObject()->method(i).signature() << "...";
+#else
+      qDebug() << "executing" << this->metaObject()->method(i).methodSignature() << "...";
+#endif
       resetPlot();
       if (!this->metaObject()->method(i).invoke(this))
         qDebug() << "Failed to invoke doc-code-snippet method" << i;
@@ -36,7 +40,6 @@ MainWindow::~MainWindow()
 void MainWindow::snippetQCPColorGradient()
 {
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   
   //! [qcpcolorgradient-setgradient]
   colorMap->setGradient(QCPColorGradient::gpHot);
@@ -51,9 +54,9 @@ void MainWindow::snippetQCPColorScale()
   colorScale->setLabel("Some Label Text");
   //! [qcpcolorscale-creation]
   
-  //! [qcpcolorscale-autotickcount]
-  colorScale->axis()->setAutoTickCount(3);
-  //! [qcpcolorscale-autotickcount]
+  //! [qcpcolorscale-tickcount]
+  colorScale->axis()->ticker()->setTickCount(3);
+  //! [qcpcolorscale-tickcount]
   
   //! [qcpcolorscale-margingroup]
   QCPMarginGroup *group = new QCPMarginGroup(customPlot);
@@ -66,7 +69,6 @@ void MainWindow::snippetQCPColorMap()
 {
   //! [qcpcolormap-creation-1]
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   //! [qcpcolormap-creation-1]
 
   //! [qcpcolormap-creation-2]
@@ -88,7 +90,6 @@ void MainWindow::snippetQCPCurve()
   
   //! [qcpcurve-creation-1]
   QCPCurve *newCurve = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(newCurve);
   //! [qcpcurve-creation-1]
   
   //! [qcpcurve-creation-2]
@@ -101,7 +102,6 @@ void MainWindow::snippetQCPItemLine()
 {
   //! [qcpitemline-creation-1]
   QCPItemLine *line = new QCPItemLine(customPlot);
-  customPlot->addItem(line);
   //! [qcpitemline-creation-1]
   
   //! [qcpitemline-creation-2]
@@ -139,12 +139,12 @@ void MainWindow::snippetQCPMarginGroup()
   //! [qcpmargingroup-creation-2]
 }
 
-void MainWindow::snippetQCPPlotTitle()
+void MainWindow::snippetQCPTextElement()
 {
-  //! [qcpplottitle-creation]
+  //! [qcptextelement-creation]
   customPlot->plotLayout()->insertRow(0); // inserts an empty row above the default axis rect
-  customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(customPlot, "Your Plot Title"));
-  //! [qcpplottitle-creation]
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Your Text"));
+  //! [qcptextelement-creation]
 }
 
 void MainWindow::snippetQCPLineEnding()
@@ -181,8 +181,6 @@ void MainWindow::snippetQCPBarsGroup()
 {
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars1);
-  customPlot->addPlottable(bars2);
   
   //! [qcpbarsgroup-creation]
   QCPBarsGroup *group = new QCPBarsGroup(customPlot);
@@ -200,33 +198,144 @@ void MainWindow::snippetQCPBars()
   //! [qcpbars-creation-1]
   
   //! [qcpbars-creation-2]
-  customPlot->addPlottable(newBars);
-  //! [qcpbars-creation-2]
-  
-  //! [qcpbars-creation-3]
   newBars->setName("Country population");
   newBars->setData(xData, yData);
-  //! [qcpbars-creation-3]
+  //! [qcpbars-creation-2]
 }
 
 void MainWindow::snippetQCPStatisticalBox()
 {
   //! [qcpstatisticalbox-creation-1]
-  QCPStatisticalBox *newBox = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(newBox);
+  QCPStatisticalBox *newStatistical = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
   //! [qcpstatisticalbox-creation-1]
   
   //! [qcpstatisticalbox-creation-2]
-  newBox->setName("Measurement Series 1");
-  newBox->setData(1000, 1, 3, 4, 5, 7);
-  newBox->setOutliers(QVector<double>() << 0.5 << 0.64 << 7.2 << 7.42);
+  newStatistical->setName("Measurement Series 1");
+  newStatistical->addData(1000, 1, 3, 4, 5, 7);
   //! [qcpstatisticalbox-creation-2]
+}
+
+void MainWindow::snippetQCPFinancial()
+{
+  QVector<double> time, price;
+  //! [qcpfinancial-creation-1]
+  QCPFinancial *newFinancial = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpfinancial-creation-1]
+  
+  //! [qcpfinancial-creation-2]
+  newFinancial->setName("Stock prices");
+  newFinancial->data()->set(QCPFinancial::timeSeriesToOhlc(time, price, 3600*24));
+  newFinancial->setChartStyle(QCPFinancial::csCandlestick);
+  //! [qcpfinancial-creation-2]
+}
+
+void MainWindow::snippetQCPGraphDataSharing()
+{
+  QCPGraph *graph1 = customPlot->addGraph();
+  QCPGraph *graph2 = customPlot->addGraph();
+  //! [qcpgraph-datasharing-1]
+  graph2->setData(graph1->data()); // graph1 and graph2 now share data container
+  //! [qcpgraph-datasharing-1]
+  
+  //! [qcpgraph-datasharing-2]
+  graph2->data()->set(*graph1->data()); // graph2 now has copy of graph1's data in its container
+  //! [qcpgraph-datasharing-2]
+}
+
+void MainWindow::snippetQCPCurveDataSharing()
+{
+  QCPCurve *curve1 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  QCPCurve *curve2 = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpcurve-datasharing-1]
+  curve2->setData(curve1->data()); // curve1 and curve2 now share data container
+  //! [qcpcurve-datasharing-1]
+  
+  //! [qcpcurve-datasharing-2]
+  curve2->data()->set(*curve1->data()); // curve2 now has copy of curve1's data in its container
+  //! [qcpcurve-datasharing-2]
+}
+
+void MainWindow::snippetQCPBarsDataSharing()
+{
+  QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpbars-datasharing-1]
+  bars2->setData(bars1->data()); // bars1 and bars2 now share data container
+  //! [qcpbars-datasharing-1]
+  
+  //! [qcpbars-datasharing-2]
+  bars2->data()->set(*bars1->data()); // bars2 now has copy of bars1's data in its container
+  //! [qcpbars-datasharing-2]
+}
+
+void MainWindow::snippetQCPStatisticalBoxDataSharing()
+{
+  QCPStatisticalBox *statBox1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  QCPStatisticalBox *statBox2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpstatisticalbox-datasharing-1]
+  statBox2->setData(statBox1->data()); // statBox1 and statBox2 now share data container
+  //! [qcpstatisticalbox-datasharing-1]
+  
+  //! [qcpstatisticalbox-datasharing-2]
+  statBox2->data()->set(*statBox1->data()); // statBox2 now has copy of statBox1's data in its container
+  //! [qcpstatisticalbox-datasharing-2]
+}
+
+void MainWindow::snippetQCPFinancialDataSharing()
+{
+  QCPFinancial *financial1 = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  QCPFinancial *financial2 = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
+  //! [qcpfinancial-datasharing-1]
+  financial2->setData(financial1->data()); // financial1 and financial2 now share data container
+  //! [qcpfinancial-datasharing-1]
+  
+  //! [qcpfinancial-datasharing-2]
+  financial2->data()->set(*financial1->data()); // financial2 now has copy of financial1's data in its container
+  //! [qcpfinancial-datasharing-2]
+}
+
+void MainWindow::snippetQCPErrorBarsDataSharing()
+{
+  QCPErrorBars *errorBars1 = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  QCPErrorBars *errorBars2 = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  //! [qcperrorbars-datasharing-1]
+  errorBars2->setData(errorBars1->data()); // errorBars1 and errorBars2 now share data container
+  //! [qcperrorbars-datasharing-1]
+  
+  //! [qcperrorbars-datasharing-2]
+  *errorBars2->data() = *errorBars1->data(); // errorBars2 now has copy of errorBars1's data in its container
+  //! [qcperrorbars-datasharing-2]
+}
+
+void MainWindow::snippetQCPDataSelectionIterating()
+{
+  QCPGraph *graph = customPlot->addGraph();
+  for (int i=0; i<100; ++i)
+    graph->addData(i, i);
+  graph->setSelection(QCPDataRange(10, 15) + QCPDataRange(20, 40) + QCPDataRange(60, 80));
+  
+  //! [qcpdataselection-iterating-1]
+  QCPDataSelection selection = graph->selection();
+  double sum = 0;
+  foreach (QCPDataRange dataRange, selection.dataRanges())
+  {
+    QCPGraphDataContainer::const_iterator begin = graph->data()->at(dataRange.begin()); // get range begin iterator from index
+    QCPGraphDataContainer::const_iterator end = graph->data()->at(dataRange.end()); // get range end iterator from index
+    for (QCPGraphDataContainer::const_iterator it=begin; it!=end; ++it)
+    {
+      // iterator "it" will go through all selected data points, as an example, we calculate the value average
+      sum += it->value;
+    }
+  }
+  double average = sum/selection.dataPointCount();
+  //! [qcpdataselection-iterating-1]
+  
+  Q_UNUSED(average)
 }
 
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(myBars);
   // now we can modify properties of myBars:
   myBars->setName("Bars Series 1");
   QVector<double> keyData;

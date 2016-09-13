@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,14 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LAYER_H
 #define QCP_LAYER_H
 
 #include "global.h"
+#include "paintbuffer.h"
 
 class QCPPainter;
 class QCustomPlot;
@@ -43,10 +44,24 @@ class QCP_LIB_DECL QCPLayer : public QObject
   Q_PROPERTY(int index READ index)
   Q_PROPERTY(QList<QCPLayerable*> children READ children)
   Q_PROPERTY(bool visible READ visible WRITE setVisible)
+  Q_PROPERTY(LayerMode mode READ mode WRITE setMode)
   /// \endcond
 public:
+  
+  /*!
+    Defines the different rendering modes of a layer. Depending on the mode, certain layers can be
+    replotted individually, without the need to replot (possibly complex) layerables on other
+    layers.
+
+    \see setMode
+  */
+  enum LayerMode { lmLogical   ///< Layer is used only for rendering order, and shares paint buffer with all other adjacent logical layers.
+                   ,lmBuffered ///< Layer has its own paint buffer and may be replotted individually (see \ref replot).
+                 };
+  Q_ENUMS(LayerMode)
+  
   QCPLayer(QCustomPlot* parentPlot, const QString &layerName);
-  ~QCPLayer();
+  virtual ~QCPLayer();
   
   // getters:
   QCustomPlot *parentPlot() const { return mParentPlot; }
@@ -54,9 +69,14 @@ public:
   int index() const { return mIndex; }
   QList<QCPLayerable*> children() const { return mChildren; }
   bool visible() const { return mVisible; }
+  LayerMode mode() const { return mMode; }
   
   // setters:
   void setVisible(bool visible);
+  void setMode(LayerMode mode);
+  
+  // non-virtual methods:
+  void replot();
   
 protected:
   // property members:
@@ -65,8 +85,14 @@ protected:
   int mIndex;
   QList<QCPLayerable*> mChildren;
   bool mVisible;
+  LayerMode mMode;
+  
+  // non-property members:
+  QWeakPointer<QCPAbstractPaintBuffer> mPaintBuffer;
   
   // non-virtual methods:
+  void draw(QCPPainter *painter);
+  void drawToPaintBuffer();
   void addChild(QCPLayerable *layerable, bool prepend);
   void removeChild(QCPLayerable *layerable);
   
@@ -76,6 +102,7 @@ private:
   friend class QCustomPlot;
   friend class QCPLayerable;
 };
+Q_DECLARE_METATYPE(QCPLayer::LayerMode)
 
 class QCP_LIB_DECL QCPLayerable : public QObject
 {
@@ -89,7 +116,7 @@ class QCP_LIB_DECL QCPLayerable : public QObject
   /// \endcond
 public:
   QCPLayerable(QCustomPlot *plot, QString targetLayer=QString(), QCPLayerable *parentLayerable=0);
-  ~QCPLayerable();
+  virtual ~QCPLayerable();
   
   // getters:
   bool visible() const { return mVisible; }
@@ -106,7 +133,7 @@ public:
   
   // introduced virtual methods:
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  
+
   // non-property methods:
   bool realVisibility() const;
   
@@ -127,9 +154,15 @@ protected:
   virtual QRect clipRect() const;
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const = 0;
   virtual void draw(QCPPainter *painter) = 0;
-  // events:
+  // selection events:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
   virtual void deselectEvent(bool *selectionStateChanged);
+  // low-level mouse events:
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details);
+  virtual void wheelEvent(QWheelEvent *event);
   
   // non-property methods:
   void initializeParentPlot(QCustomPlot *parentPlot);
@@ -141,6 +174,7 @@ private:
   Q_DISABLE_COPY(QCPLayerable)
   
   friend class QCustomPlot;
+  friend class QCPLayer;
   friend class QCPAxisRect;
 };
 

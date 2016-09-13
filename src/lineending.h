@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,14 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LINEENDING_H
 #define QCP_LINEENDING_H
 
 #include "global.h"
+#include "vector2d.h"
 
 class QCPPainter;
 
@@ -45,18 +46,18 @@ public:
     
     \see QCPItemLine::setHead, QCPItemLine::setTail, QCPItemCurve::setHead, QCPItemCurve::setTail, QCPAxis::setLowerEnding, QCPAxis::setUpperEnding
   */
-  Q_ENUMS(EndingStyle)
   enum EndingStyle { esNone          ///< No ending decoration
                      ,esFlatArrow    ///< A filled arrow head with a straight/flat back (a triangle)
                      ,esSpikeArrow   ///< A filled arrow head with an indented back
                      ,esLineArrow    ///< A non-filled arrow head with open back
                      ,esDisc         ///< A filled circle
                      ,esSquare       ///< A filled square
-                     ,esDiamond      ///< A filled diamond (45° rotated square)
+                     ,esDiamond      ///< A filled diamond (45 degrees rotated square)
                      ,esBar          ///< A bar perpendicular to the line
                      ,esHalfBar      ///< A bar perpendicular to the line, pointing out to only one side (to which side can be changed with \ref setInverted)
                      ,esSkewedBar    ///< A bar that is skewed (skew controllable via \ref setLength)
                    };
+  Q_ENUMS(EndingStyle)
   
   QCPLineEnding();
   QCPLineEnding(EndingStyle style, double width=8, double length=10, bool inverted=false);
@@ -76,8 +77,8 @@ public:
   // non-property methods:
   double boundingDistance() const;
   double realLength() const;
-  void draw(QCPPainter *painter, const QVector2D &pos, const QVector2D &dir) const;
-  void draw(QCPPainter *painter, const QVector2D &pos, double angle) const;
+  void draw(QCPPainter *painter, const QCPVector2D &pos, const QCPVector2D &dir) const;
+  void draw(QCPPainter *painter, const QCPVector2D &pos, double angle) const;
   
 protected:
   // property members:
@@ -86,5 +87,6 @@ protected:
   bool mInverted;
 };
 Q_DECLARE_TYPEINFO(QCPLineEnding, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(QCPLineEnding::EndingStyle)
 
 #endif // QCP_LINEENDING_H

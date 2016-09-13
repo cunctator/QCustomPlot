@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,16 +19,17 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_ITEM_H
 #define QCP_ITEM_H
 
 #include "global.h"
+#include "vector2d.h"
 #include "layer.h"
-#include "axis.h"
+#include "axis/axis.h"
 
 class QCPPainter;
 class QCustomPlot;
@@ -38,13 +39,14 @@ class QCPAxisRect;
 
 class QCP_LIB_DECL QCPItemAnchor
 {
+  Q_GADGET
 public:
-  QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name, int anchorId=-1);
+  QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name, int anchorId=-1);
   virtual ~QCPItemAnchor();
   
   // getters:
   QString name() const { return mName; }
-  virtual QPointF pixelPoint() const;
+  virtual QPointF pixelPosition() const;
   
 protected:
   // property members:
@@ -75,6 +77,7 @@ private:
 
 class QCP_LIB_DECL QCPItemPosition : public QCPItemAnchor
 {
+  Q_GADGET
 public:
   /*!
     Defines the ways an item position can be specified. Thus it defines what the numbers passed to
@@ -91,8 +94,9 @@ public:
                                         ///< vertically at the top of the axis rect, etc. You can also go beyond the axis rect by providing negative coordinates or coordinates larger than 1.
                       ,ptPlotCoords     ///< Dynamic positioning at a plot coordinate defined by two axes (see \ref setAxes).
                     };
+  Q_ENUMS(PositionType)
   
-  QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name);
+  QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name);
   virtual ~QCPItemPosition();
   
   // getters:
@@ -108,7 +112,7 @@ public:
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
   QCPAxisRect *axisRect() const;
-  virtual QPointF pixelPoint() const;
+  virtual QPointF pixelPosition() const;
   
   // setters:
   void setType(PositionType type);
@@ -121,7 +125,7 @@ public:
   void setCoords(const QPointF &coords);
   void setAxes(QCPAxis* keyAxis, QCPAxis* valueAxis);
   void setAxisRect(QCPAxisRect *axisRect);
-  void setPixelPoint(const QPointF &pixelPoint);
+  void setPixelPosition(const QPointF &pixelPosition);
   
 protected:
   // property members:
@@ -132,12 +136,13 @@ protected:
   QCPItemAnchor *mParentAnchorX, *mParentAnchorY;
   
   // reimplemented virtual methods:
-  virtual QCPItemPosition *toQCPItemPosition() { return this; }
+  virtual QCPItemPosition *toQCPItemPosition() Q_DECL_OVERRIDE { return this; }
   
 private:
   Q_DISABLE_COPY(QCPItemPosition)
   
 };
+Q_DECLARE_METATYPE(QCPItemPosition::PositionType)
 
 
 class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable
@@ -150,7 +155,7 @@ class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable
   Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
   /// \endcond
 public:
-  QCPAbstractItem(QCustomPlot *parentPlot);
+  explicit QCPAbstractItem(QCustomPlot *parentPlot);
   virtual ~QCPAbstractItem();
   
   // getters:
@@ -166,7 +171,7 @@ public:
   Q_SLOT void setSelected(bool selected);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE = 0;
   
   // non-virtual methods:
   QList<QCPItemPosition*> positions() const { return mPositions; }
@@ -188,20 +193,19 @@ protected:
   bool mSelectable, mSelected;
   
   // reimplemented virtual methods:
-  virtual QCP::Interaction selectionCategory() const;
-  virtual QRect clipRect() const;
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter) = 0;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
+  virtual QRect clipRect() const Q_DECL_OVERRIDE;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE = 0;
   // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
-  virtual QPointF anchorPixelPoint(int anchorId) const;
+  virtual QPointF anchorPixelPosition(int anchorId) const;
   
   // non-virtual methods:
-  double distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const;
-  double rectSelectTest(const QRectF &rect, const QPointF &pos, bool filledRect) const;
+  double rectDistance(const QRectF &rect, const QPointF &pos, bool filledRect) const;
   QCPItemPosition *createPosition(const QString &name);
   QCPItemAnchor *createAnchor(const QString &name, int anchorId);
   

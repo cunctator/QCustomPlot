@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-pixmap.h"
@@ -49,7 +49,8 @@
 /*!
   Creates a rectangle item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -60,14 +61,17 @@ QCPItemPixmap::QCPItemPixmap(QCustomPlot *parentPlot) :
   right(createAnchor(QLatin1String("right"), aiRight)),
   bottom(createAnchor(QLatin1String("bottom"), aiBottom)),
   bottomLeft(createAnchor(QLatin1String("bottomLeft"), aiBottomLeft)),
-  left(createAnchor(QLatin1String("left"), aiLeft))
+  left(createAnchor(QLatin1String("left"), aiLeft)),
+  mScaled(false),
+  mScaledPixmapInvalidated(true),
+  mAspectRatioMode(Qt::KeepAspectRatio),
+  mTransformationMode(Qt::SmoothTransformation)
 {
   topLeft->setCoords(0, 1);
   bottomRight->setCoords(1, 0);
   
   setPen(Qt::NoPen);
   setSelectedPen(QPen(Qt::blue));
-  setScaled(false, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 QCPItemPixmap::~QCPItemPixmap()
@@ -80,6 +84,7 @@ QCPItemPixmap::~QCPItemPixmap()
 void QCPItemPixmap::setPixmap(const QPixmap &pixmap)
 {
   mPixmap = pixmap;
+  mScaledPixmapInvalidated = true;
   if (mPixmap.isNull())
     qDebug() << Q_FUNC_INFO << "pixmap is null";
 }
@@ -93,7 +98,7 @@ void QCPItemPixmap::setScaled(bool scaled, Qt::AspectRatioMode aspectRatioMode, 
   mScaled = scaled;
   mAspectRatioMode = aspectRatioMode;
   mTransformationMode = transformationMode;
-  updateScaledPixmap();
+  mScaledPixmapInvalidated = true;
 }
 
 /*!
@@ -123,7 +128,7 @@ double QCPItemPixmap::selectTest(const QPointF &pos, bool onlySelectable, QVaria
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return rectSelectTest(getFinalRect(), pos, true);
+  return rectDistance(getFinalRect(), pos, true);
 }
 
 /* inherits documentation from base class */
@@ -149,7 +154,7 @@ void QCPItemPixmap::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemPixmap::anchorPixelPoint(int anchorId) const
+QPointF QCPItemPixmap::anchorPixelPosition(int anchorId) const
 {
   bool flipHorz;
   bool flipVert;
@@ -195,16 +200,25 @@ void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz, bool flip
   
   if (mScaled)
   {
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+    double devicePixelRatio = mPixmap.devicePixelRatio();
+#else
+    double devicePixelRatio = 1.0;
+#endif
     if (finalRect.isNull())
       finalRect = getFinalRect(&flipHorz, &flipVert);
-    if (finalRect.size() != mScaledPixmap.size())
+    if (mScaledPixmapInvalidated || finalRect.size() != mScaledPixmap.size()/devicePixelRatio)
     {
-      mScaledPixmap = mPixmap.scaled(finalRect.size(), mAspectRatioMode, mTransformationMode);
+      mScaledPixmap = mPixmap.scaled(finalRect.size()*devicePixelRatio, mAspectRatioMode, mTransformationMode);
       if (flipHorz || flipVert)
         mScaledPixmap = QPixmap::fromImage(mScaledPixmap.toImage().mirrored(flipHorz, flipVert));
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+      mScaledPixmap.setDevicePixelRatio(devicePixelRatio);
+#endif
     }
   } else if (!mScaledPixmap.isNull())
     mScaledPixmap = QPixmap();
+  mScaledPixmapInvalidated = false;
 }
 
 /*! \internal
@@ -226,8 +240,8 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
   QRect result;
   bool flipHorz = false;
   bool flipVert = false;
-  QPoint p1 = topLeft->pixelPoint().toPoint();
-  QPoint p2 = bottomRight->pixelPoint().toPoint();
+  QPoint p1 = topLeft->pixelPosition().toPoint();
+  QPoint p2 = bottomRight->pixelPosition().toPoint();
   if (p1 == p2)
     return QRect(p1, QSize(0, 0));
   if (mScaled)
@@ -247,11 +261,20 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
       topLeft.setY(p2.y());
     }
     QSize scaledSize = mPixmap.size();
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+    scaledSize /= mPixmap.devicePixelRatio();
+    scaledSize.scale(newSize*mPixmap.devicePixelRatio(), mAspectRatioMode);
+#else
     scaledSize.scale(newSize, mAspectRatioMode);
+#endif
     result = QRect(topLeft, scaledSize);
   } else
   {
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+    result = QRect(p1, mPixmap.size()/mPixmap.devicePixelRatio());
+#else
     result = QRect(p1, mPixmap.size());
+#endif
   }
   if (flippedHorz)
     *flippedHorz = flipHorz;

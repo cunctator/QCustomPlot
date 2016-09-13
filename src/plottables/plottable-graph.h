@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,54 +19,60 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_GRAPH_H
 #define QCP_PLOTTABLE_GRAPH_H
 
 #include "../global.h"
-#include "../range.h"
-#include "../plottable.h"
+#include "../axis/range.h"
+#include "../plottable1d.h"
 #include "../painter.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
 
-class QCP_LIB_DECL QCPData
+class QCP_LIB_DECL QCPGraphData
 {
 public:
-  QCPData();
-  QCPData(double key, double value);
-  double key, value;
-  double keyErrorPlus, keyErrorMinus;
-  double valueErrorPlus, valueErrorMinus;
-};
-Q_DECLARE_TYPEINFO(QCPData, Q_MOVABLE_TYPE);
-
-/*! \typedef QCPDataMap
-  Container for storing \ref QCPData items in a sorted fashion. The key of the map
-  is the key member of the QCPData instance.
+  QCPGraphData();
+  QCPGraphData(double key, double value);
   
-  This is the container in which QCPGraph holds its data.
-  \see QCPData, QCPGraph::setData
+  inline double sortKey() const { return key; }
+  inline static QCPGraphData fromSortKey(double sortKey) { return QCPGraphData(sortKey, 0); }
+  inline static bool sortKeyIsMainKey() { return true; }
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); }
+  
+  double key, value;
+};
+Q_DECLARE_TYPEINFO(QCPGraphData, Q_PRIMITIVE_TYPE);
+
+
+/*! \typedef QCPGraphDataContainer
+  
+  Container for storing \ref QCPGraphData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPGraph holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPGraphData, QCPGraph::setData
 */
-typedef QMap<double, QCPData> QCPDataMap;
-typedef QMapIterator<double, QCPData> QCPDataMapIterator;
-typedef QMutableMapIterator<double, QCPData> QCPDataMutableMapIterator;
+typedef QCPDataContainer<QCPGraphData> QCPGraphDataContainer;
 
-
-class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPGraph : public QCPAbstractPlottable1D<QCPGraphData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
   Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle)
   Q_PROPERTY(QCPScatterStyle scatterStyle READ scatterStyle WRITE setScatterStyle)
-  Q_PROPERTY(ErrorType errorType READ errorType WRITE setErrorType)
-  Q_PROPERTY(QPen errorPen READ errorPen WRITE setErrorPen)
-  Q_PROPERTY(double errorBarSize READ errorBarSize WRITE setErrorBarSize)
-  Q_PROPERTY(bool errorBarSkipSymbol READ errorBarSkipSymbol WRITE setErrorBarSkipSymbol)
+  Q_PROPERTY(int scatterSkip READ scatterSkip WRITE setScatterSkip)
   Q_PROPERTY(QCPGraph* channelFillGraph READ channelFillGraph WRITE setChannelFillGraph)
   Q_PROPERTY(bool adaptiveSampling READ adaptiveSampling WRITE setAdaptiveSampling)
   /// \endcond
@@ -85,119 +91,80 @@ public:
                    ,lsImpulse    ///< each data point is represented by a line parallel to the value axis, which reaches from the data point to the zero-value-line
                  };
   Q_ENUMS(LineStyle)
-  /*!
-    Defines what kind of error bars are drawn for each data point
-  */
-  enum ErrorType { etNone   ///< No error bars are shown
-                   ,etKey   ///< Error bars for the key dimension of the data point are shown
-                   ,etValue ///< Error bars for the value dimension of the data point are shown
-                   ,etBoth  ///< Error bars for both key and value dimensions of the data point are shown
-                 };
-  Q_ENUMS(ErrorType)
   
   explicit QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPGraph();
   
   // getters:
-  QCPDataMap *data() const { return mData; }
+  QSharedPointer<QCPGraphDataContainer> data() const { return mDataContainer; }
   LineStyle lineStyle() const { return mLineStyle; }
   QCPScatterStyle scatterStyle() const { return mScatterStyle; }
-  ErrorType errorType() const { return mErrorType; }
-  QPen errorPen() const { return mErrorPen; }
-  double errorBarSize() const { return mErrorBarSize; }
-  bool errorBarSkipSymbol() const { return mErrorBarSkipSymbol; }
+  int scatterSkip() const { return mScatterSkip; }
   QCPGraph *channelFillGraph() const { return mChannelFillGraph.data(); }
   bool adaptiveSampling() const { return mAdaptiveSampling; }
   
   // setters:
-  void setData(QCPDataMap *data, bool copy=false);
-  void setData(const QVector<double> &key, const QVector<double> &value);
-  void setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError);
-  void setDataKeyError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus);
-  void setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueError);
-  void setDataValueError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus);
-  void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyError, const QVector<double> &valueError);
-  void setDataBothError(const QVector<double> &key, const QVector<double> &value, const QVector<double> &keyErrorMinus, const QVector<double> &keyErrorPlus, const QVector<double> &valueErrorMinus, const QVector<double> &valueErrorPlus);
+  void setData(QSharedPointer<QCPGraphDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setLineStyle(LineStyle ls);
   void setScatterStyle(const QCPScatterStyle &style);
-  void setErrorType(ErrorType errorType);
-  void setErrorPen(const QPen &pen);
-  void setErrorBarSize(double size);
-  void setErrorBarSkipSymbol(bool enabled);
+  void setScatterSkip(int skip);
   void setChannelFillGraph(QCPGraph *targetGraph);
   void setAdaptiveSampling(bool enabled);
   
   // non-property methods:
-  void addData(const QCPDataMap &dataMap);
-  void addData(const QCPData &data);
+  void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void addData(double key, double value);
-  void addData(const QVector<double> &keys, const QVector<double> &values);
-  void removeDataBefore(double key);
-  void removeDataAfter(double key);
-  void removeData(double fromKey, double toKey);
-  void removeData(double key);
   
   // reimplemented virtual methods:
-  virtual void clearData();
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  using QCPAbstractPlottable::rescaleAxes;
-  using QCPAbstractPlottable::rescaleKeyAxis;
-  using QCPAbstractPlottable::rescaleValueAxis;
-  void rescaleAxes(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  void rescaleKeyAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
-  void rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
-  QCPDataMap *mData;
-  QPen mErrorPen;
   LineStyle mLineStyle;
   QCPScatterStyle mScatterStyle;
-  ErrorType mErrorType;
-  double mErrorBarSize;
-  bool mErrorBarSkipSymbol;
+  int mScatterSkip;
   QPointer<QCPGraph> mChannelFillGraph;
   bool mAdaptiveSampling;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const; // overloads base class interface
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain, bool includeErrors) const; // overloads base class interface
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
-  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawScatterPlot(QCPPainter *painter, QVector<QCPData> *scatterData) const;
-  virtual void drawLinePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
-  virtual void drawImpulsePlot(QCPPainter *painter, QVector<QPointF> *lineData) const;
+  virtual void drawFill(QCPPainter *painter, QVector<QPointF> *lines) const;
+  virtual void drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scatters, const QCPScatterStyle &style) const;
+  virtual void drawLinePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  virtual void drawImpulsePlot(QCPPainter *painter, const QVector<QPointF> &lines) const;
+  
+  virtual void getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGraphDataContainer::const_iterator &begin, const QCPGraphDataContainer::const_iterator &end) const;
+  virtual void getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGraphDataContainer::const_iterator begin, QCPGraphDataContainer::const_iterator end) const;
   
   // non-virtual methods:
-  void getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *scatterData) const;
-  void getPlotData(QVector<QPointF> *lineData, QVector<QCPData> *scatterData) const;
-  void getScatterPlotData(QVector<QCPData> *scatterData) const;
-  void getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepLeftPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void getImpulsePlotData(QVector<QPointF> *linePixelData, QVector<QCPData> *scatterData) const;
-  void drawError(QCPPainter *painter, double x, double y, const QCPData &data) const;
-  void getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const;
-  int countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const;
-  void addFillBasePoints(QVector<QPointF> *lineData) const;
-  void removeFillBasePoints(QVector<QPointF> *lineData) const;
+  void getVisibleDataBounds(QCPGraphDataContainer::const_iterator &begin, QCPGraphDataContainer::const_iterator &end, const QCPDataRange &rangeRestriction) const;
+  void getLines(QVector<QPointF> *lines, const QCPDataRange &dataRange) const;
+  void getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange) const;
+  QVector<QPointF> dataToLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepLeftLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepRightLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToStepCenterLines(const QVector<QCPGraphData> &data) const;
+  QVector<QPointF> dataToImpulseLines(const QVector<QCPGraphData> &data) const;
+  void addFillBasePoints(QVector<QPointF> *lines) const;
+  void removeFillBasePoints(QVector<QPointF> *lines) const;
   QPointF lowerFillBasePoint(double lowerKey) const;
   QPointF upperFillBasePoint(double upperKey) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lines) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;
   int findIndexAboveY(const QVector<QPointF> *data, double y) const;
-  double pointDistance(const QPointF &pixelPoint) const;
+  double pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer::const_iterator &closestData) const;
   
   friend class QCustomPlot;
   friend class QCPLegend;
 };
+Q_DECLARE_METATYPE(QCPGraph::LineStyle)
 
 #endif // QCP_PLOTTABLE_GRAPH_H

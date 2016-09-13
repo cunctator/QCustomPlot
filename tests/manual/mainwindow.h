@@ -5,6 +5,10 @@
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QDir>
+#include <QMetaEnum>
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
+#  include <QElapsedTimer>
+#endif
 
 #include "../../src/qcp.h"
 
@@ -42,6 +46,11 @@ public:
   void setupColorMapTest(QCustomPlot *customPlot);
   void setupBarsTest(QCustomPlot *customPlot);
   void setupBarsGroupTest(QCustomPlot *customPlot);
+  void setupLargeDataSetDelete(QCustomPlot *customPlot);
+  void setupMultiValueGraph(QCustomPlot *customPlot);
+  void setupErrorBarTest(QCustomPlot *customPlot);
+  void setupDataSelectTest(QCustomPlot *customPlot);
+  void setupScatterSkipTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   
@@ -56,6 +65,7 @@ public:
   void setupIntegerTickStepCase(QCustomPlot *customPlot);
   
 public slots:
+  void selectionRectChooser(QMouseEvent *event);
   void tracerTestMouseMove(QMouseEvent *event);
   void selectTestColorMapRefresh();
   void mouseMoveRotateTickLabels(QMouseEvent *event);
@@ -65,8 +75,6 @@ public slots:
   void daqPerformanceReplotSlot();
   void colorMapMouseMove(QMouseEvent *event);
   
-  void integerTickStepCase_xRangeChanged(QCPRange newRange);
-  void integerTickStepCase_yRangeChanged(QCPRange newRange);
   void testbedMouseClick(QMouseEvent *event);
   void mouseWheel(QWheelEvent *event);
   

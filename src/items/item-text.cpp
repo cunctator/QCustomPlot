@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-text.h"
@@ -49,7 +49,8 @@
 /*!
   Creates a text item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemText::QCPItemText(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -61,14 +62,13 @@ QCPItemText::QCPItemText(QCustomPlot *parentPlot) :
   bottomRight(createAnchor(QLatin1String("bottomRight"), aiBottomRight)),
   bottom(createAnchor(QLatin1String("bottom"), aiBottom)),
   bottomLeft(createAnchor(QLatin1String("bottomLeft"), aiBottomLeft)),
-  left(createAnchor(QLatin1String("left"), aiLeft))
+  left(createAnchor(QLatin1String("left"), aiLeft)),
+  mText(QLatin1String("text")),
+  mPositionAlignment(Qt::AlignCenter),
+  mTextAlignment(Qt::AlignTop|Qt::AlignHCenter),
+  mRotation(0)
 {
   position->setCoords(0, 0);
-  
-  setRotation(0);
-  setTextAlignment(Qt::AlignTop|Qt::AlignHCenter);
-  setPositionAlignment(Qt::AlignCenter);
-  setText(QLatin1String("text"));
   
   setPen(Qt::NoPen);
   setSelectedPen(Qt::NoPen);
@@ -224,8 +224,8 @@ double QCPItemText::selectTest(const QPointF &pos, bool onlySelectable, QVariant
     return -1;
   
   // The rect may be rotated, so we transform the actual clicked pos to the rotated
-  // coordinate system, so we can use the normal rectSelectTest function for non-rotated rects:
-  QPointF positionPixels(position->pixelPoint());
+  // coordinate system, so we can use the normal rectDistance function for non-rotated rects:
+  QPointF positionPixels(position->pixelPosition());
   QTransform inputTransform;
   inputTransform.translate(positionPixels.x(), positionPixels.y());
   inputTransform.rotate(-mRotation);
@@ -237,13 +237,13 @@ double QCPItemText::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   QPointF textPos = getTextDrawPoint(positionPixels, textBoxRect, mPositionAlignment);
   textBoxRect.moveTopLeft(textPos.toPoint());
 
-  return rectSelectTest(textBoxRect, rotatedPos, true);
+  return rectDistance(textBoxRect, rotatedPos, true);
 }
 
 /* inherits documentation from base class */
 void QCPItemText::draw(QCPPainter *painter)
 {
-  QPointF pos(position->pixelPoint());
+  QPointF pos(position->pixelPosition());
   QTransform transform = painter->transform();
   transform.translate(pos.x(), pos.y());
   if (!qFuzzyIsNull(mRotation))
@@ -273,10 +273,10 @@ void QCPItemText::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemText::anchorPixelPoint(int anchorId) const
+QPointF QCPItemText::anchorPixelPosition(int anchorId) const
 {
   // get actual rect points (pretty much copied from draw function):
-  QPointF pos(position->pixelPoint());
+  QPointF pos(position->pixelPosition());
   QTransform transform;
   transform.translate(pos.x(), pos.y());
   if (!qFuzzyIsNull(mRotation))

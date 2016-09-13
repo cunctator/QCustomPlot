@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LAYOUTELEMENT_LEGEND_H
@@ -68,7 +68,7 @@ public:
   Q_SLOT void setSelected(bool selected);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
 signals:
   void selectionChanged(bool selected);
@@ -84,13 +84,13 @@ protected:
   bool mSelectable, mSelected;
   
   // reimplemented virtual methods:
-  virtual QCP::Interaction selectionCategory() const;
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual QRect clipRect() const;
-  virtual void draw(QCPPainter *painter) = 0;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual QRect clipRect() const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE = 0;
   // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   
 private:
   Q_DISABLE_COPY(QCPAbstractLegendItem)
@@ -113,8 +113,8 @@ protected:
   QCPAbstractPlottable *mPlottable;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual QSize minimumSizeHint() const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QPen getIconBorderPen() const;
@@ -148,11 +148,12 @@ public:
     
     \see setSelectedParts, setSelectableParts
   */
-  enum SelectablePart { spNone       = 0x000  ///< <tt>0x000</tt> None
+  enum SelectablePart { spNone        = 0x000 ///< <tt>0x000</tt> None
                         ,spLegendBox  = 0x001 ///< <tt>0x001</tt> The legend box (frame)
                         ,spItems      = 0x002 ///< <tt>0x002</tt> Legend items individually (see \ref selectedItems)
                       };
-  Q_FLAGS(SelectablePart SelectableParts)
+  Q_ENUMS(SelectablePart)
+  Q_FLAGS(SelectableParts)
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   explicit QCPLegend();
@@ -192,7 +193,7 @@ public:
   void setSelectedTextColor(const QColor &color);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QCPAbstractLegendItem *item(int index) const;
@@ -225,13 +226,13 @@ protected:
   QColor mSelectedTextColor;
   
   // reimplemented virtual methods:
-  virtual void parentPlotInitialized(QCustomPlot *parentPlot);
-  virtual QCP::Interaction selectionCategory() const;
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
+  virtual void parentPlotInitialized(QCustomPlot *parentPlot) Q_DECL_OVERRIDE;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QPen getBorderPen() const;

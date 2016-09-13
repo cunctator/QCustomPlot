@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LAYOUTELEMENT_AXISRECT_H
 #define QCP_LAYOUTELEMENT_AXISRECT_H
 
 #include "../global.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 #include "../layout.h"
 
 class QCPPainter;
@@ -53,12 +53,15 @@ public:
   
   // getters:
   QPixmap background() const { return mBackgroundPixmap; }
+  QBrush backgroundBrush() const { return mBackgroundBrush; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
   Qt::Orientations rangeDrag() const { return mRangeDrag; }
   Qt::Orientations rangeZoom() const { return mRangeZoom; }
   QCPAxis *rangeDragAxis(Qt::Orientation orientation);
   QCPAxis *rangeZoomAxis(Qt::Orientation orientation);
+  QList<QCPAxis*> rangeDragAxes(Qt::Orientation orientation);
+  QList<QCPAxis*> rangeZoomAxes(Qt::Orientation orientation);
   double rangeZoomFactor(Qt::Orientation orientation);
   
   // setters:
@@ -70,7 +73,11 @@ public:
   void setRangeDrag(Qt::Orientations orientations);
   void setRangeZoom(Qt::Orientations orientations);
   void setRangeDragAxes(QCPAxis *horizontal, QCPAxis *vertical);
+  void setRangeDragAxes(QList<QCPAxis*> axes);
+  void setRangeDragAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> vertical);
   void setRangeZoomAxes(QCPAxis *horizontal, QCPAxis *vertical);
+  void setRangeZoomAxes(QList<QCPAxis*> axes);
+  void setRangeZoomAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> vertical);
   void setRangeZoomFactor(double horizontalFactor, double verticalFactor);
   void setRangeZoomFactor(double factor);
   
@@ -84,6 +91,8 @@ public:
   bool removeAxis(QCPAxis *axis);
   QCPLayoutInset *insetLayout() const { return mInsetLayout; }
   
+  void zoom(const QRectF &pixelRect);
+  void zoom(const QRectF &pixelRect, const QList<QCPAxis*> &affectedAxes);
   void setupFullAxesBox(bool connectRanges=false);
   QList<QCPAbstractPlottable*> plottables() const;
   QList<QCPGraph*> graphs() const;
@@ -104,8 +113,8 @@ public:
   QPoint center() const { return mRect.center(); }
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
 
 protected:
   // property members:
@@ -116,24 +125,27 @@ protected:
   Qt::AspectRatioMode mBackgroundScaledMode;
   QCPLayoutInset *mInsetLayout;
   Qt::Orientations mRangeDrag, mRangeZoom;
-  QPointer<QCPAxis> mRangeDragHorzAxis, mRangeDragVertAxis, mRangeZoomHorzAxis, mRangeZoomVertAxis;
+  QList<QPointer<QCPAxis> > mRangeDragHorzAxis, mRangeDragVertAxis;
+  QList<QPointer<QCPAxis> > mRangeZoomHorzAxis, mRangeZoomVertAxis;
   double mRangeZoomFactorHorz, mRangeZoomFactorVert;
+  
   // non-property members:
-  QCPRange mDragStartHorzRange, mDragStartVertRange;
+  QList<QCPRange> mDragStartHorzRange, mDragStartVertRange;
   QCP::AntialiasedElements mAADragBackup, mNotAADragBackup;
   QPoint mDragStart;
   bool mDragging;
   QHash<QCPAxis::AxisType, QList<QCPAxis*> > mAxes;
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  virtual void draw(QCPPainter *painter);
-  virtual int calculateAutoMargin(QCP::MarginSide side);
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual int calculateAutoMargin(QCP::MarginSide side) Q_DECL_OVERRIDE;
+  virtual void layoutChanged() Q_DECL_OVERRIDE;
   // events:
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
   // non-property methods:
   void drawBackground(QCPPainter *painter);

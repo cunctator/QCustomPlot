@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-tracer.h"
@@ -58,7 +58,7 @@
   QCPItemPosition::setParentAnchor.
   
   \note The tracer position is only automatically updated upon redraws. So when the data of the
-  graph changes and immediately afterwards (without a redraw) the a position coordinates of the
+  graph changes and immediately afterwards (without a redraw) the position coordinates of the
   tracer are retrieved, they will not reflect the updated data of the graph. In this case \ref
   updatePosition must be called manually, prior to reading the tracer coordinates.
 */
@@ -66,12 +66,17 @@
 /*!
   Creates a tracer item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
   position(createPosition(QLatin1String("position"))),
-  mGraph(0)
+  mSize(6),
+  mStyle(tsCrosshair),
+  mGraph(0),
+  mGraphKey(0),
+  mInterpolating(false)
 {
   position->setCoords(0, 0);
 
@@ -79,10 +84,6 @@ QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   setSelectedBrush(Qt::NoBrush);
   setPen(QPen(Qt::black));
   setSelectedPen(QPen(Qt::blue, 2));
-  setStyle(tsCrosshair);
-  setSize(6);
-  setInterpolating(false);
-  setGraphKey(0);
 }
 
 QCPItemTracer::~QCPItemTracer()
@@ -214,7 +215,7 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
   if (onlySelectable && !mSelectable)
     return -1;
 
-  QPointF center(position->pixelPoint());
+  QPointF center(position->pixelPosition());
   double w = mSize/2.0;
   QRect clip = clipRect();
   switch (mStyle)
@@ -223,21 +224,21 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
     case tsPlus:
     {
       if (clipRect().intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
-        return qSqrt(qMin(distSqrToLine(center+QPointF(-w, 0), center+QPointF(w, 0), pos),
-                          distSqrToLine(center+QPointF(0, -w), center+QPointF(0, w), pos)));
+        return qSqrt(qMin(QCPVector2D(pos).distanceSquaredToLine(center+QPointF(-w, 0), center+QPointF(w, 0)),
+                          QCPVector2D(pos).distanceSquaredToLine(center+QPointF(0, -w), center+QPointF(0, w))));
       break;
     }
     case tsCrosshair:
     {
-      return qSqrt(qMin(distSqrToLine(QPointF(clip.left(), center.y()), QPointF(clip.right(), center.y()), pos),
-                        distSqrToLine(QPointF(center.x(), clip.top()), QPointF(center.x(), clip.bottom()), pos)));
+      return qSqrt(qMin(QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(clip.left(), center.y()), QCPVector2D(clip.right(), center.y())),
+                        QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(center.x(), clip.top()), QCPVector2D(center.x(), clip.bottom()))));
     }
     case tsCircle:
     {
       if (clip.intersects(QRectF(center-QPointF(w, w), center+QPointF(w, w)).toRect()))
       {
         // distance to border:
-        double centerDist = QVector2D(center-pos).length();
+        double centerDist = QCPVector2D(center-pos).length();
         double circleLine = w;
         double result = qAbs(centerDist-circleLine);
         // filled ellipse, allow click inside to count as hit:
@@ -256,7 +257,7 @@ double QCPItemTracer::selectTest(const QPointF &pos, bool onlySelectable, QVaria
       {
         QRectF rect = QRectF(center-QPointF(w, w), center+QPointF(w, w));
         bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
-        return rectSelectTest(rect, pos, filledRect);
+        return rectDistance(rect, pos, filledRect);
       }
       break;
     }
@@ -273,7 +274,7 @@ void QCPItemTracer::draw(QCPPainter *painter)
 
   painter->setPen(mainPen());
   painter->setBrush(mainBrush());
-  QPointF center(position->pixelPoint());
+  QPointF center(position->pixelPosition());
   double w = mSize/2.0;
   QRect clip = clipRect();
   switch (mStyle)
@@ -331,39 +332,41 @@ void QCPItemTracer::updatePosition()
     {
       if (mGraph->data()->size() > 1)
       {
-        QCPDataMap::const_iterator first = mGraph->data()->constBegin();
-        QCPDataMap::const_iterator last = mGraph->data()->constEnd()-1;
-        if (mGraphKey < first.key())
-          position->setCoords(first.key(), first.value().value);
-        else if (mGraphKey > last.key())
-          position->setCoords(last.key(), last.value().value);
+        QCPGraphDataContainer::const_iterator first = mGraph->data()->constBegin();
+        QCPGraphDataContainer::const_iterator last = mGraph->data()->constEnd()-1;
+        if (mGraphKey <= first->key)
+          position->setCoords(first->key, first->value);
+        else if (mGraphKey >= last->key)
+          position->setCoords(last->key, last->value);
         else
         {
-          QCPDataMap::const_iterator it = mGraph->data()->lowerBound(mGraphKey);
-          if (it != first) // mGraphKey is somewhere between iterators
+          QCPGraphDataContainer::const_iterator it = mGraph->data()->findBegin(mGraphKey);
+          if (it != mGraph->data()->constEnd()) // mGraphKey is not exactly on last iterator, but somewhere between iterators
           {
-            QCPDataMap::const_iterator prevIt = it-1;
+            QCPGraphDataContainer::const_iterator prevIt = it;
+            ++it; // won't advance to constEnd because we handled that case (mGraphKey >= last->key) before
             if (mInterpolating)
             {
               // interpolate between iterators around mGraphKey:
               double slope = 0;
-              if (!qFuzzyCompare((double)it.key(), (double)prevIt.key()))
-                slope = (it.value().value-prevIt.value().value)/(it.key()-prevIt.key());
-              position->setCoords(mGraphKey, (mGraphKey-prevIt.key())*slope+prevIt.value().value);
+              if (!qFuzzyCompare((double)it->key, (double)prevIt->key))
+                slope = (it->value-prevIt->value)/(it->key-prevIt->key);
+              position->setCoords(mGraphKey, (mGraphKey-prevIt->key)*slope+prevIt->value);
             } else
             {
               // find iterator with key closest to mGraphKey:
-              if (mGraphKey < (prevIt.key()+it.key())*0.5)
-                it = prevIt;
-              position->setCoords(it.key(), it.value().value);
+              if (mGraphKey < (prevIt->key+it->key)*0.5)
+                position->setCoords(prevIt->key, prevIt->value);
+              else
+                position->setCoords(it->key, it->value);
             }
-          } else // mGraphKey is exactly on first iterator
-            position->setCoords(it.key(), it.value().value);
+          } else // mGraphKey is exactly on last iterator (should actually be caught when comparing first/last keys, but this is a failsafe for fp uncertainty)
+            position->setCoords(it->key, it->value);
         }
       } else if (mGraph->data()->size() == 1)
       {
-        QCPDataMap::const_iterator it = mGraph->data()->constBegin();
-        position->setCoords(it.key(), it.value().value);
+        QCPGraphDataContainer::const_iterator it = mGraph->data()->constBegin();
+        position->setCoords(it->key, it->value);
       } else
         qDebug() << Q_FUNC_INFO << "graph has no data";
     } else

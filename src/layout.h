@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LAYOUT_H
@@ -37,8 +37,8 @@ class QCP_LIB_DECL QCPMarginGroup : public QObject
 {
   Q_OBJECT
 public:
-  QCPMarginGroup(QCustomPlot *parentPlot);
-  ~QCPMarginGroup();
+  explicit QCPMarginGroup(QCustomPlot *parentPlot);
+  virtual ~QCPMarginGroup();
   
   // non-virtual methods:
   QList<QCPLayoutElement*> elements(QCP::MarginSide side) const { return mChildren.value(side); }
@@ -50,8 +50,10 @@ protected:
   QCustomPlot *mParentPlot;
   QHash<QCP::MarginSide, QList<QCPLayoutElement*> > mChildren;
   
+  // introduced virtual methods:
+  virtual int commonMargin(QCP::MarginSide side) const;
+  
   // non-virtual methods:
-  int commonMargin(QCP::MarginSide side) const;
   void addChild(QCP::MarginSide side, QCPLayoutElement *element);
   void removeChild(QCP::MarginSide side, QCPLayoutElement *element);
   
@@ -118,7 +120,7 @@ public:
   virtual QList<QCPLayoutElement*> elements(bool recursive) const;
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
@@ -131,17 +133,12 @@ protected:
   
   // introduced virtual methods:
   virtual int calculateAutoMargin(QCP::MarginSide side);
-  // events:
-  virtual void mousePressEvent(QMouseEvent *event) {Q_UNUSED(event)}
-  virtual void mouseMoveEvent(QMouseEvent *event) {Q_UNUSED(event)}
-  virtual void mouseReleaseEvent(QMouseEvent *event) {Q_UNUSED(event)}
-  virtual void mouseDoubleClickEvent(QMouseEvent *event) {Q_UNUSED(event)}
-  virtual void wheelEvent(QWheelEvent *event) {Q_UNUSED(event)}
+  virtual void layoutChanged();
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const { Q_UNUSED(painter) }
-  virtual void draw(QCPPainter *painter) { Q_UNUSED(painter) }
-  virtual void parentPlotInitialized(QCustomPlot *parentPlot);
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE { Q_UNUSED(painter) }
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE { Q_UNUSED(painter) }
+  virtual void parentPlotInitialized(QCustomPlot *parentPlot) Q_DECL_OVERRIDE;
 
 private:
   Q_DISABLE_COPY(QCPLayoutElement)
@@ -150,6 +147,7 @@ private:
   friend class QCPLayout;
   friend class QCPMarginGroup;
 };
+Q_DECLARE_METATYPE(QCPLayoutElement::UpdatePhase)
 
 
 class QCP_LIB_DECL QCPLayout : public QCPLayoutElement
@@ -159,8 +157,8 @@ public:
   explicit QCPLayout();
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
   virtual int elementCount() const = 0;
@@ -200,18 +198,35 @@ class QCP_LIB_DECL QCPLayoutGrid : public QCPLayout
   Q_PROPERTY(QList<double> rowStretchFactors READ rowStretchFactors WRITE setRowStretchFactors)
   Q_PROPERTY(int columnSpacing READ columnSpacing WRITE setColumnSpacing)
   Q_PROPERTY(int rowSpacing READ rowSpacing WRITE setRowSpacing)
+  Q_PROPERTY(FillOrder fillOrder READ fillOrder WRITE setFillOrder)
+  Q_PROPERTY(int wrap READ wrap WRITE setWrap)
   /// \endcond
 public:
+  
+  /*!
+    Defines in which direction the grid is filled when using \ref addElement(QCPLayoutElement*).
+    The column/row at which wrapping into the next row/column occurs can be specified with \ref
+    setWrap.
+
+    \see setFillOrder
+  */
+  enum FillOrder { foRowsFirst    ///< Rows are filled first, and a new element is wrapped to the next column if the row count would exceed \ref setWrap.
+                  ,foColumnsFirst ///< Columns are filled first, and a new element is wrapped to the next row if the column count would exceed \ref setWrap.
+                };
+  Q_ENUMS(FillOrder)
+  
   explicit QCPLayoutGrid();
   virtual ~QCPLayoutGrid();
   
   // getters:
-  int rowCount() const;
-  int columnCount() const;
+  int rowCount() const { return mElements.size(); }
+  int columnCount() const { return mElements.size() > 0 ? mElements.first().size() : 0; }
   QList<double> columnStretchFactors() const { return mColumnStretchFactors; }
   QList<double> rowStretchFactors() const { return mRowStretchFactors; }
   int columnSpacing() const { return mColumnSpacing; }
   int rowSpacing() const { return mRowSpacing; }
+  int wrap() const { return mWrap; }
+  FillOrder fillOrder() const { return mFillOrder; }
   
   // setters:
   void setColumnStretchFactor(int column, double factor);
@@ -220,25 +235,30 @@ public:
   void setRowStretchFactors(const QList<double> &factors);
   void setColumnSpacing(int pixels);
   void setRowSpacing(int pixels);
+  void setWrap(int count);
+  void setFillOrder(FillOrder order, bool rearrange=true);
   
   // reimplemented virtual methods:
-  virtual void updateLayout();
-  virtual int elementCount() const;
-  virtual QCPLayoutElement* elementAt(int index) const;
-  virtual QCPLayoutElement* takeAt(int index);
-  virtual bool take(QCPLayoutElement* element);
-  virtual QList<QCPLayoutElement*> elements(bool recursive) const;
-  virtual void simplify();
-  virtual QSize minimumSizeHint() const;
-  virtual QSize maximumSizeHint() const;
+  virtual void updateLayout() Q_DECL_OVERRIDE;
+  virtual int elementCount() const Q_DECL_OVERRIDE { return rowCount()*columnCount(); }
+  virtual QCPLayoutElement* elementAt(int index) const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
+  virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
+  virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
+  virtual void simplify() Q_DECL_OVERRIDE;
+  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize maximumSizeHint() const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QCPLayoutElement *element(int row, int column) const;
   bool addElement(int row, int column, QCPLayoutElement *element);
+  bool addElement(QCPLayoutElement *element);
   bool hasElement(int row, int column);
   void expandTo(int newRowCount, int newColumnCount);
   void insertRow(int newIndex);
   void insertColumn(int newIndex);
+  int rowColToIndex(int row, int column) const;
+  void indexToRowCol(int index, int &row, int &column) const;
   
 protected:
   // property members:
@@ -246,6 +266,8 @@ protected:
   QList<double> mColumnStretchFactors;
   QList<double> mRowStretchFactors;
   int mColumnSpacing, mRowSpacing;
+  int mWrap;
+  FillOrder mFillOrder;
   
   // non-virtual methods:
   void getMinimumRowColSizes(QVector<int> *minColWidths, QVector<int> *minRowHeights) const;
@@ -254,6 +276,7 @@ protected:
 private:
   Q_DISABLE_COPY(QCPLayoutGrid)
 };
+Q_DECLARE_METATYPE(QCPLayoutGrid::FillOrder)
 
 
 class QCP_LIB_DECL QCPLayoutInset : public QCPLayout
@@ -266,6 +289,7 @@ public:
   enum InsetPlacement { ipFree            ///< The element may be positioned/sized arbitrarily, see \ref setInsetRect
                         ,ipBorderAligned  ///< The element is aligned to one of the layout sides, see \ref setInsetAlignment
                       };
+  Q_ENUMS(InsetPlacement)
   
   explicit QCPLayoutInset();
   virtual ~QCPLayoutInset();
@@ -281,13 +305,13 @@ public:
   void setInsetRect(int index, const QRectF &rect);
   
   // reimplemented virtual methods:
-  virtual void updateLayout();
-  virtual int elementCount() const;
-  virtual QCPLayoutElement* elementAt(int index) const;
-  virtual QCPLayoutElement* takeAt(int index);
-  virtual bool take(QCPLayoutElement* element);
-  virtual void simplify() {}
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual void updateLayout() Q_DECL_OVERRIDE;
+  virtual int elementCount() const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* elementAt(int index) const Q_DECL_OVERRIDE;
+  virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
+  virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
+  virtual void simplify() Q_DECL_OVERRIDE {}
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void addElement(QCPLayoutElement *element, Qt::Alignment alignment);
@@ -303,5 +327,6 @@ protected:
 private:
   Q_DISABLE_COPY(QCPLayoutInset)
 };
+Q_DECLARE_METATYPE(QCPLayoutInset::InsetPlacement)
 
 #endif // QCP_LAYOUT_H

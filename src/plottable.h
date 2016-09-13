@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,19 +19,72 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_PLOTTABLE_H
 #define QCP_PLOTTABLE_H
 
 #include "global.h"
-#include "range.h"
+#include "vector2d.h"
+#include "axis/range.h"
 #include "layer.h"
-#include "axis.h"
+#include "axis/axis.h"
+#include "selection.h"
+#include "scatterstyle.h"
 
 class QCPPainter;
+class QCPAbstractPlottable;
+class QCPPlottableInterface1D;
+class QCPLegend;
+
+class QCP_LIB_DECL QCPSelectionDecorator
+{
+  Q_GADGET
+public:
+  QCPSelectionDecorator();
+  virtual ~QCPSelectionDecorator();
+  
+  // getters:
+  QPen pen() const { return mPen; }
+  QBrush brush() const { return mBrush; }
+  QCPScatterStyle scatterStyle() const { return mScatterStyle; }
+  QCPScatterStyle::ScatterProperties usedScatterProperties() const { return mUsedScatterProperties; }
+  
+  // setters:
+  void setPen(const QPen &pen);
+  void setBrush(const QBrush &brush);
+  void setScatterStyle(const QCPScatterStyle &scatterStyle, QCPScatterStyle::ScatterProperties usedProperties=QCPScatterStyle::spPen);
+  void setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties);
+  
+  // non-virtual methods:
+  void applyPen(QCPPainter *painter) const;
+  void applyBrush(QCPPainter *painter) const;
+  QCPScatterStyle getFinalScatterStyle(const QCPScatterStyle &unselectedStyle) const;
+  
+  // introduced virtual methods:
+  virtual void copyFrom(const QCPSelectionDecorator *other);
+  virtual void drawDecoration(QCPPainter *painter, QCPDataSelection selection);
+  
+protected:
+  // property members:
+  QPen mPen;
+  QBrush mBrush;
+  QCPScatterStyle mScatterStyle;
+  QCPScatterStyle::ScatterProperties mUsedScatterProperties;
+  // non-property members:
+  QCPAbstractPlottable *mPlottable;
+  
+  // introduced virtual methods:
+  virtual bool registerWithPlottable(QCPAbstractPlottable *plottable);
+  
+private:
+  Q_DISABLE_COPY(QCPSelectionDecorator)
+  friend class QCPAbstractPlottable;
+};
+Q_DECLARE_METATYPE(QCPSelectionDecorator*)
+
 
 class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
 {
@@ -40,104 +93,93 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   Q_PROPERTY(QString name READ name WRITE setName)
   Q_PROPERTY(bool antialiasedFill READ antialiasedFill WRITE setAntialiasedFill)
   Q_PROPERTY(bool antialiasedScatters READ antialiasedScatters WRITE setAntialiasedScatters)
-  Q_PROPERTY(bool antialiasedErrorBars READ antialiasedErrorBars WRITE setAntialiasedErrorBars)
   Q_PROPERTY(QPen pen READ pen WRITE setPen)
-  Q_PROPERTY(QPen selectedPen READ selectedPen WRITE setSelectedPen)
   Q_PROPERTY(QBrush brush READ brush WRITE setBrush)
-  Q_PROPERTY(QBrush selectedBrush READ selectedBrush WRITE setSelectedBrush)
   Q_PROPERTY(QCPAxis* keyAxis READ keyAxis WRITE setKeyAxis)
   Q_PROPERTY(QCPAxis* valueAxis READ valueAxis WRITE setValueAxis)
-  Q_PROPERTY(bool selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
-  Q_PROPERTY(bool selected READ selected WRITE setSelected NOTIFY selectionChanged)
+  Q_PROPERTY(QCP::SelectionType selectable READ selectable WRITE setSelectable NOTIFY selectableChanged)
+  Q_PROPERTY(QCPDataSelection selection READ selection WRITE setSelection NOTIFY selectionChanged)
+  Q_PROPERTY(QCPSelectionDecorator* selectionDecorator READ selectionDecorator WRITE setSelectionDecorator)
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
+  virtual ~QCPAbstractPlottable();
   
   // getters:
   QString name() const { return mName; }
   bool antialiasedFill() const { return mAntialiasedFill; }
   bool antialiasedScatters() const { return mAntialiasedScatters; }
-  bool antialiasedErrorBars() const { return mAntialiasedErrorBars; }
   QPen pen() const { return mPen; }
-  QPen selectedPen() const { return mSelectedPen; }
   QBrush brush() const { return mBrush; }
-  QBrush selectedBrush() const { return mSelectedBrush; }
   QCPAxis *keyAxis() const { return mKeyAxis.data(); }
   QCPAxis *valueAxis() const { return mValueAxis.data(); }
-  bool selectable() const { return mSelectable; }
-  bool selected() const { return mSelected; }
+  QCP::SelectionType selectable() const { return mSelectable; }
+  bool selected() const { return !mSelection.isEmpty(); }
+  QCPDataSelection selection() const { return mSelection; }
+  QCPSelectionDecorator *selectionDecorator() const { return mSelectionDecorator; }
   
   // setters:
   void setName(const QString &name);
   void setAntialiasedFill(bool enabled);
   void setAntialiasedScatters(bool enabled);
-  void setAntialiasedErrorBars(bool enabled);
   void setPen(const QPen &pen);
-  void setSelectedPen(const QPen &pen);
   void setBrush(const QBrush &brush);
-  void setSelectedBrush(const QBrush &brush);
   void setKeyAxis(QCPAxis *axis);
   void setValueAxis(QCPAxis *axis);
-  Q_SLOT void setSelectable(bool selectable);
-  Q_SLOT void setSelected(bool selected);
+  Q_SLOT void setSelectable(QCP::SelectionType selectable);
+  Q_SLOT void setSelection(QCPDataSelection selection);
+  void setSelectionDecorator(QCPSelectionDecorator *decorator);
 
   // introduced virtual methods:
-  virtual void clearData() = 0;
   virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const = 0;
-  virtual bool addToLegend();
-  virtual bool removeFromLegend() const;
+  virtual QCPPlottableInterface1D *interface1D() { return 0; }
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const = 0;
   
   // non-property methods:
-  void rescaleAxes(bool onlyEnlarge=false) const;
-  void rescaleKeyAxis(bool onlyEnlarge=false) const;
-  void rescaleValueAxis(bool onlyEnlarge=false) const;
-  
-signals:
-  void selectionChanged(bool selected);
-  void selectableChanged(bool selectable);
-  
-protected:
-  /*!
-    Represents negative and positive sign domain for passing to \ref getKeyRange and \ref getValueRange.
-  */
-  enum SignDomain { sdNegative  ///< The negative sign domain, i.e. numbers smaller than zero
-                    ,sdBoth     ///< Both sign domains, including zero, i.e. all (rational) numbers
-                    ,sdPositive ///< The positive sign domain, i.e. numbers greater than zero
-                  };
-  
-  // property members:
-  QString mName;
-  bool mAntialiasedFill, mAntialiasedScatters, mAntialiasedErrorBars;
-  QPen mPen, mSelectedPen;
-  QBrush mBrush, mSelectedBrush;
-  QPointer<QCPAxis> mKeyAxis, mValueAxis;
-  bool mSelectable, mSelected;
-  
-  // reimplemented virtual methods:
-  virtual QRect clipRect() const;
-  virtual void draw(QCPPainter *painter) = 0;
-  virtual QCP::Interaction selectionCategory() const;
-  void applyDefaultAntialiasingHint(QCPPainter *painter) const;
-  // events:
-  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged);
-  virtual void deselectEvent(bool *selectionStateChanged);
-  
-  // introduced virtual methods:
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const = 0;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const = 0;
-  
-  // non-virtual methods:
   void coordsToPixels(double key, double value, double &x, double &y) const;
   const QPointF coordsToPixels(double key, double value) const;
   void pixelsToCoords(double x, double y, double &key, double &value) const;
   void pixelsToCoords(const QPointF &pixelPos, double &key, double &value) const;
-  QPen mainPen() const;
-  QBrush mainBrush() const;
+  void rescaleAxes(bool onlyEnlarge=false) const;
+  void rescaleKeyAxis(bool onlyEnlarge=false) const;
+  void rescaleValueAxis(bool onlyEnlarge=false, bool inKeyRange=false) const;
+  bool addToLegend(QCPLegend *legend);
+  bool addToLegend();
+  bool removeFromLegend(QCPLegend *legend) const;
+  bool removeFromLegend() const;
+  
+signals:
+  void selectionChanged(bool selected);
+  void selectionChanged(const QCPDataSelection &selection);
+  void selectableChanged(QCP::SelectionType selectable);
+  
+protected:
+  // property members:
+  QString mName;
+  bool mAntialiasedFill, mAntialiasedScatters;
+  QPen mPen;
+  QBrush mBrush;
+  QPointer<QCPAxis> mKeyAxis, mValueAxis;
+  QCP::SelectionType mSelectable;
+  QCPDataSelection mSelection;
+  QCPSelectionDecorator *mSelectionDecorator;
+  
+  // reimplemented virtual methods:
+  virtual QRect clipRect() const Q_DECL_OVERRIDE;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE = 0;
+  virtual QCP::Interaction selectionCategory() const Q_DECL_OVERRIDE;
+  void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
+  // events:
+  virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  
+  // introduced virtual methods:
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const = 0;
+  
+  // non-virtual methods:
   void applyFillAntialiasingHint(QCPPainter *painter) const;
   void applyScattersAntialiasingHint(QCPPainter *painter) const;
-  void applyErrorBarsAntialiasingHint(QCPPainter *painter) const;
-  double distSqrToLine(const QPointF &start, const QPointF &end, const QPointF &point) const;
 
 private:
   Q_DISABLE_COPY(QCPAbstractPlottable)
@@ -146,5 +188,6 @@ private:
   friend class QCPAxis;
   friend class QCPPlottableLegendItem;
 };
+
 
 #endif // QCP_PLOTTABLE_H

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_PLOTTABLE_COLORMAP_H
 #define QCP_PLOTTABLE_COLORMAP_H
 
 #include "../global.h"
-#include "../range.h"
+#include "../axis/range.h"
 #include "../plottable.h"
 #include "../colorgradient.h"
 #include "../layoutelements/layoutelement-colorscale.h"
@@ -52,6 +52,7 @@ public:
   QCPRange dataBounds() const { return mDataBounds; }
   double data(double key, double value);
   double cell(int keyIndex, int valueIndex);
+  unsigned char alpha(int keyIndex, int valueIndex);
   
   // setters:
   void setSize(int keySize, int valueSize);
@@ -62,11 +63,14 @@ public:
   void setValueRange(const QCPRange &valueRange);
   void setData(double key, double value, double z);
   void setCell(int keyIndex, int valueIndex, double z);
+  void setAlpha(int keyIndex, int valueIndex, unsigned char alpha);
   
   // non-property methods:
   void recalculateDataBounds();
   void clear();
+  void clearAlpha();
   void fill(double z);
+  void fillAlpha(unsigned char alpha);
   bool isEmpty() const { return mIsEmpty; }
   void coordToCell(double key, double value, int *keyIndex, int *valueIndex) const;
   void cellToCoord(int keyIndex, int valueIndex, double *key, double *value) const;
@@ -76,10 +80,14 @@ protected:
   int mKeySize, mValueSize;
   QCPRange mKeyRange, mValueRange;
   bool mIsEmpty;
+  
   // non-property members:
   double *mData;
+  unsigned char *mAlpha;
   QCPRange mDataBounds;
   bool mDataModified;
+  
+  bool createAlpha(bool initializeOpaque=true);
   
   friend class QCPColorMap;
 };
@@ -123,13 +131,14 @@ public:
   Q_SLOT void updateLegendIcon(Qt::TransformationMode transformMode=Qt::SmoothTransformation, const QSize &thumbSize=QSize(32, 18));
   
   // reimplemented virtual methods:
-  virtual void clearData();
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const Q_DECL_OVERRIDE;
   
 signals:
-  void dataRangeChanged(QCPRange newRange);
+  void dataRangeChanged(const QCPRange &newRange);
   void dataScaleTypeChanged(QCPAxis::ScaleType scaleType);
-  void gradientChanged(QCPColorGradient newGradient);
+  void gradientChanged(const QCPColorGradient &newGradient);
   
 protected:
   // property members:
@@ -140,6 +149,7 @@ protected:
   bool mInterpolate;
   bool mTightBoundary;
   QPointer<QCPColorScale> mColorScale;
+  
   // non-property members:
   QImage mMapImage, mUndersampledMapImage;
   QPixmap mLegendIcon;
@@ -149,10 +159,8 @@ protected:
   virtual void updateMapImage();
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;
   
   friend class QCustomPlot;
   friend class QCPLegend;

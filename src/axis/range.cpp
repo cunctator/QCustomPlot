@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "range.h"
@@ -37,10 +37,60 @@
   \see QCPAxis::setRange
 */
 
+/* start of documentation of inline functions */
+
+/*! \fn double QCPRange::size() const
+
+  Returns the size of the range, i.e. \a upper-\a lower
+*/
+
+/*! \fn double QCPRange::center() const
+
+  Returns the center of the range, i.e. (\a upper+\a lower)*0.5
+*/
+
+/*! \fn void QCPRange::normalize()
+
+  Makes sure \a lower is numerically smaller than \a upper. If this is not the case, the values are
+  swapped.
+*/
+
+/*! \fn bool QCPRange::contains(double value) const
+
+  Returns true when \a value lies within or exactly on the borders of the range.
+*/
+
+/*! \fn QCPRange &QCPRange::operator+=(const double& value)
+
+  Adds \a value to both boundaries of the range.
+*/
+
+/*! \fn QCPRange &QCPRange::operator-=(const double& value)
+
+  Subtracts \a value from both boundaries of the range.
+*/
+
+/*! \fn QCPRange &QCPRange::operator*=(const double& value)
+
+  Multiplies both boundaries of the range by \a value.
+*/
+
+/*! \fn QCPRange &QCPRange::operator/=(const double& value)
+
+  Divides both boundaries of the range by \a value.
+*/
+
+/* end of documentation of inline functions */
+
 /*!
   Minimum range size (\a upper - \a lower) the range changing functions will accept. Smaller
   intervals would cause errors due to the 11-bit exponent of double precision numbers,
   corresponding to a minimum magnitude of roughly 1e-308.
+
+  \warning Do not use this constant to indicate "arbitrarily small" values in plotting logic (as
+  values that will appear in the plot)! It is intended only as a bound to compare against, e.g. to
+  prevent axis ranges from obtaining underflowing ranges.
+
   \see validRange, maxRange
 */
 const double QCPRange::minRange = 1e-280;
@@ -49,8 +99,11 @@ const double QCPRange::minRange = 1e-280;
   Maximum values (negative and positive) the range will accept in range-changing functions.
   Larger absolute values would cause errors due to the 11-bit exponent of double precision numbers,
   corresponding to a maximum magnitude of roughly 1e308.
-  Since the number of planck-volumes in the entire visible universe is only ~1e183, this should
-  be enough.
+
+  \warning Do not use this constant to indicate "arbitrarily large" values in plotting logic (as
+  values that will appear in the plot)! It is intended only as a bound to compare against, e.g. to
+  prevent axis ranges from obtaining overflowing ranges.
+
   \see validRange, minRange
 */
 const double QCPRange::maxRange = 1e250;
@@ -65,7 +118,11 @@ QCPRange::QCPRange() :
 }
 
 /*! \overload
+
   Constructs a range with the specified \a lower and \a upper values.
+
+  The resulting range will be normalized (see \ref normalize), so if \a lower is not numerically
+  smaller than \a upper, they will be swapped.
 */
 QCPRange::QCPRange(double lower, double upper) :
   lower(lower),
@@ -74,59 +131,109 @@ QCPRange::QCPRange(double lower, double upper) :
   normalize();
 }
 
-/*!
-  Returns the size of the range, i.e. \a upper-\a lower
-*/
-double QCPRange::size() const
-{
-  return upper-lower;
-}
+/*! \overload
 
-/*!
-  Returns the center of the range, i.e. (\a upper+\a lower)*0.5
-*/
-double QCPRange::center() const
-{
-  return (upper+lower)*0.5;
-}
-
-/*!
-  Makes sure \a lower is numerically smaller than \a upper. If this is not the case, the values
-  are swapped.
-*/
-void QCPRange::normalize()
-{
-  if (lower > upper)
-    qSwap(lower, upper);
-}
-
-/*!
   Expands this range such that \a otherRange is contained in the new range. It is assumed that both
   this range and \a otherRange are normalized (see \ref normalize).
-  
+
+  If this range contains NaN as lower or upper bound, it will be replaced by the respective bound
+  of \a otherRange.
+
   If \a otherRange is already inside the current range, this function does nothing.
-  
+
   \see expanded
 */
 void QCPRange::expand(const QCPRange &otherRange)
 {
-  if (lower > otherRange.lower)
+  if (lower > otherRange.lower || qIsNaN(lower))
     lower = otherRange.lower;
-  if (upper < otherRange.upper)
+  if (upper < otherRange.upper || qIsNaN(upper))
     upper = otherRange.upper;
 }
 
+/*! \overload
 
-/*!
+  Expands this range such that \a includeCoord is contained in the new range. It is assumed that
+  this range is normalized (see \ref normalize).
+
+  If this range contains NaN as lower or upper bound, the respective bound will be set to \a
+  includeCoord.
+
+  If \a includeCoord is already inside the current range, this function does nothing.
+
+  \see expand
+*/
+void QCPRange::expand(double includeCoord)
+{
+  if (lower > includeCoord || qIsNaN(lower))
+    lower = includeCoord;
+  if (upper < includeCoord || qIsNaN(upper))
+    upper = includeCoord;
+}
+
+
+/*! \overload
+
   Returns an expanded range that contains this and \a otherRange. It is assumed that both this
   range and \a otherRange are normalized (see \ref normalize).
-  
+
+  If this range contains NaN as lower or upper bound, the returned range's bound will be taken from
+  \a otherRange.
+
   \see expand
 */
 QCPRange QCPRange::expanded(const QCPRange &otherRange) const
 {
   QCPRange result = *this;
   result.expand(otherRange);
+  return result;
+}
+
+/*! \overload
+
+  Returns an expanded range that includes the specified \a includeCoord. It is assumed that this
+  range is normalized (see \ref normalize).
+
+  If this range contains NaN as lower or upper bound, the returned range's bound will be set to \a
+  includeCoord.
+
+  \see expand
+*/
+QCPRange QCPRange::expanded(double includeCoord) const
+{
+  QCPRange result = *this;
+  result.expand(includeCoord);
+  return result;
+}
+
+/*!
+  Returns this range, possibly modified to not exceed the bounds provided as \a lowerBound and \a
+  upperBound. If possible, the size of the current range is preserved in the process.
+  
+  If the range shall only be bounded at the lower side, you can set \a upperBound to \ref
+  QCPRange::maxRange. If it shall only be bounded at the upper side, set \a lowerBound to -\ref
+  QCPRange::maxRange.
+*/
+QCPRange QCPRange::bounded(double lowerBound, double upperBound) const
+{
+  if (lowerBound > upperBound)
+    qSwap(lowerBound, upperBound);
+  
+  QCPRange result(lower, upper);
+  if (result.lower < lowerBound)
+  {
+    result.lower = lowerBound;
+    result.upper = lowerBound + size();
+    if (result.upper > upperBound || qFuzzyCompare(size(), upperBound-lowerBound))
+      result.upper = upperBound;
+  } else if (result.upper > upperBound)
+  {
+    result.upper = upperBound;
+    result.lower = upperBound - size();
+    if (result.lower < lowerBound || qFuzzyCompare(size(), upperBound-lowerBound))
+      result.lower = lowerBound;
+  }
+  
   return result;
 }
 
@@ -199,14 +306,6 @@ QCPRange QCPRange::sanitizedForLinScale() const
 }
 
 /*!
-  Returns true when \a value lies within or exactly on the borders of the range.
-*/
-bool QCPRange::contains(double value) const
-{
-  return value >= lower && value <= upper;
-}
-
-/*!
   Checks, whether the specified range is within valid bounds, which are defined
   as QCPRange::maxRange and QCPRange::minRange.
   A valid range means:
@@ -216,17 +315,12 @@ bool QCPRange::contains(double value) const
 */
 bool QCPRange::validRange(double lower, double upper)
 {
-  /*
   return (lower > -maxRange &&
           upper < maxRange &&
           qAbs(lower-upper) > minRange &&
-          (lower < -minRange || lower > minRange) &&
-          (upper < -minRange || upper > minRange));
-          */
-  return (lower > -maxRange &&
-          upper < maxRange &&
-          qAbs(lower-upper) > minRange &&
-          qAbs(lower-upper) < maxRange);
+          qAbs(lower-upper) < maxRange &&
+          !(lower > 0 && qIsInf(upper/lower)) &&
+          !(upper < 0 && qIsInf(lower/upper)));
 }
 
 /*!
@@ -240,16 +334,10 @@ bool QCPRange::validRange(double lower, double upper)
 */
 bool QCPRange::validRange(const QCPRange &range)
 {
-  /*
   return (range.lower > -maxRange &&
           range.upper < maxRange &&
           qAbs(range.lower-range.upper) > minRange &&
           qAbs(range.lower-range.upper) < maxRange &&
-          (range.lower < -minRange || range.lower > minRange) &&
-          (range.upper < -minRange || range.upper > minRange));
-          */
-  return (range.lower > -maxRange &&
-          range.upper < maxRange &&
-          qAbs(range.lower-range.upper) > minRange &&
-          qAbs(range.lower-range.upper) < maxRange);
+          !(range.lower > 0 && qIsInf(range.upper/range.lower)) &&
+          !(range.upper < 0 && qIsInf(range.lower/range.upper)));
 }

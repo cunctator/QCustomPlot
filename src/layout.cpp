@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "layout.h"
@@ -199,7 +199,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   invisible by themselves, because they don't draw anything. Their only purpose is to manage the
   position and size of other layout elements. This category of layout elements usually use
   QCPLayout as base class. Then there is the category of layout elements which actually draw
-  something. For example, QCPAxisRect, QCPLegend and QCPPlotTitle are of this category. This does
+  something. For example, QCPAxisRect, QCPLegend and QCPTextElement are of this category. This does
   not necessarily mean that the latter category can't have child layout elements. QCPLegend for
   instance, actually derives from QCPLayoutGrid and the individual legend items are child layout
   elements in the grid layout.
@@ -223,35 +223,6 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   adapt the margins to the peripheral graphics it wants to draw. For example, \ref QCPAxisRect
   draws the axis labels and tick labels in the margin area, thus needs to adjust the margins (if
   \ref setAutoMargins is enabled) according to the space required by the labels of the axes.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mousePressEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse was pressed while being inside the outer rect of this layout
-  element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseMoveEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse is moved inside the outer rect of this layout element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseReleaseEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse was previously pressed inside the outer rect of this layout
-  element and is now released.
-*/
-
-/*! \fn virtual void QCPLayoutElement::mouseDoubleClickEvent(QMouseEvent *event)
-  
-  This event is called, if the mouse is double-clicked inside the outer rect of this layout
-  element.
-*/
-
-/*! \fn virtual void QCPLayoutElement::wheelEvent(QWheelEvent *event)
-  
-  This event is called, if the mouse wheel is scrolled while the cursor is inside the rect of this
-  layout element.
 */
 
 /* end documentation of inline functions */
@@ -345,7 +316,7 @@ void QCPLayoutElement::setMinimumMargins(const QMargins &margins)
   Margin sides that are under automatic control may participate in a \ref QCPMarginGroup (see \ref
   setMarginGroup), to synchronize (align) it with other layout elements in the plot.
   
-  \see setMinimumMargins, setMargins
+  \see setMinimumMargins, setMargins, QCP::MarginSide
 */
 void QCPLayoutElement::setAutoMargins(QCP::MarginSides sides)
 {
@@ -413,6 +384,8 @@ void QCPLayoutElement::setMaximumSize(int width, int height)
   
   Note that margin groups only work for margin sides that are set to automatic (\ref
   setAutoMargins).
+  
+  \see QCP::MarginSide
 */
 void QCPLayoutElement::setMarginGroup(QCP::MarginSides sides, QCPMarginGroup *group)
 {
@@ -576,6 +549,21 @@ void QCPLayoutElement::parentPlotInitialized(QCustomPlot *parentPlot)
 int QCPLayoutElement::calculateAutoMargin(QCP::MarginSide side)
 {
   return qMax(QCP::getMarginValue(mMargins, side), QCP::getMarginValue(mMinimumMargins, side));
+}
+
+/*! \internal
+  
+  This virtual method is called when this layout element was moved to a different QCPLayout, or
+  when this layout element has changed its logical position (e.g. row and/or column) within the
+  same QCPLayout. Subclasses may use this to react accordingly.
+  
+  Since this method is called after the completion of the move, you can access the new parent
+  layout via \ref layout().
+  
+  The default implementation does nothing.
+*/
+void QCPLayoutElement::layoutChanged()
+{
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -828,6 +816,7 @@ void QCPLayout::adoptElement(QCPLayoutElement *el)
     el->setParent(this);
     if (!el->parentPlot())
       el->initializeParentPlot(mParentPlot);
+    el->layoutChanged();
   } else
     qDebug() << Q_FUNC_INFO << "Null element passed";
 }
@@ -1003,26 +992,50 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
 
 /*! \class QCPLayoutGrid
   \brief A layout that arranges child elements in a grid
-  
+
   Elements are laid out in a grid with configurable stretch factors (\ref setColumnStretchFactor,
   \ref setRowStretchFactor) and spacing (\ref setColumnSpacing, \ref setRowSpacing).
-  
+
   Elements can be added to cells via \ref addElement. The grid is expanded if the specified row or
   column doesn't exist yet. Whether a cell contains a valid layout element can be checked with \ref
   hasElement, that element can be retrieved with \ref element. If rows and columns that only have
   empty cells shall be removed, call \ref simplify. Removal of elements is either done by just
   adding the element to a different layout or by using the QCPLayout interface \ref take or \ref
   remove.
-  
+
+  If you use \ref addElement(QCPLayoutElement*) without explicit parameters for \a row and \a
+  column, the grid layout will choose the position according to the current \ref setFillOrder and
+  the wrapping (\ref setWrap).
+
   Row and column insertion can be performed with \ref insertRow and \ref insertColumn.
 */
+
+/* start documentation of inline functions */
+
+/*! \fn int QCPLayoutGrid::rowCount() const
+
+  Returns the number of rows in the layout.
+
+  \see columnCount
+*/
+
+/*! \fn int QCPLayoutGrid::columnCount() const
+
+  Returns the number of columns in the layout.
+
+  \see rowCount
+*/
+
+/* end documentation of inline functions */
 
 /*!
   Creates an instance of QCPLayoutGrid and sets default values.
 */
 QCPLayoutGrid::QCPLayoutGrid() :
   mColumnSpacing(5),
-  mRowSpacing(5)
+  mRowSpacing(5),
+  mWrap(0),
+  mFillOrder(foRowsFirst)
 {
 }
 
@@ -1058,56 +1071,75 @@ QCPLayoutElement *QCPLayoutGrid::element(int row, int column) const
   return 0;
 }
 
-/*!
-  Returns the number of rows in the layout.
-  
-  \see columnCount
-*/
-int QCPLayoutGrid::rowCount() const
-{
-  return mElements.size();
-}
 
-/*!
-  Returns the number of columns in the layout.
-  
-  \see rowCount
-*/
-int QCPLayoutGrid::columnCount() const
-{
-  if (mElements.size() > 0)
-    return mElements.first().size();
-  else
-    return 0;
-}
+/*! \overload
 
-/*!
   Adds the \a element to cell with \a row and \a column. If \a element is already in a layout, it
   is first removed from there. If \a row or \a column don't exist yet, the layout is expanded
   accordingly.
-  
+
   Returns true if the element was added successfully, i.e. if the cell at \a row and \a column
   didn't already have an element.
-  
+
+  Use the overload of this method without explicit row/column index to place the element according
+  to the configured fill order and wrapping settings.
+
   \see element, hasElement, take, remove
 */
 bool QCPLayoutGrid::addElement(int row, int column, QCPLayoutElement *element)
 {
-  if (element)
+  if (!hasElement(row, column))
   {
-    if (!hasElement(row, column))
-    {
-      if (element->layout()) // remove from old layout first
-        element->layout()->take(element);
-      expandTo(row+1, column+1);
-      mElements[row][column] = element;
+    if (element && element->layout()) // remove from old layout first
+      element->layout()->take(element);
+    expandTo(row+1, column+1);
+    mElements[row][column] = element;
+    if (element)
       adoptElement(element);
-      return true;
-    } else
-      qDebug() << Q_FUNC_INFO << "There is already an element in the specified row/column:" << row << column;
+    return true;
   } else
-    qDebug() << Q_FUNC_INFO << "Can't add null element to row/column:" << row << column;
+    qDebug() << Q_FUNC_INFO << "There is already an element in the specified row/column:" << row << column;
   return false;
+}
+
+/*! \overload
+
+  Adds the \a element to the next empty cell according to the current fill order (\ref
+  setFillOrder) and wrapping (\ref setWrap). If \a element is already in a layout, it is first
+  removed from there. If necessary, the layout is expanded to hold the new element.
+
+  Returns true if the element was added successfully.
+
+  \see setFillOrder, setWrap, element, hasElement, take, remove
+*/
+bool QCPLayoutGrid::addElement(QCPLayoutElement *element)
+{
+  int rowIndex = 0;
+  int colIndex = 0;
+  if (mFillOrder == foColumnsFirst)
+  {
+    while (hasElement(rowIndex, colIndex))
+    {
+      ++colIndex;
+      if (colIndex >= mWrap && mWrap > 0)
+      {
+        colIndex = 0;
+        ++rowIndex;
+      }
+    }
+  } else
+  {
+    while (hasElement(rowIndex, colIndex))
+    {
+      ++rowIndex;
+      if (rowIndex >= mWrap && mWrap > 0)
+      {
+        rowIndex = 0;
+        ++colIndex;
+      }
+    }
+  }
+  return addElement(rowIndex, colIndex, element);
 }
 
 /*!
@@ -1247,6 +1279,77 @@ void QCPLayoutGrid::setRowSpacing(int pixels)
 }
 
 /*!
+  Sets the maximum number of columns or rows that are used, before new elements added with \ref
+  addElement(QCPLayoutElement*) will start to fill the next row or column, respectively. It depends
+  on \ref setFillOrder, whether rows or columns are wrapped.
+
+  If \a count is set to zero, no wrapping will ever occur.
+  
+  If you wish to re-wrap the elements currently in the layout, call \ref setFillOrder with \a
+  rearrange set to true (the actual fill order doesn't need to be changed for the rearranging to be
+  done).
+
+  Note that the method \ref addElement(int row, int column, QCPLayoutElement *element) with
+  explicitly stated row and column is not subject to wrapping and can place elements even beyond
+  the specified wrapping point.
+
+  \see setFillOrder
+*/
+void QCPLayoutGrid::setWrap(int count)
+{
+  mWrap = qMax(0, count);
+}
+
+/*!
+  Sets the filling order and wrapping behaviour that is used when adding new elements with the
+  method \ref addElement(QCPLayoutElement*).
+
+  The specified \a order defines whether rows or columns are filled first. Using \ref setWrap, you
+  can control at which row/column count wrapping into the next column/row will occur. If you set it
+  to zero, no wrapping will ever occur. Changing the fill order also changes the meaning of the
+  linear index used e.g. in \ref elementAt and \ref takeAt.
+
+  If you want to have all current elements arranged in the new order, set \a rearrange to true. The
+  elements will be rearranged in a way that tries to preserve their linear index. However, empty
+  cells are skipped during build-up of the new cell order, which shifts the succeding element's
+  index. The rearranging is performed even if the specified \a order is already the current fill
+  order. Thus this method can be used to re-wrap the current elements.
+
+  If \a rearrange is false, the current element arrangement is not changed, which means the
+  linear indexes change (because the linear index is dependent on the fill order).
+
+  Note that the method \ref addElement(int row, int column, QCPLayoutElement *element) with
+  explicitly stated row and column is not subject to wrapping and can place elements even beyond
+  the specified wrapping point.
+
+  \see setWrap, addElement(QCPLayoutElement*)
+*/
+void QCPLayoutGrid::setFillOrder(FillOrder order, bool rearrange)
+{
+  // if rearranging, take all elements via linear index of old fill order:
+  const int elCount = elementCount();
+  QVector<QCPLayoutElement*> tempElements;
+  if (rearrange)
+  {
+    tempElements.reserve(elCount);
+    for (int i=0; i<elCount; ++i)
+    {
+      if (elementAt(i))
+        tempElements.append(takeAt(i));
+    }
+    simplify();
+  }
+  // change fill order as requested:
+  mFillOrder = order;
+  // if rearranging, re-insert via linear index according to new fill order:
+  if (rearrange)
+  {
+    for (int i=0; i<tempElements.size(); ++i)
+      addElement(tempElements.at(i));
+  }
+}
+
+/*!
   Expands the layout to have \a newRowCount rows and \a newColumnCount columns. So the last valid
   row index will be \a newRowCount-1, the last valid column index will be \a newColumnCount-1.
   
@@ -1329,6 +1432,81 @@ void QCPLayoutGrid::insertColumn(int newIndex)
     mElements[row].insert(newIndex, (QCPLayoutElement*)0);
 }
 
+/*!
+  Converts the given \a row and \a column to the linear index used by some methods of \ref
+  QCPLayoutGrid and \ref QCPLayout.
+
+  The way the cells are indexed depends on \ref setFillOrder. If it is \ref foRowsFirst, the
+  indices increase left to right and then top to bottom. If it is \ref foColumnsFirst, the indices
+  increase top to bottom and then left to right.
+
+  For the returned index to be valid, \a row and \a column must be valid indices themselves, i.e.
+  greater or equal to zero and smaller than the current \ref rowCount/\ref columnCount.
+
+  \see indexToRowCol
+*/
+int QCPLayoutGrid::rowColToIndex(int row, int column) const
+{
+  if (row >= 0 && row < rowCount())
+  {
+    if (column >= 0 && column < columnCount())
+    {
+      switch (mFillOrder)
+      {
+        case foRowsFirst: return column*rowCount() + row;
+        case foColumnsFirst: return row*columnCount() + column;
+      }
+    } else
+      qDebug() << Q_FUNC_INFO << "row index out of bounds:" << row;
+  } else
+    qDebug() << Q_FUNC_INFO << "column index out of bounds:" << column;
+  return 0;
+}
+
+/*!
+  Converts the linear index to row and column indices and writes the result to \a row and \a
+  column.
+
+  The way the cells are indexed depends on \ref setFillOrder. If it is \ref foRowsFirst, the
+  indices increase left to right and then top to bottom. If it is \ref foColumnsFirst, the indices
+  increase top to bottom and then left to right.
+
+  If there are no cells (i.e. column or row count is zero), sets \a row and \a column to -1.
+
+  For the retrieved \a row and \a column to be valid, the passed \a index must be valid itself,
+  i.e. greater or equal to zero and smaller than the current \ref elementCount.
+
+  \see rowColToIndex
+*/
+void QCPLayoutGrid::indexToRowCol(int index, int &row, int &column) const
+{
+  row = -1;
+  column = -1;
+  if (columnCount() == 0 || rowCount() == 0)
+    return;
+  if (index < 0 || index >= elementCount())
+  {
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
+    return;
+  }
+  
+  switch (mFillOrder)
+  {
+    case foRowsFirst:
+    {
+      column = index / rowCount();
+      row = index % rowCount();
+      break;
+    }
+    case foColumnsFirst:
+    {
+      row = index / columnCount();
+      column = index % columnCount();
+      break;
+    }
+  }
+}
+
 /* inherits documentation from base class */
 void QCPLayoutGrid::updateLayout()
 {
@@ -1358,28 +1536,41 @@ void QCPLayoutGrid::updateLayout()
   }
 }
 
-/* inherits documentation from base class */
-int QCPLayoutGrid::elementCount() const
-{
-  return rowCount()*columnCount();
-}
+/*!
+  \seebaseclassmethod
 
-/* inherits documentation from base class */
+  Note that the association of the linear \a index to the row/column based cells depends on the
+  current setting of \ref setFillOrder.
+
+  \see rowColToIndex
+*/
 QCPLayoutElement *QCPLayoutGrid::elementAt(int index) const
 {
   if (index >= 0 && index < elementCount())
-    return mElements.at(index / columnCount()).at(index % columnCount());
-  else
+  {
+    int row, col;
+    indexToRowCol(index, row, col);
+    return mElements.at(row).at(col);
+  } else
     return 0;
 }
 
-/* inherits documentation from base class */
+/*!
+  \seebaseclassmethod
+
+  Note that the association of the linear \a index to the row/column based cells depends on the
+  current setting of \ref setFillOrder.
+
+  \see rowColToIndex
+*/
 QCPLayoutElement *QCPLayoutGrid::takeAt(int index)
 {
   if (QCPLayoutElement *el = elementAt(index))
   {
     releaseElement(el);
-    mElements[index / columnCount()][index % columnCount()] = 0;
+    int row, col;
+    indexToRowCol(index, row, col);
+    mElements[row][col] = 0;
     return el;
   } else
   {
@@ -1411,22 +1602,15 @@ bool QCPLayoutGrid::take(QCPLayoutElement *element)
 QList<QCPLayoutElement*> QCPLayoutGrid::elements(bool recursive) const
 {
   QList<QCPLayoutElement*> result;
-  int colC = columnCount();
-  int rowC = rowCount();
+  const int elCount = elementCount();
 #if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
-  result.reserve(colC*rowC);
+  result.reserve(elCount);
 #endif
-  for (int row=0; row<rowC; ++row)
-  {
-    for (int col=0; col<colC; ++col)
-    {
-      result.append(mElements.at(row).at(col));
-    }
-  }
+  for (int i=0; i<elCount; ++i)
+    result.append(elementAt(i));
   if (recursive)
   {
-    int c = result.size();
-    for (int i=0; i<c; ++i)
+    for (int i=0; i<elCount; ++i)
     {
       if (result.at(i))
         result << result.at(i)->elements(recursive);

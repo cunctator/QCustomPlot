@@ -36,14 +36,14 @@ if not os.path.isfile(config.executable):
 # Setup and start the actual benchmark loops
 results = defaultdict(list)
 namePattern = re.compile("RESULT : Benchmark::([^(]+)\\(\\):")
-resultPattern = re.compile("\\s*(\\d+(\\.\\d+)?) msecs? per iteration.*")
+resultPattern = re.compile("\\s*(\\d+(\\.\\d+)?) msecs?.*")
 qtVersionPattern = re.compile(".*Qt (\\d+\\.\\d+?\\.\\d+?).*")
 maxNameLength = 0
 qtVersion = ""
 
 for i in range(config.rounds):
   if sys.stdout.isatty() and not config.quiet:
-    print "iteration "+str(i)+"/"+str(config.rounds)+"    \r",
+    print "iteration "+str(i+1)+"/"+str(config.rounds)+"    \r",
     sys.stdout.flush()
   proc = subprocess.Popen([config.executable], stdout=subprocess.PIPE)
   currentName = "";
@@ -84,7 +84,7 @@ if config.comment:
 
 for name, times in sorted(results.iteritems()):
   namePadding = " "*(maxNameLength-len(name)+1);
-  output += "{} {}{: >6.2f} +/- {: <4.2f} ms\n".format(name, namePadding, listMean(times), listStd(times))
+  output += "{} {}{: >7.3f} +/- {: <4.3f} ms\n".format(name, namePadding, listMean(times), listStd(times))
 output += "\n\n"
 
 if not config.quiet:

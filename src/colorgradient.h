@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_COLORGRADIENT_H
 #define QCP_COLORGRADIENT_H
 
 #include "global.h"
-#include "range.h"
+#include "axis/range.h"
 
 class QCP_LIB_DECL QCPColorGradient
 {
@@ -62,7 +62,8 @@ public:
                       };
   Q_ENUMS(GradientPreset)
   
-  QCPColorGradient(GradientPreset preset=gpCold);
+  QCPColorGradient();
+  QCPColorGradient(GradientPreset preset);
   bool operator==(const QCPColorGradient &other) const;
   bool operator!=(const QCPColorGradient &other) const { return !(*this == other); }
   
@@ -81,14 +82,13 @@ public:
   
   // non-property methods:
   void colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor=1, bool logarithmic=false);
+  void colorize(const double *data, const unsigned char *alpha, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor=1, bool logarithmic=false);
   QRgb color(double position, const QCPRange &range, bool logarithmic=false);
   void loadPreset(GradientPreset preset);
   void clearColorStops();
   QCPColorGradient inverted() const;
   
 protected:
-  void updateColorBuffer();
-  
   // property members:
   int mLevelCount;
   QMap<double, QColor> mColorStops;
@@ -96,8 +96,14 @@ protected:
   bool mPeriodic;
   
   // non-property members:
-  QVector<QRgb> mColorBuffer;
+  QVector<QRgb> mColorBuffer; // have colors premultiplied with alpha (for usage with QImage::Format_ARGB32_Premultiplied)
   bool mColorBufferInvalidated;
+  
+  // non-virtual methods:
+  bool stopsUseAlpha() const;
+  void updateColorBuffer();
 };
+Q_DECLARE_METATYPE(QCPColorGradient::ColorInterpolation)
+Q_DECLARE_METATYPE(QCPColorGradient::GradientPreset)
 
 #endif // QCP_COLORGRADIENT_H

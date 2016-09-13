@@ -1,7 +1,7 @@
 /*! \page thelayoutsystem The Layout System
  
   The layout system is responsible for positioning and scaling layout elements such as axis rects,
-  legends and plot titles in a QCustomPlot.
+  legends, or color scales in a QCustomPlot.
 
   \section layoutsystem-classesandmechanisms Classes and mechanisms
   
@@ -66,15 +66,42 @@
   QCustomPlot::plotLayout and contains (directly or indirectly via other sub-layouts) all layout
   elements in the QCustomPlot. By default, this top level grid layout contains a single cell which
   holds the main axis rect.
- 
-  \subsection layoutsystem-examples Examples
-  
-  <b>Adding a plot title</b> is a typical and simple case to demonstrate basic workings of the layout system.
-  \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
-  \image html layoutsystem-addingplottitle.png
 
+  \subsection layoutsystem-examples Examples
+
+  <b>Adding a plot title</b> is a typical and simple case to demonstrate basic workings of the layout system.
+  <table><tr><td>
+    \image html layoutsystem-addingplottitle.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp plottitle-example
+  </td></tr></table>
+
+  <br><br>
+  <b>Adding custom elements to the legend</b> is quite simple, since the \ref QCPLegend is itself
+  just a subclass of \ref QCPLayoutGrid. So we can manipulate it just like the main plot layout as
+  before:
+  <table><tr><td>
+    \image html layoutsystem-addinglegendtitle.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp legendtitle-example
+  </td></tr></table>
+
+  <br><br>
+  <b >Moving the legend outside the axis rect</b> can be achieved as follows:
+  <table><tr><td>
+    \image html layoutsystem-movinglegend.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp movinglegend-example
+  </td></tr></table>
+
+  <br><br>
   <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.
-  \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
-  \image html layoutsystem-multipleaxisrects.png
-  
+  <table><tr><td>
+    \image html layoutsystem-multipleaxisrects.png
+  </td><td>
+    \snippet documentation/doc-image-generator/mainwindow.cpp layoutsystem-example
+  </td></tr></table>
+
+  <br><br><br>
+  <br><br><br>
 */

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-curve.h"
@@ -52,7 +52,8 @@
 /*!
   Creates a curve item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemCurve::QCPItemCurve(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -127,19 +128,20 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   if (onlySelectable && !mSelectable)
     return -1;
   
-  QPointF startVec(start->pixelPoint());
-  QPointF startDirVec(startDir->pixelPoint());
-  QPointF endDirVec(endDir->pixelPoint());
-  QPointF endVec(end->pixelPoint());
+  QPointF startVec(start->pixelPosition());
+  QPointF startDirVec(startDir->pixelPosition());
+  QPointF endDirVec(endDir->pixelPosition());
+  QPointF endVec(end->pixelPosition());
 
   QPainterPath cubicPath(startVec);
   cubicPath.cubicTo(startDirVec, endDirVec, endVec);
   
   QPolygonF polygon = cubicPath.toSubpathPolygons().first();
+  QCPVector2D p(pos);
   double minDistSqr = std::numeric_limits<double>::max();
   for (int i=1; i<polygon.size(); ++i)
   {
-    double distSqr = distSqrToLine(polygon.at(i-1), polygon.at(i), pos);
+    double distSqr = p.distanceSquaredToLine(polygon.at(i-1), polygon.at(i));
     if (distSqr < minDistSqr)
       minDistSqr = distSqr;
   }
@@ -149,15 +151,15 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
 /* inherits documentation from base class */
 void QCPItemCurve::draw(QCPPainter *painter)
 {
-  QPointF startVec(start->pixelPoint());
-  QPointF startDirVec(startDir->pixelPoint());
-  QPointF endDirVec(endDir->pixelPoint());
-  QPointF endVec(end->pixelPoint());
-  if (QVector2D(endVec-startVec).length() > 1e10f) // too large curves cause crash
+  QCPVector2D startVec(start->pixelPosition());
+  QCPVector2D startDirVec(startDir->pixelPosition());
+  QCPVector2D endDirVec(endDir->pixelPosition());
+  QCPVector2D endVec(end->pixelPosition());
+  if ((endVec-startVec).length() > 1e10) // too large curves cause crash
     return;
 
-  QPainterPath cubicPath(startVec);
-  cubicPath.cubicTo(startDirVec, endDirVec, endVec);
+  QPainterPath cubicPath(startVec.toPointF());
+  cubicPath.cubicTo(startDirVec.toPointF(), endDirVec.toPointF(), endVec.toPointF());
 
   // paint visible segment, if existent:
   QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
@@ -170,9 +172,9 @@ void QCPItemCurve::draw(QCPPainter *painter)
     painter->drawPath(cubicPath);
     painter->setBrush(Qt::SolidPattern);
     if (mTail.style() != QCPLineEnding::esNone)
-      mTail.draw(painter, QVector2D(startVec), M_PI-cubicPath.angleAtPercent(0)/180.0*M_PI);
+      mTail.draw(painter, startVec, M_PI-cubicPath.angleAtPercent(0)/180.0*M_PI);
     if (mHead.style() != QCPLineEnding::esNone)
-      mHead.draw(painter, QVector2D(endVec), -cubicPath.angleAtPercent(1)/180.0*M_PI);
+      mHead.draw(painter, endVec, -cubicPath.angleAtPercent(1)/180.0*M_PI);
   }
 }
 

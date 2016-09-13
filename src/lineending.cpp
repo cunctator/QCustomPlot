@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "lineending.h"
@@ -190,17 +190,15 @@ double QCPLineEnding::realLength() const
   Draws the line ending with the specified \a painter at the position \a pos. The direction of the
   line ending is controlled with \a dir.
 */
-void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVector2D &dir) const
+void QCPLineEnding::draw(QCPPainter *painter, const QCPVector2D &pos, const QCPVector2D &dir) const
 {
   if (mStyle == esNone)
     return;
   
-  QVector2D lengthVec(dir.normalized());
+  QCPVector2D lengthVec = dir.normalized() * mLength*(mInverted ? -1 : 1);
   if (lengthVec.isNull())
-    lengthVec = QVector2D(1, 0);
-  QVector2D widthVec(-lengthVec.y(), lengthVec.x());
-  lengthVec *= (float)(mLength*(mInverted ? -1 : 1));
-  widthVec *= (float)(mWidth*0.5*(mInverted ? -1 : 1));
+    lengthVec = QCPVector2D(1, 0);
+  QCPVector2D widthVec = dir.normalized().perpendicular() * mWidth*0.5*(mInverted ? -1 : 1);
   
   QPen penBackup = painter->pen();
   QBrush brushBackup = painter->brush();
@@ -227,7 +225,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
     {
       QPointF points[4] = {pos.toPointF(),
                            (pos-lengthVec+widthVec).toPointF(),
-                           (pos-lengthVec*0.8f).toPointF(),
+                           (pos-lengthVec*0.8).toPointF(),
                            (pos-lengthVec-widthVec).toPointF()
                           };
       painter->setPen(miterPen);
@@ -257,7 +255,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
     }
     case esSquare:
     {
-      QVector2D widthVecPerp(-widthVec.y(), widthVec.x());
+      QCPVector2D widthVecPerp = widthVec.perpendicular();
       QPointF points[4] = {(pos-widthVecPerp+widthVec).toPointF(),
                            (pos-widthVecPerp-widthVec).toPointF(),
                            (pos+widthVecPerp-widthVec).toPointF(),
@@ -272,7 +270,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
     }
     case esDiamond:
     {
-      QVector2D widthVecPerp(-widthVec.y(), widthVec.x());
+      QCPVector2D widthVecPerp = widthVec.perpendicular();
       QPointF points[4] = {(pos-widthVecPerp).toPointF(),
                            (pos-widthVec).toPointF(),
                            (pos+widthVecPerp).toPointF(),
@@ -300,13 +298,13 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
       if (qFuzzyIsNull(painter->pen().widthF()) && !painter->modes().testFlag(QCPPainter::pmNonCosmetic))
       {
         // if drawing with cosmetic pen (perfectly thin stroke, happens only in vector exports), draw bar exactly on tip of line
-        painter->drawLine((pos+widthVec+lengthVec*0.2f*(mInverted?-1:1)).toPointF(),
-                          (pos-widthVec-lengthVec*0.2f*(mInverted?-1:1)).toPointF());
+        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)).toPointF(),
+                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)).toPointF());
       } else
       {
         // if drawing with thick (non-cosmetic) pen, shift bar a little in line direction to prevent line from sticking through bar slightly
-        painter->drawLine((pos+widthVec+lengthVec*0.2f*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF(),
-                          (pos-widthVec-lengthVec*0.2f*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF());
+        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF(),
+                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF());
       }
       break;
     }
@@ -318,7 +316,7 @@ void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, const QVecto
   
   Draws the line ending. The direction is controlled with the \a angle parameter in radians.
 */
-void QCPLineEnding::draw(QCPPainter *painter, const QVector2D &pos, double angle) const
+void QCPLineEnding::draw(QCPPainter *painter, const QCPVector2D &pos, double angle) const
 {
-  draw(painter, pos, QVector2D(qCos(angle), qSin(angle)));
+  draw(painter, pos, QCPVector2D(qCos(angle), qSin(angle)));
 }

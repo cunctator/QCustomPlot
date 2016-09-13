@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "plottable-colormap.h"
 
 #include "../painter.h"
 #include "../core.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPColorMapData
@@ -48,6 +48,11 @@
   with \ref setCell. This is the fastest method. Alternatively, they can be addressed by their plot
   coordinate with \ref setData. plot coordinate to cell index transformations and vice versa are
   provided by the functions \ref coordToCell and \ref cellToCoord.
+  
+  A \ref QCPColorMapData also holds an on-demand two-dimensional array of alpha values which (if
+  allocated) has the same size as the data map. It can be accessed via \ref setAlpha, \ref
+  fillAlpha and \ref clearAlpha. The memory for the alpha map is only allocated if needed, i.e. on
+  the first call of \ref setAlpha. \ref clearAlpha restores full opacity and frees the alpha map.
   
   This class also buffers the minimum and maximum values that are in the data set, to provide
   QCPColorMap::rescaleDataRange with the necessary information quickly. Setting a cell to a value
@@ -85,6 +90,7 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
   mValueRange(valueRange),
   mIsEmpty(true),
   mData(0),
+  mAlpha(0),
   mDataModified(true)
 {
   setSize(keySize, valueSize);
@@ -95,6 +101,8 @@ QCPColorMapData::~QCPColorMapData()
 {
   if (mData)
     delete[] mData;
+  if (mAlpha)
+    delete[] mAlpha;
 }
 
 /*!
@@ -105,13 +113,15 @@ QCPColorMapData::QCPColorMapData(const QCPColorMapData &other) :
   mValueSize(0),
   mIsEmpty(true),
   mData(0),
+  mAlpha(0),
   mDataModified(true)
 {
   *this = other;
 }
 
 /*!
-  Overwrites this color map data instance with the data stored in \a other.
+  Overwrites this color map data instance with the data stored in \a other. The alpha map state is
+  transferred, too.
 */
 QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
 {
@@ -119,10 +129,18 @@ QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
   {
     const int keySize = other.keySize();
     const int valueSize = other.valueSize();
+    if (!other.mAlpha && mAlpha)
+      clearAlpha();
     setSize(keySize, valueSize);
+    if (other.mAlpha && !mAlpha)
+      createAlpha(false);
     setRange(other.keyRange(), other.valueRange());
-    if (!mIsEmpty)
+    if (!isEmpty())
+    {
       memcpy(mData, other.mData, sizeof(mData[0])*keySize*valueSize);
+      if (mAlpha)
+        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*keySize*valueSize);
+    }
     mDataBounds = other.mDataBounds;
     mDataModified = true;
   }
@@ -147,6 +165,22 @@ double QCPColorMapData::cell(int keyIndex, int valueIndex)
     return mData[valueIndex*mKeySize + keyIndex];
   else
     return 0;
+}
+
+/*!
+  Returns the alpha map value of the cell with the indices \a keyIndex and \a valueIndex.
+
+  If this color map data doesn't have an alpha map (because \ref setAlpha was never called after
+  creation or after a call to \ref clearAlpha), returns 255, which corresponds to full opacity.
+
+  \see setAlpha
+*/
+unsigned char QCPColorMapData::alpha(int keyIndex, int valueIndex)
+{
+  if (mAlpha && keyIndex >= 0 && keyIndex < mKeySize && valueIndex >= 0 && valueIndex < mValueSize)
+    return mAlpha[valueIndex*mKeySize + keyIndex];
+  else
+    return 255;
 }
 
 /*!
@@ -185,6 +219,10 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
         qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
     } else
       mData = 0;
+    
+    if (mAlpha) // if we had an alpha map, recreate it with new size
+      createAlpha();
+    
     mDataModified = true;
   }
 }
@@ -313,7 +351,36 @@ void QCPColorMapData::setCell(int keyIndex, int valueIndex, double z)
     if (z > mDataBounds.upper)
       mDataBounds.upper = z;
      mDataModified = true;
-  }
+  } else
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << keyIndex << valueIndex;
+}
+
+/*!
+  Sets the alpha of the color map cell given by \a keyIndex and \a valueIndex to \a alpha. A value
+  of 0 for \a alpha results in a fully transparent cell, and a value of 255 results in a fully
+  opaque cell.
+
+  If an alpha map doesn't exist yet for this color map data, it will be created here. If you wish
+  to restore full opacity and free any allocated memory of the alpha map, call \ref clearAlpha.
+
+  Note that the cell-wise alpha which can be configured here is independent of any alpha configured
+  in the color map's gradient (\ref QCPColorGradient). If a cell is affected both by the cell-wise
+  and gradient alpha, the alpha values will be blended accordingly during rendering of the color
+  map.
+
+  \see fillAlpha, clearAlpha
+*/
+void QCPColorMapData::setAlpha(int keyIndex, int valueIndex, unsigned char alpha)
+{
+  if (keyIndex >= 0 && keyIndex < mKeySize && valueIndex >= 0 && valueIndex < mValueSize)
+  {
+    if (mAlpha || createAlpha())
+    {
+      mAlpha[valueIndex*mKeySize + keyIndex] = alpha;
+      mDataModified = true;
+    }
+  } else
+    qDebug() << Q_FUNC_INFO << "index out of bounds:" << keyIndex << valueIndex;
 }
 
 /*!
@@ -359,6 +426,19 @@ void QCPColorMapData::clear()
 }
 
 /*!
+  Frees the internal alpha map. The color map will have full opacity again.
+*/
+void QCPColorMapData::clearAlpha()
+{
+  if (mAlpha)
+  {
+    delete[] mAlpha;
+    mAlpha = 0;
+    mDataModified = true;
+  }
+}
+
+/*!
   Sets all cells to the value \a z.
 */
 void QCPColorMapData::fill(double z)
@@ -368,6 +448,26 @@ void QCPColorMapData::fill(double z)
     mData[i] = z;
   mDataBounds = QCPRange(z, z);
   mDataModified = true;
+}
+
+/*!
+  Sets the opacity of all color map cells to \a alpha. A value of 0 for \a alpha results in a fully
+  transparent color map, and a value of 255 results in a fully opaque color map.
+
+  If you wish to restore opacity to 100% and free any used memory for the alpha map, rather use
+  \ref clearAlpha.
+
+  \see setAlpha
+*/
+void QCPColorMapData::fillAlpha(unsigned char alpha)
+{
+  if (mAlpha || createAlpha(false))
+  {
+    const int dataCount = mValueSize*mKeySize;
+    for (int i=0; i<dataCount; ++i)
+      mAlpha[i] = alpha;
+    mDataModified = true;
+  }
 }
 
 /*!
@@ -418,6 +518,44 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
     *value = valueIndex/(double)(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
 }
 
+/*! \internal
+
+  Allocates the internal alpha map with the current data map key/value size and, if \a
+  initializeOpaque is true, initializes all values to 255. If \a initializeOpaque is false, the
+  values are not initialized at all. In this case, the alpha map should be initialized manually,
+  e.g. with \ref fillAlpha.
+
+  If an alpha map exists already, it is deleted first. If this color map is empty (has either key
+  or value size zero, see \ref isEmpty), the alpha map is cleared.
+
+  The return value indicates the existence of the alpha map after the call. So this method returns
+  true if the data map isn't empty and an alpha map was successfully allocated.
+*/
+bool QCPColorMapData::createAlpha(bool initializeOpaque)
+{
+  clearAlpha();
+  if (isEmpty())
+    return false;
+  
+#ifdef __EXCEPTIONS
+  try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
+#endif
+    mAlpha = new unsigned char[mKeySize*mValueSize];
+#ifdef __EXCEPTIONS
+  } catch (...) { mAlpha = 0; }
+#endif
+  if (mAlpha)
+  {
+    if (initializeOpaque)
+      fillAlpha(255);
+    return true;
+  } else
+  {
+    qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
+    return false;
+  }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPColorMap
@@ -433,7 +571,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   
   A color map has three dimensions to represent a data point: The \a key dimension, the \a value
   dimension and the \a data dimension. As with other plottables such as graphs, \a key and \a value
-  correspond to two orthogonal axes on the QCustomPlot surface that you specify in the QColorMap
+  correspond to two orthogonal axes on the QCustomPlot surface that you specify in the QCPColorMap
   constructor. The \a data dimension however is encoded as the color of the point at (\a key, \a
   value).
 
@@ -453,7 +591,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   typically placed to the right of the axis rect. See the documentation there for details on how to
   add and use a color scale.
   
-  \section appearance Changing the appearance
+  \section qcpcolormap-appearance Changing the appearance
   
   The central part of the appearance is the color gradient, which can be specified via \ref
   setGradient. See the documentation of \ref QCPColorGradient for details on configuring a color
@@ -463,15 +601,32 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   setDataRange. To make the data range encompass the whole data set minimum to maximum, call \ref
   rescaleDataRange.
   
-  \section usage Usage
+  \section qcpcolormap-transparency Transparency
+  
+  Transparency in color maps can be achieved by two mechanisms. On one hand, you can specify alpha
+  values for color stops of the \ref QCPColorGradient, via the regular QColor interface. This will
+  cause the color map data which gets mapped to colors around those color stops to appear with the
+  accordingly interpolated transparency.
+  
+  On the other hand you can also directly apply an alpha value to each cell independent of its
+  data, by using the alpha map feature of \ref QCPColorMapData. The relevant methods are \ref
+  QCPColorMapData::setAlpha, QCPColorMapData::fillAlpha and \ref QCPColorMapData::clearAlpha().
+  
+  The two transparencies will be joined together in the plot and otherwise not interfere with each
+  other. They are mixed in a multiplicative matter, so an alpha of e.g. 50% (128/255) in both modes
+  simultaneously, will result in a total transparency of 25% (64/255).
+  
+  \section qcpcolormap-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPColorMap is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
-  (QCustomPlot::plottable, QCustomPlot::addPlottable, QCustomPlot::removePlottable, etc.)
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
   
-  Usually, you first create an instance and add it to the customPlot:
+  Usually, you first create an instance:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolormap-creation-1
-  and then modify the properties of the newly created color map, e.g.:
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot instance takes
+  ownership of the plottable, so do not delete it manually but use QCustomPlot::removePlottable() instead.
+  The newly created plottable can be modified, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolormap-creation-2
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
@@ -495,7 +650,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
 
 /* start documentation of signals */
 
-/*! \fn void QCPColorMap::dataRangeChanged(QCPRange newRange);
+/*! \fn void QCPColorMap::dataRangeChanged(const QCPRange &newRange);
   
   This signal is emitted when the data range changes.
   
@@ -509,7 +664,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   \see setDataScaleType
 */
 
-/*! \fn void QCPColorMap::gradientChanged(QCPColorGradient newGradient);
+/*! \fn void QCPColorMap::gradientChanged(const QCPColorGradient &newGradient);
   
   This signal is emitted when the gradient changes.
   
@@ -521,8 +676,9 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
 /*!
   Constructs a color map with the specified \a keyAxis and \a valueAxis.
   
-  The constructed QCPColorMap can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the color map.
+  The created QCPColorMap is automatically registered with the QCustomPlot instance inferred from
+  \a keyAxis. This QCustomPlot instance takes ownership of the QCPColorMap, so do not delete it
+  manually but use QCustomPlot::removePlottable() instead.
 */
 QCPColorMap::QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
@@ -746,31 +902,80 @@ void QCPColorMap::updateLegendIcon(Qt::TransformationMode transformMode, const Q
   }
 }
 
-/*!
-  Clears the colormap data by calling \ref QCPColorMapData::clear() on the internal data. This also
-  resizes the map to 0x0 cells.
-*/
-void QCPColorMap::clearData()
-{
-  mMapData->clear();
-}
-
 /* inherits documentation from base class */
 double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if (onlySelectable && !mSelectable)
+  if ((onlySelectable && mSelectable == QCP::stNone) || mMapData->isEmpty())
     return -1;
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     double posKey, posValue;
     pixelsToCoords(pos, posKey, posValue);
     if (mMapData->keyRange().contains(posKey) && mMapData->valueRange().contains(posValue))
+    {
+      if (details)
+        details->setValue(QCPDataSelection(QCPDataRange(0, 1))); // temporary solution, to facilitate whole-plottable selection. Replace in future version with segmented 2D selection.
       return mParentPlot->selectionTolerance()*0.99;
+    }
   }
   return -1;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPColorMap::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  foundRange = true;
+  QCPRange result = mMapData->keyRange();
+  result.normalize();
+  if (inSignDomain == QCP::sdPositive)
+  {
+    if (result.lower <= 0 && result.upper > 0)
+      result.lower = result.upper*1e-3;
+    else if (result.lower <= 0 && result.upper <= 0)
+      foundRange = false;
+  } else if (inSignDomain == QCP::sdNegative)
+  {
+    if (result.upper >= 0 && result.lower < 0)
+      result.upper = result.lower*1e-3;
+    else if (result.upper >= 0 && result.lower >= 0)
+      foundRange = false;
+  }
+  return result;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
+{
+  if (inKeyRange != QCPRange())
+  {
+    if (mMapData->keyRange().upper < inKeyRange.lower || mMapData->keyRange().lower > inKeyRange.upper)
+    {
+      foundRange = false;
+      return QCPRange();
+    }
+  }
+  
+  foundRange = true;
+  QCPRange result = mMapData->valueRange();
+  result.normalize();
+  if (inSignDomain == QCP::sdPositive)
+  {
+    if (result.lower <= 0 && result.upper > 0)
+      result.lower = result.upper*1e-3;
+    else if (result.lower <= 0 && result.upper <= 0)
+      foundRange = false;
+  } else if (inSignDomain == QCP::sdNegative)
+  {
+    if (result.upper >= 0 && result.lower < 0)
+      result.upper = result.lower*1e-3;
+    else if (result.upper >= 0 && result.lower >= 0)
+      foundRange = false;
+  }
+  return result;
 }
 
 /*! \internal
@@ -793,6 +998,7 @@ void QCPColorMap::updateMapImage()
   if (!keyAxis) return;
   if (mMapData->isEmpty()) return;
   
+  const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
   const int keySize = mMapData->keySize();
   const int valueSize = mMapData->valueSize();
   int keyOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)keySize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
@@ -800,23 +1006,24 @@ void QCPColorMap::updateMapImage()
   
   // resize mMapImage to correct dimensions including possible oversampling factors, according to key/value axes orientation:
   if (keyAxis->orientation() == Qt::Horizontal && (mMapImage.width() != keySize*keyOversamplingFactor || mMapImage.height() != valueSize*valueOversamplingFactor))
-    mMapImage = QImage(QSize(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor), QImage::Format_RGB32);
+    mMapImage = QImage(QSize(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor), format);
   else if (keyAxis->orientation() == Qt::Vertical && (mMapImage.width() != valueSize*valueOversamplingFactor || mMapImage.height() != keySize*keyOversamplingFactor))
-    mMapImage = QImage(QSize(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor), QImage::Format_RGB32);
+    mMapImage = QImage(QSize(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor), format);
   
   QImage *localMapImage = &mMapImage; // this is the image on which the colorization operates. Either the final mMapImage, or if we need oversampling, mUndersampledMapImage
   if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
   {
     // resize undersampled map image to actual key/value cell sizes:
     if (keyAxis->orientation() == Qt::Horizontal && (mUndersampledMapImage.width() != keySize || mUndersampledMapImage.height() != valueSize))
-      mUndersampledMapImage = QImage(QSize(keySize, valueSize), QImage::Format_RGB32);
+      mUndersampledMapImage = QImage(QSize(keySize, valueSize), format);
     else if (keyAxis->orientation() == Qt::Vertical && (mUndersampledMapImage.width() != valueSize || mUndersampledMapImage.height() != keySize))
-      mUndersampledMapImage = QImage(QSize(valueSize, keySize), QImage::Format_RGB32);
+      mUndersampledMapImage = QImage(QSize(valueSize, keySize), format);
     localMapImage = &mUndersampledMapImage; // make the colorization run on the undersampled image
   } else if (!mUndersampledMapImage.isNull())
     mUndersampledMapImage = QImage(); // don't need oversampling mechanism anymore (map size has changed) but mUndersampledMapImage still has nonzero size, free it
   
   const double *rawData = mMapData->mData;
+  const unsigned char *rawAlpha = mMapData->mAlpha;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     const int lineCount = valueSize;
@@ -824,7 +1031,10 @@ void QCPColorMap::updateMapImage()
     for (int line=0; line<lineCount; ++line)
     {
       QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+      if (rawAlpha)
+        mGradient.colorize(rawData+line*rowCount, rawAlpha+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+      else
+        mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
@@ -833,7 +1043,10 @@ void QCPColorMap::updateMapImage()
     for (int line=0; line<lineCount; ++line)
     {
       QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+      if (rawAlpha)
+        mGradient.colorize(rawData+line, rawAlpha+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+      else
+        mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
     }
   }
   
@@ -859,13 +1072,13 @@ void QCPColorMap::draw(QCPPainter *painter)
     updateMapImage();
   
   // use buffer if painting vectorized (PDF):
-  bool useBuffer = painter->modes().testFlag(QCPPainter::pmVectorized);
+  const bool useBuffer = painter->modes().testFlag(QCPPainter::pmVectorized);
   QCPPainter *localPainter = painter; // will be redirected to paint on mapBuffer if painting vectorized
   QRectF mapBufferTarget; // the rect in absolute widget coordinates where the visible map portion/buffer will end up in
   QPixmap mapBuffer;
-  double mapBufferPixelRatio = 3; // factor by which DPI is increased in embedded bitmaps
   if (useBuffer)
   {
+    const double mapBufferPixelRatio = 3; // factor by which DPI is increased in embedded bitmaps
     mapBufferTarget = painter->clipRegion().boundingRect();
     mapBuffer = QPixmap((mapBufferTarget.size()*mapBufferPixelRatio).toSize());
     mapBuffer.fill(Qt::transparent);
@@ -893,9 +1106,9 @@ void QCPColorMap::draw(QCPPainter *painter)
       halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->valueSize()-1);
   }
   imageRect.adjust(-halfCellWidth, -halfCellHeight, halfCellWidth, halfCellHeight);
-  bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();
-  bool mirrorY = (valueAxis()->orientation() == Qt::Vertical ? valueAxis() : keyAxis())->rangeReversed();
-  bool smoothBackup = localPainter->renderHints().testFlag(QPainter::SmoothPixmapTransform);
+  const bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();
+  const bool mirrorY = (valueAxis()->orientation() == Qt::Vertical ? valueAxis() : keyAxis())->rangeReversed();
+  const bool smoothBackup = localPainter->renderHints().testFlag(QPainter::SmoothPixmapTransform);
   localPainter->setRenderHint(QPainter::SmoothPixmapTransform, mInterpolate);
   QRegion clipBackup;
   if (mTightBoundary)
@@ -935,49 +1148,5 @@ void QCPColorMap::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   painter->setPen(Qt::black);
   painter->drawRect(rect.adjusted(1, 1, 0, 0));
   */
-}
-
-/* inherits documentation from base class */
-QCPRange QCPColorMap::getKeyRange(bool &foundRange, SignDomain inSignDomain) const
-{
-  foundRange = true;
-  QCPRange result = mMapData->keyRange();
-  result.normalize();
-  if (inSignDomain == QCPAbstractPlottable::sdPositive)
-  {
-    if (result.lower <= 0 && result.upper > 0)
-      result.lower = result.upper*1e-3;
-    else if (result.lower <= 0 && result.upper <= 0)
-      foundRange = false;
-  } else if (inSignDomain == QCPAbstractPlottable::sdNegative)
-  {
-    if (result.upper >= 0 && result.lower < 0)
-      result.upper = result.lower*1e-3;
-    else if (result.upper >= 0 && result.lower >= 0)
-      foundRange = false;
-  }
-  return result;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPColorMap::getValueRange(bool &foundRange, SignDomain inSignDomain) const
-{
-  foundRange = true;
-  QCPRange result = mMapData->valueRange();
-  result.normalize();
-  if (inSignDomain == QCPAbstractPlottable::sdPositive)
-  {
-    if (result.lower <= 0 && result.upper > 0)
-      result.lower = result.upper*1e-3;
-    else if (result.lower <= 0 && result.upper <= 0)
-      foundRange = false;
-  } else if (inSignDomain == QCPAbstractPlottable::sdNegative)
-  {
-    if (result.upper >= 0 && result.lower < 0)
-      result.upper = result.lower*1e-3;
-    else if (result.upper >= 0 && result.lower >= 0)
-      foundRange = false;
-  }
-  return result;
 }
 

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,30 +19,50 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_H
 #define QCP_H
 
 #include "global.h"
+#include "vector2d.h"
 #include "painter.h"
+#include "paintbuffer.h"
 #include "layer.h"
+#include "axis/range.h"
+#include "selection.h"
+#include "selectionrect.h"
 #include "layout.h"
-#include "range.h"
-#include "axis.h"
+#include "lineending.h"
+#include "axis/axisticker.h"
+#include "axis/axistickerdatetime.h"
+#include "axis/axistickertime.h"
+#include "axis/axistickerfixed.h"
+#include "axis/axistickertext.h"
+#include "axis/axistickerpi.h"
+#include "axis/axistickerlog.h"
+#include "axis/axis.h"
+#include "scatterstyle.h"
+#include "datacontainer.h"
 #include "plottable.h"
 #include "item.h"
-#include "lineending.h"
 #include "core.h"
+#include "plottable1d.h"
 #include "colorgradient.h"
+#include "selectiondecorator-bracket.h"
+#include "layoutelements/layoutelement-axisrect.h"
+#include "layoutelements/layoutelement-legend.h"
+#include "layoutelements/layoutelement-textelement.h"
+#include "layoutelements/layoutelement-colorscale.h"
 #include "plottables/plottable-graph.h"
 #include "plottables/plottable-curve.h"
 #include "plottables/plottable-bars.h"
 #include "plottables/plottable-statisticalbox.h"
 #include "plottables/plottable-colormap.h"
 #include "plottables/plottable-financial.h"
+#include "plottables/plottable-errorbar.h"
 #include "items/item-straightline.h"
 #include "items/item-line.h"
 #include "items/item-curve.h"
@@ -52,9 +72,5 @@
 #include "items/item-pixmap.h"
 #include "items/item-tracer.h"
 #include "items/item-bracket.h"
-#include "layoutelements/layoutelement-axisrect.h"
-#include "layoutelements/layoutelement-legend.h"
-#include "layoutelements/layoutelement-plottitle.h"
-#include "layoutelements/layoutelement-colorscale.h"
 
 #endif // QCP_H

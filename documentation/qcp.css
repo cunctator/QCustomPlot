@@ -208,6 +208,9 @@ div.memitem {
   margin: 0 0 2em;
   padding: 0;
 }
+h2.memtitle {
+  display: none;
+}
 div.memproto {
   background-color: #F6F6F6;
   border: 1px solid #E6E6E6;
@@ -223,7 +226,7 @@ td.fieldname {
   white-space: nowrap;
 }
 td.fieldname > em {
-  font-family: "Droid Sans Mono";
+  font-family: monospace;
   font-style: normal;
   font-size: 0.85em;
 }
@@ -409,14 +412,6 @@ table.doxtable td {
   border-collapse: collapse;
   font-size: 90%;
 }
-table.doxtable td + td {
-  padding: 2px 1em 3px;
-  text-align: left;
-}
-table.doxtable td + td + td {
-  padding: 2px 2px 3px;
-  text-align: left;
-}
 dl.see {
 }
 dt {
@@ -483,7 +478,7 @@ dl.el {
 .fragment {
   background-color: #F5F5F5;
   border: 1px solid #CCCCCC;
-  font-family: monospace,fixed;
+  font-family: monospace;
   font-size: 9pt;
   line-height: 125%;
   margin: 4px 8px 4px 2px;
@@ -511,11 +506,12 @@ div.ah {
   margin-bottom: 3px;
   margin-top: 3px;
 }
-div.groupHeader {
+h2.groupheader {
   font-weight: 700;
-  margin-bottom: 6px;
-  margin-left: 16px;
-  margin-top: 12px;
+  font-size: 170%;
+  margin-bottom: 0.8em;
+  margin-left: 0.8em;
+  margin-top: 1.8em;
 }
 div.groupText {
   font-style: italic;
@@ -537,6 +533,10 @@ div.center {
 }
 div.center img {
   border: 0 none;
+}
+.permalink
+{
+  display:none;
 }
 span.keyword {
   color: #008000;
@@ -570,6 +570,44 @@ span.vhdlkeyword {
 }
 span.vhdllogic {
   color: #FF0000;
+}
+.overload {
+  font-family: "courier new",courier,monospace;
+  font-weight: normal;
+  font-size: 65%;
+  color: #A0A0A0;
+}
+.arrow {
+  color: #9CAFD4;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  font-size: 80%;
+  display: inline-block;
+  width: 16px;
+  height: 22px;
+}
+.icon {
+  font-family: Arial, Helvetica;
+  font-weight: bold;
+  font-size: 12px;
+  height: 14px;
+  width: 16px;
+  display: inline-block;
+  background-color: #728DC1;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.icona {
+  width: 24px;
+  height: 22px;
+  display: inline-block;
 }
 .search {
   color: #003399;

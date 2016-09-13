@@ -4,30 +4,37 @@
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
+  customPlot(0),
   defaultBrush(QColor(80, 215, 10, 70))
 {
   ui->setupUi(this);
-  setGeometry(300, 300, 500, 500);
   
   dir.setPath(qApp->applicationDirPath());
   dir.mkdir("images");
   if (!dir.cd("images"))
-  {
     QMessageBox::critical(this, "Error", tr("Couldn't create and access image directory:\n%1").arg(dir.filePath("images")));
-  } else
+  else
+    QTimer::singleShot(100, this, SLOT(run()));
+}
+
+void MainWindow::run()
+{
+  // invoke all methods of MainWindow that start with "gen":
+  for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
   {
-    // invoke all methods of MainWindow that start with "gen":
-    for (int i=this->metaObject()->methodOffset(); i<this->metaObject()->methodCount(); ++i)
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
+#else
+    if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
+#endif
     {
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-      if (QString::fromLatin1(this->metaObject()->method(i).signature()).startsWith("gen"))
+      qDebug() << "executing" << this->metaObject()->method(i).signature() << "...";
 #else
-      if (this->metaObject()->method(i).methodSignature().startsWith("gen"))
+      qDebug() << "executing" << this->metaObject()->method(i).methodSignature() << "...";
 #endif
-      {
-        if (!this->metaObject()->method(i).invoke(this))
-          qDebug() << "Failed to invoke doc-image-generator method" << i;
-      }
+      if (!this->metaObject()->method(i).invoke(this))
+        qDebug() << "Failed to invoke doc-image-generator method" << i;
     }
   }
   QTimer::singleShot(0, qApp, SLOT(quit()));
@@ -78,14 +85,12 @@ void MainWindow::genItemPixmap()
 {
   resetPlot();
   QCPItemPixmap *pixmapItem = new QCPItemPixmap(customPlot);
-  customPlot->addItem(pixmapItem);
   pixmapItem->setPixmap(QPixmap("./gnu.png"));
   pixmapItem->setScaled(true, Qt::IgnoreAspectRatio);
   pixmapItem->topLeft->setCoords(-0.2, 1);
   pixmapItem->bottomRight->setCoords(0.3, 0);
   labelItemAnchors(pixmapItem);
   QCPItemPixmap *pixmapItem2 = new QCPItemPixmap(customPlot);
-  customPlot->addItem(pixmapItem2);
   pixmapItem2->setPixmap(QPixmap("./gnu.png"));
   pixmapItem2->setScaled(true, Qt::IgnoreAspectRatio);
   pixmapItem2->topLeft->setCoords(1.2, 0);
@@ -98,7 +103,6 @@ void MainWindow::genItemRect()
 {
   resetPlot();
   QCPItemRect *rect = new QCPItemRect(customPlot);
-  customPlot->addItem(rect);
   rect->setBrush(defaultBrush);
   rect->topLeft->setCoords(0, 1);
   rect->bottomRight->setCoords(1, 0);
@@ -110,7 +114,6 @@ void MainWindow::genItemEllipse()
 {
   resetPlot();
   QCPItemEllipse *ellipse = new QCPItemEllipse(customPlot);
-  customPlot->addItem(ellipse);
   ellipse->setBrush(defaultBrush);
   ellipse->topLeft->setCoords(-0.15, 1.1);
   ellipse->bottomRight->setCoords(1.1, 0);
@@ -122,7 +125,6 @@ void MainWindow::genItemLine()
 {
   resetPlot();
   QCPItemLine *line = new QCPItemLine(customPlot);
-  customPlot->addItem(line);
   line->start->setCoords(-0.1, 0.8);
   line->end->setCoords(1.1, 0.2);
   line->setHead(QCPLineEnding::esSpikeArrow);
@@ -134,7 +136,6 @@ void MainWindow::genItemStraightLIne()
 {
   resetPlot();
   QCPItemStraightLine *straightLine = new QCPItemStraightLine(customPlot);
-  customPlot->addItem(straightLine);
   straightLine->point1->setCoords(0, 0.4);
   straightLine->point2->setCoords(1, 0.6);
   labelItemAnchors(straightLine);
@@ -145,7 +146,6 @@ void MainWindow::genItemCurve()
 {
   resetPlot();
   QCPItemCurve *curve = new QCPItemCurve(customPlot);
-  customPlot->addItem(curve);
   curve->start->setCoords(0, 1);
   curve->startDir->setCoords(0.5, 1);
   curve->endDir->setCoords(0.7, 0.2);
@@ -160,7 +160,6 @@ void MainWindow::genItemBracket()
 {
   resetPlot();
   QCPItemBracket *bracket = new QCPItemBracket(customPlot);
-  customPlot->addItem(bracket);
   bracket->left->setCoords(-0.2, 0.35);
   bracket->right->setCoords(1.2, 0.65);
   bracket->setLength(12);
@@ -172,14 +171,12 @@ void MainWindow::genItemBracket()
   for (int i=0; i<4; ++i)
   {
     QCPItemBracket *bracket = new QCPItemBracket(customPlot);
-    customPlot->addItem(bracket);
     bracket->setStyle(QCPItemBracket::bsCalligraphic);
     bracket->left->setCoords(-0.35+i*0.18, 0.95);
     bracket->right->setCoords(-0.15+i*0.18, 0.05);
     bracket->setLength(10+i*5);
     labelItemAnchors(bracket, 0, true, false);
     QCPItemText *label = new QCPItemText(customPlot);
-    customPlot->addItem(label);
     label->setText(QString::number(bracket->length()));
     label->position->setParentAnchor(bracket->right);
     label->position->setCoords(-5, 20);
@@ -188,26 +185,22 @@ void MainWindow::genItemBracket()
   for (int i=0; i<4; ++i)
   {
     QCPItemBracket *bracket = new QCPItemBracket(customPlot);
-    customPlot->addItem(bracket);
     bracket->setStyle(QCPItemBracket::bsSquare);
     bracket->left->setCoords(0.55+i*0.18, 0.95);
     bracket->right->setCoords(0.75+i*0.18, 0.05);
     bracket->setLength(10+i*5);
     labelItemAnchors(bracket, 0, true, false);
     QCPItemText *label = new QCPItemText(customPlot);
-    customPlot->addItem(label);
     label->setText(QString::number(bracket->length()));
     label->position->setParentAnchor(bracket->right);
     label->position->setCoords(-5, 20);
     label->setFont(QFont(font().family(), 9));
   }
   QCPItemText *topLabel1 = new QCPItemText(customPlot);
-  customPlot->addItem(topLabel1);
   topLabel1->setText("bsCalligraphic");
   topLabel1->position->setCoords(-0.05, 1.1);
   topLabel1->setFont(QFont(font().family(), 10));
   QCPItemText *topLabel2 = new QCPItemText(customPlot);
-  customPlot->addItem(topLabel2);
   topLabel2->setText("bsSquare");
   topLabel2->position->setCoords(0.85, 1.1);
   topLabel2->setFont(QFont(font().family(), 10));
@@ -218,7 +211,6 @@ void MainWindow::genItemText()
 {
   resetPlot();
   QCPItemText *text = new QCPItemText(customPlot);
-  customPlot->addItem(text);
   text->position->setCoords(0.5, 0.5);
   text->setText("QCustomPlot\nWidget");
   text->setFont(QFont(font().family(), 24));
@@ -241,7 +233,6 @@ void MainWindow::genItemTracer()
   customPlot->graph()->setData(x, y);
   customPlot->graph()->setPen(QPen(Qt::red));
   QCPItemTracer *tracer = new QCPItemTracer(customPlot);
-  customPlot->addItem(tracer);
   tracer->setStyle(QCPItemTracer::tsCrosshair);
   tracer->setGraph(customPlot->graph());
   tracer->setGraphKey(0.8);
@@ -265,12 +256,10 @@ void MainWindow::genLineEnding()
     
     QCPItemLine *line = new QCPItemLine(customPlot);
     line->setPen(QPen(Qt::black, 0, Qt::SolidLine, Qt::FlatCap));
-    customPlot->addItem(line);
     line->start->setCoords(offset+i*step-0.1, -0.2);
     line->end->setCoords(offset+i*step, 0.5);
     line->setHead(ending);
     QCPItemText *text = new QCPItemText(customPlot);
-    customPlot->addItem(text);
     text->position->setParentAnchor(line->end);
     text->position->setCoords(8, -15-(i%2)*15);
     text->setFont(QFont(font().family(), 8));
@@ -308,7 +297,6 @@ void MainWindow::genMarginGroup()
   QFont textFont;
   textFont.setBold(true);
   QCPItemText *leftCaption = new QCPItemText(customPlot);
-  customPlot->addItem(leftCaption);
   leftCaption->position->setType(QCPItemPosition::ptViewportRatio);
   leftCaption->setClipToAxisRect(false);
   leftCaption->position->setCoords(0.25, 0);
@@ -316,7 +304,6 @@ void MainWindow::genMarginGroup()
   leftCaption->setText("left sides in margin group");
   leftCaption->setFont(textFont);
   QCPItemText *rightCaption = new QCPItemText(customPlot);
-  customPlot->addItem(rightCaption);
   rightCaption->position->setType(QCPItemPosition::ptViewportRatio);
   rightCaption->position->setCoords(0.75, 0);
   rightCaption->setClipToAxisRect(false);
@@ -339,7 +326,7 @@ void MainWindow::genAxisRectSpacingOverview()
 {
   resetPlot();
  
-  customPlot->xAxis->setRange(-0.4, 1.4);
+  customPlot->xAxis->setRange(0.82, 5);
   customPlot->yAxis->setRange(100, 900);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
@@ -364,7 +351,6 @@ void MainWindow::genAxisRectSpacingOverview()
   addBracket(QPointF(200-95-25, 240), QPointF(200-65-25, 240), "Label padding", QPointF(-1, 5), true, Qt::AlignRight|Qt::AlignVCenter);
   
   QCPItemLine *leftBorder = new QCPItemLine(customPlot);
-  customPlot->addItem(leftBorder);
   leftBorder->setClipToAxisRect(false);
   leftBorder->start->setType(QCPItemPosition::ptViewportRatio);
   leftBorder->end->setType(QCPItemPosition::ptViewportRatio);
@@ -373,7 +359,6 @@ void MainWindow::genAxisRectSpacingOverview()
   leftBorder->setPen(QPen(Qt::gray, 0, Qt::DashLine));
   
   QCPItemText *axisRectLabel = new QCPItemText(customPlot);
-  customPlot->addItem(axisRectLabel);
   axisRectLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
   axisRectLabel->position->setCoords(0.5, 0.5);
   axisRectLabel->setFont(QFont(QFont().family(), 16));
@@ -389,6 +374,10 @@ void MainWindow::genAxisNamesOverview()
  
   customPlot->xAxis->setRange(1, 2);
   customPlot->yAxis->setRange(-50, 150);
+  QSharedPointer<QCPAxisTickerFixed> ticker(new QCPAxisTickerFixed);
+  ticker->setTickStep(50);
+  ticker->setScaleStrategy(QCPAxisTickerFixed::ssNone);
+  customPlot->yAxis->setTicker(ticker);
   customPlot->xAxis->setVisible(true);
   customPlot->yAxis->setVisible(true);
   customPlot->axisRect()->setupFullAxesBox();
@@ -397,15 +386,118 @@ void MainWindow::genAxisNamesOverview()
   customPlot->axisRect()->setMargins(QMargins(250, 50, 20, 65));
   customPlot->yAxis->setLabel("Axis Label");
   
-  addArrow(QPointF(216, 70), QPointF(150, 32), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(187, 110), QPointF(130, 76), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
-  addArrow(QPointF(260, 77), QPointF(300, 77), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(255, 95), QPointF(300, 95), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
-  addArrow(QPointF(297, 193), QPointF(297, 250), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
-  addArrow(QPointF(354, 165), QPointF(354, 266), "Grid line", Qt::AlignHCenter|Qt::AlignTop);
-  addBracket(QPointF(263, 132), QPointF(263, 105), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
+  addArrow(QPointF(216, 90), QPointF(150, 52), "Tick label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(187, 130), QPointF(130, 96), "Axis label", Qt::AlignRight|Qt::AlignVCenter);
+  addArrow(QPointF(260, 95), QPointF(300, 95), "Tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(255, 77), QPointF(300, 77), "Sub tick", Qt::AlignLeft|Qt::AlignVCenter);
+  addArrow(QPointF(297, 191), QPointF(297, 248), "Zero line", Qt::AlignHCenter|Qt::AlignTop);
+  addArrow(QPointF(382, 145), QPointF(382, 245), "Grid line of\ny axis", Qt::AlignHCenter|Qt::AlignTop);
+  addBracket(QPointF(263, 186), QPointF(263, 145), "Tick step", QPointF(8, 0), false, Qt::AlignLeft|Qt::AlignVCenter, QCPItemBracket::bsCurly);
   
   customPlot->savePng(dir.filePath("AxisNamesOverview.png"), 450, 300);
+}
+
+void MainWindow::genAxisTickers()
+{
+  resetPlot(true);
+  
+  customPlot->xAxis->setVisible(true);
+  customPlot->xAxis->grid()->setVisible(false);
+  customPlot->axisRect()->setMargins(QMargins(5, 0, 5, 35));
+  customPlot->setBackground(QBrush(Qt::transparent));
+  
+  // QCPAxisTickerFixed:
+  customPlot->xAxis->setRange(-1.5, 8.5);
+  //! [axistickerfixed-creation]
+  QSharedPointer<QCPAxisTickerFixed> fixedTicker(new QCPAxisTickerFixed);
+  customPlot->xAxis->setTicker(fixedTicker);
+  
+  fixedTicker->setTickStep(1.0); // tick step shall be 1.0
+  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
+  //! [axistickerfixed-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
+  
+  
+  // QCPAxisTickerLog:
+  customPlot->xAxis->setRange(0.05, 5e4);
+  //! [axistickerlog-creation]
+  QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
+  customPlot->xAxis->setTicker(logTicker);
+  // don't forget to also set the scale type accordingly, otherwise you'll have
+  // logarithmically spaced ticks on a linear axis:
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  //! [axistickerlog-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-log.png"), 600, 50);
+  
+  QString formatBefore = customPlot->xAxis->numberFormat();
+  int precBefore = customPlot->xAxis->numberPrecision();
+  customPlot->xAxis->setNumberFormat("eb");
+  customPlot->xAxis->setNumberPrecision(0);
+  customPlot->savePng(dir.filePath("axisticker-log-powers.png"), 600, 50);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  customPlot->xAxis->setNumberFormat(formatBefore);
+  customPlot->xAxis->setNumberPrecision(precBefore);
+  customPlot->xAxis->setScaleType(QCPAxis::stLinear);
+  
+  
+  // QCPAxisTickerDateTime:
+  //! [axistickerdatetime-creation]
+  QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
+  customPlot->xAxis->setTicker(dateTimeTicker);
+  
+  customPlot->xAxis->setRange(QCPAxisTickerDateTime::dateTimeToKey(QDate(2013, 11, 16)), QCPAxisTickerDateTime::dateTimeToKey(QDate(2015, 5, 2)));
+  dateTimeTicker->setDateTimeFormat("d. MMM\nyyyy");
+  //! [axistickerdatetime-creation]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-datetime.png"), 600, 50);
+  
+  
+  // QCPAxisTickerTime:
+  //! [axistickertime-creation]
+  QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
+  customPlot->xAxis->setTicker(timeTicker);
+  
+  customPlot->xAxis->setRange(-60*3.5, 60*11);
+  timeTicker->setTimeFormat("%m:%s");
+  //! [axistickertime-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-time.png"), 600, 50);
+  
+  customPlot->xAxis->setRange(-3600*12, 3600*24*4);
+  //! [axistickertime-creation-2]
+  timeTicker->setTimeFormat("day %d\n%h:%m");
+  //! [axistickertime-creation-2]
+  customPlot->xAxis->ticker()->setTickCount(9);
+  customPlot->savePng(dir.filePath("axisticker-time2.png"), 600, 50);
+  
+  
+  // QCPAxisTickerPi:
+  customPlot->xAxis->setRange(-4, 10);
+  //! [axistickerpi-creation]
+  QSharedPointer<QCPAxisTickerPi> piTicker(new QCPAxisTickerPi);
+  customPlot->xAxis->setTicker(piTicker);
+  //! [axistickerpi-creation]
+  customPlot->xAxis->ticker()->setTickCount(7);
+  customPlot->savePng(dir.filePath("axisticker-pi.png"), 600, 50);
+  
+  
+  // QCPAxisTickerText:
+  customPlot->xAxis->setRange(-0.5, 8.5);
+  //! [axistickertext-creation]
+  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+  customPlot->xAxis->setTicker(textTicker);
+  
+  textTicker->addTick(1.0, "Bacteria");
+  textTicker->addTick(2.0, "Protozoa");
+  textTicker->addTick(3.0, "Chromista");
+  textTicker->addTick(4.0, "Plants");
+  textTicker->addTick(5.0, "Fungi");
+  textTicker->addTick(6.0, "Animals");
+  textTicker->addTick(8.0, "Vogons");
+  //! [axistickertext-creation]
+  customPlot->savePng(dir.filePath("axisticker-text.png"), 600, 50);
 }
 
 void MainWindow::genLayoutsystem_AddingPlotTitle()
@@ -413,8 +505,8 @@ void MainWindow::genLayoutsystem_AddingPlotTitle()
   resetPlot(false);
   
   //! [plottitle-example]
-  // first we create and prepare a plot title layout element:
-  QCPPlotTitle *title = new QCPPlotTitle(customPlot);
+  // first we create and prepare a text layout element:
+  QCPTextElement *title = new QCPTextElement(customPlot);
   title->setText("Plot Title Example");
   title->setFont(QFont("sans", 12, QFont::Bold));
   // then we add it to the main plot layout:
@@ -459,6 +551,56 @@ void MainWindow::genLayoutsystem_MultipleAxisRects()
   customPlot->savePng(dir.filePath("layoutsystem-multipleaxisrects.png"), 400, 300);
 }
 
+void MainWindow::genLayoutsystem_AddingLegendTitle()
+{
+  resetPlot(false);
+  
+  //! [legendtitle-example]
+  // prepare legend and some graphs:
+  customPlot->legend->setVisible(true);
+  customPlot->addGraph()->setName("Torque");
+  customPlot->addGraph()->setName("Power");
+  customPlot->addGraph()->setName("Efficiency");
+  // create and prepare a text layout element:
+  QCPTextElement *legendTitle = new QCPTextElement(customPlot);
+  legendTitle->setLayer(customPlot->legend->layer()); // place text element on same layer as legend, or it ends up below legend
+  legendTitle->setText("Engine Status");
+  legendTitle->setFont(QFont("sans", 9, QFont::Bold));
+  // then we add it to the QCPLegend (which is a subclass of QCPLayoutGrid):
+  if (customPlot->legend->hasElement(0, 0)) // if top cell isn't empty, insert an empty row at top
+    customPlot->legend->insertRow(0);
+  customPlot->legend->addElement(0, 0, legendTitle); // place the text element into the empty cell
+  //! [legendtitle-example]
+  
+  customPlot->savePng(dir.filePath("layoutsystem-addinglegendtitle.png"), 300, 200);
+}
+
+void MainWindow::genLayoutsystem_MovingLegend()
+{
+  resetPlot(false);
+  
+  //! [movinglegend-example]
+  // prepare some graphs:
+  customPlot->legend->setVisible(true);
+  customPlot->addGraph()->setName("Torque");
+  customPlot->addGraph()->setName("Power");
+  customPlot->addGraph()->setName("Efficiency");
+  // now we move the legend from the inset layout of the axis rect into the main grid layout.
+  // We create a sub layout so we can generate a small gap between the plot layout cell border
+  // and the legend border:
+  QCPLayoutGrid *subLayout = new QCPLayoutGrid;
+  customPlot->plotLayout()->addElement(1, 0, subLayout);
+  subLayout->setMargins(QMargins(5, 0, 5, 5));
+  subLayout->addElement(0, 0, customPlot->legend);
+  // change the fill order of the legend, so it's filled left to right in columns:
+  customPlot->legend->setFillOrder(QCPLegend::foColumnsFirst);
+  // set legend's row stretch factor very small so it ends up with minimum height:
+  customPlot->plotLayout()->setRowStretchFactor(1, 0.001);
+  //! [movinglegend-example]
+  
+  customPlot->savePng(dir.filePath("layoutsystem-movinglegend.png"), 300, 200);
+}
+
 void MainWindow::genQCPGraph()
 {
   // generate main doc image of plottable:
@@ -474,7 +616,7 @@ void MainWindow::genQCPGraph()
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
   
-  QVector<double> x1, y1, x2, y2, err2;
+  QVector<double> x1, y1, x2, y2, y3;
   for (int i=0; i<100; ++i)
   {
     x1 << i/99.0*10;
@@ -485,20 +627,26 @@ void MainWindow::genQCPGraph()
   }
   x2 << 1 << 2 << 3 << 4 << 5 << 6 << 7 << 8 << 9;
   y2 << 1 << 1.1 << 1.5 << 1.6 << 1.4 << 1.35 << 1.3 << 1.2 << 1.15;
-  err2 << 0.25 << 0.3 << 0.34 << 0.35 << 0.3 << 0.15 << 0.17 << 0.23 << 0.24;
+  foreach (double y, y2)
+    y3 << y + 0.6;
   
   customPlot->addGraph();
   customPlot->graph()->setData(x1, y1);
   customPlot->graph()->setBrush(QColor(255, 50, 50, 25));
   
   customPlot->addGraph();
-  customPlot->graph()->setDataValueError(x2, y2, err2);
-  customPlot->graph()->setErrorType(QCPGraph::etValue);
-  customPlot->graph()->setLineStyle(QCPGraph::lsNone);
+  customPlot->graph()->setData(x2, y2);
+  customPlot->graph()->setPen(QPen(QColor(100, 100, 100), 1, Qt::SolidLine));
   customPlot->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::black, QColor(0, 0, 0, 25), 6));
   
+  customPlot->addGraph();
+  customPlot->graph()->setData(x2, y3);
+  customPlot->graph()->setLineStyle(QCPGraph::lsStepCenter);
+  customPlot->graph()->setPen(QPen(QColor(100, 100, 100), 1, Qt::SolidLine));
+  customPlot->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, Qt::black, QColor(0, 0, 0, 25), 6));
+  
   customPlot->xAxis->setRange(-1, 11);
-  customPlot->yAxis->setRange(-0.5, 2.1);
+  customPlot->yAxis->setRange(-0.5, 2.4);
   
   customPlot->savePng(dir.filePath("QCPGraph.png"), 450, 200);
 }
@@ -526,7 +674,6 @@ void MainWindow::genQCPCurve()
     y1 << qSin(t*2);
   }
   QCPCurve *curve = new QCPCurve(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(curve);
   curve->setData(x1, y1);
   
   customPlot->xAxis->setRange(-5, 5);
@@ -558,8 +705,6 @@ void MainWindow::genQCPBars()
   
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars1);
-  customPlot->addPlottable(bars2);
   bars1->setData(x1, y1);
   bars2->setData(x1, y2);
   bars2->moveAbove(bars1);
@@ -569,8 +714,6 @@ void MainWindow::genQCPBars()
   bars2->setPen(QPen(QColor(200, 50, 50)));
   bars2->setBrush(QColor(255, 50, 50, 25));
   
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
   customPlot->xAxis->setRange(-3, 3);
   customPlot->yAxis->setRange(-1, 2);
   
@@ -592,21 +735,14 @@ void MainWindow::genQCPStatisticalBox()
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
   
-  QCPStatisticalBox *box1 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  QCPStatisticalBox *box2 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  QCPStatisticalBox *box3 = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(box1);
-  customPlot->addPlottable(box2);
-  customPlot->addPlottable(box3);
-  box1->setData(-1, -1.2, -0.35, 0.1, 0.4, 1.1);
-  box2->setData(0, -1.4, -0.7, -0.1, 0.34, 0.9);
-  box3->setData(1, -0.6, -0.2, 0.15, 0.6, 1.2);
-  box1->setBrush(QColor(0, 0, 255, 20));
-  box2->setBrush(QColor(0, 0, 255, 20));
-  box3->setBrush(QColor(0, 0, 255, 20));
+  QCPStatisticalBox *statistical = new QCPStatisticalBox(customPlot->xAxis, customPlot->yAxis);
+  statistical->addData(-1, -1.2, -0.35, 0.1, 0.4, 1.1);
+  statistical->addData(0, -1.4, -0.7, -0.1, 0.34, 0.9);
+  statistical->addData(1, -0.6, -0.2, 0.15, 0.6, 1.2);
+  statistical->setBrush(QColor(0, 0, 255, 20));
   
-  box3->setOutliers(QVector<double>() << -0.9 << -1 << 1.35 << 1.4 << 1.1);
-  box3->setOutlierStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, 5));
+  (statistical->data()->begin()+2)->outliers << -0.9 << -1 << 1.35 << 1.4 << 1.1;
+  statistical->setOutlierStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::blue, 5));
   
   customPlot->xAxis->setRange(-3, 3);
   customPlot->yAxis->setRange(-1.5, 1.5);
@@ -628,11 +764,10 @@ void MainWindow::genQCPColorMap()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
   
   QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(colorMap);
   int nx = 200;
   int ny = 100;
   colorMap->data()->setSize(nx, ny);
@@ -669,8 +804,8 @@ void MainWindow::genQCPFinancial()
   customPlot->yAxis->setTicks(false);
   customPlot->xAxis->setTickLabels(false);
   customPlot->yAxis->setTickLabels(false);
-  customPlot->xAxis->setAutoTickCount(6);
-  customPlot->yAxis->setAutoTickCount(6);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
 
   // generate two sets of random walk data (one for candlestick and one for ohlc chart):
   int n = 500;
@@ -693,10 +828,8 @@ void MainWindow::genQCPFinancial()
   
   // create candlestick chart:
   QCPFinancial *candlesticks = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(candlesticks);
-  QCPFinancialDataMap data1 = QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime);
   candlesticks->setChartStyle(QCPFinancial::csCandlestick);
-  candlesticks->setData(&data1, true);
+  candlesticks->data()->set(QCPFinancial::timeSeriesToOhlc(time, value1, binSize, startTime));
   candlesticks->setWidth(binSize*0.9);
   candlesticks->setTwoColored(true);
   candlesticks->setBrushPositive(QColor(245, 245, 245));
@@ -706,10 +839,8 @@ void MainWindow::genQCPFinancial()
 
   // create ohlc chart:
   QCPFinancial *ohlc = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(ohlc);
-  QCPFinancialDataMap data2 = QCPFinancial::timeSeriesToOhlc(time, value2, binSize, startTime);
   ohlc->setChartStyle(QCPFinancial::csOhlc);
-  ohlc->setData(&data2, true);
+  ohlc->data()->set(QCPFinancial::timeSeriesToOhlc(time, value2, binSize, startTime));
   ohlc->setWidth(binSize*0.75);
   ohlc->setTwoColored(true);
 
@@ -718,6 +849,74 @@ void MainWindow::genQCPFinancial()
   customPlot->yAxis->scaleRange(1.1, customPlot->yAxis->range().center());
   
   customPlot->savePng(dir.filePath("QCPFinancial.png"), 450, 250);
+}
+
+void MainWindow::genQCPErrorBars()
+{
+  // generate main doc image of plottable:
+  resetPlot(false);
+  
+  customPlot->xAxis->setVisible(true);
+  customPlot->yAxis->setVisible(true);
+  customPlot->xAxis->setBasePen(Qt::NoPen);
+  customPlot->yAxis->setBasePen(Qt::NoPen);
+  customPlot->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+  customPlot->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+  customPlot->xAxis->setTicks(false);
+  customPlot->yAxis->setTicks(false);
+  customPlot->xAxis->setTickLabels(false);
+  customPlot->yAxis->setTickLabels(false);
+  customPlot->xAxis->ticker()->setTickCount(6);
+  customPlot->yAxis->ticker()->setTickCount(6);
+
+  qsrand(4);
+  int n = 5;
+  int n2 = 12;
+  QVector<double> x(n), y(n), errX(n), errY(n);
+  QVector<double> x2(n2), y2(n2), errY2(n2);
+  for (int i=0; i<n; ++i)
+  {
+    x[i] = i/(double)(n-1)*5;
+    y[i] = 0.7+qrand()/(double)RAND_MAX;
+    errX[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
+    errY[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
+  }
+  for (int i=0; i<n2; ++i)
+  {
+    x2[i] = i/(double)(n2-1)*5;
+    y2[i] = qrand()/(double)RAND_MAX*0.5+0.15;
+    errY2[i] = 0.02+qrand()/(double)RAND_MAX*0.2;
+  }
+  
+  QCPGraph *graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
+  graph->setLineStyle(QCPGraph::lsLine);
+  graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, QColor(200, 200, 200), 6));
+  graph->setPen(QPen(QColor(200, 200, 200)));
+  graph->setData(x, y);
+  QCPBars *bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
+  bars->setData(x2, y2);
+  bars->setWidth(0.3);
+  bars->setPen(QPen(QColor(200, 200, 200)));
+  bars->setBrush(QBrush(QColor(230, 230, 230)));
+
+  QCPErrorBars *xErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  xErrors->setErrorType(QCPErrorBars::etKeyError);
+  xErrors->setDataPlottable(graph);
+  xErrors->setData(errX);
+  QCPErrorBars *yErrors = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  yErrors->setErrorType(QCPErrorBars::etValueError);
+  yErrors->setDataPlottable(graph);
+  yErrors->setData(errY);
+  QCPErrorBars *yErrorsBars = new QCPErrorBars(customPlot->xAxis, customPlot->yAxis);
+  yErrorsBars->setErrorType(QCPErrorBars::etValueError);
+  yErrorsBars->setDataPlottable(bars);
+  yErrorsBars->setData(errY2);
+  yErrorsBars->setSymbolGap(4);
+
+  customPlot->xAxis->setRange(-0.5, 5.5);
+  customPlot->yAxis->setRange(0, 2.0);
+  
+  customPlot->savePng(dir.filePath("QCPErrorBars.png"), 450, 250);
 }
 
 void MainWindow::genQCPColorScale()
@@ -737,7 +936,7 @@ void MainWindow::genQCPColorScale()
   colorScaleV->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   colorScaleV->setDataScaleType(QCPAxis::stLogarithmic);
   colorScaleV->setDataRange(QCPRange(1, 1000));
-  colorScaleV->axis()->setSubTickCount(9);
+  colorScaleV->axis()->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
   colorScaleV->axis()->setNumberFormat("eb");
   colorScaleV->axis()->setNumberPrecision(0);
   
@@ -775,7 +974,6 @@ void MainWindow::genQCPColorGradient()
     QString gradientName(presetEnum.key(i));
     
     QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
-    customPlot->addPlottable(colorMap);
     int nx = 400;
     int ny = 400;
     colorMap->data()->setSize(nx, ny);
@@ -790,8 +988,9 @@ void MainWindow::genQCPColorGradient()
     QCPColorScale *colorScale = new QCPColorScale(customPlot);
     customPlot->plotLayout()->addElement(0, 1, colorScale);
     colorMap->setColorScale(colorScale);
-    colorScale->axis()->setAutoTickStep(false);
-    colorScale->axis()->setTickStep(1);
+    QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
+    intTicker->setTickStep(1.0);
+    colorScale->axis()->setTicker(intTicker);
     QCPMarginGroup *group = new QCPMarginGroup(customPlot);
     colorScale->setMarginGroup(QCP::msTop|QCP::msBottom, group);
     customPlot->axisRect()->setMarginGroup(QCP::msTop|QCP::msBottom, group);
@@ -803,7 +1002,6 @@ void MainWindow::genQCPColorGradient()
     customPlot->rescaleAxes();
     
     QCPItemText *text = new QCPItemText(customPlot);
-    customPlot->addItem(text);
     text->setClipToAxisRect(false);
     text->position->setType(QCPItemPosition::ptAxisRectRatio);
     text->position->setCoords(0.5, -0.12);
@@ -825,21 +1023,18 @@ void MainWindow::genQCPBarsGroup()
   
   QCPBarsGroup *group1 = new QCPBarsGroup(customPlot);
   QCPBars *bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay1);
   bars->setBrush(QColor(0, 0, 255, 50));
   bars->setPen(QColor(0, 0, 255));
   bars->setWidth(0.15);
   bars->setBarsGroup(group1);
   bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay2);
   bars->setBrush(QColor(180, 00, 120, 50));
   bars->setPen(QColor(180, 00, 120));
   bars->setWidth(0.15);
   bars->setBarsGroup(group1);
   bars = new QCPBars(customPlot->xAxis, customPlot->yAxis);
-  customPlot->addPlottable(bars);
   bars->setData(datax, datay3);
   bars->setBrush(QColor(255, 154, 0, 50));
   bars->setPen(QColor(255, 154, 0));
@@ -848,10 +1043,67 @@ void MainWindow::genQCPBarsGroup()
 
   customPlot->xAxis->setRange(0.1, 4.9);
   customPlot->yAxis->setRange(0, 0.7);
-  customPlot->xAxis->setAutoTickStep(false);
-  customPlot->xAxis->setTickStep(1);
   //! [qcpbarsgroup-example]
+  customPlot->replot(); // call before savePng, works around QPainter bug in Qt 4.7.4
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
+}
+
+void MainWindow::genQCPSelectionType()
+{
+  resetPlot(true);
+  const int imageWidth = 180;
+  const int imageHeight = 110;
+  customPlot->setSelectionRectMode(QCP::srmSelect);
+  customPlot->setInteractions(QCP::iSelectPlottables);
+  customPlot->setGeometry(0, 0, imageWidth, imageHeight);
+  customPlot->xAxis->setRange(-0.05, 2.005);
+  customPlot->yAxis->setRange(0, 2.0);
+  
+  qsrand(1);
+  QCPGraph *g = customPlot->addGraph();
+  g->setPen(QPen(QColor(160, 160, 160)));
+  g->setScatterStyle(QCPScatterStyle::ssDisc);
+  g->selectionDecorator()->setPen(QPen(QColor(255, 0, 160)));
+  g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spNone);
+  for (int i=0; i<50; ++i)
+    g->addData(i/25.0, 0.6+qSin(i/15.0*M_PI)*0.6+qrand()/(double)RAND_MAX*0.4);
+  
+  QCPItemRect *rectItem = new QCPItemRect(customPlot);
+  rectItem->topLeft->setCoords(0.33, 1.8);
+  rectItem->bottomRight->setCoords(1.66, 0.7);
+  rectItem->setPen(customPlot->selectionRect()->pen());
+  rectItem->setBrush(customPlot->selectionRect()->brush());
+  rectItem->setAntialiased(false);
+  QRect rect(rectItem->topLeft->pixelPosition().toPoint(), rectItem->bottomRight->pixelPosition().toPoint());
+  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  
+  g->setSelectable(QCP::stNone);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
+  customPlot->savePng(dir.filePath("selectiontype-none.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stWhole);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
+  customPlot->savePng(dir.filePath("selectiontype-whole.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stSingleData);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
+  customPlot->savePng(dir.filePath("selectiontype-singledata.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stDataRange);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
+  customPlot->savePng(dir.filePath("selectiontype-datarange.png"), imageWidth, imageHeight);
+  g->setSelectable(QCP::stMultipleDataRanges);
+  QApplication::sendEvent(customPlot, &pressEvent);
+  QApplication::sendEvent(customPlot, &dragEvent);
+  QApplication::sendEvent(customPlot, &releaseEvent);
+  customPlot->savePng(dir.filePath("selectiontype-multipledataranges.png"), imageWidth, imageHeight);
 }
 
 void MainWindow::genQCPColorMap_Interpolate()
@@ -881,7 +1133,6 @@ void MainWindow::genQCPColorMap_Interpolate()
   customPlot->plotLayout()->setMargins(QMargins(0, 5, 0, 0));
   
   QCPItemText *t1 = new QCPItemText(customPlot);
-  customPlot->addItem(t1);
   t1->setText("Interpolate true");
   t1->position->setType(QCPItemPosition::ptAxisRectRatio);
   t1->position->setAxisRect(ar1);
@@ -889,7 +1140,6 @@ void MainWindow::genQCPColorMap_Interpolate()
   t1->setPositionAlignment(Qt::AlignHCenter|Qt::AlignBottom);
   t1->setClipToAxisRect(false);
   QCPItemText *t2 = new QCPItemText(customPlot);
-  customPlot->addItem(t2);
   t2->setText("Interpolate false");
   t2->position->setType(QCPItemPosition::ptAxisRectRatio);
   t2->position->setAxisRect(ar2);
@@ -903,16 +1153,18 @@ void MainWindow::genQCPColorMap_Interpolate()
 void MainWindow::genQCPColorMap_TightBoundary()
 {
   resetPlot(false);
+  customPlot->moveLayer(customPlot->layer("main"), customPlot->layer("grid"), QCustomPlot::limBelow);
   QCPAxisRect *ar1 = customPlot->axisRect();
   QCPAxisRect *ar2 = new QCPAxisRect(customPlot);
   foreach (QCPAxis *axis, QList<QCPAxis*>() << ar1->axes() << ar2->axes())
   {
     axis->setTickLabels(false);
-    axis->grid()->setLayer("axes");
-    axis->grid()->setZeroLinePen(Qt::NoPen);
     axis->setLayer("axes");
-    axis->setAutoTickStep(false);
-    axis->setTickStep(2);
+    axis->grid()->setZeroLinePen(Qt::NoPen);
+    axis->grid()->setLayer("grid");
+    QSharedPointer<QCPAxisTickerFixed> intTicker(new QCPAxisTickerFixed);
+    intTicker->setTickStep(2.0);
+    axis->setTicker(intTicker);
   }
   customPlot->plotLayout()->setMargins(QMargins(0, 5, 0, 0));
   customPlot->plotLayout()->addElement(0, 1, ar2);
@@ -936,7 +1188,6 @@ void MainWindow::genQCPColorMap_TightBoundary()
     axis->setRange(-3, 3);
   
   QCPItemText *t1 = new QCPItemText(customPlot);
-  customPlot->addItem(t1);
   t1->setText("TightBoundary true");
   t1->position->setType(QCPItemPosition::ptAxisRectRatio);
   t1->position->setAxisRect(ar1);
@@ -944,7 +1195,6 @@ void MainWindow::genQCPColorMap_TightBoundary()
   t1->setPositionAlignment(Qt::AlignHCenter|Qt::AlignBottom);
   t1->setClipToAxisRect(false);
   QCPItemText *t2 = new QCPItemText(customPlot);
-  customPlot->addItem(t2);
   t2->setText("TightBoundary false");
   t2->position->setType(QCPItemPosition::ptAxisRectRatio);
   t2->position->setAxisRect(ar2);
@@ -987,8 +1237,6 @@ void MainWindow::genQCPColorGradient_LevelCount()
 
   QCPColorMap *map1 = new QCPColorMap(r1->axis(QCPAxis::atBottom), r1->axis(QCPAxis::atLeft));
   QCPColorMap *map2 = new QCPColorMap(r2->axis(QCPAxis::atBottom), r2->axis(QCPAxis::atLeft));
-  customPlot->addPlottable(map1);
-  customPlot->addPlottable(map2);
   int nx = 400;
   int ny = 400;
   map1->data()->setSize(nx, ny);
@@ -1012,7 +1260,6 @@ void MainWindow::genQCPColorGradient_LevelCount()
   customPlot->rescaleAxes();
   
   QCPItemText *t1 = new QCPItemText(customPlot);
-  customPlot->addItem(t1);
   t1->setText("350 Levels");
   t1->position->setType(QCPItemPosition::ptAxisRectRatio);
   t1->position->setAxisRect(r1);
@@ -1020,7 +1267,6 @@ void MainWindow::genQCPColorGradient_LevelCount()
   t1->setPositionAlignment(Qt::AlignHCenter|Qt::AlignBottom);
   t1->setClipToAxisRect(false);
   QCPItemText *t2 = new QCPItemText(customPlot);
-  customPlot->addItem(t2);
   t2->setText("10 Levels");
   t2->position->setType(QCPItemPosition::ptAxisRectRatio);
   t2->position->setAxisRect(r2);
@@ -1070,8 +1316,6 @@ void MainWindow::genQCPColorGradient_Periodic()
 
   QCPColorMap *map1 = new QCPColorMap(r1->axis(QCPAxis::atBottom), r1->axis(QCPAxis::atLeft));
   QCPColorMap *map2 = new QCPColorMap(r2->axis(QCPAxis::atBottom), r2->axis(QCPAxis::atLeft));
-  customPlot->addPlottable(map1);
-  customPlot->addPlottable(map2);
   int nx = 400;
   int ny = 400;
   map1->data()->setSize(nx, ny);
@@ -1089,14 +1333,13 @@ void MainWindow::genQCPColorGradient_Periodic()
   r2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale1->setMarginGroup(QCP::msTop|QCP::msBottom, group);
   scale2->setMarginGroup(QCP::msTop|QCP::msBottom, group);
-  scale1->axis()->setAutoTickCount(3);
-  scale2->axis()->setAutoTickCount(3);
+  scale1->axis()->ticker()->setTickCount(3);
+  scale2->axis()->ticker()->setTickCount(3);
   map1->setDataRange(QCPRange(-0.2, 0.2));
   map2->setDataRange(QCPRange(-0.2, 0.2));
   customPlot->rescaleAxes();
   
   QCPItemText *t1 = new QCPItemText(customPlot);
-  customPlot->addItem(t1);
   t1->setText("Periodic false");
   t1->position->setType(QCPItemPosition::ptAxisRectRatio);
   t1->position->setAxisRect(r1);
@@ -1104,7 +1347,6 @@ void MainWindow::genQCPColorGradient_Periodic()
   t1->setPositionAlignment(Qt::AlignHCenter|Qt::AlignBottom);
   t1->setClipToAxisRect(false);
   QCPItemText *t2 = new QCPItemText(customPlot);
-  customPlot->addItem(t2);
   t2->setText("Periodic true");
   t2->position->setType(QCPItemPosition::ptAxisRectRatio);
   t2->position->setAxisRect(r2);
@@ -1130,7 +1372,6 @@ void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool c
     if (circle)
     {
       QCPItemEllipse *circ = new QCPItemEllipse(item->parentPlot());
-      item->parentPlot()->addItem(circ);
       circ->setClipToAxisRect(false);
       circ->topLeft->setParentAnchor(anchors.at(i));
       circ->bottomRight->setParentAnchor(anchors.at(i));
@@ -1146,7 +1387,6 @@ void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool c
       if (dynamic_cast<QCPItemPosition*>(anchors.at(i)))
       {
         QCPItemEllipse *circ2 = new QCPItemEllipse(item->parentPlot());
-        item->parentPlot()->addItem(circ2);
         circ2->setClipToAxisRect(false);
         circ2->topLeft->setParentAnchor(anchors.at(i));
         circ2->bottomRight->setParentAnchor(anchors.at(i));
@@ -1159,7 +1399,6 @@ void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool c
     if (fontSize > 0)
     {
       QCPItemText *label = new QCPItemText(item->parentPlot());
-      item->parentPlot()->addItem(label);
       label->setClipToAxisRect(false);
       label->setFont(QFont(font().family(), fontSize));
       label->setColor(Qt::blue);
@@ -1177,7 +1416,6 @@ void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool c
 void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF textOffset, bool textSideways, Qt::Alignment textAlign, QCPItemBracket::BracketStyle style)
 {
   QCPItemBracket *bracket = new QCPItemBracket(customPlot);
-  customPlot->addItem(bracket);
   bracket->setClipToAxisRect(false);
   bracket->left->setType(QCPItemPosition::ptAbsolute);
   bracket->right->setType(QCPItemPosition::ptAbsolute);
@@ -1188,7 +1426,6 @@ void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF t
   bracket->setPen(QPen(Qt::blue));
   
   QCPItemText *textItem = new QCPItemText(customPlot);
-  customPlot->addItem(textItem);
   textItem->setClipToAxisRect(false);
   textItem->setText(text);
   textItem->setPositionAlignment(textAlign);
@@ -1202,17 +1439,15 @@ void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF t
 void MainWindow::addArrow(QPointF target, QPointF textPosition, QString text, Qt::Alignment textAlign)
 {
   QCPItemText *textItem = new QCPItemText(customPlot);
-  customPlot->addItem(textItem);
   textItem->setClipToAxisRect(false);
   textItem->setText(text);
   textItem->setPositionAlignment(textAlign);
   textItem->position->setType(QCPItemPosition::ptAbsolute);
   textItem->position->setCoords(textPosition);
   textItem->setColor(Qt::blue);
-  QRectF textRect(textItem->topLeft->pixelPoint(), textItem->bottomRight->pixelPoint());
+  QRectF textRect(textItem->topLeft->pixelPosition(), textItem->bottomRight->pixelPosition());
   
   QCPItemLine *arrowItem = new QCPItemLine(customPlot);
-  customPlot->addItem(arrowItem);
   arrowItem->setClipToAxisRect(false);
   arrowItem->setHead(QCPLineEnding::esSpikeArrow);
   arrowItem->setPen(QPen(Qt::blue));
@@ -1257,17 +1492,15 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
     qDebug() << elements.at(i) << elements.at(i)->outerRect();
     
     QCPItemRect *outerRect = new QCPItemRect(customPlot);
-    customPlot->addItem(outerRect);
     outerRect->setClipToAxisRect(false);
     outerRect->setBrush(QColor(0, 0, 0, 25));
     outerRect->setPen(QPen(QColor(180, 180, 180)));
     outerRect->topLeft->setType(QCPItemPosition::ptAbsolute);
     outerRect->bottomRight->setType(QCPItemPosition::ptAbsolute);
-    outerRect->topLeft->setPixelPoint(elements.at(i)->outerRect().topLeft());
-    outerRect->bottomRight->setPixelPoint(elements.at(i)->outerRect().bottomRight());
+    outerRect->topLeft->setPixelPosition(elements.at(i)->outerRect().topLeft());
+    outerRect->bottomRight->setPixelPosition(elements.at(i)->outerRect().bottomRight());
     
     QCPItemRect *innerRect = new QCPItemRect(customPlot);
-    customPlot->addItem(innerRect);
     innerRect->setClipToAxisRect(false);
     innerRect->setBrush(QColor(230, 100, 100, 25));
     innerRect->setPen(QPen(QColor(180, 180, 180)));
@@ -1281,8 +1514,14 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
 
 void MainWindow::resetPlot(bool clearAxes)
 {
-  customPlot = new QCustomPlot(this);
-  setCentralWidget(customPlot);
+  if (customPlot)
+  {
+    delete customPlot;
+    customPlot = 0;
+  }
+  customPlot = new QCustomPlot(0);
+  customPlot->show();
+  qApp->processEvents();
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);
@@ -1292,4 +1531,5 @@ void MainWindow::resetPlot(bool clearAxes)
     customPlot->axisRect()->setAutoMargins(QCP::msNone);
     customPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
   }
+  customPlot->replot();
 }

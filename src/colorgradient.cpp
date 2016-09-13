@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "colorgradient.h"
@@ -42,11 +42,15 @@
   Alternatively, load one of the preset color gradients shown in the image below, with \ref
   loadPreset, or by directly specifying the preset in the constructor.
   
+  Apart from red, green and blue components, the gradient also interpolates the alpha values of the
+  configured color stops. This allows to display some portions of the data range as transparent in
+  the plot.
+  
   \image html QCPColorGradient.png
   
-  The fact that the \ref QCPColorGradient(GradientPreset preset) constructor allows directly
-  converting a \ref GradientPreset to a QCPColorGradient, you can also directly pass \ref
-  GradientPreset to all the \a setGradient methods, e.g.:
+  The \ref QCPColorGradient(GradientPreset preset) constructor allows directly converting a \ref
+  GradientPreset to a QCPColorGradient. This means that you can directly pass \ref GradientPreset
+  to all the \a setGradient methods, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorgradient-setgradient
   
   The total number of levels used in the gradient can be set with \ref setLevelCount. Whether the
@@ -55,9 +59,24 @@
 */
 
 /*!
+  Constructs a new, empty QCPColorGradient with no predefined color stops. You can add own color
+  stops with \ref setColorStopAt.
+
+  The color level count is initialized to 350.
+*/
+QCPColorGradient::QCPColorGradient() :
+  mLevelCount(350),
+  mColorInterpolation(ciRGB),
+  mPeriodic(false),
+  mColorBufferInvalidated(true)
+{
+  mColorBuffer.fill(qRgb(0, 0, 0), mLevelCount);
+}
+
+/*!
   Constructs a new QCPColorGradient initialized with the colors and color interpolation according
   to \a preset.
-  
+
   The color level count is initialized to 350.
 */
 QCPColorGradient::QCPColorGradient(GradientPreset preset) :
@@ -81,8 +100,8 @@ bool QCPColorGradient::operator==(const QCPColorGradient &other) const
 
 /*!
   Sets the number of discretization levels of the color gradient to \a n. The default is 350 which
-  is typically enough to create a smooth appearance.
-  
+  is typically enough to create a smooth appearance. The minimum number of levels is 2.
+
   \image html QCPColorGradient-levelcount.png
 */
 void QCPColorGradient::setLevelCount(int n)
@@ -105,7 +124,8 @@ void QCPColorGradient::setLevelCount(int n)
   is interpolated according to \ref setColorInterpolation.
   
   A more convenient way to create a custom gradient may be to clear all color stops with \ref
-  clearColorStops and then adding them one by one with \ref setColorStopAt.
+  clearColorStops (or creating a new, empty QCPColorGradient) and then adding them one by one with
+  \ref setColorStopAt.
   
   \see clearColorStops
 */
@@ -163,21 +183,27 @@ void QCPColorGradient::setPeriodic(bool enabled)
   mPeriodic = enabled;
 }
 
-/*!
+/*! \overload
+  
   This method is used to quickly convert a \a data array to colors. The colors will be output in
   the array \a scanLine. Both \a data and \a scanLine must have the length \a n when passed to this
   function. The data range that shall be used for mapping the data value to the gradient is passed
   in \a range. \a logarithmic indicates whether the data values shall be mapped to colors
   logarithmically.
-  
+
   if \a data actually contains 2D-data linearized via <tt>[row*columnCount + column]</tt>, you can
   set \a dataIndexFactor to <tt>columnCount</tt> to convert a column instead of a row of the data
   array, in \a scanLine. \a scanLine will remain a regular (1D) array. This works because \a data
   is addressed <tt>data[i*dataIndexFactor]</tt>.
+  
+  Use the overloaded method to additionally provide alpha map data.
+
+  The QRgb values that are placed in \a scanLine have their r, g and b components premultiplied
+  with alpha (see QImage::Format_ARGB32_Premultiplied).
 */
 void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor, bool logarithmic)
 {
-  // If you change something here, make sure to also adapt ::color()
+  // If you change something here, make sure to also adapt color() and the other colorize() overload
   if (!data)
   {
     qDebug() << Q_FUNC_INFO << "null pointer given as data";
@@ -241,14 +267,128 @@ void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb 
   }
 }
 
-/*! \internal
+/*! \overload
+
+  Additionally to the other overload of \ref colorize, this method takes the array \a alpha, which
+  has the same size and structure as \a data and encodes the alpha information per data point.
+
+  The QRgb values that are placed in \a scanLine have their r, g and b components premultiplied
+  with alpha (see QImage::Format_ARGB32_Premultiplied).
+*/
+void QCPColorGradient::colorize(const double *data, const unsigned char *alpha, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor, bool logarithmic)
+{
+  // If you change something here, make sure to also adapt color() and the other colorize() overload
+  if (!data)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as data";
+    return;
+  }
+  if (!alpha)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as alpha";
+    return;
+  }
+  if (!scanLine)
+  {
+    qDebug() << Q_FUNC_INFO << "null pointer given as scanLine";
+    return;
+  }
+  if (mColorBufferInvalidated)
+    updateColorBuffer();
   
+  if (!logarithmic)
+  {
+    const double posToIndexFactor = (mLevelCount-1)/range.size();
+    if (mPeriodic)
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (int)((data[dataIndexFactor*i]-range.lower)*posToIndexFactor) % mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    } else
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (data[dataIndexFactor*i]-range.lower)*posToIndexFactor;
+        if (index < 0)
+          index = 0;
+        else if (index >= mLevelCount)
+          index = mLevelCount-1;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    }
+  } else // logarithmic == true
+  {
+    if (mPeriodic)
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = (int)(qLn(data[dataIndexFactor*i]/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1)) % mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    } else
+    {
+      for (int i=0; i<n; ++i)
+      {
+        int index = qLn(data[dataIndexFactor*i]/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1);
+        if (index < 0)
+          index = 0;
+        else if (index >= mLevelCount)
+          index = mLevelCount-1;
+        if (alpha[dataIndexFactor*i] == 255)
+        {
+          scanLine[i] = mColorBuffer.at(index);
+        } else
+        {
+          const QRgb rgb = mColorBuffer.at(index);
+          const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+          scanLine[i] = qRgba(qRed(rgb)*alphaF, qGreen(rgb)*alphaF, qBlue(rgb)*alphaF, qAlpha(rgb)*alphaF);
+        }
+      }
+    }
+  }
+}
+
+/*! \internal
+
   This method is used to colorize a single data value given in \a position, to colors. The data
   range that shall be used for mapping the data value to the gradient is passed in \a range. \a
   logarithmic indicates whether the data value shall be mapped to a color logarithmically.
-  
+
   If an entire array of data values shall be converted, rather use \ref colorize, for better
   performance.
+
+  The returned QRgb has its r, g and b components premultiplied with alpha (see
+  QImage::Format_ARGB32_Premultiplied).
 */
 QRgb QCPColorGradient::color(double position, const QCPRange &range, bool logarithmic)
 {
@@ -414,6 +554,21 @@ QCPColorGradient QCPColorGradient::inverted() const
 
 /*! \internal
   
+  Returns true if the color gradient uses transparency, i.e. if any of the configured color stops
+  has an alpha value below 255.
+*/
+bool QCPColorGradient::stopsUseAlpha() const
+{
+  for (QMap<double, QColor>::const_iterator it=mColorStops.constBegin(); it!=mColorStops.constEnd(); ++it)
+  {
+    if (it.value().alpha() < 255)
+      return true;
+  }
+  return false;
+}
+
+/*! \internal
+  
   Updates the internal color buffer which will be used by \ref colorize and \ref color, to quickly
   convert positions to colors. This is where the interpolation between color stops is calculated.
 */
@@ -424,16 +579,17 @@ void QCPColorGradient::updateColorBuffer()
   if (mColorStops.size() > 1)
   {
     double indexToPosFactor = 1.0/(double)(mLevelCount-1);
+    const bool useAlpha = stopsUseAlpha();
     for (int i=0; i<mLevelCount; ++i)
     {
       double position = i*indexToPosFactor;
       QMap<double, QColor>::const_iterator it = mColorStops.lowerBound(position);
       if (it == mColorStops.constEnd()) // position is on or after last stop, use color of last stop
       {
-        mColorBuffer[i] = (it-1).value().rgb();
+        mColorBuffer[i] = (it-1).value().rgba();
       } else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
       {
-        mColorBuffer[i] = it.value().rgb();
+        mColorBuffer[i] = it.value().rgba();
       } else // position is in between stops (or on an intermediate stop), interpolate color
       {
         QMap<double, QColor>::const_iterator high = it;
@@ -443,9 +599,20 @@ void QCPColorGradient::updateColorBuffer()
         {
           case ciRGB:
           {
-            mColorBuffer[i] = qRgb((1-t)*low.value().red() + t*high.value().red(),
-                                   (1-t)*low.value().green() + t*high.value().green(),
-                                   (1-t)*low.value().blue() + t*high.value().blue());
+            if (useAlpha)
+            {
+              const int alpha = (1-t)*low.value().alpha() + t*high.value().alpha();
+              const float alphaPremultiplier = alpha/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
+              mColorBuffer[i] = qRgba(((1-t)*low.value().red() + t*high.value().red())*alphaPremultiplier,
+                                      ((1-t)*low.value().green() + t*high.value().green())*alphaPremultiplier,
+                                      ((1-t)*low.value().blue() + t*high.value().blue())*alphaPremultiplier,
+                                      alpha);
+            } else
+            {
+              mColorBuffer[i] = qRgb(((1-t)*low.value().red() + t*high.value().red()),
+                                     ((1-t)*low.value().green() + t*high.value().green()),
+                                     ((1-t)*low.value().blue() + t*high.value().blue()));
+            }
             break;
           }
           case ciHSV:
@@ -462,7 +629,20 @@ void QCPColorGradient::updateColorBuffer()
               hue = lowHsv.hueF() + t*hueDiff;
             if (hue < 0) hue += 1.0;
             else if (hue >= 1.0) hue -= 1.0;
-            mColorBuffer[i] = QColor::fromHsvF(hue, (1-t)*lowHsv.saturationF() + t*highHsv.saturationF(), (1-t)*lowHsv.valueF() + t*highHsv.valueF()).rgb();
+            if (useAlpha)
+            {
+              const QRgb rgb = QColor::fromHsvF(hue,
+                                                (1-t)*lowHsv.saturationF() + t*highHsv.saturationF(),
+                                                (1-t)*lowHsv.valueF() + t*highHsv.valueF()).rgb();
+              const float alpha = (1-t)*lowHsv.alphaF() + t*highHsv.alphaF();
+              mColorBuffer[i] = qRgba(qRed(rgb)*alpha, qGreen(rgb)*alpha, qBlue(rgb)*alpha, 255*alpha);
+            }
+            else
+            {
+              mColorBuffer[i] = QColor::fromHsvF(hue,
+                                                 (1-t)*lowHsv.saturationF() + t*highHsv.saturationF(),
+                                                 (1-t)*lowHsv.valueF() + t*highHsv.valueF()).rgb();
+            }
             break;
           }
         }
@@ -470,7 +650,9 @@ void QCPColorGradient::updateColorBuffer()
     }
   } else if (mColorStops.size() == 1)
   {
-    mColorBuffer.fill(mColorStops.constBegin().value().rgb());
+    const QRgb rgb = mColorStops.constBegin().value().rgb();
+    const float alpha = mColorStops.constBegin().value().alphaF();
+    mColorBuffer.fill(qRgba(qRed(rgb)*alpha, qGreen(rgb)*alpha, qBlue(rgb)*alpha, 255*alpha));
   } else // mColorStops is empty, fill color buffer with black
   {
     mColorBuffer.fill(qRgb(0, 0, 0));

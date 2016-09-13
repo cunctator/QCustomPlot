@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,16 +19,17 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_BARS_H
 #define QCP_PLOTTABLE_BARS_H
 
 #include "../global.h"
-#include "../range.h"
-#include "../plottable.h"
+#include "../axis/range.h"
+#include "../plottable1d.h"
+#include "../datacontainer.h"
 
 class QCPPainter;
 class QCPAxis;
@@ -51,9 +52,11 @@ public:
   enum SpacingType { stAbsolute       ///< Bar spacing is in absolute pixels
                      ,stAxisRectRatio ///< Bar spacing is given by a fraction of the axis rect size
                      ,stPlotCoords    ///< Bar spacing is in key coordinates and thus scales with the key axis range
-                 };
+                   };
+  Q_ENUMS(SpacingType)
+  
   QCPBarsGroup(QCustomPlot *parentPlot);
-  ~QCPBarsGroup();
+  virtual ~QCPBarsGroup();
   
   // getters:
   SpacingType spacingType() const { return mSpacingType; }
@@ -94,30 +97,41 @@ private:
   
   friend class QCPBars;
 };
+Q_DECLARE_METATYPE(QCPBarsGroup::SpacingType)
 
 
-class QCP_LIB_DECL QCPBarData
+class QCP_LIB_DECL QCPBarsData
 {
 public:
-  QCPBarData();
-  QCPBarData(double key, double value);
+  QCPBarsData();
+  QCPBarsData(double key, double value);
+  
+  inline double sortKey() const { return key; }
+  inline static QCPBarsData fromSortKey(double sortKey) { return QCPBarsData(sortKey, 0); }
+  inline static bool sortKeyIsMainKey() { return true; } 
+  
+  inline double mainKey() const { return key; }
+  inline double mainValue() const { return value; }
+  
+  inline QCPRange valueRange() const { return QCPRange(value, value); } // note that bar base value isn't held in each QCPBarsData and thus can't/shouldn't be returned here
+  
   double key, value;
 };
-Q_DECLARE_TYPEINFO(QCPBarData, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QCPBarsData, Q_PRIMITIVE_TYPE);
 
-/*! \typedef QCPBarDataMap
-  Container for storing \ref QCPBarData items in a sorted fashion. The key of the map
-  is the key member of the QCPBarData instance.
+
+/*! \typedef QCPBarsDataContainer
   
-  This is the container in which QCPBars holds its data.
-  \see QCPBarData, QCPBars::setData
+  Container for storing \ref QCPBarsData points. The data is stored sorted by \a key.
+  
+  This template instantiation is the container in which QCPBars holds its data. For details about
+  the generic container, see the documentation of the class template \ref QCPDataContainer.
+  
+  \see QCPBarsData, QCPBars::setData
 */
-typedef QMap<double, QCPBarData> QCPBarDataMap;
-typedef QMapIterator<double, QCPBarData> QCPBarDataMapIterator;
-typedef QMutableMapIterator<double, QCPBarData> QCPBarDataMutableMapIterator;
+typedef QCPDataContainer<QCPBarsData> QCPBarsDataContainer;
 
-
-class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
+class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable1D<QCPBarsData>
 {
   Q_OBJECT
   /// \cond INCLUDE_QPROPERTIES
@@ -125,6 +139,7 @@ class QCP_LIB_DECL QCPBars : public QCPAbstractPlottable
   Q_PROPERTY(WidthType widthType READ widthType WRITE setWidthType)
   Q_PROPERTY(QCPBarsGroup* barsGroup READ barsGroup WRITE setBarsGroup)
   Q_PROPERTY(double baseValue READ baseValue WRITE setBaseValue)
+  Q_PROPERTY(double stackingGap READ stackingGap WRITE setStackingGap)
   Q_PROPERTY(QCPBars* barBelow READ barBelow)
   Q_PROPERTY(QCPBars* barAbove READ barAbove)
   /// \endcond
@@ -139,7 +154,7 @@ public:
                    ,wtAxisRectRatio ///< Bar width is given by a fraction of the axis rect size
                    ,wtPlotCoords    ///< Bar width is in key coordinates and thus scales with the key axis range
                  };
-   Q_ENUMS(WidthType)
+  Q_ENUMS(WidthType)
   
   explicit QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis);
   virtual ~QCPBars();
@@ -149,52 +164,49 @@ public:
   WidthType widthType() const { return mWidthType; }
   QCPBarsGroup *barsGroup() const { return mBarsGroup; }
   double baseValue() const { return mBaseValue; }
+  double stackingGap() const { return mStackingGap; }
   QCPBars *barBelow() const { return mBarBelow.data(); }
   QCPBars *barAbove() const { return mBarAbove.data(); }
-  QCPBarDataMap *data() const { return mData; }
+  QSharedPointer<QCPBarsDataContainer> data() const { return mDataContainer; }
   
   // setters:
+  void setData(QSharedPointer<QCPBarsDataContainer> data);
+  void setData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
   void setWidth(double width);
   void setWidthType(WidthType widthType);
   void setBarsGroup(QCPBarsGroup *barsGroup);
   void setBaseValue(double baseValue);
-  void setData(QCPBarDataMap *data, bool copy=false);
-  void setData(const QVector<double> &key, const QVector<double> &value);
+  void setStackingGap(double pixels);
   
   // non-property methods:
+  void addData(const QVector<double> &keys, const QVector<double> &values, bool alreadySorted=false);
+  void addData(double key, double value);
   void moveBelow(QCPBars *bars);
   void moveAbove(QCPBars *bars);
-  void addData(const QCPBarDataMap &dataMap);
-  void addData(const QCPBarData &data);
-  void addData(double key, double value);
-  void addData(const QVector<double> &keys, const QVector<double> &values);
-  void removeDataBefore(double key);
-  void removeDataAfter(double key);
-  void removeData(double fromKey, double toKey);
-  void removeData(double key);
   
   // reimplemented virtual methods:
-  virtual void clearData();
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
+  virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const Q_DECL_OVERRIDE;
+  virtual QPointF dataPixelPosition(int index) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
-  QCPBarDataMap *mData;
   double mWidth;
   WidthType mWidthType;
   QCPBarsGroup *mBarsGroup;
   double mBaseValue;
+  double mStackingGap;
   QPointer<QCPBars> mBarBelow, mBarAbove;
   
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
-  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const;
-  virtual QCPRange getKeyRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
-  virtual QCPRange getValueRange(bool &foundRange, SignDomain inSignDomain=sdBoth) const;
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
+  virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
-  void getVisibleDataBounds(QCPBarDataMap::const_iterator &lower, QCPBarDataMap::const_iterator &upperEnd) const;
-  QPolygonF getBarPolygon(double key, double value) const;
+  void getVisibleDataBounds(QCPBarsDataContainer::const_iterator &begin, QCPBarsDataContainer::const_iterator &end) const;
+  QRectF getBarRect(double key, double value) const;
   void getPixelWidth(double key, double &lower, double &upper) const;
   double getStackedBaseValue(double key, bool positive) const;
   static void connectBars(QCPBars* lower, QCPBars* upper);
@@ -203,5 +215,6 @@ protected:
   friend class QCPLegend;
   friend class QCPBarsGroup;
 };
+Q_DECLARE_METATYPE(QCPBars::WidthType)
 
 #endif // QCP_PLOTTABLE_BARS_H

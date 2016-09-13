@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-rect.h"
@@ -43,7 +43,8 @@
 /*!
   Creates a rectangle item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemRect::QCPItemRect(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -118,16 +119,16 @@ double QCPItemRect::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (onlySelectable && !mSelectable)
     return -1;
   
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint()).normalized();
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition()).normalized();
   bool filledRect = mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0;
-  return rectSelectTest(rect, pos, filledRect);
+  return rectDistance(rect, pos, filledRect);
 }
 
 /* inherits documentation from base class */
 void QCPItemRect::draw(QCPPainter *painter)
 {
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   if (p1.toPoint() == p2.toPoint())
     return;
   QRectF rect = QRectF(p1, p2).normalized();
@@ -142,9 +143,9 @@ void QCPItemRect::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemRect::anchorPixelPoint(int anchorId) const
+QPointF QCPItemRect::anchorPixelPosition(int anchorId) const
 {
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition());
   switch (anchorId)
   {
     case aiTop:         return (rect.topLeft()+rect.topRight())*0.5;

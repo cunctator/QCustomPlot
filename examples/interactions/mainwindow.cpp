@@ -15,7 +15,8 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->customPlot->axisRect()->setupFullAxesBox();
   
   ui->customPlot->plotLayout()->insertRow(0);
-  ui->customPlot->plotLayout()->addElement(0, 0, new QCPPlotTitle(ui->customPlot, "Interaction Example"));
+  QCPTextElement *title = new QCPTextElement(ui->customPlot, "Interaction Example", QFont("sans", 17, QFont::Bold));
+  ui->customPlot->plotLayout()->addElement(0, 0, title);
   
   ui->customPlot->xAxis->setLabel("x Axis");
   ui->customPlot->yAxis->setLabel("y Axis");
@@ -30,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
   addRandomGraph();
   addRandomGraph();
   addRandomGraph();
+  ui->customPlot->rescaleAxes();
   
   // connect slot that ties some axis selections together (especially opposite axes):
   connect(ui->customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
@@ -42,12 +44,12 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), ui->customPlot->yAxis2, SLOT(setRange(QCPRange)));
   
   // connect some interaction slots:
-  connect(ui->customPlot, SIGNAL(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)), this, SLOT(titleDoubleClick(QMouseEvent*,QCPPlotTitle*)));
   connect(ui->customPlot, SIGNAL(axisDoubleClick(QCPAxis*,QCPAxis::SelectablePart,QMouseEvent*)), this, SLOT(axisLabelDoubleClick(QCPAxis*,QCPAxis::SelectablePart)));
   connect(ui->customPlot, SIGNAL(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*,QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*,QCPAbstractLegendItem*)));
+  connect(title, SIGNAL(doubleClicked(QMouseEvent*)), this, SLOT(titleDoubleClick(QMouseEvent*)));
   
   // connect slot that shows a message in the status bar when a graph is clicked:
-  connect(ui->customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*)));
+  connect(ui->customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
   
   // setup policy and connect slot for context menu popup:
   ui->customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -59,16 +61,19 @@ MainWindow::~MainWindow()
   delete ui;
 }
 
-void MainWindow::titleDoubleClick(QMouseEvent* event, QCPPlotTitle* title)
+void MainWindow::titleDoubleClick(QMouseEvent* event)
 {
   Q_UNUSED(event)
-  // Set the plot title by double clicking on it
-  bool ok;
-  QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
-  if (ok)
+  if (QCPTextElement *title = qobject_cast<QCPTextElement*>(sender()))
   {
-    title->setText(newTitle);
-    ui->customPlot->replot();
+    // Set the plot title by double clicking on it
+    bool ok;
+    QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
+    if (ok)
+    {
+      title->setText(newTitle);
+      ui->customPlot->replot();
+    }
   }
 }
 
@@ -142,7 +147,7 @@ void MainWindow::selectionChanged()
     if (item->selected() || graph->selected())
     {
       item->setSelected(true);
-      graph->setSelected(true);
+      graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
     }
   }
 }
@@ -179,7 +184,7 @@ void MainWindow::addRandomGraph()
   double xScale = (rand()/(double)RAND_MAX + 0.5)*2;
   double yScale = (rand()/(double)RAND_MAX + 0.5)*2;
   double xOffset = (rand()/(double)RAND_MAX - 0.5)*4;
-  double yOffset = (rand()/(double)RAND_MAX - 0.5)*5;
+  double yOffset = (rand()/(double)RAND_MAX - 0.5)*10;
   double r1 = (rand()/(double)RAND_MAX - 0.5)*2;
   double r2 = (rand()/(double)RAND_MAX - 0.5)*2;
   double r3 = (rand()/(double)RAND_MAX - 0.5)*2;
@@ -257,9 +262,13 @@ void MainWindow::moveLegend()
   }
 }
 
-void MainWindow::graphClicked(QCPAbstractPlottable *plottable)
+void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 {
-  ui->statusBar->showMessage(QString("Clicked on graph '%1'.").arg(plottable->name()), 1000);
+  // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
+  // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
+  double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
+  QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
+  ui->statusBar->showMessage(message, 2500);
 }
 
 

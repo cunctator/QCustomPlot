@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,25 +19,26 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_CORE_H
 #define QCP_CORE_H
 
 #include "global.h"
-#include "range.h"
-#include "axis.h"
+#include "axis/range.h"
+#include "axis/axis.h"
+#include "paintbuffer.h"
 
 class QCPPainter;
 class QCPLayer;
 class QCPAbstractPlottable;
 class QCPAbstractItem;
 class QCPGraph;
-class QCPPlotTitle;
 class QCPLegend;
 class QCPAbstractLegendItem;
+class QCPSelectionRect;
 
 class QCP_LIB_DECL QCustomPlot : public QWidget
 {
@@ -52,6 +53,7 @@ class QCP_LIB_DECL QCustomPlot : public QWidget
   Q_PROPERTY(int selectionTolerance READ selectionTolerance WRITE setSelectionTolerance)
   Q_PROPERTY(bool noAntialiasingOnDrag READ noAntialiasingOnDrag WRITE setNoAntialiasingOnDrag)
   Q_PROPERTY(Qt::KeyboardModifier multiSelectModifier READ multiSelectModifier WRITE setMultiSelectModifier)
+  Q_PROPERTY(bool openGl READ openGl WRITE setOpenGl)
   /// \endcond
 public:
   /*!
@@ -69,16 +71,19 @@ public:
 
     \see replot
   */
-  enum RefreshPriority { rpImmediate ///< The QCustomPlot surface is immediately refreshed, by calling QWidget::repaint() after the replot
-                         ,rpQueued   ///< Queues the refresh such that it is performed at a slightly delayed point in time after the replot, by calling QWidget::update() after the replot
-                         ,rpHint     ///< Whether to use immediate repaint or queued update depends on whether the plotting hint \ref QCP::phForceRepaint is set, see \ref setPlottingHints.
+  enum RefreshPriority { rpImmediateRefresh ///< Replots immediately and repaints the widget immediately by calling QWidget::repaint() after the replot
+                         ,rpQueuedRefresh   ///< Replots immediately, but queues the widget repaint, by calling QWidget::update() after the replot. This way multiple redundant widget repaints can be avoided.
+                         ,rpRefreshHint     ///< Whether to use immediate or queued refresh depends on whether the plotting hint \ref QCP::phImmediateRefresh is set, see \ref setPlottingHints.
+                         ,rpQueuedReplot    ///< Queues the entire replot for the next event loop iteration. This way multiple redundant replots can be avoided. The actual replot is then done with \ref rpRefreshHint priority.
                        };
+  Q_ENUMS(RefreshPriority)
   
   explicit QCustomPlot(QWidget *parent = 0);
   virtual ~QCustomPlot();
   
   // getters:
   QRect viewport() const { return mViewport; }
+  double bufferDevicePixelRatio() const { return mBufferDevicePixelRatio; }
   QPixmap background() const { return mBackgroundPixmap; }
   bool backgroundScaled() const { return mBackgroundScaled; }
   Qt::AspectRatioMode backgroundScaledMode() const { return mBackgroundScaledMode; }
@@ -91,9 +96,13 @@ public:
   bool noAntialiasingOnDrag() const { return mNoAntialiasingOnDrag; }
   QCP::PlottingHints plottingHints() const { return mPlottingHints; }
   Qt::KeyboardModifier multiSelectModifier() const { return mMultiSelectModifier; }
-
+  QCP::SelectionRectMode selectionRectMode() const { return mSelectionRectMode; }
+  QCPSelectionRect *selectionRect() const { return mSelectionRect; }
+  bool openGl() const { return mOpenGl; }
+  
   // setters:
   void setViewport(const QRect &rect);
+  void setBufferDevicePixelRatio(double ratio);
   void setBackground(const QPixmap &pm);
   void setBackground(const QPixmap &pm, bool scaled, Qt::AspectRatioMode mode=Qt::KeepAspectRatioByExpanding);
   void setBackground(const QBrush &brush);
@@ -111,12 +120,14 @@ public:
   void setPlottingHints(const QCP::PlottingHints &hints);
   void setPlottingHint(QCP::PlottingHint hint, bool enabled=true);
   void setMultiSelectModifier(Qt::KeyboardModifier modifier);
+  void setSelectionRectMode(QCP::SelectionRectMode mode);
+  void setSelectionRect(QCPSelectionRect *selectionRect);
+  void setOpenGl(bool enabled, int multisampling=16);
   
   // non-property methods:
   // plottable interface:
   QCPAbstractPlottable *plottable(int index);
   QCPAbstractPlottable *plottable();
-  bool addPlottable(QCPAbstractPlottable *plottable);
   bool removePlottable(QCPAbstractPlottable *plottable);
   bool removePlottable(int index);
   int clearPlottables();
@@ -138,7 +149,6 @@ public:
   // item interface:
   QCPAbstractItem *item(int index) const;
   QCPAbstractItem *item() const;
-  bool addItem(QCPAbstractItem* item);
   bool removeItem(QCPAbstractItem *item);
   bool removeItem(int index);
   int clearItems();
@@ -163,20 +173,21 @@ public:
   QCPAxisRect* axisRect(int index=0) const;
   QList<QCPAxisRect*> axisRects() const;
   QCPLayoutElement* layoutElementAt(const QPointF &pos) const;
+  QCPAxisRect* axisRectAt(const QPointF &pos) const;
   Q_SLOT void rescaleAxes(bool onlyVisiblePlottables=false);
   
   QList<QCPAxis*> selectedAxes() const;
   QList<QCPLegend*> selectedLegends() const;
   Q_SLOT void deselectAll();
   
-  bool savePdf(const QString &fileName, bool noCosmeticPen=false, int width=0, int height=0, const QString &pdfCreator=QString(), const QString &pdfTitle=QString());
-  bool savePng(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1);
-  bool saveJpg(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1);
-  bool saveBmp(const QString &fileName, int width=0, int height=0, double scale=1.0);
-  bool saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality=-1);
+  bool savePdf(const QString &fileName, int width=0, int height=0, QCP::ExportPen exportPen=QCP::epAllowCosmetic, const QString &pdfCreator=QString(), const QString &pdfTitle=QString());
+  bool savePng(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
+  bool saveJpg(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
+  bool saveBmp(const QString &fileName, int width=0, int height=0, double scale=1.0, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
+  bool saveRastered(const QString &fileName, int width, int height, double scale, const char *format, int quality=-1, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
   QPixmap toPixmap(int width=0, int height=0, double scale=1.0);
   void toPainter(QCPPainter *painter, int width=0, int height=0);
-  Q_SLOT void replot(QCustomPlot::RefreshPriority refreshPriority=QCustomPlot::rpHint);
+  Q_SLOT void replot(QCustomPlot::RefreshPriority refreshPriority=QCustomPlot::rpRefreshHint);
   
   QCPAxis *xAxis, *yAxis, *xAxis2, *yAxis2;
   QCPLegend *legend;
@@ -188,16 +199,14 @@ signals:
   void mouseRelease(QMouseEvent *event);
   void mouseWheel(QWheelEvent *event);
   
-  void plottableClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
-  void plottableDoubleClick(QCPAbstractPlottable *plottable, QMouseEvent *event);
+  void plottableClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
+  void plottableDoubleClick(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
   void itemClick(QCPAbstractItem *item, QMouseEvent *event);
   void itemDoubleClick(QCPAbstractItem *item, QMouseEvent *event);
   void axisClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event);
   void axisDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart part, QMouseEvent *event);
   void legendClick(QCPLegend *legend, QCPAbstractLegendItem *item, QMouseEvent *event);
   void legendDoubleClick(QCPLegend *legend,  QCPAbstractLegendItem *item, QMouseEvent *event);
-  void titleClick(QMouseEvent *event, QCPPlotTitle *title);
-  void titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title);
   
   void selectionChangedByUser();
   void beforeReplot();
@@ -206,6 +215,7 @@ signals:
 protected:
   // property members:
   QRect mViewport;
+  double mBufferDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;
@@ -224,38 +234,70 @@ protected:
   QCPLayer *mCurrentLayer;
   QCP::PlottingHints mPlottingHints;
   Qt::KeyboardModifier mMultiSelectModifier;
+  QCP::SelectionRectMode mSelectionRectMode;
+  QCPSelectionRect *mSelectionRect;
+  bool mOpenGl;
   
   // non-property members:
-  QPixmap mPaintBuffer;
+  QList<QSharedPointer<QCPAbstractPaintBuffer> > mPaintBuffers;
   QPoint mMousePressPos;
-  QPointer<QCPLayoutElement> mMouseEventElement;
+  bool mMouseHasMoved;
+  QPointer<QCPLayerable> mMouseEventLayerable;
+  QVariant mMouseEventLayerableDetails;
   bool mReplotting;
+  bool mReplotQueued;
+  int mOpenGlMultisamples;
+  QCP::AntialiasedElements mOpenGlAntialiasedElementsBackup;
+  bool mOpenGlCacheLabelsBackup;
+#ifdef QCP_OPENGL_FBO
+  QSharedPointer<QOpenGLContext> mGlContext;
+  QSharedPointer<QSurface> mGlSurface;
+  QSharedPointer<QOpenGLPaintDevice> mGlPaintDevice;
+#endif
   
   // reimplemented virtual methods:
-  virtual QSize minimumSizeHint() const;
-  virtual QSize sizeHint() const;
-  virtual void paintEvent(QPaintEvent *event);
-  virtual void resizeEvent(QResizeEvent *event);
-  virtual void mouseDoubleClickEvent(QMouseEvent *event);
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+  virtual void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+  virtual void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseDoubleClickEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
   // introduced virtual methods:
   virtual void draw(QCPPainter *painter);
+  virtual void updateLayout();
   virtual void axisRemoved(QCPAxis *axis);
   virtual void legendRemoved(QCPLegend *legend);
+  Q_SLOT virtual void processRectSelection(QRect rect, QMouseEvent *event);
+  Q_SLOT virtual void processRectZoom(QRect rect, QMouseEvent *event);
+  Q_SLOT virtual void processPointSelection(QMouseEvent *event);
   
   // non-virtual methods:
+  bool registerPlottable(QCPAbstractPlottable *plottable);
+  bool registerGraph(QCPGraph *graph);
+  bool registerItem(QCPAbstractItem* item);
   void updateLayerIndices() const;
   QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
+  QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
   void drawBackground(QCPPainter *painter);
+  void setupPaintBuffers();
+  QCPAbstractPaintBuffer *createPaintBuffer();
+  bool hasInvalidatedPaintBuffers();
+  bool setupOpenGl();
+  void freeOpenGl();
   
   friend class QCPLegend;
   friend class QCPAxis;
   friend class QCPLayer;
   friend class QCPAxisRect;
+  friend class QCPAbstractPlottable;
+  friend class QCPGraph;
+  friend class QCPAbstractItem;
 };
+Q_DECLARE_METATYPE(QCustomPlot::LayerInsertMode)
+Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)
 
 #endif // QCP_CORE_H

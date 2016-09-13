@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "layer.h"
@@ -34,44 +34,58 @@
 
 /*! \class QCPLayer
   \brief A layer that may contain objects, to control the rendering order
-  
+
   The Layering system of QCustomPlot is the mechanism to control the rendering order of the
   elements inside the plot.
-  
+
   It is based on the two classes QCPLayer and QCPLayerable. QCustomPlot holds an ordered list of
   one or more instances of QCPLayer (see QCustomPlot::addLayer, QCustomPlot::layer,
   QCustomPlot::moveLayer, etc.). When replotting, QCustomPlot goes through the list of layers
-  bottom to top and successively draws the layerables of the layers.
-  
+  bottom to top and successively draws the layerables of the layers into the paint buffer(s).
+
   A QCPLayer contains an ordered list of QCPLayerable instances. QCPLayerable is an abstract base
   class from which almost all visible objects derive, like axes, grids, graphs, items, etc.
-  
-  Initially, QCustomPlot has five layers: "background", "grid", "main", "axes" and "legend" (in
-  that order). The top two layers "axes" and "legend" contain the default axes and legend, so they
-  will be drawn on top. In the middle, there is the "main" layer. It is initially empty and set as
-  the current layer (see QCustomPlot::setCurrentLayer). This means, all new plottables, items etc.
-  are created on this layer by default. Then comes the "grid" layer which contains the QCPGrid
-  instances (which belong tightly to QCPAxis, see \ref QCPAxis::grid). The Axis rect background
-  shall be drawn behind everything else, thus the default QCPAxisRect instance is placed on the
-  "background" layer. Of course, the layer affiliation of the individual objects can be changed as
-  required (\ref QCPLayerable::setLayer).
-  
-  Controlling the ordering of objects is easy: Create a new layer in the position you want it to
-  be, e.g. above "main", with QCustomPlot::addLayer. Then set the current layer with
-  QCustomPlot::setCurrentLayer to that new layer and finally create the objects normally. They will
-  be placed on the new layer automatically, due to the current layer setting. Alternatively you
-  could have also ignored the current layer setting and just moved the objects with
-  QCPLayerable::setLayer to the desired layer after creating them.
-  
+
+  \section qcplayer-defaultlayers Default layers
+
+  Initially, QCustomPlot has six layers: "background", "grid", "main", "axes", "legend" and
+  "overlay" (in that order). On top is the "overlay" layer, which only contains the QCustomPlot's
+  selection rect (\ref QCustomPlot::selectionRect). The next two layers "axes" and "legend" contain
+  the default axes and legend, so they will be drawn above plottables. In the middle, there is the
+  "main" layer. It is initially empty and set as the current layer (see
+  QCustomPlot::setCurrentLayer). This means, all new plottables, items etc. are created on this
+  layer by default. Then comes the "grid" layer which contains the QCPGrid instances (which belong
+  tightly to QCPAxis, see \ref QCPAxis::grid). The Axis rect background shall be drawn behind
+  everything else, thus the default QCPAxisRect instance is placed on the "background" layer. Of
+  course, the layer affiliation of the individual objects can be changed as required (\ref
+  QCPLayerable::setLayer).
+
+  \section qcplayer-ordering Controlling the rendering order via layers
+
+  Controlling the ordering of layerables in the plot is easy: Create a new layer in the position
+  you want the layerable to be in, e.g. above "main", with \ref QCustomPlot::addLayer. Then set the
+  current layer with \ref QCustomPlot::setCurrentLayer to that new layer and finally create the
+  objects normally. They will be placed on the new layer automatically, due to the current layer
+  setting. Alternatively you could have also ignored the current layer setting and just moved the
+  objects with \ref QCPLayerable::setLayer to the desired layer after creating them.
+
   It is also possible to move whole layers. For example, If you want the grid to be shown in front
   of all plottables/items on the "main" layer, just move it above "main" with
   QCustomPlot::moveLayer.
-  
+
   The rendering order within one layer is simply by order of creation or insertion. The item
   created last (or added last to the layer), is drawn on top of all other objects on that layer.
-  
+
   When a layer is deleted, the objects on it are not deleted with it, but fall on the layer below
   the deleted layer, see QCustomPlot::removeLayer.
+
+  \section qcplayer-buffering Replotting only a specific layer
+
+  If the layer mode (\ref setMode) is set to \ref lmBuffered, you can replot only this specific
+  layer by calling \ref replot. In certain situations this can provide better replot performance,
+  compared with a full replot of all layers. Upon creation of a new layer, the layer mode is
+  initialized to \ref lmLogical. The only layer that is set to \ref lmBuffered in a new \ref
+  QCustomPlot instance is the "overlay" layer, containing the selection rect.
 */
 
 /* start documentation of inline functions */
@@ -105,7 +119,8 @@ QCPLayer::QCPLayer(QCustomPlot *parentPlot, const QString &layerName) :
   mParentPlot(parentPlot),
   mName(layerName),
   mIndex(-1), // will be set to a proper value by the QCustomPlot layer creation function
-  mVisible(true)
+  mVisible(true),
+  mMode(lmLogical)
 {
   // Note: no need to make sure layerName is unique, because layer
   // management is done with QCustomPlot functions.
@@ -138,6 +153,113 @@ void QCPLayer::setVisible(bool visible)
   mVisible = visible;
 }
 
+/*!
+  Sets the rendering mode of this layer.
+
+  If \a mode is set to \ref lmBuffered for a layer, it will be given a dedicated paint buffer by
+  the parent QCustomPlot instance. This means it may be replotted individually by calling \ref
+  QCPLayer::replot, without needing to replot all other layers.
+
+  Layers which are set to \ref lmLogical (the default) are used only to define the rendering order
+  and can't be replotted individually.
+
+  Note that each layer which is set to \ref lmBuffered requires additional paint buffers for the
+  layers below, above and for the layer itself. This increases the memory consumption and
+  (slightly) decreases the repainting speed because multiple paint buffers need to be joined. So
+  you should carefully choose which layers benefit from having their own paint buffer. A typical
+  example would be a layer which contains certain layerables (e.g. items) that need to be changed
+  and thus replotted regularly, while all other layerables on other layers stay static. By default,
+  only the topmost layer called "overlay" is in mode \ref lmBuffered, and contains the selection
+  rect.
+
+  \see replot
+*/
+void QCPLayer::setMode(QCPLayer::LayerMode mode)
+{
+  if (mMode != mode)
+  {
+    mMode = mode;
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
+  }
+}
+
+/*! \internal
+
+  Draws the contents of this layer with the provided \a painter.
+
+  \see replot, drawToPaintBuffer
+*/
+void QCPLayer::draw(QCPPainter *painter)
+{
+  foreach (QCPLayerable *child, mChildren)
+  {
+    if (child->realVisibility())
+    {
+      painter->save();
+      painter->setClipRect(child->clipRect().translated(0, -1));
+      child->applyDefaultAntialiasingHint(painter);
+      child->draw(painter);
+      painter->restore();
+    }
+  }
+}
+
+/*! \internal
+
+  Draws the contents of this layer into the paint buffer which is associated with this layer. The
+  association is established by the parent QCustomPlot, which manages all paint buffers (see \ref
+  QCustomPlot::setupPaintBuffers).
+
+  \see draw
+*/
+void QCPLayer::drawToPaintBuffer()
+{
+  if (!mPaintBuffer.isNull())
+  {
+    if (QCPPainter *painter = mPaintBuffer.data()->startPainting())
+    {
+      if (painter->isActive())
+        draw(painter);
+      else
+        qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
+      delete painter;
+      mPaintBuffer.data()->donePainting();
+    } else
+      qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
+  } else
+    qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
+}
+
+/*!
+  If the layer mode (\ref setMode) is set to \ref lmBuffered, this method allows replotting only
+  the layerables on this specific layer, without the need to replot all other layers (as a call to
+  \ref QCustomPlot::replot would do).
+
+  If the layer mode is \ref lmLogical however, this method simply calls \ref QCustomPlot::replot on
+  the parent QCustomPlot instance.
+
+  QCustomPlot also makes sure to replot all layers instead of only this one, if the layer ordering
+  has changed since the last full replot and the other paint buffers were thus invalidated.
+
+  \see draw
+*/
+void QCPLayer::replot()
+{
+  if (mMode == lmBuffered && !mParentPlot->hasInvalidatedPaintBuffers())
+  {
+    if (!mPaintBuffer.isNull())
+    {
+      mPaintBuffer.data()->clear(Qt::transparent);
+      drawToPaintBuffer();
+      mPaintBuffer.data()->setInvalidated(false);
+      mParentPlot->update();
+    } else
+      qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
+  } else if (mMode == lmLogical)
+    mParentPlot->replot();
+}
+
 /*! \internal
   
   Adds the \a layerable to the list of this layer. If \a prepend is set to true, the layerable will
@@ -156,6 +278,8 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
       mChildren.prepend(layerable);
     else
       mChildren.append(layerable);
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is already child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
@@ -171,7 +295,11 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
 */
 void QCPLayer::removeChild(QCPLayerable *layerable)
 {
-  if (!mChildren.removeOne(layerable))
+  if (mChildren.removeOne(layerable))
+  {
+    if (!mPaintBuffer.isNull())
+      mPaintBuffer.data()->setInvalidated();
+  } else
     qDebug() << Q_FUNC_INFO << "layerable is not child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
 
@@ -203,7 +331,7 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   Note that a parent layerable is not necessarily also the QObject parent for memory management.
   Further, a layerable doesn't always have a parent layerable, so this function may return 0.
   
-  A parent layerable is set implicitly with when placed inside layout elements and doesn't need to be
+  A parent layerable is set implicitly when placed inside layout elements and doesn't need to be
   set manually by the user.
 */
 
@@ -222,9 +350,9 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   default antialiasing hint.
   
   <b>First example:</b> QCPGraph has multiple entities that have an antialiasing setting: The graph
-  line, fills, scatters and error bars. Those can be configured via QCPGraph::setAntialiased,
-  QCPGraph::setAntialiasedFill, QCPGraph::setAntialiasedScatters etc. Consequently, there isn't
-  only the QCPGraph::applyDefaultAntialiasingHint function (which corresponds to the graph line's
+  line, fills and scatters. Those can be configured via QCPGraph::setAntialiased,
+  QCPGraph::setAntialiasedFill and QCPGraph::setAntialiasedScatters. Consequently, there isn't only
+  the QCPGraph::applyDefaultAntialiasingHint function (which corresponds to the graph line's
   antialiasing), but specialized ones like QCPGraph::applyFillAntialiasingHint and
   QCPGraph::applyScattersAntialiasingHint. So before drawing one of those entities, QCPGraph::draw
   calls the respective specialized applyAntialiasingHint function.
@@ -276,10 +404,12 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   It is possible to provide 0 as \a plot. In that case, you should assign a parent plot at a later
   time with \ref initializeParentPlot.
   
-  The layerable's parent layerable is set to \a parentLayerable, if provided. Direct layerable parents
-  are mainly used to control visibility in a hierarchy of layerables. This means a layerable is
-  only drawn, if all its ancestor layerables are also visible. Note that \a parentLayerable does
-  not become the QObject-parent (for memory management) of this layerable, \a plot does.
+  The layerable's parent layerable is set to \a parentLayerable, if provided. Direct layerable
+  parents are mainly used to control visibility in a hierarchy of layerables. This means a
+  layerable is only drawn, if all its ancestor layerables are also visible. Note that \a
+  parentLayerable does not become the QObject-parent (for memory management) of this layerable, \a
+  plot does. It is not uncommon to set the QObject-parent to something else in the constructors of
+  QCPLayerable subclasses, to guarantee a working destruction hierarchy.
 */
 QCPLayerable::QCPLayerable(QCustomPlot *plot, QString targetLayer, QCPLayerable *parentLayerable) :
   QObject(plot),
@@ -321,7 +451,10 @@ void QCPLayerable::setVisible(bool on)
   Sets the \a layer of this layerable object. The object will be placed on top of the other objects
   already on \a layer.
   
-  Returns true on success, i.e. if \a layer is a valid layer.
+  If \a layer is 0, this layerable will not be on any layer and thus not appear in the plot (or
+  interact/receive events).
+  
+  Returns true if the layer of this layerable was successfully changed to \a layer.
 */
 bool QCPLayerable::setLayer(QCPLayer *layer)
 {
@@ -363,16 +496,13 @@ void QCPLayerable::setAntialiased(bool enabled)
 
 /*!
   Returns whether this layerable is visible, taking the visibility of the layerable parent and the
-  visibility of the layer this layerable is on into account. This is the method that is consulted
-  to decide whether a layerable shall be drawn or not.
+  visibility of this layerable's layer into account. This is the method that is consulted to decide
+  whether a layerable shall be drawn or not.
   
   If this layerable has a direct layerable parent (usually set via hierarchies implemented in
-  subclasses, like in the case of QCPLayoutElement), this function returns true only if this
+  subclasses, like in the case of \ref QCPLayoutElement), this function returns true only if this
   layerable has its visibility set to true and the parent layerable's \ref realVisibility returns
   true.
-  
-  If this layerable doesn't have a direct layerable parent, returns the state of this layerable's
-  visibility.
 */
 bool QCPLayerable::realVisibility() const
 {
@@ -398,7 +528,7 @@ bool QCPLayerable::realVisibility() const
   
   The actual setting of the selection state is not done by this function. This is handled by the
   parent QCustomPlot when the mouseReleaseEvent occurs, and the finally selected object is notified
-  via the selectEvent/deselectEvent methods.
+  via the \ref selectEvent/\ref deselectEvent methods.
   
   \a details is an optional output parameter. Every layerable subclass may place any information
   in \a details. This information will be passed to \ref selectEvent when the parent QCustomPlot
@@ -411,7 +541,7 @@ bool QCPLayerable::realVisibility() const
   
   You may pass 0 as \a details to indicate that you are not interested in those selection details.
   
-  \see selectEvent, deselectEvent, QCustomPlot::setInteractions
+  \see selectEvent, deselectEvent, mousePressEvent, wheelEvent, QCustomPlot::setInteractions
 */
 double QCPLayerable::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
@@ -623,4 +753,125 @@ void QCPLayerable::selectEvent(QMouseEvent *event, bool additive, const QVariant
 void QCPLayerable::deselectEvent(bool *selectionStateChanged)
 {
   Q_UNUSED(selectionStateChanged)
+}
+
+/*!
+  This event gets called when the user presses a mouse button while the cursor is over the
+  layerable. Whether a cursor is over the layerable is decided by a preceding call to \ref
+  selectTest.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a details contains layerable-specific details about the hit, which
+  were generated in the previous call to \ref selectTest. For example, One-dimensional plottables
+  like \ref QCPGraph or \ref QCPBars convey the clicked data point in the \a details parameter, as
+  \ref QCPDataSelection packed as QVariant. Multi-part objects convey the specific \c
+  SelectablePart that was hit (e.g. \ref QCPAxis::SelectablePart in the case of axes).
+
+  QCustomPlot uses an event propagation system that works the same as Qt's system. If your
+  layerable doesn't reimplement the \ref mousePressEvent or explicitly calls \c event->ignore() in
+  its reimplementation, the event will be propagated to the next layerable in the stacking order.
+
+  Once a layerable has accepted the \ref mousePressEvent, it is considered the mouse grabber and
+  will receive all following calls to \ref mouseMoveEvent or \ref mouseReleaseEvent for this mouse
+  interaction (a "mouse interaction" in this context ends with the release).
+
+  The default implementation does nothing except explicitly ignoring the event with \c
+  event->ignore().
+
+  \see mouseMoveEvent, mouseReleaseEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mousePressEvent(QMouseEvent *event, const QVariant &details)
+{
+  Q_UNUSED(details)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user moves the mouse while holding a mouse button, after this
+  layerable has become the mouse grabber by accepting the preceding \ref mousePressEvent.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a startPos indicates the position where the initial \ref
+  mousePressEvent occured, that started the mouse interaction.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseReleaseEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  Q_UNUSED(startPos)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user releases the mouse button, after this layerable has become
+  the mouse grabber by accepting the preceding \ref mousePressEvent.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a startPos indicates the position where the initial \ref
+  mousePressEvent occured, that started the mouse interaction.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseMoveEvent, mouseDoubleClickEvent, wheelEvent
+*/
+void QCPLayerable::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  Q_UNUSED(startPos)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user presses the mouse button a second time in a double-click,
+  while the cursor is over the layerable. Whether a cursor is over the layerable is decided by a
+  preceding call to \ref selectTest.
+
+  The \ref mouseDoubleClickEvent is called instead of the second \ref mousePressEvent. So in the
+  case of a double-click, the event succession is
+  <i>pressEvent &ndash; releaseEvent &ndash; doubleClickEvent &ndash; releaseEvent</i>.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos(). The parameter \a details contains layerable-specific details about the hit, which
+  were generated in the previous call to \ref selectTest. For example, One-dimensional plottables
+  like \ref QCPGraph or \ref QCPBars convey the clicked data point in the \a details parameter, as
+  \ref QCPDataSelection packed as QVariant. Multi-part objects convey the specific \c
+  SelectablePart that was hit (e.g. \ref QCPAxis::SelectablePart in the case of axes).
+
+  Similarly to \ref mousePressEvent, once a layerable has accepted the \ref mouseDoubleClickEvent,
+  it is considered the mouse grabber and will receive all following calls to \ref mouseMoveEvent
+  and \ref mouseReleaseEvent for this mouse interaction (a "mouse interaction" in this context ends
+  with the release).
+
+  The default implementation does nothing except explicitly ignoring the event with \c
+  event->ignore().
+
+  \see mousePressEvent, mouseMoveEvent, mouseReleaseEvent, wheelEvent
+*/
+void QCPLayerable::mouseDoubleClickEvent(QMouseEvent *event, const QVariant &details)
+{
+  Q_UNUSED(details)
+  event->ignore();
+}
+
+/*!
+  This event gets called when the user turns the mouse scroll wheel while the cursor is over the
+  layerable. Whether a cursor is over the layerable is decided by a preceding call to \ref
+  selectTest.
+
+  The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
+  event->pos().
+
+  The \c event->delta() indicates how far the mouse wheel was turned, which is usually +/- 120 for
+  single rotation steps. However, if the mouse wheel is turned rapidly, multiple steps may
+  accumulate to one event, making \c event->delta() larger. On the other hand, if the wheel has
+  very smooth steps or none at all, the delta may be smaller.
+
+  The default implementation does nothing.
+
+  \see mousePressEvent, mouseMoveEvent, mouseReleaseEvent, mouseDoubleClickEvent
+*/
+void QCPLayerable::wheelEvent(QWheelEvent *event)
+{
+  event->ignore();
 }

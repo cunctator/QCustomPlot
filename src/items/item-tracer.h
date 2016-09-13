@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_ITEM_TRACER_H
@@ -61,7 +61,7 @@ public:
                    };
   Q_ENUMS(TracerStyle)
 
-  QCPItemTracer(QCustomPlot *parentPlot);
+  explicit QCPItemTracer(QCustomPlot *parentPlot);
   virtual ~QCPItemTracer();
 
   // getters:
@@ -87,7 +87,7 @@ public:
   void setInterpolating(bool enabled);
 
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void updatePosition();
@@ -105,11 +105,12 @@ protected:
   bool mInterpolating;
 
   // reimplemented virtual methods:
-  virtual void draw(QCPPainter *painter);
+  virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
 
   // non-virtual methods:
   QPen mainPen() const;
   QBrush mainBrush() const;
 };
+Q_DECLARE_METATYPE(QCPItemTracer::TracerStyle)
 
 #endif // QCP_ITEM_TRACER_H

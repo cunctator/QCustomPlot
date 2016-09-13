@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,14 +19,14 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_RANGE_H
 #define QCP_RANGE_H
 
-#include "global.h"
+#include "../global.h"
 
 class QCP_LIB_DECL QCPRange
 {
@@ -50,46 +50,35 @@ public:
   friend inline const QCPRange operator*(double value, const QCPRange& range);
   friend inline const QCPRange operator/(const QCPRange& range, double value);
   
-  double size() const;
-  double center() const;
-  void normalize();
+  double size() const { return upper-lower; }
+  double center() const { return (upper+lower)*0.5; }
+  void normalize() { if (lower > upper) qSwap(lower, upper); }
   void expand(const QCPRange &otherRange);
+  void expand(double includeCoord);
   QCPRange expanded(const QCPRange &otherRange) const;
+  QCPRange expanded(double includeCoord) const;
+  QCPRange bounded(double lowerBound, double upperBound) const;
   QCPRange sanitizedForLogScale() const;
   QCPRange sanitizedForLinScale() const;
-  bool contains(double value) const;
+  bool contains(double value) const { return value >= lower && value <= upper; }
   
   static bool validRange(double lower, double upper);
   static bool validRange(const QCPRange &range);
-  static const double minRange; //1e-280;
-  static const double maxRange; //1e280;
+  static const double minRange;
+  static const double maxRange;
   
 };
 Q_DECLARE_TYPEINFO(QCPRange, Q_MOVABLE_TYPE);
 
-/* documentation of inline functions */
+/*! \relates QCPRange
 
-/*! \fn QCPRange &QCPRange::operator+=(const double& value)
-  
-  Adds \a value to both boundaries of the range.
+  Prints \a range in a human readable format to the qDebug output.
 */
-
-/*! \fn QCPRange &QCPRange::operator-=(const double& value)
-  
-  Subtracts \a value from both boundaries of the range.
-*/
-
-/*! \fn QCPRange &QCPRange::operator*=(const double& value)
-  
-  Multiplies both boundaries of the range by \a value.
-*/
-
-/*! \fn QCPRange &QCPRange::operator/=(const double& value)
-  
-  Divides both boundaries of the range by \a value.
-*/
-
-/* end documentation of inline functions */
+inline QDebug operator<< (QDebug d, const QCPRange &range)
+{
+    d.nospace() << "QCPRange(" << range.lower << ", " << range.upper << ")";
+    return d.space();
+}
 
 /*!
   Adds \a value to both boundaries of the range.

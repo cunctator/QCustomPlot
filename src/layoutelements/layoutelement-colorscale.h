@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #ifndef QCP_LAYOUTELEMENT_COLORSCALE_H
 #define QCP_LAYOUTELEMENT_COLORSCALE_H
 
 #include "../global.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 #include "../layout.h"
 #include "../colorgradient.h"
 #include "../layoutelements/layoutelement-axisrect.h"
@@ -105,12 +105,12 @@ public:
   void rescaleDataRange(bool onlyVisibleMaps);
   
   // reimplemented virtual methods:
-  virtual void update(UpdatePhase phase);
+  virtual void update(UpdatePhase phase) Q_DECL_OVERRIDE;
   
 signals:
-  void dataRangeChanged(QCPRange newRange);
+  void dataRangeChanged(const QCPRange &newRange);
   void dataScaleTypeChanged(QCPAxis::ScaleType scaleType);
-  void gradientChanged(QCPColorGradient newGradient);
+  void gradientChanged(const QCPColorGradient &newGradient);
 
 protected:
   // property members:
@@ -125,12 +125,12 @@ protected:
   QPointer<QCPAxis> mColorAxis;
   
   // reimplemented virtual methods:
-  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const;
+  virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
   // events:
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void mouseMoveEvent(QMouseEvent *event);
-  virtual void mouseReleaseEvent(QMouseEvent *event);
-  virtual void wheelEvent(QWheelEvent *event);
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details) Q_DECL_OVERRIDE;
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos) Q_DECL_OVERRIDE;
+  virtual void wheelEvent(QWheelEvent *event) Q_DECL_OVERRIDE;
   
 private:
   Q_DISABLE_COPY(QCPColorScale)

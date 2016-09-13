@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMetaEnum>
 #include <QTimer>
 #include "../../qcustomplot.h"
 
@@ -25,12 +26,21 @@ public slots:
   void snippetQCPCurve();
   void snippetQCPItemLine();
   void snippetQCPMarginGroup();
-  void snippetQCPPlotTitle();
+  void snippetQCPTextElement();
   void snippetQCPLineEnding();
   void snippetQCPScatterStyle();
   void snippetQCPBarsGroup();
   void snippetQCPBars();
   void snippetQCPStatisticalBox();
+  void snippetQCPFinancial();
+  
+  void snippetQCPGraphDataSharing();
+  void snippetQCPCurveDataSharing();
+  void snippetQCPBarsDataSharing();
+  void snippetQCPStatisticalBoxDataSharing();
+  void snippetQCPFinancialDataSharing();
+  void snippetQCPErrorBarsDataSharing();
+  void snippetQCPDataSelectionIterating();
   
   // website code methods:
   void websiteBasicPlottingBars();

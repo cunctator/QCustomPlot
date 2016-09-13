@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-ellipse.h"
@@ -43,7 +43,8 @@
 /*!
   Creates an ellipse item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemEllipse::QCPItemEllipse(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -121,9 +122,8 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   if (onlySelectable && !mSelectable)
     return -1;
   
-  double result = -1;
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   QPointF center((p1+p2)/2.0);
   double a = qAbs(p1.x()-p2.x())/2.0;
   double b = qAbs(p1.y()-p2.y())/2.0;
@@ -132,7 +132,7 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
   
   // distance to border:
   double c = 1.0/qSqrt(x*x/(a*a)+y*y/(b*b));
-  result = qAbs(c-1)*qSqrt(x*x+y*y);
+  double result = qAbs(c-1)*qSqrt(x*x+y*y);
   // filled ellipse, allow click inside to count as hit:
   if (result > mParentPlot->selectionTolerance()*0.99 && mBrush.style() != Qt::NoBrush && mBrush.color().alpha() != 0)
   {
@@ -145,8 +145,8 @@ double QCPItemEllipse::selectTest(const QPointF &pos, bool onlySelectable, QVari
 /* inherits documentation from base class */
 void QCPItemEllipse::draw(QCPPainter *painter)
 {
-  QPointF p1 = topLeft->pixelPoint();
-  QPointF p2 = bottomRight->pixelPoint();
+  QPointF p1 = topLeft->pixelPosition();
+  QPointF p2 = bottomRight->pixelPosition();
   if (p1.toPoint() == p2.toPoint())
     return;
   QRectF ellipseRect = QRectF(p1, p2).normalized();
@@ -171,9 +171,9 @@ void QCPItemEllipse::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QPointF QCPItemEllipse::anchorPixelPoint(int anchorId) const
+QPointF QCPItemEllipse::anchorPixelPosition(int anchorId) const
 {
-  QRectF rect = QRectF(topLeft->pixelPoint(), bottomRight->pixelPoint());
+  QRectF rect = QRectF(topLeft->pixelPosition(), bottomRight->pixelPosition());
   switch (anchorId)
   {
     case aiTopLeftRim:     return rect.center()+(rect.topLeft()-rect.center())*1/qSqrt(2);

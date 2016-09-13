@@ -80,6 +80,10 @@ void TestQCPLayout::layoutGridElementManagement()
   delete r3;
   // now simplify should collapse to 2x2:
   mainLayout->simplify();
+  /*
+   def  r1
+   r2   0
+  */
   QCOMPARE(mainLayout->columnCount(), 2);
   QCOMPARE(mainLayout->rowCount(), 2);
   QCOMPARE(mainLayout->element(0, 0), mPlot->axisRect());
@@ -89,7 +93,7 @@ void TestQCPLayout::layoutGridElementManagement()
   QCOMPARE(mainLayout->element(1, 1), (QCPLayoutElement*)0);
   
   // remove r1 axis rect:
-  QCOMPARE(mainLayout->takeAt(1), r1);
+  QCOMPARE(mainLayout->takeAt(2), r1);
   delete r1;
   // now simplify should collapse to 2x1:
   mainLayout->simplify();

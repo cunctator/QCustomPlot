@@ -18,7 +18,7 @@ public:
   ~MainWindow();
   
 private slots:
-  void titleDoubleClick(QMouseEvent *event, QCPPlotTitle *title);
+  void titleDoubleClick(QMouseEvent *event);
   void axisLabelDoubleClick(QCPAxis* axis, QCPAxis::SelectablePart part);
   void legendDoubleClick(QCPLegend* legend, QCPAbstractLegendItem* item);
   void selectionChanged();
@@ -29,7 +29,7 @@ private slots:
   void removeAllGraphs();
   void contextMenuRequest(QPoint pos);
   void moveLegend();
-  void graphClicked(QCPAbstractPlottable *plottable);
+  void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   
 private:
   Ui::MainWindow *ui;

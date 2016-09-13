@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "item-line.h"
@@ -45,7 +45,8 @@
 /*!
   Creates a line item and sets default values.
   
-  The constructed item can be added to the plot with QCustomPlot::addItem.
+  The created item is automatically registered with \a parentPlot. This QCustomPlot instance takes
+  ownership of the item, so do not delete it manually but use QCustomPlot::removeItem() instead.
 */
 QCPItemLine::QCPItemLine(QCustomPlot *parentPlot) :
   QCPAbstractItem(parentPlot),
@@ -116,15 +117,15 @@ double QCPItemLine::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (onlySelectable && !mSelectable)
     return -1;
   
-  return qSqrt(distSqrToLine(start->pixelPoint(), end->pixelPoint(), pos));
+  return qSqrt(QCPVector2D(pos).distanceSquaredToLine(start->pixelPosition(), end->pixelPosition()));
 }
 
 /* inherits documentation from base class */
 void QCPItemLine::draw(QCPPainter *painter)
 {
-  QVector2D startVec(start->pixelPoint());
-  QVector2D endVec(end->pixelPoint());
-  if (startVec.toPoint() == endVec.toPoint())
+  QCPVector2D startVec(start->pixelPosition());
+  QCPVector2D endVec(end->pixelPosition());
+  if (qFuzzyIsNull((startVec-endVec).lengthSquared()))
     return;
   // get visible segment of straight line inside clipRect:
   double clipPad = qMax(mHead.boundingDistance(), mTail.boundingDistance());
@@ -150,19 +151,19 @@ void QCPItemLine::draw(QCPPainter *painter)
   
   This is a helper function for \ref draw.
 */
-QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &end, const QRect &rect) const
+QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const
 {
   bool containsStart = rect.contains(start.x(), start.y());
   bool containsEnd = rect.contains(end.x(), end.y());
   if (containsStart && containsEnd)
     return QLineF(start.toPointF(), end.toPointF());
   
-  QVector2D base = start;
-  QVector2D vec = end-start;
+  QCPVector2D base = start;
+  QCPVector2D vec = end-start;
   double bx, by;
   double gamma, mu;
   QLineF result;
-  QList<QVector2D> pointVectors;
+  QList<QCPVector2D> pointVectors;
 
   if (!qFuzzyIsNull(vec.y())) // line is not horizontal
   {
@@ -174,7 +175,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.x()-bx + mu*vec.x();
       if (gamma >= 0 && gamma <= rect.width())
-        pointVectors.append(QVector2D(bx+gamma, by));
+        pointVectors.append(QCPVector2D(bx+gamma, by));
     }
     // check bottom of rect:
     bx = rect.left();
@@ -184,7 +185,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.x()-bx + mu*vec.x();
       if (gamma >= 0 && gamma <= rect.width())
-        pointVectors.append(QVector2D(bx+gamma, by));
+        pointVectors.append(QCPVector2D(bx+gamma, by));
     }
   }
   if (!qFuzzyIsNull(vec.x())) // line is not vertical
@@ -197,7 +198,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.y()-by + mu*vec.y();
       if (gamma >= 0 && gamma <= rect.height())
-        pointVectors.append(QVector2D(bx, by+gamma));
+        pointVectors.append(QCPVector2D(bx, by+gamma));
     }
     // check right of rect:
     bx = rect.right();
@@ -207,7 +208,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
     {
       gamma = base.y()-by + mu*vec.y();
       if (gamma >= 0 && gamma <= rect.height())
-        pointVectors.append(QVector2D(bx, by+gamma));
+        pointVectors.append(QCPVector2D(bx, by+gamma));
     }
   }
   
@@ -224,7 +225,7 @@ QLineF QCPItemLine::getRectClippedLine(const QVector2D &start, const QVector2D &
   {
     // line probably goes through corner of rect, and we got two points there. single out the point pair with greatest distance:
     double distSqrMax = 0;
-    QVector2D pv1, pv2;
+    QCPVector2D pv1, pv2;
     for (int i=0; i<pointVectors.size()-1; ++i)
     {
       for (int k=i+1; k<pointVectors.size(); ++k)

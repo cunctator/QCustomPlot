@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2015 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,15 +19,15 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.04.15                                             **
-**          Version: 1.3.1                                                **
+**             Date: 13.09.16                                             **
+**          Version: 2.0.0-beta                                           **
 ****************************************************************************/
 
 #include "plottable-financial.h"
 
 #include "../painter.h"
 #include "../core.h"
-#include "../axis.h"
+#include "../axis/axis.h"
 #include "../layoutelements/layoutelement-axisrect.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,17 +37,72 @@
 /*! \class QCPFinancialData
   \brief Holds the data of one single data point for QCPFinancial.
   
-  The container for storing multiple data points is \ref QCPFinancialDataMap.
-  
   The stored data is:
-  \li \a key: coordinate on the key axis of this data point
-  \li \a open: The opening value at the data point
+  \li \a key: coordinate on the key axis of this data point (this is the \a mainKey and the \a sortKey)
+  \li \a open: The opening value at the data point (this is the \a mainValue)
   \li \a high: The high/maximum value at the data point
   \li \a low: The low/minimum value at the data point
   \li \a close: The closing value at the data point
   
-  \see QCPFinancialDataMap
+  The container for storing multiple data points is \ref QCPFinancialDataContainer. It is a typedef
+  for \ref QCPDataContainer with \ref QCPFinancialData as the DataType template parameter. See the
+  documentation there for an explanation regarding the data type's generic methods.
+  
+  \see QCPFinancialDataContainer
 */
+
+/* start documentation of inline functions */
+
+/*! \fn double QCPFinancialData::sortKey() const
+  
+  Returns the \a key member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn static QCPFinancialData QCPFinancialData::fromSortKey(double sortKey)
+  
+  Returns a data point with the specified \a sortKey. All other members are set to zero.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn static static bool QCPFinancialData::sortKeyIsMainKey()
+  
+  Since the member \a key is both the data point key coordinate and the data ordering parameter,
+  this method returns true.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn double QCPFinancialData::mainKey() const
+  
+  Returns the \a key member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn double QCPFinancialData::mainValue() const
+  
+  Returns the \a open member of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/*! \fn QCPRange QCPFinancialData::valueRange() const
+  
+  Returns a QCPRange spanning from the \a low to the \a high value of this data point.
+  
+  For a general explanation of what this method is good for in the context of the data container,
+  see the documentation of \ref QCPDataContainer.
+*/
+
+/* end documentation of inline functions */
 
 /*!
   Constructs a data point with key and all values set to zero.
@@ -82,41 +137,58 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   \brief A plottable representing a financial stock chart
 
   \image html QCPFinancial.png
-  
+
   This plottable represents time series data binned to certain intervals, mainly used for stock
   charts. The two common representations OHLC (Open-High-Low-Close) bars and Candlesticks can be
   set via \ref setChartStyle.
-  
+
   The data is passed via \ref setData as a set of open/high/low/close values at certain keys
   (typically times). This means the data must be already binned appropriately. If data is only
   available as a series of values (e.g. \a price against \a time), you can use the static
   convenience function \ref timeSeriesToOhlc to generate binned OHLC-data which can then be passed
   to \ref setData.
-  
-  The width of the OHLC bars/candlesticks can be controlled with \ref setWidth and is given in plot
-  key coordinates. A typical choice is to set it to (or slightly less than) one bin interval width.
-  
-  \section appearance Changing the appearance
-  
+
+  The width of the OHLC bars/candlesticks can be controlled with \ref setWidth and \ref
+  setWidthType. A typical choice is to set the width type to \ref wtPlotCoords (the default) and
+  the width to (or slightly less than) one time bin interval width.
+
+  \section qcpfinancial-appearance Changing the appearance
+
   Charts can be either single- or two-colored (\ref setTwoColored). If set to be single-colored,
   lines are drawn with the plottable's pen (\ref setPen) and fills with the brush (\ref setBrush).
-  
+
   If set to two-colored, positive changes of the value during an interval (\a close >= \a open) are
   represented with a different pen and brush than negative changes (\a close < \a open). These can
   be configured with \ref setPenPositive, \ref setPenNegative, \ref setBrushPositive, and \ref
   setBrushNegative. In two-colored mode, the normal plottable pen/brush is ignored. Upon selection
-  however, the normal selected pen/brush (\ref setSelectedPen, \ref setSelectedBrush) is used,
+  however, the normal selected pen/brush (provided by the \ref selectionDecorator) is used,
   irrespective of whether the chart is single- or two-colored.
-  
+
+  \section qcpfinancial-usage Usage
+
+  Like all data representing objects in QCustomPlot, the QCPFinancial is a plottable
+  (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies
+  (QCustomPlot::plottable, QCustomPlot::removePlottable, etc.)
+
+  Usually, you first create an instance:
+
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-1
+  which registers it with the QCustomPlot instance of the passed axes. Note that this QCustomPlot
+  instance takes ownership of the plottable, so do not delete it manually but use
+  QCustomPlot::removePlottable() instead. The newly created plottable can be modified, e.g.:
+
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-creation-2
+  Here we have used the static helper method \ref timeSeriesToOhlc, to turn a time-price data
+  series into a 24-hour binned open-high-low-close data series as QCPFinancial uses.
 */
 
 /* start of documentation of inline functions */
 
-/*! \fn QCPFinancialDataMap *QCPFinancial::data() const
+/*! \fn QCPFinancialDataContainer *QCPFinancial::data() const
   
-  Returns a pointer to the internal data storage of type \ref QCPFinancialDataMap. You may use it to
-  directly manipulate the data, which may be more convenient and faster than using the regular \ref
-  setData or \ref addData methods, in certain situations.
+  Returns a pointer to the internal data storage of type \ref QCPFinancialDataContainer. You may
+  use it to directly manipulate the data, which may be more convenient and faster than using the
+  regular \ref setData or \ref addData methods, in certain situations.
 */
 
 /* end of documentation of inline functions */
@@ -127,79 +199,63 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   the same orientation. If either of these restrictions is violated, a corresponding message is
   printed to the debug output (qDebug), the construction is not aborted, though.
   
-  The constructed QCPFinancial can be added to the plot with QCustomPlot::addPlottable, QCustomPlot
-  then takes ownership of the financial chart.
+  The created QCPFinancial is automatically registered with the QCustomPlot instance inferred from \a
+  keyAxis. This QCustomPlot instance takes ownership of the QCPFinancial, so do not delete it manually
+  but use QCustomPlot::removePlottable() instead.
 */
 QCPFinancial::QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable(keyAxis, valueAxis),
-  mData(0),
-  mChartStyle(csOhlc),
+  QCPAbstractPlottable1D<QCPFinancialData>(keyAxis, valueAxis),
+  mChartStyle(csCandlestick),
   mWidth(0.5),
-  mTwoColored(false),
-  mBrushPositive(QBrush(QColor(210, 210, 255))),
-  mBrushNegative(QBrush(QColor(255, 210, 210))),
-  mPenPositive(QPen(QColor(10, 40, 180))),
-  mPenNegative(QPen(QColor(180, 40, 10)))
+  mWidthType(wtPlotCoords),
+  mTwoColored(true),
+  mBrushPositive(QBrush(QColor(50, 160, 0))),
+  mBrushNegative(QBrush(QColor(180, 0, 15))),
+  mPenPositive(QPen(QColor(40, 150, 0))),
+  mPenNegative(QPen(QColor(170, 5, 5)))
 {
-  mData = new QCPFinancialDataMap;
-  
-  setSelectedPen(QPen(QColor(80, 80, 255), 2.5));
-  setSelectedBrush(QBrush(QColor(80, 80, 255)));
+  mSelectionDecorator->setBrush(QBrush(QColor(160, 160, 255)));
 }
 
 QCPFinancial::~QCPFinancial()
 {
-  delete mData;
-}
-
-/*!
-  Replaces the current data with the provided \a data.
-  
-  If \a copy is set to true, data points in \a data will only be copied. if false, the plottable
-  takes ownership of the passed data and replaces the internal data pointer with it. This is
-  significantly faster than copying for large datasets.
-  
-  Alternatively, you can also access and modify the plottable's data via the \ref data method, which
-  returns a pointer to the internal \ref QCPFinancialDataMap.
-  
-  \see timeSeriesToOhlc
-*/
-void QCPFinancial::setData(QCPFinancialDataMap *data, bool copy)
-{
-  if (mData == data)
-  {
-    qDebug() << Q_FUNC_INFO << "The data pointer is already in (and owned by) this plottable" << reinterpret_cast<quintptr>(data);
-    return;
-  }
-  if (copy)
-  {
-    *mData = *data;
-  } else
-  {
-    delete mData;
-    mData = data;
-  }
 }
 
 /*! \overload
   
-  Replaces the current data with the provided open/high/low/close data. The provided vectors should
-  have equal length. Else, the number of added points will be the size of the smallest vector.
+  Replaces the current data container with the provided \a data container.
   
-  \see timeSeriesToOhlc
+  Since a QSharedPointer is used, multiple QCPFinancials may share the same data container safely.
+  Modifying the data in the container will then affect all financials that share the container.
+  Sharing can be achieved by simply exchanging the data containers wrapped in shared pointers:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-1
+  
+  If you do not wish to share containers, but create a copy from an existing container, rather use
+  the \ref QCPDataContainer<DataType>::set method on the financial's data container directly:
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpfinancial-datasharing-2
+  
+  \see addData, timeSeriesToOhlc
 */
-void QCPFinancial::setData(const QVector<double> &key, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close)
+void QCPFinancial::setData(QSharedPointer<QCPFinancialDataContainer> data)
 {
-  mData->clear();
-  int n = key.size();
-  n = qMin(n, open.size());
-  n = qMin(n, high.size());
-  n = qMin(n, low.size());
-  n = qMin(n, close.size());
-  for (int i=0; i<n; ++i)
-  {
-    mData->insertMulti(key[i], QCPFinancialData(key[i], open[i], high[i], low[i], close[i]));
-  }
+  mDataContainer = data;
+}
+
+/*! \overload
+  
+  Replaces the current data with the provided points in \a keys, \a open, \a high, \a low and \a
+  close. The provided vectors should have equal length. Else, the number of added points will be
+  the size of the smallest vector.
+  
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  \see addData, timeSeriesToOhlc
+*/
+void QCPFinancial::setData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
+{
+  mDataContainer->clear();
+  addData(keys, open, high, low, close, alreadySorted);
 }
 
 /*!
@@ -218,6 +274,19 @@ void QCPFinancial::setChartStyle(QCPFinancial::ChartStyle style)
 void QCPFinancial::setWidth(double width)
 {
   mWidth = width;
+}
+
+/*!
+  Sets how the width of the financial bars is defined. See the documentation of \ref WidthType for
+  an explanation of the possible values for \a widthType.
+
+  The default value is \ref wtPlotCoords.
+
+  \see setWidth
+*/
+void QCPFinancial::setWidthType(QCPFinancial::WidthType widthType)
+{
+  mWidthType = widthType;
 }
 
 /*!
@@ -290,164 +359,140 @@ void QCPFinancial::setPenNegative(const QPen &pen)
   mPenNegative = pen;
 }
 
-/*!
-  Adds the provided data points in \a dataMap to the current data.
+/*! \overload
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialDataMap.
+  Adds the provided points in \a keys, \a open, \a high, \a low and \a close to the current data.
+  The provided vectors should have equal length. Else, the number of added points will be the size
+  of the smallest vector.
   
-  \see removeData
+  If you can guarantee that the passed data points are sorted by \a keys in ascending order, you
+  can set \a alreadySorted to true, to improve performance by saving a sorting run.
+  
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
+  
+  \see timeSeriesToOhlc
 */
-void QCPFinancial::addData(const QCPFinancialDataMap &dataMap)
+void QCPFinancial::addData(const QVector<double> &keys, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close, bool alreadySorted)
 {
-  mData->unite(dataMap);
+  if (keys.size() != open.size() || open.size() != high.size() || high.size() != low.size() || low.size() != close.size() || close.size() != keys.size())
+    qDebug() << Q_FUNC_INFO << "keys, open, high, low, close have different sizes:" << keys.size() << open.size() << high.size() << low.size() << close.size();
+  const int n = qMin(keys.size(), qMin(open.size(), qMin(high.size(), qMin(low.size(), close.size()))));
+  QVector<QCPFinancialData> tempData(n);
+  QVector<QCPFinancialData>::iterator it = tempData.begin();
+  const QVector<QCPFinancialData>::iterator itEnd = tempData.end();
+  int i = 0;
+  while (it != itEnd)
+  {
+    it->key = keys[i];
+    it->open = open[i];
+    it->high = high[i];
+    it->low = low[i];
+    it->close = close[i];
+    ++it;
+    ++i;
+  }
+  mDataContainer->add(tempData, alreadySorted); // don't modify tempData beyond this to prevent copy on write
 }
 
 /*! \overload
   
-  Adds the provided single data point in \a data to the current data.
+  Adds the provided data point as \a key, \a open, \a high, \a low and \a close to the current
+  data.
   
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialData.
+  Alternatively, you can also access and modify the data directly via the \ref data method, which
+  returns a pointer to the internal data container.
   
-  \see removeData
-*/
-void QCPFinancial::addData(const QCPFinancialData &data)
-{
-  mData->insertMulti(data.key, data);
-}
-
-/*! \overload
-  
-  Adds the provided single data point given by \a key, \a open, \a high, \a low, and \a close to
-  the current data.
-  
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialData.
-  
-  \see removeData
+  \see timeSeriesToOhlc
 */
 void QCPFinancial::addData(double key, double open, double high, double low, double close)
 {
-  mData->insertMulti(key, QCPFinancialData(key, open, high, low, close));
+  mDataContainer->add(QCPFinancialData(key, open, high, low, close));
 }
 
-/*! \overload
-  
-  Adds the provided open/high/low/close data to the current data.
-  
-  Alternatively, you can also access and modify the data via the \ref data method, which returns a
-  pointer to the internal \ref QCPFinancialData.
-  
-  \see removeData
+/*!
+  \copydoc QCPPlottableInterface1D::selectTestRect
 */
-void QCPFinancial::addData(const QVector<double> &key, const QVector<double> &open, const QVector<double> &high, const QVector<double> &low, const QVector<double> &close)
+QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect, bool onlySelectable) const
 {
-  int n = key.size();
-  n = qMin(n, open.size());
-  n = qMin(n, high.size());
-  n = qMin(n, low.size());
-  n = qMin(n, close.size());
-  for (int i=0; i<n; ++i)
+  QCPDataSelection result;
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
+    return result;
+  if (!mKeyAxis || !mValueAxis)
+    return result;
+  
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
+  
+  for (QCPFinancialDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
-    mData->insertMulti(key[i], QCPFinancialData(key[i], open[i], high[i], low[i], close[i]));
+    if (rect.intersects(selectionHitBox(it)))
+      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
   }
-}
-
-/*!
-  Removes all data points with keys smaller than \a key.
-  
-  \see addData, clearData
-*/
-void QCPFinancial::removeDataBefore(double key)
-{
-  QCPFinancialDataMap::iterator it = mData->begin();
-  while (it != mData->end() && it.key() < key)
-    it = mData->erase(it);
-}
-
-/*!
-  Removes all data points with keys greater than \a key.
-  
-  \see addData, clearData
-*/
-void QCPFinancial::removeDataAfter(double key)
-{
-  if (mData->isEmpty()) return;
-  QCPFinancialDataMap::iterator it = mData->upperBound(key);
-  while (it != mData->end())
-    it = mData->erase(it);
-}
-
-/*!
-  Removes all data points with keys between \a fromKey and \a toKey. if \a fromKey is greater or
-  equal to \a toKey, the function does nothing. To remove a single data point with known key, use
-  \ref removeData(double key).
-  
-  \see addData, clearData
-*/
-void QCPFinancial::removeData(double fromKey, double toKey)
-{
-  if (fromKey >= toKey || mData->isEmpty()) return;
-  QCPFinancialDataMap::iterator it = mData->upperBound(fromKey);
-  QCPFinancialDataMap::iterator itEnd = mData->upperBound(toKey);
-  while (it != itEnd)
-    it = mData->erase(it);
-}
-
-/*! \overload
-  
-  Removes a single data point at \a key. If the position is not known with absolute precision,
-  consider using \ref removeData(double fromKey, double toKey) with a small fuzziness interval
-  around the suspected position, depeding on the precision with which the key is known.
-
-  \see addData, clearData
-*/
-void QCPFinancial::removeData(double key)
-{
-  mData->remove(key);
-}
-
-/*!
-  Removes all data points.
-  
-  \see removeData, removeDataAfter, removeDataBefore
-*/
-void QCPFinancial::clearData()
-{
-  mData->clear();
+  result.simplify();
+  return result;
 }
 
 /* inherits documentation from base class */
 double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)
-  if (onlySelectable && !mSelectable)
+  if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
     return -1;
-  if (!mKeyAxis || !mValueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
+  if (!mKeyAxis || !mValueAxis)
+    return -1;
   
   if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
   {
     // get visible data range:
-    QCPFinancialDataMap::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
-    getVisibleDataBounds(lower, upper);
-    if (lower == mData->constEnd() || upper == mData->constEnd())
-      return -1;
+    QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+    QCPFinancialDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
+    getVisibleDataBounds(visibleBegin, visibleEnd);
     // perform select test according to configured style:
+    double result = -1;
     switch (mChartStyle)
     {
       case QCPFinancial::csOhlc:
-        return ohlcSelectTest(pos, lower, upper+1); break;
+        result = ohlcSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
       case QCPFinancial::csCandlestick:
-        return candlestickSelectTest(pos, lower, upper+1); break;
+        result = candlestickSelectTest(pos, visibleBegin, visibleEnd, closestDataPoint); break;
     }
+    if (details)
+    {
+      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
+    }
+    return result;
   }
+  
   return -1;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain) const
+{
+  QCPRange range = mDataContainer->keyRange(foundRange, inSignDomain);
+  // determine exact range by including width of bars/flags:
+  if (foundRange)
+  {
+    if (inSignDomain != QCP::sdPositive || range.lower-mWidth*0.5 > 0)
+      range.lower -= mWidth*0.5;
+    if (inSignDomain != QCP::sdNegative || range.upper+mWidth*0.5 < 0)
+      range.upper += mWidth*0.5;
+  }
+  return range;
+}
+
+/* inherits documentation from base class */
+QCPRange QCPFinancial::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, const QCPRange &inKeyRange) const
+{
+  return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
 /*!
   A convenience function that converts time series data (\a value against \a time) to OHLC binned
-  data points. The return value can then be passed on to \ref setData.
+  data points. The return value can then be passed on to \ref QCPFinancialDataContainer::set(const
+  QCPFinancialDataContainer&).
   
   The size of the bins can be controlled with \a timeBinSize in the same units as \a time is given.
   For example, if the unit of \a time is seconds and single OHLC/Candlesticks should span an hour
@@ -458,12 +503,12 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   It merely defines the mathematical offset/phase of the bins that will be used to process the
   data.
 */
-QCPFinancialDataMap QCPFinancial::timeSeriesToOhlc(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
+QCPFinancialDataContainer QCPFinancial::timeSeriesToOhlc(const QVector<double> &time, const QVector<double> &value, double timeBinSize, double timeBinOffset)
 {
-  QCPFinancialDataMap map;
+  QCPFinancialDataContainer data;
   int count = qMin(time.size(), value.size());
   if (count == 0)
-    return QCPFinancialDataMap();
+    return QCPFinancialDataContainer();
   
   QCPFinancialData currentBinData(0, value.first(), value.first(), value.first(), value.first());
   int currentBinIndex = qFloor((time.first()-timeBinOffset)/timeBinSize+0.5);
@@ -478,14 +523,14 @@ QCPFinancialDataMap QCPFinancial::timeSeriesToOhlc(const QVector<double> &time, 
       {
         currentBinData.close = value.at(i);
         currentBinData.key = timeBinOffset+(index)*timeBinSize;
-        map.insert(currentBinData.key, currentBinData);
+        data.add(currentBinData);
       }
     } else // data point not anymore in current bin, set close of old and open of new bin, and add old to map:
     {
       // finalize current bin:
       currentBinData.close = value.at(i-1);
       currentBinData.key = timeBinOffset+(index-1)*timeBinSize;
-      map.insert(currentBinData.key, currentBinData);
+      data.add(currentBinData);
       // start next bin:
       currentBinIndex = index;
       currentBinData.open = value.at(i);
@@ -494,26 +539,42 @@ QCPFinancialDataMap QCPFinancial::timeSeriesToOhlc(const QVector<double> &time, 
     }
   }
   
-  return map;
+  return data;
 }
 
 /* inherits documentation from base class */
 void QCPFinancial::draw(QCPPainter *painter)
 {
   // get visible data range:
-  QCPFinancialDataMap::const_iterator lower, upper; // note that upper is the actual upper point, and not 1 step after the upper point
-  getVisibleDataBounds(lower, upper);
-  if (lower == mData->constEnd() || upper == mData->constEnd())
-    return;
+  QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
+  getVisibleDataBounds(visibleBegin, visibleEnd);
   
-  // draw visible data range according to configured style:
-  switch (mChartStyle)
+  // loop over and draw segments of unselected/selected data:
+  QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
+  getDataSegments(selectedSegments, unselectedSegments);
+  allSegments << unselectedSegments << selectedSegments;
+  for (int i=0; i<allSegments.size(); ++i)
   {
-    case QCPFinancial::csOhlc:
-      drawOhlcPlot(painter, lower, upper+1); break;
-    case QCPFinancial::csCandlestick:
-      drawCandlestickPlot(painter, lower, upper+1); break;
+    bool isSelectedSegment = i >= unselectedSegments.size();
+    QCPFinancialDataContainer::const_iterator begin = visibleBegin;
+    QCPFinancialDataContainer::const_iterator end = visibleEnd;
+    mDataContainer->limitIteratorsToDataRange(begin, end, allSegments.at(i));
+    if (begin == end)
+      continue;
+    
+    // draw data segment according to configured style:
+    switch (mChartStyle)
+    {
+      case QCPFinancial::csOhlc:
+        drawOhlcPlot(painter, begin, end, isSelectedSegment); break;
+      case QCPFinancial::csCandlestick:
+        drawCandlestickPlot(painter, begin, end, isSelectedSegment); break;
+    }
   }
+  
+  // draw other selection decoration that isn't just line/scatter pens and brushes:
+  if (mSelectionDecorator)
+    mSelectionDecorator->drawDecoration(painter, selection());
 }
 
 /* inherits documentation from base class */
@@ -531,7 +592,7 @@ void QCPFinancial::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
       painter->drawLine(QLineF(0, rect.height()*0.5, rect.width(), rect.height()*0.5).translated(rect.topLeft()));
       painter->drawLine(QLineF(rect.width()*0.2, rect.height()*0.3, rect.width()*0.2, rect.height()*0.5).translated(rect.topLeft()));
       painter->drawLine(QLineF(rect.width()*0.8, rect.height()*0.5, rect.width()*0.8, rect.height()*0.7).translated(rect.topLeft()));
-      // draw bottom right hald icon with negative color:
+      // draw bottom right half icon with negative color:
       painter->setBrush(mBrushNegative);
       painter->setPen(mPenNegative);
       painter->setClipRegion(QRegion(QPolygon() << rect.bottomLeft().toPoint() << rect.topRight().toPoint() << rect.bottomRight().toPoint()));
@@ -557,7 +618,7 @@ void QCPFinancial::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
       painter->drawLine(QLineF(0, rect.height()*0.5, rect.width()*0.25, rect.height()*0.5).translated(rect.topLeft()));
       painter->drawLine(QLineF(rect.width()*0.75, rect.height()*0.5, rect.width(), rect.height()*0.5).translated(rect.topLeft()));
       painter->drawRect(QRectF(rect.width()*0.25, rect.height()*0.25, rect.width()*0.5, rect.height()*0.5).translated(rect.topLeft()));
-      // draw bottom right hald icon with negative color:
+      // draw bottom right half icon with negative color:
       painter->setBrush(mBrushNegative);
       painter->setPen(mPenNegative);
       painter->setClipRegion(QRegion(QPolygon() << rect.bottomLeft().toPoint() << rect.topRight().toPoint() << rect.bottomRight().toPoint()));
@@ -575,272 +636,222 @@ void QCPFinancial::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
   }
 }
 
-/* inherits documentation from base class */
-QCPRange QCPFinancial::getKeyRange(bool &foundRange, QCPAbstractPlottable::SignDomain inSignDomain) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  double current;
-  QCPFinancialDataMap::const_iterator it = mData->constBegin();
-  while (it != mData->constEnd())
-  {
-    current = it.value().key;
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && current < 0) || (inSignDomain == sdPositive && current > 0))
-    {
-      if (current < range.lower || !haveLower)
-      {
-        range.lower = current;
-        haveLower = true;
-      }
-      if (current > range.upper || !haveUpper)
-      {
-        range.upper = current;
-        haveUpper = true;
-      }
-    }
-    ++it;
-  }
-  // determine exact range by including width of bars/flags:
-  if (haveLower && mKeyAxis)
-    range.lower = range.lower-mWidth*0.5;
-  if (haveUpper && mKeyAxis)
-    range.upper = range.upper+mWidth*0.5;
-  foundRange = haveLower && haveUpper;
-  return range;
-}
-
-/* inherits documentation from base class */
-QCPRange QCPFinancial::getValueRange(bool &foundRange, QCPAbstractPlottable::SignDomain inSignDomain) const
-{
-  QCPRange range;
-  bool haveLower = false;
-  bool haveUpper = false;
-  
-  QCPFinancialDataMap::const_iterator it = mData->constBegin();
-  while (it != mData->constEnd())
-  {
-    // high:
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && it.value().high < 0) || (inSignDomain == sdPositive && it.value().high > 0))
-    {
-      if (it.value().high < range.lower || !haveLower)
-      {
-        range.lower = it.value().high;
-        haveLower = true;
-      }
-      if (it.value().high > range.upper || !haveUpper)
-      {
-        range.upper = it.value().high;
-        haveUpper = true;
-      }
-    }
-    // low:
-    if (inSignDomain == sdBoth || (inSignDomain == sdNegative && it.value().low < 0) || (inSignDomain == sdPositive && it.value().low > 0))
-    {
-      if (it.value().low < range.lower || !haveLower)
-      {
-        range.lower = it.value().low;
-        haveLower = true;
-      }
-      if (it.value().low > range.upper || !haveUpper)
-      {
-        range.upper = it.value().low;
-        haveUpper = true;
-      }
-    }
-    ++it;
-  }
-  
-  foundRange = haveLower && haveUpper;
-  return range;
-}
-
 /*! \internal
   
-  Draws the data from \a begin to \a end as OHLC bars with the provided \a painter.
+  Draws the data from \a begin to \a end-1 as OHLC bars with the provided \a painter.
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csOhlc.
 */
-void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end)
+void QCPFinancial::drawOhlcPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (QCPFinancialDataMap::const_iterator it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it.value().close >= it.value().open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
-      double openPixel = valueAxis->coordToPixel(it.value().open);
-      double closePixel = valueAxis->coordToPixel(it.value().close);
+        painter->setPen(mPen);
+      double keyPixel = keyAxis->coordToPixel(it->key);
+      double openPixel = valueAxis->coordToPixel(it->open);
+      double closePixel = valueAxis->coordToPixel(it->close);
       // draw backbone:
-      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)));
+      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it->high)), QPointF(keyPixel, valueAxis->coordToPixel(it->low)));
       // draw open:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it.value().key-mWidth*0.5); // sign of this makes sure open/close are on correct sides
-      painter->drawLine(QPointF(keyPixel-keyWidthPixels, openPixel), QPointF(keyPixel, openPixel));
+      double pixelWidth = getPixelWidth(it->key, keyPixel); // sign of this makes sure open/close are on correct sides
+      painter->drawLine(QPointF(keyPixel-pixelWidth, openPixel), QPointF(keyPixel, openPixel));
       // draw close:
-      painter->drawLine(QPointF(keyPixel, closePixel), QPointF(keyPixel+keyWidthPixels, closePixel));
+      painter->drawLine(QPointF(keyPixel, closePixel), QPointF(keyPixel+pixelWidth, closePixel));
     }
   } else
   {
-    for (QCPFinancialDataMap::const_iterator it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
-        linePen = mSelectedPen;
+      if (isSelected && mSelectionDecorator)
+        mSelectionDecorator->applyPen(painter);
       else if (mTwoColored)
-        linePen = it.value().close >= it.value().open ? mPenPositive : mPenNegative;
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
       else
-        linePen = mPen;
-      painter->setPen(linePen);
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
-      double openPixel = valueAxis->coordToPixel(it.value().open);
-      double closePixel = valueAxis->coordToPixel(it.value().close);
+        painter->setPen(mPen);
+      double keyPixel = keyAxis->coordToPixel(it->key);
+      double openPixel = valueAxis->coordToPixel(it->open);
+      double closePixel = valueAxis->coordToPixel(it->close);
       // draw backbone:
-      painter->drawLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(it.value().low), keyPixel));
+      painter->drawLine(QPointF(valueAxis->coordToPixel(it->high), keyPixel), QPointF(valueAxis->coordToPixel(it->low), keyPixel));
       // draw open:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it.value().key-mWidth*0.5); // sign of this makes sure open/close are on correct sides
-      painter->drawLine(QPointF(openPixel, keyPixel-keyWidthPixels), QPointF(openPixel, keyPixel));
+      double pixelWidth = getPixelWidth(it->key, keyPixel); // sign of this makes sure open/close are on correct sides
+      painter->drawLine(QPointF(openPixel, keyPixel-pixelWidth), QPointF(openPixel, keyPixel));
       // draw close:
-      painter->drawLine(QPointF(closePixel, keyPixel), QPointF(closePixel, keyPixel+keyWidthPixels));
+      painter->drawLine(QPointF(closePixel, keyPixel), QPointF(closePixel, keyPixel+pixelWidth));
     }
   }
 }
 
 /*! \internal
   
-  Draws the data from \a begin to \a end as Candlesticks with the provided \a painter.
+  Draws the data from \a begin to \a end-1 as Candlesticks with the provided \a painter.
 
   This method is a helper function for \ref draw. It is used when the chart style is \ref csCandlestick.
 */
-void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end)
+void QCPFinancial::drawCandlestickPlot(QCPPainter *painter, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, bool isSelected)
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   
-  QPen linePen;
-  QBrush boxBrush;
-  
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (QCPFinancialDataMap::const_iterator it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it.value().close >= it.value().open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
-      double openPixel = valueAxis->coordToPixel(it.value().open);
-      double closePixel = valueAxis->coordToPixel(it.value().close);
+      double keyPixel = keyAxis->coordToPixel(it->key);
+      double openPixel = valueAxis->coordToPixel(it->open);
+      double closePixel = valueAxis->coordToPixel(it->close);
       // draw high:
-      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(qMax(it.value().open, it.value().close))));
+      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it->high)), QPointF(keyPixel, valueAxis->coordToPixel(qMax(it->open, it->close))));
       // draw low:
-      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)), QPointF(keyPixel, valueAxis->coordToPixel(qMin(it.value().open, it.value().close))));
+      painter->drawLine(QPointF(keyPixel, valueAxis->coordToPixel(it->low)), QPointF(keyPixel, valueAxis->coordToPixel(qMin(it->open, it->close))));
       // draw open-close box:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it.value().key-mWidth*0.5);
-      painter->drawRect(QRectF(QPointF(keyPixel-keyWidthPixels, closePixel), QPointF(keyPixel+keyWidthPixels, openPixel)));
+      double pixelWidth = getPixelWidth(it->key, keyPixel);
+      painter->drawRect(QRectF(QPointF(keyPixel-pixelWidth, closePixel), QPointF(keyPixel+pixelWidth, openPixel)));
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (QCPFinancialDataMap::const_iterator it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it = begin; it != end; ++it)
     {
-      if (mSelected)
+      if (isSelected && mSelectionDecorator)
       {
-        linePen = mSelectedPen;
-        boxBrush = mSelectedBrush;
+        mSelectionDecorator->applyPen(painter);
+        mSelectionDecorator->applyBrush(painter);
       } else if (mTwoColored)
       {
-        if (it.value().close >= it.value().open)
-        {
-          linePen = mPenPositive;
-          boxBrush = mBrushPositive;
-        } else
-        {
-          linePen = mPenNegative;
-          boxBrush = mBrushNegative;
-        }
+        painter->setPen(it->close >= it->open ? mPenPositive : mPenNegative);
+        painter->setBrush(it->close >= it->open ? mBrushPositive : mBrushNegative);
       } else
       {
-        linePen = mPen;
-        boxBrush = mBrush;
+        painter->setPen(mPen);
+        painter->setBrush(mBrush);
       }
-      painter->setPen(linePen);
-      painter->setBrush(boxBrush);
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
-      double openPixel = valueAxis->coordToPixel(it.value().open);
-      double closePixel = valueAxis->coordToPixel(it.value().close);
+      double keyPixel = keyAxis->coordToPixel(it->key);
+      double openPixel = valueAxis->coordToPixel(it->open);
+      double closePixel = valueAxis->coordToPixel(it->close);
       // draw high:
-      painter->drawLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(qMax(it.value().open, it.value().close)), keyPixel));
+      painter->drawLine(QPointF(valueAxis->coordToPixel(it->high), keyPixel), QPointF(valueAxis->coordToPixel(qMax(it->open, it->close)), keyPixel));
       // draw low:
-      painter->drawLine(QPointF(valueAxis->coordToPixel(it.value().low), keyPixel), QPointF(valueAxis->coordToPixel(qMin(it.value().open, it.value().close)), keyPixel));
+      painter->drawLine(QPointF(valueAxis->coordToPixel(it->low), keyPixel), QPointF(valueAxis->coordToPixel(qMin(it->open, it->close)), keyPixel));
       // draw open-close box:
-      double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it.value().key-mWidth*0.5);
-      painter->drawRect(QRectF(QPointF(closePixel, keyPixel-keyWidthPixels), QPointF(openPixel, keyPixel+keyWidthPixels)));
+      double pixelWidth = getPixelWidth(it->key, keyPixel);
+      painter->drawRect(QRectF(QPointF(closePixel, keyPixel-pixelWidth), QPointF(openPixel, keyPixel+pixelWidth)));
     }
   }
 }
 
 /*! \internal
-  
+
+  This function is used to determine the width of the bar at coordinate \a key, according to the
+  specified width (\ref setWidth) and width type (\ref setWidthType). Provide the pixel position of
+  \a key in \a keyPixel (because usually this was already calculated via \ref QCPAxis::coordToPixel
+  when this function is called).
+
+  It returns the number of pixels the bar extends to higher keys, relative to the \a key
+  coordinate. So with a non-reversed horizontal axis, the return value is positive. With a reversed
+  horizontal axis, the return value is negative. This is important so the open/close flags on the
+  \ref csOhlc bar are drawn to the correct side.
+*/
+double QCPFinancial::getPixelWidth(double key, double keyPixel) const
+{
+  double result = 0;
+  switch (mWidthType)
+  {
+    case wtAbsolute:
+    {
+      if (mKeyAxis)
+        result = mWidth*0.5*mKeyAxis.data()->pixelOrientation();
+      break;
+    }
+    case wtAxisRectRatio:
+    {
+      if (mKeyAxis && mKeyAxis.data()->axisRect())
+      {
+        if (mKeyAxis.data()->orientation() == Qt::Horizontal)
+          result = mKeyAxis.data()->axisRect()->width()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
+        else
+          result = mKeyAxis.data()->axisRect()->height()*mWidth*0.5*mKeyAxis.data()->pixelOrientation();
+      } else
+        qDebug() << Q_FUNC_INFO << "No key axis or axis rect defined";
+      break;
+    }
+    case wtPlotCoords:
+    {
+      if (mKeyAxis)
+        result = mKeyAxis.data()->coordToPixel(key+mWidth*0.5)-keyPixel;
+      else
+        qDebug() << Q_FUNC_INFO << "No key axis defined";
+      break;
+    }
+  }
+  return result;
+}
+
+/*! \internal
+
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csOhlc. It only tests against the data points between \a begin and \a end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end) const
+double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataMap::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
+      double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
-      double currentDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)), pos);
+      double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it->high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(it->low)));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
-      double keyPixel = keyAxis->coordToPixel(it.value().key);
+      double keyPixel = keyAxis->coordToPixel(it->key);
       // calculate distance to backbone:
-      double currentDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(it.value().low), keyPixel), pos);
+      double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it->high), keyPixel), QCPVector2D(valueAxis->coordToPixel(it->low), keyPixel));
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);
@@ -851,23 +862,26 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataMa
   This method is a helper function for \ref selectTest. It is used to test for selection when the
   chart style is \ref csCandlestick. It only tests against the data points between \a begin and \a
   end.
+  
+  Like \ref selectTest, this method returns the shortest distance of \a pos to the graphical
+  representation of the plottable, and \a closestDataPoint will point to the respective data point.
 */
-double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataMap::const_iterator &begin, const QCPFinancialDataMap::const_iterator &end) const
+double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancialDataContainer::const_iterator &begin, const QCPFinancialDataContainer::const_iterator &end, QCPFinancialDataContainer::const_iterator &closestDataPoint) const
 {
+  closestDataPoint = mDataContainer->constEnd();
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
   double minDistSqr = std::numeric_limits<double>::max();
-  QCPFinancialDataMap::const_iterator it;
   if (keyAxis->orientation() == Qt::Horizontal)
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
-      QCPRange boxKeyRange(it.value().key-mWidth*0.5, it.value().key+mWidth*0.5);
-      QCPRange boxValueRange(it.value().close, it.value().open);
+      QCPRange boxKeyRange(it->key-mWidth*0.5, it->key+mWidth*0.5);
+      QCPRange boxValueRange(it->close, it->open);
       double posKey, posValue;
       pixelsToCoords(pos, posKey, posValue);
       if (boxKeyRange.contains(posKey) && boxValueRange.contains(posValue)) // is in open-close-box
@@ -876,22 +890,25 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
       } else
       {
         // calculate distance to high/low lines:
-        double keyPixel = keyAxis->coordToPixel(it.value().key);
-        double highLineDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().high)), QPointF(keyPixel, valueAxis->coordToPixel(qMax(it.value().open, it.value().close))), pos);
-        double lowLineDistSqr = distSqrToLine(QPointF(keyPixel, valueAxis->coordToPixel(it.value().low)), QPointF(keyPixel, valueAxis->coordToPixel(qMin(it.value().open, it.value().close))), pos);
+        double keyPixel = keyAxis->coordToPixel(it->key);
+        double highLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it->high)), QCPVector2D(keyPixel, valueAxis->coordToPixel(qMax(it->open, it->close))));
+        double lowLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(keyPixel, valueAxis->coordToPixel(it->low)), QCPVector2D(keyPixel, valueAxis->coordToPixel(qMin(it->open, it->close))));
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   } else // keyAxis->orientation() == Qt::Vertical
   {
-    for (it = begin; it != end; ++it)
+    for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
     {
       double currentDistSqr;
       // determine whether pos is in open-close-box:
-      QCPRange boxKeyRange(it.value().key-mWidth*0.5, it.value().key+mWidth*0.5);
-      QCPRange boxValueRange(it.value().close, it.value().open);
+      QCPRange boxKeyRange(it->key-mWidth*0.5, it->key+mWidth*0.5);
+      QCPRange boxValueRange(it->close, it->open);
       double posKey, posValue;
       pixelsToCoords(pos, posKey, posValue);
       if (boxKeyRange.contains(posKey) && boxValueRange.contains(posValue)) // is in open-close-box
@@ -900,50 +917,65 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
       } else
       {
         // calculate distance to high/low lines:
-        double keyPixel = keyAxis->coordToPixel(it.value().key);
-        double highLineDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().high), keyPixel), QPointF(valueAxis->coordToPixel(qMax(it.value().open, it.value().close)), keyPixel), pos);
-        double lowLineDistSqr = distSqrToLine(QPointF(valueAxis->coordToPixel(it.value().low), keyPixel), QPointF(valueAxis->coordToPixel(qMin(it.value().open, it.value().close)), keyPixel), pos);
+        double keyPixel = keyAxis->coordToPixel(it->key);
+        double highLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it->high), keyPixel), QCPVector2D(valueAxis->coordToPixel(qMax(it->open, it->close)), keyPixel));
+        double lowLineDistSqr = QCPVector2D(pos).distanceSquaredToLine(QCPVector2D(valueAxis->coordToPixel(it->low), keyPixel), QCPVector2D(valueAxis->coordToPixel(qMin(it->open, it->close)), keyPixel));
         currentDistSqr = qMin(highLineDistSqr, lowLineDistSqr);
       }
       if (currentDistSqr < minDistSqr)
+      {
         minDistSqr = currentDistSqr;
+        closestDataPoint = it;
+      }
     }
   }
   return qSqrt(minDistSqr);
 }
 
-/*!  \internal
+/*! \internal
   
   called by the drawing methods to determine which data (key) range is visible at the current key
   axis range setting, so only that needs to be processed.
   
-  \a lower returns an iterator to the lowest data point that needs to be taken into account when
+  \a begin returns an iterator to the lowest data point that needs to be taken into account when
   plotting. Note that in order to get a clean plot all the way to the edge of the axis rect, \a
-  lower may still be just outside the visible range.
+  begin may still be just outside the visible range.
   
-  \a upper returns an iterator to the highest data point. Same as before, \a upper may also lie
-  just outside of the visible range.
+  \a end returns the iterator just above the highest data point that needs to be taken into
+  account. Same as before, \a end may also lie just outside of the visible range
   
-  if the plottable contains no data, both \a lower and \a upper point to constEnd.
-  
-  \see QCPGraph::getVisibleDataBounds
+  if the plottable contains no data, both \a begin and \a end point to \c constEnd.
 */
-void QCPFinancial::getVisibleDataBounds(QCPFinancialDataMap::const_iterator &lower, QCPFinancialDataMap::const_iterator &upper) const
+void QCPFinancial::getVisibleDataBounds(QCPFinancialDataContainer::const_iterator &begin, QCPFinancialDataContainer::const_iterator &end) const
 {
-  if (!mKeyAxis) { qDebug() << Q_FUNC_INFO << "invalid key axis"; return; }
-  if (mData->isEmpty())
+  if (!mKeyAxis)
   {
-    lower = mData->constEnd();
-    upper = mData->constEnd();
+    qDebug() << Q_FUNC_INFO << "invalid key axis";
+    begin = mDataContainer->constEnd();
+    end = mDataContainer->constEnd();
     return;
   }
+  begin = mDataContainer->findBegin(mKeyAxis.data()->range().lower-mWidth*0.5); // subtract half width of ohlc/candlestick to include partially visible data points
+  end = mDataContainer->findEnd(mKeyAxis.data()->range().upper+mWidth*0.5); // add half width of ohlc/candlestick to include partially visible data points
+}
+
+/*!  \internal
+
+  Returns the hit box in pixel coordinates that will be used for data selection with the selection
+  rect (\ref selectTestRect), of the data point given by \a it.
+*/
+QRectF QCPFinancial::selectionHitBox(QCPFinancialDataContainer::const_iterator it) const
+{
+  QCPAxis *keyAxis = mKeyAxis.data();
+  QCPAxis *valueAxis = mValueAxis.data();
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
   
-  // get visible data range as QMap iterators
-  QCPFinancialDataMap::const_iterator lbound = mData->lowerBound(mKeyAxis.data()->range().lower);
-  QCPFinancialDataMap::const_iterator ubound = mData->upperBound(mKeyAxis.data()->range().upper);
-  bool lowoutlier = lbound != mData->constBegin(); // indicates whether there exist points below axis range
-  bool highoutlier = ubound != mData->constEnd(); // indicates whether there exist points above axis range
-  
-  lower = (lowoutlier ? lbound-1 : lbound); // data point range that will be actually drawn
-  upper = (highoutlier ? ubound : ubound-1); // data point range that will be actually drawn
+  double keyPixel = keyAxis->coordToPixel(it->key);
+  double highPixel = valueAxis->coordToPixel(it->high);
+  double lowPixel = valueAxis->coordToPixel(it->low);
+  double keyWidthPixels = keyPixel-keyAxis->coordToPixel(it->key-mWidth*0.5);
+  if (keyAxis->orientation() == Qt::Horizontal)
+    return QRectF(keyPixel-keyWidthPixels, highPixel, keyWidthPixels*2, lowPixel-highPixel).normalized();
+  else
+    return QRectF(highPixel, keyPixel-keyWidthPixels, lowPixel-highPixel, keyWidthPixels*2).normalized();
 }

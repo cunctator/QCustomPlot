@@ -21,6 +21,8 @@ public:
   ~MainWindow();
   
 public slots:
+  void run();
+  
   // image generators:
   void genScatterStyles();
   void genItemPixmap();
@@ -36,9 +38,12 @@ public slots:
   void genMarginGroup();
   void genAxisRectSpacingOverview();
   void genAxisNamesOverview();
+  void genAxisTickers();
   
   void genLayoutsystem_AddingPlotTitle();
   void genLayoutsystem_MultipleAxisRects();
+  void genLayoutsystem_AddingLegendTitle();
+  void genLayoutsystem_MovingLegend();
   
   void genQCPGraph();
   void genQCPCurve();
@@ -46,9 +51,11 @@ public slots:
   void genQCPStatisticalBox();
   void genQCPColorMap();
   void genQCPFinancial();
+  void genQCPErrorBars();
   void genQCPColorScale();
   void genQCPColorGradient();
   void genQCPBarsGroup();
+  void genQCPSelectionType();
   
   void genQCPColorMap_Interpolate();
   void genQCPColorMap_TightBoundary();

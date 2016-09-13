@@ -234,3 +234,55 @@ QCPGraph_RemoveDataBetween   125.10 +/- 2.07 ms
 QCPGraph_Standard              2.22 +/- 0.45 ms
 
 
+*** Benchmark on 2015-07-21 03:00 ***
+Platform: Linux-3.13.0-24-generic-i686-athlon-with-LinuxMint-17-qiana, dermanu on dermanu-linux
+Qt Version: 5.3.2
+Git Branch: dev-1.4.0...origin/dev-1.4.0 [ahead 1]
+Git Head: b253b3a - benchmark: added more cases for adding data to evaluate effect of new QCPGraph container (old benchmark AddData is now called AddDataAtEndSorted)
+Rounds: 20
+Comment: before new QCPGraph container
+QCPAxis_TickLabels                 1.43 +/- 0.06 ms
+QCPAxis_TickLabelsCached           0.59 +/- 0.02 ms
+QCPGraph_AddDataAtBeginSorted    168.35 +/- 5.48 ms
+QCPGraph_AddDataAtBeginUnsorted  143.65 +/- 2.61 ms
+QCPGraph_AddDataAtEndSorted      162.70 +/- 4.54 ms
+QCPGraph_AddDataAtEndUnsorted    134.85 +/- 4.13 ms
+QCPGraph_AddDataMixedSorted      120.15 +/- 4.28 ms
+QCPGraph_AddDataMixedUnsorted    124.25 +/- 3.94 ms
+QCPGraph_AddDataSingle             0.05 +/- 0.00 ms
+QCPGraph_ManyLines                 6.56 +/- 0.07 ms
+QCPGraph_ManyOffScreenLines        0.53 +/- 0.00 ms
+QCPGraph_ManyPoints               16.00 +/- 0.00 ms
+QCPGraph_RemoveDataAfter         120.60 +/- 1.20 ms
+QCPGraph_RemoveDataBefore         45.10 +/- 0.94 ms
+QCPGraph_RemoveDataBetween       116.15 +/- 3.50 ms
+QCPGraph_Standard                  2.05 +/- 0.07 ms
+
+
+*** Benchmark on 2015-09-13 23:15 ***
+Platform: Linux-3.13.0-24-generic-i686-athlon-with-LinuxMint-17-qiana, dermanu on dermanu-linux
+Qt Version: 5.3.2
+Git Branch: dev-container...qcpp/dev-container [ahead 1]
+Git Head: 3c18309 - Changed plottable's addData methods to use (faster) iterators - unified plural in addData/setData naming of keys and values parameter
+Rounds: 10
+Comment: After new data container [single addData tests have changed]
+QCPAxis_TickLabels                 1.410 +/- 0.030 ms
+QCPAxis_TickLabelsCached           0.583 +/- 0.011 ms
+QCPGraph_AddDataAtBeginSorted     18.800 +/- 0.600 ms
+QCPGraph_AddDataAtBeginUnsorted   85.600 +/- 0.663 ms
+QCPGraph_AddDataAtEndSorted       16.100 +/- 0.300 ms
+QCPGraph_AddDataAtEndUnsorted     69.500 +/- 0.500 ms
+QCPGraph_AddDataMixedSorted       32.600 +/- 0.663 ms
+QCPGraph_AddDataMixedUnsorted     86.900 +/- 0.700 ms
+QCPGraph_AddDataSingleAtBegin      0.520 +/- 0.040 ms
+QCPGraph_AddDataSingleAtEnd        0.220 +/- 0.040 ms
+QCPGraph_AddDataSingleRandom      52.000 +/- 0.000 ms
+QCPGraph_ManyLines                 3.620 +/- 0.040 ms
+QCPGraph_ManyOffScreenLines        0.531 +/- 0.003 ms
+QCPGraph_ManyPoints               12.220 +/- 0.271 ms
+QCPGraph_RemoveDataAfter           0.003 +/- 0.000 ms
+QCPGraph_RemoveDataBefore          2.100 +/- 0.300 ms
+QCPGraph_RemoveDataBetween         1.000 +/- 0.000 ms
+QCPGraph_Standard                  2.020 +/- 0.040 ms
+
+

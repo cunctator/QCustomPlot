@@ -208,6 +208,9 @@ div.memitem {
   margin: 0 0 2em;
   padding: 0;
 }
+h2.memtitle {
+  display: none;
+}
 div.memproto {
   background-color: #F6F6F6;
   border: 1px solid #E6E6E6;
@@ -531,6 +534,10 @@ div.center {
 div.center img {
   border: 0 none;
 }
+.permalink
+{
+  display:none;
+}
 span.keyword {
   color: #008000;
 }
@@ -563,6 +570,44 @@ span.vhdlkeyword {
 }
 span.vhdllogic {
   color: #FF0000;
+}
+.overload {
+  font-family: "courier new",courier,monospace;
+  font-weight: normal;
+  font-size: 65%;
+  color: #A0A0A0;
+}
+.arrow {
+  color: #9CAFD4;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  font-size: 80%;
+  display: inline-block;
+  width: 16px;
+  height: 22px;
+}
+.icon {
+  font-family: Arial, Helvetica;
+  font-weight: bold;
+  font-size: 12px;
+  height: 14px;
+  width: 16px;
+  display: inline-block;
+  background-color: #728DC1;
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+.icona {
+  width: 24px;
+  height: 22px;
+  display: inline-block;
 }
 .search {
   color: #003399;

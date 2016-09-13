@@ -30,7 +30,7 @@ def printerror(message):
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:
     printerror("qmake failed"); sys.exit(1)
-  if subprocess.call("make -j5", shell=True) != 0:
+  if subprocess.call("make -s -j5", shell=True) != 0:
     printerror("make failed"); sys.exit(1)
 
 def runExample(examplePath, executableName):

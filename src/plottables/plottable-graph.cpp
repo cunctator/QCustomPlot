@@ -172,65 +172,6 @@ QCPGraphData::QCPGraphData(double key, double value) :
 */
 
 /* end of documentation of inline functions */
-/* start of documentation of template specializations */
-
-/*! \fn int QCPAbstractPlottable1D<QCPGraphData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
-  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
-*/
-
-/*! \fn int QCPAbstractPlottable1D<QCPGraphData>::dataCount() const
-  \copydoc QCPAbstractPlottable1D::dataCount
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPGraphData>::dataMainKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPGraphData>::dataSortKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataSortKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPGraphData>::dataMainValue(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainValue
-*/
-
-/*! \fn QCPRange QCPAbstractPlottable1D<QCPGraphData>::dataValueRange(int index) const
-  \copydoc QCPAbstractPlottable1D::dataValueRange
-*/
-
-/*! \fn QPointF QCPAbstractPlottable1D<QCPGraphData>::dataPixelPosition(int index) const
-  \copydoc QCPAbstractPlottable1D::dataPixelPosition
-*/
-
-/*! \fn bool QCPAbstractPlottable1D<QCPGraphData>::sortKeyIsMainKey() const
-  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
-*/
-
-/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPGraphData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
-  \copydoc QCPAbstractPlottable1D::selectTestRect
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPGraphData>::findBegin(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findBegin
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPGraphData>::findEnd(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findEnd
-*/
-
-/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPGraphData>::interface1D()
-  \copydoc QCPAbstractPlottable::interface1D
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPGraphData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
-  \copydoc QCPAbstractPlottable1D::getDataSegments
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPGraphData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
-  \copydoc QCPAbstractPlottable1D::drawPolyline
-*/
-
-/* end of documentation of template specializations */
 
 /*!
   Constructs a graph which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value

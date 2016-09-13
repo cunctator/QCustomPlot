@@ -213,65 +213,6 @@ QCPStatisticalBoxData::QCPStatisticalBoxData(double key, double minimum, double 
 */
 
 /* end documentation of inline functions */
-/* start of documentation of template specializations */
-
-/*! \fn int QCPAbstractPlottable1D<QCPStatisticalBoxData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
-  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
-*/
-
-/*! \fn int QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataCount() const
-  \copydoc QCPAbstractPlottable1D::dataCount
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataMainKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataSortKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataSortKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataMainValue(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainValue
-*/
-
-/*! \fn QCPRange QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataValueRange(int index) const
-  \copydoc QCPAbstractPlottable1D::dataValueRange
-*/
-
-/*! \fn QPointF QCPAbstractPlottable1D<QCPStatisticalBoxData>::dataPixelPosition(int index) const
-  \copydoc QCPAbstractPlottable1D::dataPixelPosition
-*/
-
-/*! \fn bool QCPAbstractPlottable1D<QCPStatisticalBoxData>::sortKeyIsMainKey() const
-  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
-*/
-
-/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPStatisticalBoxData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
-  \copydoc QCPAbstractPlottable1D::selectTestRect
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPStatisticalBoxData>::findBegin(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findBegin
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPStatisticalBoxData>::findEnd(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findEnd
-*/
-
-/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPStatisticalBoxData>::interface1D()
-  \copydoc QCPAbstractPlottable::interface1D
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPStatisticalBoxData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
-  \copydoc QCPAbstractPlottable1D::getDataSegments
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPStatisticalBoxData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
-  \copydoc QCPAbstractPlottable1D::drawPolyline
-*/
-
-/* end of documentation of template specializations */
 
 /*!
   Constructs a statistical box which uses \a keyAxis as its key axis ("x") and \a valueAxis as its

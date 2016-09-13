@@ -505,65 +505,6 @@ QCPBarsData::QCPBarsData(double key, double value) :
 */
 
 /* end of documentation of inline functions */
-/* start of documentation of template specializations */
-
-/*! \fn int QCPAbstractPlottable1D<QCPBarsData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
-  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
-*/
-
-/*! \fn int QCPAbstractPlottable1D<QCPBarsData>::dataCount() const
-  \copydoc QCPAbstractPlottable1D::dataCount
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataMainKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataSortKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataSortKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPBarsData>::dataMainValue(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainValue
-*/
-
-/*! \fn QCPRange QCPAbstractPlottable1D<QCPBarsData>::dataValueRange(int index) const
-  \copydoc QCPAbstractPlottable1D::dataValueRange
-*/
-
-/*! \fn QPointF QCPAbstractPlottable1D<QCPBarsData>::dataPixelPosition(int index) const
-  \copydoc QCPAbstractPlottable1D::dataPixelPosition
-*/
-
-/*! \fn bool QCPAbstractPlottable1D<QCPBarsData>::sortKeyIsMainKey() const
-  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
-*/
-
-/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPBarsData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
-  \copydoc QCPAbstractPlottable1D::selectTestRect
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPBarsData>::findBegin(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findBegin
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPBarsData>::findEnd(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findEnd
-*/
-
-/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPBarsData>::interface1D()
-  \copydoc QCPAbstractPlottable::interface1D
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPBarsData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
-  \copydoc QCPAbstractPlottable1D::getDataSegments
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPBarsData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
-  \copydoc QCPAbstractPlottable1D::drawPolyline
-*/
-
-/* end of documentation of template specializations */
 
 /*!
   Constructs a bar chart which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value

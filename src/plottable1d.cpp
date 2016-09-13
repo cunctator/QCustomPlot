@@ -197,6 +197,18 @@
   again, to provide a more accurate hit test based on their specific data visualization geometry.
 */
 
+/* start documentation of inline functions */
+
+/*! \fn QCPPlottableInterface1D *QCPAbstractPlottable1D::interface1D()
+  
+  Returns a \ref QCPPlottableInterface1D pointer to this plottable, providing access to its 1D
+  interface.
+  
+  \seebaseclassmethod
+*/
+
+/* end documentation of inline functions */
+
 /*!
   Forwards \a keyAxis and \a valueAxis to the \ref QCPAbstractPlottable::QCPAbstractPlottable
   "QCPAbstractPlottable" constructor and allocates the \a mDataContainer.
@@ -213,14 +225,18 @@ QCPAbstractPlottable1D<DataType>::~QCPAbstractPlottable1D()
 {
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataCount
+*/
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::dataCount() const
 {
   return mDataContainer->size();
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataMainKey
+*/
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataMainKey(int index) const
 {
@@ -234,7 +250,9 @@ double QCPAbstractPlottable1D<DataType>::dataMainKey(int index) const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataSortKey
+*/
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataSortKey(int index) const
 {
@@ -248,7 +266,9 @@ double QCPAbstractPlottable1D<DataType>::dataSortKey(int index) const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataMainValue
+*/
 template <class DataType>
 double QCPAbstractPlottable1D<DataType>::dataMainValue(int index) const
 {
@@ -262,7 +282,9 @@ double QCPAbstractPlottable1D<DataType>::dataMainValue(int index) const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataValueRange
+*/
 template <class DataType>
 QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
 {
@@ -276,7 +298,9 @@ QCPRange QCPAbstractPlottable1D<DataType>::dataValueRange(int index) const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::dataPixelPosition
+*/
 template <class DataType>
 QPointF QCPAbstractPlottable1D<DataType>::dataPixelPosition(int index) const
 {
@@ -291,7 +315,9 @@ QPointF QCPAbstractPlottable1D<DataType>::dataPixelPosition(int index) const
   }
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::sortKeyIsMainKey
+*/
 template <class DataType>
 bool QCPAbstractPlottable1D<DataType>::sortKeyIsMainKey() const
 {
@@ -351,14 +377,18 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
   return result;
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::findBegin
+*/
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::findBegin(double sortKey, bool expandedRange) const
 {
   return mDataContainer->findBegin(sortKey, expandedRange)-mDataContainer->constBegin();
 }
 
-/* inherits documentation from base class */
+/*!
+  \copydoc QCPPlottableInterface1D::findEnd
+*/
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::findEnd(double sortKey, bool expandedRange) const
 {

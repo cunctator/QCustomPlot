@@ -192,65 +192,6 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
 */
 
 /* end of documentation of inline functions */
-/* start of documentation of template specializations */
-
-/*! \fn int QCPAbstractPlottable1D<QCPFinancialData>::QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis)
-  \copydoc QCPAbstractPlottable1D::QCPAbstractPlottable1D
-*/
-
-/*! \fn int QCPAbstractPlottable1D<QCPFinancialData>::dataCount() const
-  \copydoc QCPAbstractPlottable1D::dataCount
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataMainKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataSortKey(int index) const
-  \copydoc QCPAbstractPlottable1D::dataSortKey
-*/
-
-/*! \fn double QCPAbstractPlottable1D<QCPFinancialData>::dataMainValue(int index) const
-  \copydoc QCPAbstractPlottable1D::dataMainValue
-*/
-
-/*! \fn QCPRange QCPAbstractPlottable1D<QCPFinancialData>::dataValueRange(int index) const
-  \copydoc QCPAbstractPlottable1D::dataValueRange
-*/
-
-/*! \fn QPointF QCPAbstractPlottable1D<QCPFinancialData>::dataPixelPosition(int index) const
-  \copydoc QCPAbstractPlottable1D::dataPixelPosition
-*/
-
-/*! \fn bool QCPAbstractPlottable1D<QCPFinancialData>::sortKeyIsMainKey() const
-  \copydoc QCPAbstractPlottable1D::sortKeyIsMainKey
-*/
-
-/*! \fn QCPDataSelection QCPAbstractPlottable1D<QCPFinancialData>::selectTestRect(const QRectF &rect, bool onlySelectable) const
-  \copydoc QCPAbstractPlottable1D::selectTestRect
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPFinancialData>::findBegin(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findBegin
-*/
-
-/*! \fn virtual int QCPAbstractPlottable1D<QCPFinancialData>::findEnd(double sortKey, bool expandedRange) const
-  \copydoc QCPAbstractPlottable1D::findEnd
-*/
-
-/*! \fn virtual QCPPlottableInterface1D *QCPAbstractPlottable1D<QCPFinancialData>::interface1D()
-  \copydoc QCPAbstractPlottable::interface1D
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPFinancialData>::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const
-  \copydoc QCPAbstractPlottable1D::getDataSegments
-*/
-
-/*! \fn void QCPAbstractPlottable1D<QCPFinancialData>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
-  \copydoc QCPAbstractPlottable1D::drawPolyline
-*/
-
-/* end of documentation of template specializations */
 
 /*!
   Constructs a financial chart which uses \a keyAxis as its key axis ("x") and \a valueAxis as its value

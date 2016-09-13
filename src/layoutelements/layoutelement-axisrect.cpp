@@ -859,12 +859,13 @@ void QCPAxisRect::setRangeZoom(Qt::Orientations orientations)
   mRangeZoom = orientations;
 }
 
-/*!
+/*! \overload
+  
   Sets the axes whose range will be dragged when \ref setRangeDrag enables mouse range dragging on
   the QCustomPlot widget. Pass 0 if no axis shall be dragged in the respective orientation.
 
-  See the overload \ref setRangeDragAxes(QList<QCPAxis*> axes) if multiple axes (more than one per
-  orientation) shall react to dragging interactions.
+  Use the overload taking a list of axes, if multiple axes (more than one per orientation) shall
+  react to dragging interactions.
 
   \see setRangeZoomAxes
 */
@@ -885,8 +886,7 @@ void QCPAxisRect::setRangeDragAxes(QCPAxis *horizontal, QCPAxis *vertical)
   QCPAxis::orientation).
 
   In the unusual case that you wish to e.g. drag a vertically oriented axis with a horizontal drag
-  motion, use the overload
-  \ref setRangeDragAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> vertical).
+  motion, use the overload taking two separate lists for horizontal and vertical dragging.
 */
 void QCPAxisRect::setRangeDragAxes(QList<QCPAxis*> axes)
 {
@@ -936,8 +936,8 @@ void QCPAxisRect::setRangeDragAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> v
   The two axes can be zoomed with different strengths, when different factors are passed to \ref
   setRangeZoomFactor(double horizontalFactor, double verticalFactor).
 
-  See the overload \ref setRangeZoomAxes(QList<QCPAxis*> axes) if multiple axes (more than one per
-  orientation) shall react to zooming interactions.
+  Use the overload taking a list of axes, if multiple axes (more than one per orientation) shall
+  react to zooming interactions.
 
   \see setRangeDragAxes
 */
@@ -958,8 +958,7 @@ void QCPAxisRect::setRangeZoomAxes(QCPAxis *horizontal, QCPAxis *vertical)
   QCPAxis::orientation).
 
   In the unusual case that you wish to e.g. zoom a vertically oriented axis with a horizontal zoom
-  interaction, use the overload
-  \ref setRangeZoomAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> vertical).
+  interaction, use the overload taking two separate lists for horizontal and vertical zooming.
 */
 void QCPAxisRect::setRangeZoomAxes(QList<QCPAxis*> axes)
 {

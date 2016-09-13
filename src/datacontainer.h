@@ -69,17 +69,17 @@ public:
   void sort();
   void squeeze(bool preAllocation=true, bool postAllocation=true);
   
-  QCPDataContainer::const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
-  QCPDataContainer::const_iterator constEnd() const { return mData.constEnd(); }
-  QCPDataContainer::iterator begin() { return mData.begin()+mPreallocSize; }
-  QCPDataContainer::iterator end() { return mData.end(); }
-  QCPDataContainer::const_iterator findBegin(double sortKey, bool expandedRange=true) const;
-  QCPDataContainer::const_iterator findEnd(double sortKey, bool expandedRange=true) const;
-  QCPDataContainer::const_iterator at(int index) const { return constBegin()+qBound(0, index, size()); }
+  const_iterator constBegin() const { return mData.constBegin()+mPreallocSize; }
+  const_iterator constEnd() const { return mData.constEnd(); }
+  iterator begin() { return mData.begin()+mPreallocSize; }
+  iterator end() { return mData.end(); }
+  const_iterator findBegin(double sortKey, bool expandedRange=true) const;
+  const_iterator findEnd(double sortKey, bool expandedRange=true) const;
+  const_iterator at(int index) const { return constBegin()+qBound(0, index, size()); }
   QCPRange keyRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth);
   QCPRange valueRange(bool &foundRange, QCP::SignDomain signDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange());
   QCPDataRange dataRange() const { return QCPDataRange(0, size()); }
-  void limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const;
+  void limitIteratorsToDataRange(const_iterator &begin, const_iterator &end, const QCPDataRange &dataRange) const;
   
 protected:
   // property members:

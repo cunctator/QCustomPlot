@@ -722,7 +722,7 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   valid range.
 */
 template <class DataType>
-void QCPDataContainer<DataType>::limitIteratorsToDataRange(QCPDataContainer::const_iterator &begin, QCPDataContainer::const_iterator &end, const QCPDataRange &dataRange) const
+void QCPDataContainer<DataType>::limitIteratorsToDataRange(const_iterator &begin, const_iterator &end, const QCPDataRange &dataRange) const
 {
   QCPDataRange iteratorRange(begin-constBegin(), end-constBegin());
   iteratorRange = iteratorRange.bounded(dataRange.bounded(this->dataRange()));

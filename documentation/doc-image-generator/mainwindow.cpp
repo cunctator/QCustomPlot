@@ -1044,6 +1044,7 @@ void MainWindow::genQCPBarsGroup()
   customPlot->xAxis->setRange(0.1, 4.9);
   customPlot->yAxis->setRange(0, 0.7);
   //! [qcpbarsgroup-example]
+  customPlot->replot(); // call before savePng, works around QPainter bug in Qt 4.7.4
   customPlot->savePng(dir.filePath("QCPBarsGroup.png"), 450, 200);
 }
 

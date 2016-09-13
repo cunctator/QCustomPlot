@@ -381,7 +381,7 @@ void MainWindow::setupScatterPixmapDemo(QCustomPlot *customPlot)
 
   // set title of plot:
   customPlot->plotLayout()->insertRow(0);
-  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Regenerative Energies"));
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Regenerative Energies", QFont("sans", 12, QFont::Bold)));
   // axis configurations:
   customPlot->xAxis->setLabel("Year");
   customPlot->yAxis->setLabel("Installed Gigawatts of\nphotovoltaic in the European Union");
@@ -610,7 +610,7 @@ void MainWindow::setupMultiAxisDemo(QCustomPlot *customPlot)
   customPlot->xAxis2->setTicker(QSharedPointer<QCPAxisTickerPi>(new QCPAxisTickerPi));
   // add title layout element:
   customPlot->plotLayout()->insertRow(0);
-  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Way too many graphs in one plot"));
+  customPlot->plotLayout()->addElement(0, 0, new QCPTextElement(customPlot, "Way too many graphs in one plot", QFont("sans", 12, QFont::Bold)));
   // set labels:
   customPlot->xAxis->setLabel("Bottom axis with outward ticks");
   customPlot->yAxis->setLabel("Left axis label");
@@ -1481,8 +1481,10 @@ void MainWindow::allScreenShots()
 {
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
   QPixmap pm = QPixmap::grabWindow(qApp->desktop()->winId(), this->x()+2, this->y()+2, this->frameGeometry().width()-4, this->frameGeometry().height()-4);
-#else
+#elif QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
   QPixmap pm = qApp->primaryScreen()->grabWindow(qApp->desktop()->winId(), this->x()+2, this->y()+2, this->frameGeometry().width()-4, this->frameGeometry().height()-4);
+#else
+  QPixmap pm = qApp->primaryScreen()->grabWindow(qApp->desktop()->winId(), this->x()-7, this->y()-7, this->frameGeometry().width()+14, this->frameGeometry().height()+14);
 #endif
   QString fileName = demoName.toLower()+".png";
   fileName.replace(" ", "");

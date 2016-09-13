@@ -111,7 +111,7 @@ public:
   bool isPenDefined() const { return mPenDefined; }
   void undefinePen();
   void applyTo(QCPPainter *painter, const QPen &defaultPen) const;
-  void drawShape(QCPPainter *painter, QPointF pos) const;
+  void drawShape(QCPPainter *painter, const QPointF &pos) const;
   void drawShape(QCPPainter *painter, double x, double y) const;
 
 protected:

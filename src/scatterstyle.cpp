@@ -353,7 +353,7 @@ void QCPScatterStyle::applyTo(QCPPainter *painter, const QPen &defaultPen) const
   
   \see applyTo
 */
-void QCPScatterStyle::drawShape(QCPPainter *painter, QPointF pos) const
+void QCPScatterStyle::drawShape(QCPPainter *painter, const QPointF &pos) const
 {
   drawShape(painter, pos.x(), pos.y());
 }

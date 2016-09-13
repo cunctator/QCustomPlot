@@ -41,7 +41,7 @@ class QCP_LIB_DECL QCPItemAnchor
 {
   Q_GADGET
 public:
-  QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name, int anchorId=-1);
+  QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name, int anchorId=-1);
   virtual ~QCPItemAnchor();
   
   // getters:
@@ -96,7 +96,7 @@ public:
                     };
   Q_ENUMS(PositionType)
   
-  QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name);
+  QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name);
   virtual ~QCPItemPosition();
   
   // getters:

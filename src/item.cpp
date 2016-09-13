@@ -74,7 +74,7 @@
   you want to make a new item subclass. Use \ref QCPAbstractItem::createAnchor instead, as
   explained in the subclassing section of the QCPAbstractItem documentation.
 */
-QCPItemAnchor::QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name, int anchorId) :
+QCPItemAnchor::QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name, int anchorId) :
   mName(name),
   mParentPlot(parentPlot),
   mParentItem(parentItem),
@@ -247,7 +247,7 @@ void QCPItemAnchor::removeChildY(QCPItemPosition *pos)
   you want to make a new item subclass. Use \ref QCPAbstractItem::createPosition instead, as
   explained in the subclassing section of the QCPAbstractItem documentation.
 */
-QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString name) :
+QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name) :
   QCPItemAnchor(parentPlot, parentItem, name),
   mPositionTypeX(ptAbsolute),
   mPositionTypeY(ptAbsolute),

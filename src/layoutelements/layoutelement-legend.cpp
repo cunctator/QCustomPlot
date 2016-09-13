@@ -356,7 +356,9 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
   "QCPLayoutElements" which are placed in the grid layout of the legend. \ref QCPLegend only adds
   an interface specialized for handling child elements of type \ref QCPAbstractLegendItem, as
   mentioned above. In principle, any other layout elements may also be added to a legend via the
-  normal \ref QCPLayoutGrid interface.
+  normal \ref QCPLayoutGrid interface. See the special page about \link thelayoutsystem The Layout
+  System\endlink for examples on how to add other elements to the legend and move it outside the axis
+  rect.
 
   Use the methods \ref setFillOrder and \ref setWrap inherited from \ref QCPLayoutGrid to control
   in which order (column first or row first) the legend is filled up when calling \ref addItem, and

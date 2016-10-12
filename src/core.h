@@ -243,7 +243,9 @@ protected:
   QPoint mMousePressPos;
   bool mMouseHasMoved;
   QPointer<QCPLayerable> mMouseEventLayerable;
+  QPointer<QCPLayerable> mMouseSignalLayerable;
   QVariant mMouseEventLayerableDetails;
+  QVariant mMouseSignalLayerableDetails;
   bool mReplotting;
   bool mReplotQueued;
   int mOpenGlMultisamples;

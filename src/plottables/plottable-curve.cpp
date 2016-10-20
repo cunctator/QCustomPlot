@@ -194,6 +194,7 @@ QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   
   setScatterStyle(QCPScatterStyle());
   setLineStyle(lsLine);
+  setScatterSkip(0);
 }
 
 QCPCurve::~QCPCurve()

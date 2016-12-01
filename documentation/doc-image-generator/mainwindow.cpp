@@ -1224,7 +1224,7 @@ void MainWindow::genQCPColorGradient_LevelCount()
   customPlot->plotLayout()->addElement(0, 1, scale1);
   customPlot->plotLayout()->addElement(0, 2, r2);
   customPlot->plotLayout()->addElement(0, 3, scale2);
-  QCPColorGradient gradient;
+  QCPColorGradient gradient(QCPColorGradient::gpCold);
   scale1->setGradient(gradient);
   gradient.setLevelCount(10);
   scale2->setGradient(gradient);

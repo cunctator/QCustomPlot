@@ -684,6 +684,7 @@ QCPColorMap::QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
   mDataScaleType(QCPAxis::stLinear),
   mMapData(new QCPColorMapData(10, 10, QCPRange(0, 5), QCPRange(0, 5))),
+  mGradient(QCPColorGradient::gpCold),
   mInterpolate(true),
   mTightBoundary(false),
   mMapImageInvalidated(true)

@@ -49,7 +49,7 @@
   Additionally you can define a list of outliers, drawn as scatter datapoints:
   \li \ref setOutliers
   
-  \section appearance Changing the appearance
+  \section qcpstatisticalbox-appearance Changing the appearance
   
   The appearance of the box itself is controlled via \ref setPen and \ref setBrush. You may change
   the width of the box with \ref setWidth in plot coordinates (not pixels).
@@ -67,7 +67,7 @@
   The Outlier data points are drawn as normal scatter points. Their look can be controlled with
   \ref setOutlierStyle
   
-  \section usage Usage
+  \section qcpstatisticalbox-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPStatisticalBox is a plottable.
   Usually, you first create an instance and add it to the customPlot:

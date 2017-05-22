@@ -453,7 +453,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   typically placed to the right of the axis rect. See the documentation there for details on how to
   add and use a color scale.
   
-  \section appearance Changing the appearance
+  \section qcpcolormap-appearance Changing the appearance
   
   The central part of the appearance is the color gradient, which can be specified via \ref
   setGradient. See the documentation of \ref QCPColorGradient for details on configuring a color
@@ -463,7 +463,7 @@ void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, dou
   setDataRange. To make the data range encompass the whole data set minimum to maximum, call \ref
   rescaleDataRange.
   
-  \section usage Usage
+  \section qcpcolormap-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPColorMap is a plottable
   (QCPAbstractPlottable). So the plottable-interface of QCustomPlot applies

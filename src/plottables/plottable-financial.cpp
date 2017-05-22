@@ -96,7 +96,7 @@ QCPFinancialData::QCPFinancialData(double key, double open, double high, double 
   The width of the OHLC bars/candlesticks can be controlled with \ref setWidth and is given in plot
   key coordinates. A typical choice is to set it to (or slightly less than) one bin interval width.
   
-  \section appearance Changing the appearance
+  \section qcpfinancial-appearance Changing the appearance
   
   Charts can be either single- or two-colored (\ref setTwoColored). If set to be single-colored,
   lines are drawn with the plottable's pen (\ref setPen) and fills with the brush (\ref setBrush).

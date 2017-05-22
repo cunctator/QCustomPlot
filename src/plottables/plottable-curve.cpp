@@ -88,10 +88,11 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   (<tt>qQNaN()</tt> or <tt>std::numeric_limits<double>::quiet_NaN()</tt>) in between the two data points that shall be
   separated.
   
-  \section appearance Changing the appearance
+  \section qcpcurve-appearance Changing the appearance
   
   The appearance of the curve is determined by the pen and the brush (\ref setPen, \ref setBrush).
-  \section usage Usage
+  
+  \section qcpcurve-usage Usage
   
   Like all data representing objects in QCustomPlot, the QCPCurve is a plottable (QCPAbstractPlottable). So
   the plottable-interface of QCustomPlot applies (QCustomPlot::plottable, QCustomPlot::addPlottable, QCustomPlot::removePlottable, etc.)

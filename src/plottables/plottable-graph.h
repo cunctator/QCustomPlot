@@ -148,6 +148,8 @@ public:
   void rescaleValueAxis(bool onlyEnlarge, bool includeErrorBars) const; // overloads base class interface
   
 protected:
+  typedef QPair<int, int> DataRange;
+  
   // property members:
   QCPDataMap *mData;
   QPen mErrorPen;
@@ -185,11 +187,12 @@ protected:
   void drawError(QCPPainter *painter, double x, double y, const QCPData &data) const;
   void getVisibleDataBounds(QCPDataMap::const_iterator &lower, QCPDataMap::const_iterator &upper) const;
   int countDataInBounds(const QCPDataMap::const_iterator &lower, const QCPDataMap::const_iterator &upper, int maxCount) const;
-  void addFillBasePoints(QVector<QPointF> *lineData) const;
-  void removeFillBasePoints(QVector<QPointF> *lineData) const;
-  QPointF lowerFillBasePoint(double lowerKey) const;
-  QPointF upperFillBasePoint(double upperKey) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData) const;
+  QVector<DataRange> getNonNanSegments(const QVector<QPointF> *lineData, Qt::Orientation keyOrientation) const;
+  QVector<QPair<DataRange, DataRange> > getOverlappingSegments(QVector<DataRange> thisSegments, const QVector<QPointF> *thisData, QVector<DataRange> otherSegments, const QVector<QPointF> *otherData) const;
+  bool segmentsIntersect(double aLower, double aUpper, double bLower, double bUpper, int &bPrecedence) const;
+  QPointF getFillBasePoint(QPointF matchingDataPoint) const;
+  const QPolygonF getFillPolygon(const QVector<QPointF> *lineData, DataRange segment) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData, DataRange thisSegment, const QVector<QPointF> *otherData, DataRange otherSegment) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;

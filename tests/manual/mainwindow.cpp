@@ -37,8 +37,9 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupColorMapTest(mCustomPlot);
   //setupBarsTest(mCustomPlot);
   //setupBarsGroupTest(mCustomPlot);
-  setupLargeDataSetDelete(mCustomPlot);
-  //setupTestbed(mCustomPlot);
+  //setupLargeDataSetDelete(mCustomPlot);
+  //setupGraphFillGapTest(mCustomPlot);
+  setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -1114,6 +1115,45 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
   }
   customPlot->rescaleAxes();
   customPlot->replot(QCustomPlot::rpImmediate);
+}
+
+void MainWindow::setupGraphFillGapTest(QCustomPlot *customPlot)
+{
+  QCPGraph *g1 = customPlot->addGraph(customPlot->xAxis, customPlot->yAxis);
+  QCPGraph *g2 = customPlot->addGraph(customPlot->xAxis, customPlot->yAxis);
+  
+  g2->setChannelFillGraph(g1);
+  g2->setBrush(QColor(255, 0, 0, 50));
+  
+  //customPlot->yAxis->setRangeReversed(true);
+  
+  /*
+  g1->addData(0, 1);
+  g1->addData(1, 1);
+  g1->addData(2, 1);
+  g1->addData(3.2, 1);
+  
+  g2->addData(0, 3);
+  g2->addData(1, 3);
+  g2->addData(2, qQNaN());
+  g2->addData(3, 3);
+  g2->addData(4, 3);
+  */
+  
+  for (int i=0; i<200; ++i)
+  {
+    if (qrand()%100 > 20)
+      g1->addData(qrand()/(double)RAND_MAX*100, qrand()/(double)RAND_MAX*1);
+    else
+      g1->addData(qrand()/(double)RAND_MAX*100, qQNaN());
+      
+    if (qrand()%100 > 20)
+      g2->addData(qrand()/(double)RAND_MAX*100, qrand()/(double)RAND_MAX*1+2);
+    else
+      g2->addData(qrand()/(double)RAND_MAX*100, qQNaN());
+  }
+  
+  
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)

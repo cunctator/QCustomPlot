@@ -44,6 +44,7 @@ public:
   void setupBarsTest(QCustomPlot *customPlot);
   void setupBarsGroupTest(QCustomPlot *customPlot);
   void setupLargeDataSetDelete(QCustomPlot *customPlot);
+  void setupGraphFillGapTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   

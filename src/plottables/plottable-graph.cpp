@@ -1497,14 +1497,8 @@ void QCPGraph::getPreparedData(QVector<QCPData> *lineData, QVector<QCPData> *sca
       dataVector = scatterData;
     if (dataVector)
     {
-      QCPDataMap::const_iterator it = lower;
-      QCPDataMap::const_iterator upperEnd = upper+1;
-      dataVector->reserve(dataCount+2); // +2 for possible fill end points
-      while (it != upperEnd)
-      {
-        dataVector->append(it.value());
-        ++it;
-      }
+      dataVector->resize(dataCount);
+      std::copy(lower, upper+1, dataVector->begin());
     }
     if (lineData && scatterData)
       *scatterData = *dataVector;

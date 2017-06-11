@@ -891,7 +891,6 @@ void QCPGraph::getLinePlotData(QVector<QPointF> *linePixelData, QVector<QCPData>
   
   QVector<QCPData> lineData;
   getPreparedData(&lineData, scatterData);
-  linePixelData->reserve(lineData.size());
   linePixelData->resize(lineData.size());
   
   // transform lineData points to pixels:
@@ -984,7 +983,6 @@ void QCPGraph::getStepRightPlotData(QVector<QPointF> *linePixelData, QVector<QCP
   
   QVector<QCPData> lineData;
   getPreparedData(&lineData, scatterData);
-  linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
   
   // calculate steps from lineData and transform to pixel coordinates:
@@ -1037,7 +1035,6 @@ void QCPGraph::getStepCenterPlotData(QVector<QPointF> *linePixelData, QVector<QC
   
   QVector<QCPData> lineData;
   getPreparedData(&lineData, scatterData);
-  linePixelData->reserve(lineData.size()*2+2); // added 2 to reserve memory for lower/upper fill base points that might be needed for fill
   linePixelData->resize(lineData.size()*2);
   // calculate steps from lineData and transform to pixel coordinates:
   if (keyAxis->orientation() == Qt::Vertical)

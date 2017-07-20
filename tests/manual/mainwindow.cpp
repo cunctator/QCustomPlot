@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupExportTest(mCustomPlot);
   //setupExportMapTest(mCustomPlot);
   //setupLogErrorsTest(mCustomPlot);
+  //setupLogCurveTest(mCustomPlot);
   //setupSelectTest(mCustomPlot);
   //setupDateTest(mCustomPlot);
   //setupIntegerTickStepCase(mCustomPlot);
@@ -346,6 +347,30 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   valueErrors->setErrorType(QCPErrorBars::etValueError);
   valueErrors->setDataPlottable(customPlot->graph());
   valueErrors->setData(yerr);
+  
+  customPlot->rescaleAxes();
+}
+
+void MainWindow::setupLogCurveTest(QCustomPlot *customPlot)
+{
+  customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  customPlot->yAxis2->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->yAxis2->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  customPlot->xAxis2->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis2->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  
+  QCPCurve *curve =  new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  curve->addData(3, 1);
+  curve->addData(2, 30);
+  curve->addData(1, 1);
+  curve->addData(4, 3);
+  
+  //customPlot->xAxis->setRangeReversed(true);
+  //customPlot->yAxis->setRangeReversed(true);
   
   customPlot->rescaleAxes();
 }

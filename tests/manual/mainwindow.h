@@ -31,6 +31,7 @@ public:
   void setupExportTest(QCustomPlot *customPlot);
   void setupExportMapTest(QCustomPlot *customPlot);
   void setupLogErrorsTest(QCustomPlot *customPlot);
+  void setupLogCurveTest(QCustomPlot *customPlot);
   void setupSelectTest(QCustomPlot *customPlot);
   void setupDateTest(QCustomPlot *customPlot);
   void setupTickLabelTest(QCustomPlot *customPlot);

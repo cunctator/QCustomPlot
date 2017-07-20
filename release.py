@@ -2,10 +2,10 @@
 import os, sys, subprocess, shutil, distutils.dir_util
 
 def printinfo(message):
-  print "\033[1;36m"+message+"\033[1;m"
+  print("\033[1;36m"+message+"\033[1;m")
 
 def printerror(message):
-  print "\033[1;31m"+message+"\033[1;m"
+  print("\033[1;31m"+message+"\033[1;m")
   
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:
@@ -17,7 +17,7 @@ tarcommand = "GZIP=\"-9\" tar -caf" # -a means determine compressor by archive s
 tarsuffix = ".tar.gz"
 
 
-if raw_input("\033[1;31m"+"This will call 'git clean -dxf' which will completely reset the current working directory.\n(Call 'git clean -dxn' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
+if input("\033[1;31m"+"This will call 'git clean -dxf' which will completely reset the current working directory.\n(Call 'git clean -dxn' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
   printinfo("Aborted.");
   sys.exit(1);
 
@@ -53,7 +53,7 @@ printinfo("Compiling documentation...")
 subprocess.call("./run-doxygen.sh", shell=True)
 
 # build release packages in temp directory:
-print ""
+print("")
 tempDir = baseDir+"/temp"
 os.mkdir(tempDir)
 

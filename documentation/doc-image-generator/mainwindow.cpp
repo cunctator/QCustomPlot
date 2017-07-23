@@ -413,7 +413,7 @@ void MainWindow::genAxisTickers()
   customPlot->xAxis->setTicker(fixedTicker);
   
   fixedTicker->setTickStep(1.0); // tick step shall be 1.0
-  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
+  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep (like multiples or powers) is allowed
   //! [axistickerfixed-creation]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);

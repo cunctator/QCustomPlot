@@ -714,11 +714,11 @@ void MainWindow::setupMultiAxisRectInteractions(QCustomPlot *customPlot)
   customPlot->plotLayout()->addElement(1, 1, r3);
   
   QCPAxisRect *inset = new QCPAxisRect(customPlot);
-  inset->setMinimumSize(170, 120);
+  inset->setMinimumSize(150, 120);
   inset->setupFullAxesBox(true);
   foreach (QCPAxis *ax, inset->axes())
     ax->ticker()->setTickCount(3);
-  r3->insetLayout()->addElement(inset, Qt::AlignRight|Qt::AlignTop);
+  r3->insetLayout()->addElement(inset, Qt::AlignLeft|Qt::AlignTop);
   
   connect(mCustomPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(setupMultiAxisRectInteractionsMouseMove(QMouseEvent*)));
 }

@@ -1680,8 +1680,8 @@ QSize QCPLayoutGrid::minimumSizeHint() const
     result.rwidth() += minColWidths.at(i);
   for (int i=0; i<minRowHeights.size(); ++i)
     result.rheight() += minRowHeights.at(i);
-  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing + mMargins.left() + mMargins.right();
-  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing + mMargins.top() + mMargins.bottom();
+  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
+  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
   return result;
 }
 
@@ -1696,8 +1696,8 @@ QSize QCPLayoutGrid::maximumSizeHint() const
     result.setWidth(qMin(result.width()+maxColWidths.at(i), QWIDGETSIZE_MAX));
   for (int i=0; i<maxRowHeights.size(); ++i)
     result.setHeight(qMin(result.height()+maxRowHeights.at(i), QWIDGETSIZE_MAX));
-  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing + mMargins.left() + mMargins.right();
-  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing + mMargins.top() + mMargins.bottom();
+  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
+  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
   return result;
 }
 
@@ -1706,8 +1706,9 @@ QSize QCPLayoutGrid::maximumSizeHint() const
   Places the minimum column widths and row heights into \a minColWidths and \a minRowHeights
   respectively.
   
-  The minimum height of a row is the largest minimum height of any element in that row. The minimum
-  width of a column is the largest minimum width of any element in that column.
+  The minimum height of a row is the largest minimum height of any element's outer rect in that
+  row. The minimum width of a column is the largest minimum width of any element's outer rect in
+  that column.
   
   This is a helper function for \ref updateLayout.
   
@@ -1721,11 +1722,12 @@ void QCPLayoutGrid::getMinimumRowColSizes(QVector<int> *minColWidths, QVector<in
   {
     for (int col=0; col<columnCount(); ++col)
     {
-      if (mElements.at(row).at(col))
+      if (QCPLayoutElement *el = mElements.at(row).at(col))
       {
-        QSize minHint = mElements.at(row).at(col)->minimumSizeHint();
-        QSize min = mElements.at(row).at(col)->minimumSize();
+        QSize minHint = el->minimumSizeHint();
+        QSize min = el->minimumSize();
         QSize final(min.width() > 0 ? min.width() : minHint.width(), min.height() > 0 ? min.height() : minHint.height());
+        final += QSize(el->margins().left() + el->margins().right(), el->margins().top() + el->margins().bottom());
         if (minColWidths->at(col) < final.width())
           (*minColWidths)[col] = final.width();
         if (minRowHeights->at(row) < final.height())
@@ -1740,8 +1742,9 @@ void QCPLayoutGrid::getMinimumRowColSizes(QVector<int> *minColWidths, QVector<in
   Places the maximum column widths and row heights into \a maxColWidths and \a maxRowHeights
   respectively.
   
-  The maximum height of a row is the smallest maximum height of any element in that row. The
-  maximum width of a column is the smallest maximum width of any element in that column.
+  The maximum height of a row is the smallest maximum height of any element's outer rect in that
+  row. The maximum width of a column is the smallest maximum width of any element's outer rect in
+  that column.
   
   This is a helper function for \ref updateLayout.
   
@@ -1755,11 +1758,12 @@ void QCPLayoutGrid::getMaximumRowColSizes(QVector<int> *maxColWidths, QVector<in
   {
     for (int col=0; col<columnCount(); ++col)
     {
-      if (mElements.at(row).at(col))
+      if (QCPLayoutElement *el = mElements.at(row).at(col))
       {
-        QSize maxHint = mElements.at(row).at(col)->maximumSizeHint();
-        QSize max = mElements.at(row).at(col)->maximumSize();
+        QSize maxHint = el->maximumSizeHint();
+        QSize max = el->maximumSize();
         QSize final(max.width() < QWIDGETSIZE_MAX ? max.width() : maxHint.width(), max.height() < QWIDGETSIZE_MAX ? max.height() : maxHint.height());
+        final += QSize(el->margins().left() + el->margins().right(), el->margins().top() + el->margins().bottom());
         if (maxColWidths->at(col) > final.width())
           (*maxColWidths)[col] = final.width();
         if (maxRowHeights->at(row) > final.height())
@@ -1912,14 +1916,17 @@ void QCPLayoutInset::updateLayout()
 {
   for (int i=0; i<mElements.size(); ++i)
   {
+    QCPLayoutElement *el = mElements.at(i);
     QRect insetRect;
     QSize finalMinSize, finalMaxSize;
-    QSize minSizeHint = mElements.at(i)->minimumSizeHint();
-    QSize maxSizeHint = mElements.at(i)->maximumSizeHint();
-    finalMinSize.setWidth(mElements.at(i)->minimumSize().width() > 0 ? mElements.at(i)->minimumSize().width() : minSizeHint.width());
-    finalMinSize.setHeight(mElements.at(i)->minimumSize().height() > 0 ? mElements.at(i)->minimumSize().height() : minSizeHint.height());
-    finalMaxSize.setWidth(mElements.at(i)->maximumSize().width() < QWIDGETSIZE_MAX ? mElements.at(i)->maximumSize().width() : maxSizeHint.width());
-    finalMaxSize.setHeight(mElements.at(i)->maximumSize().height() < QWIDGETSIZE_MAX ? mElements.at(i)->maximumSize().height() : maxSizeHint.height());
+    QSize minSizeHint = el->minimumSizeHint();
+    QSize maxSizeHint = el->maximumSizeHint();
+    finalMinSize.setWidth(el->minimumSize().width() > 0 ? el->minimumSize().width() : minSizeHint.width());
+    finalMinSize.setHeight(el->minimumSize().height() > 0 ? el->minimumSize().height() : minSizeHint.height());
+    finalMaxSize.setWidth(el->maximumSize().width() < QWIDGETSIZE_MAX ? el->maximumSize().width() : maxSizeHint.width());
+    finalMaxSize.setHeight(el->maximumSize().height() < QWIDGETSIZE_MAX ? el->maximumSize().height() : maxSizeHint.height());
+    finalMinSize += QSize(el->margins().left() + el->margins().right(), el->margins().top() + el->margins().bottom());
+    finalMaxSize += QSize(el->margins().left() + el->margins().right(), el->margins().top() + el->margins().bottom());
     if (mInsetPlacement.at(i) == ipFree)
     {
       insetRect = QRect(rect().x()+rect().width()*mInsetRect.at(i).x(),

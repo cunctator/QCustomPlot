@@ -329,8 +329,8 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
   QFontMetrics fontMetrics(getFont());
   QSize iconSize = mParentLegend->iconSize();
   textRect = fontMetrics.boundingRect(0, 0, 0, iconSize.height(), Qt::TextDontClip, mPlottable->name());
-  result.setWidth(iconSize.width() + mParentLegend->iconTextPadding() + textRect.width() + mMargins.left() + mMargins.right());
-  result.setHeight(qMax(textRect.height(), iconSize.height()) + mMargins.top() + mMargins.bottom());
+  result.setWidth(iconSize.width() + mParentLegend->iconTextPadding() + textRect.width());
+  result.setHeight(qMax(textRect.height(), iconSize.height()));
   return result;
 }
 

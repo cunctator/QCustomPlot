@@ -308,10 +308,7 @@ void QCPTextElement::draw(QCPPainter *painter)
 QSize QCPTextElement::minimumSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
-  result.rwidth() += mMargins.left() + mMargins.right();
-  result.rheight() += mMargins.top() + mMargins.bottom();
-  return result;
+  return metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
 }
 
 /* inherits documentation from base class */
@@ -319,7 +316,6 @@ QSize QCPTextElement::maximumSizeHint() const
 {
   QFontMetrics metrics(mFont);
   QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
-  result.rheight() += mMargins.top() + mMargins.bottom();
   result.setWidth(QWIDGETSIZE_MAX);
   return result;
 }

@@ -1625,8 +1625,8 @@ const QPolygonF QCPGraph::getChannelFillPolygon(const QVector<QPointF> *thisData
 /*! \internal
   
   Finds the smallest index of \a data, whose points x value is just above \a x. Assumes x values in
-  \a data points are ordered ascending, as is ensured by \ref getPlotData if the key axis is
-  horizontal.
+  \a data points are ordered ascending, as is ensured by \ref getLines/\ref getScatters if the key
+  axis is horizontal.
 
   Used to calculate the channel fill polygon, see \ref getChannelFillPolygon.
 */
@@ -1648,8 +1648,8 @@ int QCPGraph::findIndexAboveX(const QVector<QPointF> *data, double x) const
 /*! \internal
   
   Finds the highest index of \a data, whose points x value is just below \a x. Assumes x values in
-  \a data points are ordered ascending, as is ensured by \ref getPlotData if the key axis is
-  horizontal.
+  \a data points are ordered ascending, as is ensured by \ref getLines/\ref getScatters if the key
+  axis is horizontal.
   
   Used to calculate the channel fill polygon, see \ref getChannelFillPolygon.
 */
@@ -1671,8 +1671,8 @@ int QCPGraph::findIndexBelowX(const QVector<QPointF> *data, double x) const
 /*! \internal
   
   Finds the smallest index of \a data, whose points y value is just above \a y. Assumes y values in
-  \a data points are ordered ascending, as is ensured by \ref getPlotData if the key axis is
-  vertical.
+  \a data points are ordered ascending, as is ensured by \ref getLines/\ref getScatters if the key
+  axis is vertical.
   
   Used to calculate the channel fill polygon, see \ref getChannelFillPolygon.
 */
@@ -1753,8 +1753,8 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
 /*! \internal
   
   Finds the highest index of \a data, whose points y value is just below \a y. Assumes y values in
-  \a data points are ordered ascending, as is ensured by \ref getPlotData if the key axis is
-  vertical.
+  \a data points are ordered ascending, as is ensured by \ref getLines/\ref getScatters if the key
+  axis is vertical.
 
   Used to calculate the channel fill polygon, see \ref getChannelFillPolygon.
 */

@@ -132,7 +132,6 @@ protected:
   // non-property members:
   QList<QCPRange> mDragStartHorzRange, mDragStartVertRange;
   QCP::AntialiasedElements mAADragBackup, mNotAADragBackup;
-  QPoint mDragStart;
   bool mDragging;
   QHash<QCPAxis::AxisType, QList<QCPAxis*> > mAxes;
   

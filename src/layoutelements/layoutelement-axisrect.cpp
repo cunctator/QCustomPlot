@@ -1156,7 +1156,6 @@ void QCPAxisRect::layoutChanged()
 void QCPAxisRect::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
   Q_UNUSED(details)
-  mDragStart = event->pos(); // need this even when not LeftButton is pressed, to determine in releaseEvent whether it was a full click (no position change between press and release)
   if (event->buttons() & Qt::LeftButton)
   {
     mDragging = true;
@@ -1204,11 +1203,11 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
           break;
         if (ax->mScaleType == QCPAxis::stLinear)
         {
-          double diff = ax->pixelToCoord(mDragStart.x()) - ax->pixelToCoord(event->pos().x());
+          double diff = ax->pixelToCoord(startPos.x()) - ax->pixelToCoord(event->pos().x());
           ax->setRange(mDragStartHorzRange.at(i).lower+diff, mDragStartHorzRange.at(i).upper+diff);
         } else if (ax->mScaleType == QCPAxis::stLogarithmic)
         {
-          double diff = ax->pixelToCoord(mDragStart.x()) / ax->pixelToCoord(event->pos().x());
+          double diff = ax->pixelToCoord(startPos.x()) / ax->pixelToCoord(event->pos().x());
           ax->setRange(mDragStartHorzRange.at(i).lower*diff, mDragStartHorzRange.at(i).upper*diff);
         }
       }
@@ -1225,11 +1224,11 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
           break;
         if (ax->mScaleType == QCPAxis::stLinear)
         {
-          double diff = ax->pixelToCoord(mDragStart.y()) - ax->pixelToCoord(event->pos().y());
+          double diff = ax->pixelToCoord(startPos.y()) - ax->pixelToCoord(event->pos().y());
           ax->setRange(mDragStartVertRange.at(i).lower+diff, mDragStartVertRange.at(i).upper+diff);
         } else if (ax->mScaleType == QCPAxis::stLogarithmic)
         {
-          double diff = ax->pixelToCoord(mDragStart.y()) / ax->pixelToCoord(event->pos().y());
+          double diff = ax->pixelToCoord(startPos.y()) / ax->pixelToCoord(event->pos().y());
           ax->setRange(mDragStartVertRange.at(i).lower*diff, mDragStartVertRange.at(i).upper*diff);
         }
       }

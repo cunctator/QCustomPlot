@@ -37,11 +37,11 @@ public:
     
     \see setFieldWidth, setTimeFormat
   */
-  enum TimeUnit { tuMilliseconds
-                  ,tuSeconds
-                  ,tuMinutes
-                  ,tuHours
-                  ,tuDays
+  enum TimeUnit { tuMilliseconds ///< Milliseconds, one thousandth of a second (%%z in \ref setTimeFormat)
+                  ,tuSeconds     ///< Seconds (%%s in \ref setTimeFormat)
+                  ,tuMinutes     ///< Minutes (%%m in \ref setTimeFormat)
+                  ,tuHours       ///< Hours (%%h in \ref setTimeFormat)
+                  ,tuDays        ///< Days (%%d in \ref setTimeFormat)
                 };
   Q_ENUMS(TimeUnit)
   

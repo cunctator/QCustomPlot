@@ -77,7 +77,6 @@ public slots:
   void colorMapMouseMove(QMouseEvent *event);
   
   void testbedMouseClick(QMouseEvent *event);
-  void mouseWheel(QWheelEvent *event);
   
 private:
   Ui::MainWindow *ui;

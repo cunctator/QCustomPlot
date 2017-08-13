@@ -1296,7 +1296,6 @@ void MainWindow::presetInteractive(QCustomPlot *customPlot)
                               QCP::iMultiSelect);
   customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
   customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-  connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)), Qt::UniqueConnection);
   connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectionRectChooser(QMouseEvent*)), Qt::UniqueConnection);
 }
 
@@ -1577,14 +1576,4 @@ void MainWindow::colorMapMouseMove(QMouseEvent *event)
 void MainWindow::testbedMouseClick(QMouseEvent *event)
 {
   Q_UNUSED(event)
-}
-
-void MainWindow::mouseWheel(QWheelEvent *event)
-{
-  if (event->pos().x() < 50)
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Vertical);
-  else if (event->pos().y() > mCustomPlot->height()-50)
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Horizontal);
-  else
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }

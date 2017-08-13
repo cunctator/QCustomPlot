@@ -39,7 +39,7 @@ template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
 
 template <class DataType>
-class QCP_LIB_DECL QCPDataContainer
+class QCPDataContainer // no QCP_LIB_DECL, template class ends up in header (cpp included below)
 {
 public:
   typedef typename QVector<DataType>::const_iterator const_iterator;

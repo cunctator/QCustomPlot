@@ -30,7 +30,7 @@
 #include "datacontainer.h"
 #include "plottable.h"
 
-class QCP_LIB_DECL QCPPlottableInterface1D
+class QCPPlottableInterface1D
 {
 public:
   virtual ~QCPPlottableInterface1D() {}
@@ -48,7 +48,7 @@ public:
 };
 
 template <class DataType>
-class QCP_LIB_DECL QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableInterface1D
+class QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableInterface1D // no QCP_LIB_DECL, template class ends up in header (cpp included below)
 {
   // No Q_OBJECT macro due to template class
   

@@ -777,6 +777,10 @@ void QCustomPlot::setSelectionRect(QCPSelectionRect *selectionRect)
 }
 
 /*!
+  \warning This is still an experimental feature and its performance depends on the system that it
+  runs on. Having multiple QCustomPlot widgets in one application with enabled OpenGL rendering
+  might cause context conflicts on some systems.
+  
   This method allows to enable OpenGL plot rendering, for increased plotting performance of
   graphically demanding plots (thick lines, translucent fills, etc.).
 

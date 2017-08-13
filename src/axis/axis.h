@@ -354,6 +354,9 @@ protected:
   QVector<double> mSubTickVector;
   bool mCachedMarginValid;
   int mCachedMargin;
+  bool mDragging;
+  QCPRange mDragStartRange;
+  QCP::AntialiasedElements mAADragBackup, mNotAADragBackup;
   
   // introduced virtual methods:
   virtual int calculateMargin();
@@ -365,6 +368,11 @@ protected:
   // events:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
   virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  // mouse events:
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void wheelEvent(QWheelEvent *event);
   
   // non-virtual methods:
   void setupTickVectors();

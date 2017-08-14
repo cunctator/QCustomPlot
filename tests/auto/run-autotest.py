@@ -14,10 +14,10 @@ os.chdir(baseDir) # change current working dir to script dir
 
 # define functions:
 def printinfo(message):
-  print "\033[1;36m"+message+"\033[1;m"
+  print("\033[1;36m"+message+"\033[1;m")
 
 def printerror(message):
-  print "\033[1;31m"+message+"\033[1;m"
+  print("\033[1;31m"+message+"\033[1;m")
   
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:

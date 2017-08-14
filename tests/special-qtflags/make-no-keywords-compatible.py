@@ -19,7 +19,7 @@ baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
   
 def performKeywordReplacement(filename):
-  print "making '"+filename+"' no-keywords-compatible..."
+  print("making '"+filename+"' no-keywords-compatible...")
   patterns = []
   patterns.append((re.compile("(^|[^\\a_])emit\\s"), "\\1Q_EMIT "))
   patterns.append((re.compile("^( *)signals:"), "\\1Q_SIGNALS:"))
@@ -38,7 +38,7 @@ def performKeywordReplacement(filename):
     
 for filename in sys.argv[1:]:
   if not os.path.isfile(filename):
-    print "file '"+filename+"' not found"
+    print("file '"+filename+"' not found")
     sys.exit(-1)
   performKeywordReplacement(filename);
 

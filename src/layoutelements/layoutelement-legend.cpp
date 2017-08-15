@@ -344,10 +344,14 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
 
   A legend is a small box somewhere in the plot which lists plottables with their name and icon.
 
-  Normally, the legend is populated by calling \ref QCPAbstractPlottable::addToLegend. The
-  respective legend item can be removed with \ref QCPAbstractPlottable::removeFromLegend. However,
-  QCPLegend also offers an interface to add and manipulate legend items directly: \ref item, \ref
-  itemWithPlottable, \ref itemCount, \ref addItem, \ref removeItem, etc.
+  A legend is populated with legend items by calling \ref QCPAbstractPlottable::addToLegend on the
+  plottable, for which a legend item shall be created. In the case of the main legend (\ref
+  QCustomPlot::legend), simply adding plottables to the plot while \ref
+  QCustomPlot::setAutoAddPlottableToLegend is set to true (the default) creates corresponding
+  legend items. The legend item associated with a certain plottable can be removed with \ref
+  QCPAbstractPlottable::removeFromLegend. However, QCPLegend also offers an interface to add and
+  manipulate legend items directly: \ref item, \ref itemWithPlottable, \ref itemCount, \ref
+  addItem, \ref removeItem, etc.
 
   Since \ref QCPLegend derives from \ref QCPLayoutGrid, it can be placed in any position a \ref
   QCPLayoutElement may be positioned. The legend items are themselves \ref QCPLayoutElement

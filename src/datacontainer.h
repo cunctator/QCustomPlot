@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_DATACONTAINER_H
@@ -39,7 +39,7 @@ template <class DataType>
 inline bool qcpLessThanSortKey(const DataType &a, const DataType &b) { return a.sortKey() < b.sortKey(); }
 
 template <class DataType>
-class QCP_LIB_DECL QCPDataContainer
+class QCPDataContainer // no QCP_LIB_DECL, template class ends up in header (cpp included below)
 {
 public:
   typedef typename QVector<DataType>::const_iterator const_iterator;

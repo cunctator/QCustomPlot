@@ -7,7 +7,11 @@
 # warning (set colorcount to 0 to skip image without compressing).
 #
 
+from __future__ import print_function
 import os, sys, glob, subprocess
+
+def eprint(*args, **kwargs):
+  print(*args, file=sys.stderr, **kwargs)
 
 baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
@@ -110,15 +114,15 @@ fileList += [(2   ,"html/doxygen.png")]
 allPngFiles = glob.glob("html/*.png")
 for (colors, fileName) in fileList:
   if not fileName in allPngFiles:
-    print "WARNING: couldn't find image \""+fileName+"\""
+    eprint("WARNING: couldn't find image \""+fileName+"\"")
     continue
   allPngFiles.remove(fileName)
   if colors > 0:
-    print "compressing colors of '"+fileName+"'"
+    print("compressing colors of '"+fileName+"'")
     if subprocess.call("mogrify -colorspace RGB -colors "+str(colors)+" +dither "+fileName, shell=True) != 0:
-      print "ERROR: color compression failed for '"+fileName+"'"
+      eprint("ERROR: color compression failed for '"+fileName+"'")
 
 
 for fileName in allPngFiles:
-  print "WARNING: doc image not compressed (not specified in script). Specify with e.g.: fileList += [(8   ,\""+fileName+"\")]"
+  eprint("WARNING: doc image not compressed (not specified in script). Specify with e.g.: fileList += [(8   ,\""+fileName+"\")]")
 

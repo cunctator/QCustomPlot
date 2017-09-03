@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "layoutelement-textelement.h"
@@ -305,22 +305,22 @@ void QCPTextElement::draw(QCPPainter *painter)
 }
 
 /* inherits documentation from base class */
-QSize QCPTextElement::minimumSizeHint() const
+QSize QCPTextElement::minimumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
-  result.rwidth() += mMargins.left() + mMargins.right();
-  result.rheight() += mMargins.top() + mMargins.bottom();
+  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size());
+  result.rwidth() += mMargins.left()+mMargins.right();
+  result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
 }
 
 /* inherits documentation from base class */
-QSize QCPTextElement::maximumSizeHint() const
+QSize QCPTextElement::maximumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result = metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size();
-  result.rheight() += mMargins.top() + mMargins.bottom();
+  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size());
   result.setWidth(QWIDGETSIZE_MAX);
+  result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
 }
 

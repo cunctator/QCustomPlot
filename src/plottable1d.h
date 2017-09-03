@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_PLOTTABLE1D_H
@@ -30,9 +30,10 @@
 #include "datacontainer.h"
 #include "plottable.h"
 
-class QCP_LIB_DECL QCPPlottableInterface1D
+class QCPPlottableInterface1D
 {
 public:
+  virtual ~QCPPlottableInterface1D() {}
   // introduced pure virtual methods:
   virtual int dataCount() const = 0;
   virtual double dataMainKey(int index) const = 0;
@@ -47,7 +48,7 @@ public:
 };
 
 template <class DataType>
-class QCP_LIB_DECL QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableInterface1D
+class QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableInterface1D // no QCP_LIB_DECL, template class ends up in header (cpp included below)
 {
   // No Q_OBJECT macro due to template class
   
@@ -56,20 +57,20 @@ public:
   virtual ~QCPAbstractPlottable1D();
   
   // virtual methods of 1d plottable interface:
-  virtual int dataCount() const;
-  virtual double dataMainKey(int index) const;
-  virtual double dataSortKey(int index) const;
-  virtual double dataMainValue(int index) const;
-  virtual QCPRange dataValueRange(int index) const;
-  virtual QPointF dataPixelPosition(int index) const;
-  virtual bool sortKeyIsMainKey() const;
-  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const;
-  virtual int findBegin(double sortKey, bool expandedRange=true) const;
-  virtual int findEnd(double sortKey, bool expandedRange=true) const;
+  virtual int dataCount() const Q_DECL_OVERRIDE;
+  virtual double dataMainKey(int index) const Q_DECL_OVERRIDE;
+  virtual double dataSortKey(int index) const Q_DECL_OVERRIDE;
+  virtual double dataMainValue(int index) const Q_DECL_OVERRIDE;
+  virtual QCPRange dataValueRange(int index) const Q_DECL_OVERRIDE;
+  virtual QPointF dataPixelPosition(int index) const Q_DECL_OVERRIDE;
+  virtual bool sortKeyIsMainKey() const Q_DECL_OVERRIDE;
+  virtual QCPDataSelection selectTestRect(const QRectF &rect, bool onlySelectable) const Q_DECL_OVERRIDE;
+  virtual int findBegin(double sortKey, bool expandedRange=true) const Q_DECL_OVERRIDE;
+  virtual int findEnd(double sortKey, bool expandedRange=true) const Q_DECL_OVERRIDE;
   
-  // virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const;
-  virtual QCPPlottableInterface1D *interface1D() { return this; }
+  // reimplemented virtual methods:
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual QCPPlottableInterface1D *interface1D() Q_DECL_OVERRIDE { return this; }
   
 protected:
   // property members:

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_GRAPH_H
@@ -151,11 +151,12 @@ protected:
   QVector<QPointF> dataToStepRightLines(const QVector<QCPGraphData> &data) const;
   QVector<QPointF> dataToStepCenterLines(const QVector<QCPGraphData> &data) const;
   QVector<QPointF> dataToImpulseLines(const QVector<QCPGraphData> &data) const;
-  void addFillBasePoints(QVector<QPointF> *lines) const;
-  void removeFillBasePoints(QVector<QPointF> *lines) const;
-  QPointF lowerFillBasePoint(double lowerKey) const;
-  QPointF upperFillBasePoint(double upperKey) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lines) const;
+  QVector<QCPDataRange> getNonNanSegments(const QVector<QPointF> *lineData, Qt::Orientation keyOrientation) const;
+  QVector<QPair<QCPDataRange, QCPDataRange> > getOverlappingSegments(QVector<QCPDataRange> thisSegments, const QVector<QPointF> *thisData, QVector<QCPDataRange> otherSegments, const QVector<QPointF> *otherData) const;
+  bool segmentsIntersect(double aLower, double aUpper, double bLower, double bUpper, int &bPrecedence) const;
+  QPointF getFillBasePoint(QPointF matchingDataPoint) const;
+  const QPolygonF getFillPolygon(const QVector<QPointF> *lineData, QCPDataRange segment) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData, QCPDataRange thisSegment, const QVector<QPointF> *otherData, QCPDataRange otherSegment) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;

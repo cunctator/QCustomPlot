@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "axis.h"
@@ -1499,9 +1499,9 @@ double QCPAxis::coordToPixel(double value) const
         return (mRange.upper-value)/mRange.size()*mAxisRect->width()+mAxisRect->left();
     } else // mScaleType == stLogarithmic
     {
-      if (value >= 0 && mRange.upper < 0) // invalid value for logarithmic scale, just draw it outside visible range
+      if (value >= 0.0 && mRange.upper < 0.0) // invalid value for logarithmic scale, just draw it outside visible range
         return !mRangeReversed ? mAxisRect->right()+200 : mAxisRect->left()-200;
-      else if (value <= 0 && mRange.upper > 0) // invalid value for logarithmic scale, just draw it outside visible range
+      else if (value <= 0.0 && mRange.upper >= 0.0) // invalid value for logarithmic scale, just draw it outside visible range
         return !mRangeReversed ? mAxisRect->left()-200 : mAxisRect->right()+200;
       else
       {
@@ -1521,9 +1521,9 @@ double QCPAxis::coordToPixel(double value) const
         return mAxisRect->bottom()-(mRange.upper-value)/mRange.size()*mAxisRect->height();
     } else // mScaleType == stLogarithmic
     {
-      if (value >= 0 && mRange.upper < 0) // invalid value for logarithmic scale, just draw it outside visible range
+      if (value >= 0.0 && mRange.upper < 0.0) // invalid value for logarithmic scale, just draw it outside visible range
         return !mRangeReversed ? mAxisRect->top()-200 : mAxisRect->bottom()+200;
-      else if (value <= 0 && mRange.upper > 0) // invalid value for logarithmic scale, just draw it outside visible range
+      else if (value <= 0.0 && mRange.upper >= 0.0) // invalid value for logarithmic scale, just draw it outside visible range
         return !mRangeReversed ? mAxisRect->bottom()+200 : mAxisRect->top()-200;
       else
       {
@@ -1691,6 +1691,137 @@ void QCPAxis::deselectEvent(bool *selectionStateChanged)
   setSelectedParts(mSelectedParts & ~mSelectableParts);
   if (selectionStateChanged)
     *selectionStateChanged = mSelectedParts != selBefore;
+}
+
+/*! \internal
+  
+  This mouse event reimplementation provides the functionality to let the user drag individual axes
+  exclusively, by startig the drag on top of the axis.
+
+  For the axis to accept this event and perform the single axis drag, the parent \ref QCPAxisRect
+  must be configured accordingly, i.e. it must allow range dragging in the orientation of this axis
+  (\ref QCPAxisRect::setRangeDrag) and this axis must be a draggable axis (\ref
+  QCPAxisRect::setRangeDragAxes)
+  
+  \seebaseclassmethod
+  
+  \note The dragging of possibly multiple axes at once by starting the drag anywhere in the axis
+  rect is handled by the axis rect's mouse event, e.g. \ref QCPAxisRect::mousePressEvent.
+*/
+void QCPAxis::mousePressEvent(QMouseEvent *event, const QVariant &details)
+{
+  Q_UNUSED(details)
+  if (!mParentPlot->interactions().testFlag(QCP::iRangeDrag) ||
+      !mAxisRect->rangeDrag().testFlag(orientation()) ||
+      !mAxisRect->rangeDragAxes(orientation()).contains(this))
+  {
+    event->ignore();
+    return;
+  }
+  
+  if (event->buttons() & Qt::LeftButton)
+  {
+    mDragging = true;
+    // initialize antialiasing backup in case we start dragging:
+    if (mParentPlot->noAntialiasingOnDrag())
+    {
+      mAADragBackup = mParentPlot->antialiasedElements();
+      mNotAADragBackup = mParentPlot->notAntialiasedElements();
+    }
+    // Mouse range dragging interaction:
+    if (mParentPlot->interactions().testFlag(QCP::iRangeDrag))
+      mDragStartRange = mRange;
+  }
+}
+
+/*! \internal
+  
+  This mouse event reimplementation provides the functionality to let the user drag individual axes
+  exclusively, by startig the drag on top of the axis.
+  
+  \seebaseclassmethod
+  
+  \note The dragging of possibly multiple axes at once by starting the drag anywhere in the axis
+  rect is handled by the axis rect's mouse event, e.g. \ref QCPAxisRect::mousePressEvent.
+  
+  \see QCPAxis::mousePressEvent
+*/
+void QCPAxis::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  if (mDragging)
+  {
+    const double startPixel = orientation() == Qt::Horizontal ? startPos.x() : startPos.y();
+    const double currentPixel = orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y();
+    if (mScaleType == QCPAxis::stLinear)
+    {
+      const double diff = pixelToCoord(startPixel) - pixelToCoord(currentPixel);
+      setRange(mDragStartRange.lower+diff, mDragStartRange.upper+diff);
+    } else if (mScaleType == QCPAxis::stLogarithmic)
+    {
+      const double diff = pixelToCoord(startPixel) / pixelToCoord(currentPixel);
+      setRange(mDragStartRange.lower*diff, mDragStartRange.upper*diff);
+    }
+    
+    if (mParentPlot->noAntialiasingOnDrag())
+      mParentPlot->setNotAntialiasedElements(QCP::aeAll);
+    mParentPlot->replot(QCustomPlot::rpQueuedReplot);
+  }
+}
+
+/*! \internal
+  
+  This mouse event reimplementation provides the functionality to let the user drag individual axes
+  exclusively, by startig the drag on top of the axis.
+  
+  \seebaseclassmethod
+  
+  \note The dragging of possibly multiple axes at once by starting the drag anywhere in the axis
+  rect is handled by the axis rect's mouse event, e.g. \ref QCPAxisRect::mousePressEvent.
+  
+  \see QCPAxis::mousePressEvent
+*/
+void QCPAxis::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
+{
+  Q_UNUSED(event)
+  Q_UNUSED(startPos)
+  mDragging = false;
+  if (mParentPlot->noAntialiasingOnDrag())
+  {
+    mParentPlot->setAntialiasedElements(mAADragBackup);
+    mParentPlot->setNotAntialiasedElements(mNotAADragBackup);
+  }
+}
+
+/*! \internal
+  
+  This mouse event reimplementation provides the functionality to let the user zoom individual axes
+  exclusively, by performing the wheel event on top of the axis.
+
+  For the axis to accept this event and perform the single axis zoom, the parent \ref QCPAxisRect
+  must be configured accordingly, i.e. it must allow range zooming in the orientation of this axis
+  (\ref QCPAxisRect::setRangeZoom) and this axis must be a zoomable axis (\ref
+  QCPAxisRect::setRangeZoomAxes)
+  
+  \seebaseclassmethod
+  
+  \note The zooming of possibly multiple axes at once by performing the wheel event anywhere in the
+  axis rect is handled by the axis rect's mouse event, e.g. \ref QCPAxisRect::wheelEvent.
+*/
+void QCPAxis::wheelEvent(QWheelEvent *event)
+{
+  // Mouse range zooming interaction:
+  if (!mParentPlot->interactions().testFlag(QCP::iRangeZoom) ||
+      !mAxisRect->rangeZoom().testFlag(orientation()) ||
+      !mAxisRect->rangeZoomAxes(orientation()).contains(this))
+  {
+    event->ignore();
+    return;
+  }
+  
+  const double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+  const double factor = qPow(mAxisRect->rangeZoomFactor(orientation()), wheelSteps);
+  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
+  mParentPlot->replot();
 }
 
 /*! \internal
@@ -2276,11 +2407,14 @@ void QCPAxisPainterPrivate::placeTickLabel(QCPPainter *painter, double position,
       {
         cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size()*mParentPlot->bufferDevicePixelRatio());
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+#  ifdef QCP_DEVICEPIXELRATIO_FLOAT
+        cachedLabel->pixmap.setDevicePixelRatio(mParentPlot->devicePixelRatioF());
+#  else
         cachedLabel->pixmap.setDevicePixelRatio(mParentPlot->devicePixelRatio());
+#  endif
 #endif
       } else
         cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size());
-      cachedLabel->pixmap = QPixmap(labelData.rotatedTotalBounds.size());
       cachedLabel->pixmap.fill(Qt::transparent);
       QCPPainter cachePainter(&cachedLabel->pixmap);
       cachePainter.setPen(painter->pen());

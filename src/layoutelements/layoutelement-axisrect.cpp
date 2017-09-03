@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "layoutelement-axisrect.h"
@@ -288,7 +288,7 @@ QList<QCPAxis*> QCPAxisRect::axes() const
   new QCPAxis instance is created internally. QCustomPlot owns the returned axis, so if you want to
   remove an axis, use \ref removeAxis instead of deleting it manually.
 
-  You may inject QCPAxis instances (or sublasses of QCPAxis) by setting \a axis to an axis that was
+  You may inject QCPAxis instances (or subclasses of QCPAxis) by setting \a axis to an axis that was
   previously created outside QCustomPlot. It is important to note that QCustomPlot takes ownership
   of the axis, so you may not delete it afterwards. Further, the \a axis must have been created
   with this axis rect as parent and with the same axis type as specified in \a type. If this is not
@@ -388,6 +388,8 @@ bool QCPAxisRect::removeAxis(QCPAxis *axis)
     it.next();
     if (it.value().contains(axis))
     {
+      if (it.value().first() == axis && it.value().size() > 1) // if removing first axis, transfer axis offset to the new first axis (which at this point is the second axis, if it exists)
+        it.value()[1]->setOffset(axis->offset());
       mAxes[it.key()].removeOne(axis);
       if (qobject_cast<QCustomPlot*>(parentPlot())) // make sure this isn't called from QObject dtor when QCustomPlot is already destructed (happens when the axis rect is not in any layout and thus QObject-child of QCustomPlot)
         parentPlot()->axisRemoved(axis);
@@ -1154,7 +1156,6 @@ void QCPAxisRect::layoutChanged()
 void QCPAxisRect::mousePressEvent(QMouseEvent *event, const QVariant &details)
 {
   Q_UNUSED(details)
-  mDragStart = event->pos(); // need this even when not LeftButton is pressed, to determine in releaseEvent whether it was a full click (no position change between press and release)
   if (event->buttons() & Qt::LeftButton)
   {
     mDragging = true;
@@ -1202,11 +1203,11 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
           break;
         if (ax->mScaleType == QCPAxis::stLinear)
         {
-          double diff = ax->pixelToCoord(mDragStart.x()) - ax->pixelToCoord(event->pos().x());
+          double diff = ax->pixelToCoord(startPos.x()) - ax->pixelToCoord(event->pos().x());
           ax->setRange(mDragStartHorzRange.at(i).lower+diff, mDragStartHorzRange.at(i).upper+diff);
         } else if (ax->mScaleType == QCPAxis::stLogarithmic)
         {
-          double diff = ax->pixelToCoord(mDragStart.x()) / ax->pixelToCoord(event->pos().x());
+          double diff = ax->pixelToCoord(startPos.x()) / ax->pixelToCoord(event->pos().x());
           ax->setRange(mDragStartHorzRange.at(i).lower*diff, mDragStartHorzRange.at(i).upper*diff);
         }
       }
@@ -1223,11 +1224,11 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
           break;
         if (ax->mScaleType == QCPAxis::stLinear)
         {
-          double diff = ax->pixelToCoord(mDragStart.y()) - ax->pixelToCoord(event->pos().y());
+          double diff = ax->pixelToCoord(startPos.y()) - ax->pixelToCoord(event->pos().y());
           ax->setRange(mDragStartVertRange.at(i).lower+diff, mDragStartVertRange.at(i).upper+diff);
         } else if (ax->mScaleType == QCPAxis::stLogarithmic)
         {
-          double diff = ax->pixelToCoord(mDragStart.y()) / ax->pixelToCoord(event->pos().y());
+          double diff = ax->pixelToCoord(startPos.y()) / ax->pixelToCoord(event->pos().y());
           ax->setRange(mDragStartVertRange.at(i).lower*diff, mDragStartVertRange.at(i).upper*diff);
         }
       }
@@ -1237,7 +1238,7 @@ void QCPAxisRect::mouseMoveEvent(QMouseEvent *event, const QPointF &startPos)
     {
       if (mParentPlot->noAntialiasingOnDrag())
         mParentPlot->setNotAntialiasedElements(QCP::aeAll);
-      mParentPlot->replot();
+      mParentPlot->replot(QCustomPlot::rpQueuedReplot);
     }
     
   }

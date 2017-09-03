@@ -2,7 +2,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -20,8 +20,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "scatterstyle.h"
@@ -208,8 +208,8 @@ QCPScatterStyle::QCPScatterStyle(const QPixmap &pixmap) :
   
   The custom shape line will be drawn with \a pen and filled with \a brush. The size has a slightly
   different meaning than for built-in scatter points: The custom path will be drawn scaled by a
-  factor of \a size/6.0. Since the default \a size is 6, the custom path will appear at a its
-  natural size by default. To double the size of the path for example, set \a size to 12.
+  factor of \a size/6.0. Since the default \a size is 6, the custom path will appear in its
+  original size by default. To for example double the size of the path, set \a size to 12.
 */
 QCPScatterStyle::QCPScatterStyle(const QPainterPath &customPath, const QPen &pen, const QBrush &brush, double size) :
   mSize(size),
@@ -404,10 +404,11 @@ void QCPScatterStyle::drawShape(QCPPainter *painter, double x, double y) const
     }
     case ssDiamond:
     {
-      painter->drawLine(QLineF(x-w,   y,   x, y-w));
-      painter->drawLine(QLineF(  x, y-w, x+w,   y));
-      painter->drawLine(QLineF(x+w,   y,   x, y+w));
-      painter->drawLine(QLineF(  x, y+w, x-w,   y));
+      QPointF lineArray[4] = {QPointF(x-w,   y),
+                              QPointF(  x, y-w),
+                              QPointF(x+w,   y),
+                              QPointF(  x, y+w)};
+      painter->drawPolygon(lineArray, 4);
       break;
     }
     case ssStar:
@@ -420,52 +421,54 @@ void QCPScatterStyle::drawShape(QCPPainter *painter, double x, double y) const
     }
     case ssTriangle:
     {
-       painter->drawLine(QLineF(x-w, y+0.755*w, x+w, y+0.755*w));
-       painter->drawLine(QLineF(x+w, y+0.755*w,   x, y-0.977*w));
-       painter->drawLine(QLineF(  x, y-0.977*w, x-w, y+0.755*w));
+      QPointF lineArray[3] = {QPointF(x-w, y+0.755*w),
+                              QPointF(x+w, y+0.755*w),
+                              QPointF(  x, y-0.977*w)};
+      painter->drawPolygon(lineArray, 3);
       break;
     }
     case ssTriangleInverted:
     {
-       painter->drawLine(QLineF(x-w, y-0.755*w, x+w, y-0.755*w));
-       painter->drawLine(QLineF(x+w, y-0.755*w,   x, y+0.977*w));
-       painter->drawLine(QLineF(  x, y+0.977*w, x-w, y-0.755*w));
+      QPointF lineArray[3] = {QPointF(x-w, y-0.755*w),
+                              QPointF(x+w, y-0.755*w),
+                              QPointF(  x, y+0.977*w)};
+      painter->drawPolygon(lineArray, 3);
       break;
     }
     case ssCrossSquare:
     {
-       painter->drawLine(QLineF(x-w, y-w, x+w*0.95, y+w*0.95));
-       painter->drawLine(QLineF(x-w, y+w*0.95, x+w*0.95, y-w));
-       painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
+      painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
+      painter->drawLine(QLineF(x-w, y-w, x+w*0.95, y+w*0.95));
+      painter->drawLine(QLineF(x-w, y+w*0.95, x+w*0.95, y-w));
       break;
     }
     case ssPlusSquare:
     {
-       painter->drawLine(QLineF(x-w,   y, x+w*0.95,   y));
-       painter->drawLine(QLineF(  x, y+w,        x, y-w));
-       painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
+      painter->drawRect(QRectF(x-w, y-w, mSize, mSize));
+      painter->drawLine(QLineF(x-w,   y, x+w*0.95,   y));
+      painter->drawLine(QLineF(  x, y+w,        x, y-w));
       break;
     }
     case ssCrossCircle:
     {
-       painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.670, y+w*0.670));
-       painter->drawLine(QLineF(x-w*0.707, y+w*0.670, x+w*0.670, y-w*0.707));
-       painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawLine(QLineF(x-w*0.707, y-w*0.707, x+w*0.670, y+w*0.670));
+      painter->drawLine(QLineF(x-w*0.707, y+w*0.670, x+w*0.670, y-w*0.707));
       break;
     }
     case ssPlusCircle:
     {
-       painter->drawLine(QLineF(x-w,   y, x+w,   y));
-       painter->drawLine(QLineF(  x, y+w,   x, y-w));
-       painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawLine(QLineF(x-w,   y, x+w,   y));
+      painter->drawLine(QLineF(  x, y+w,   x, y-w));
       break;
     }
     case ssPeace:
     {
-       painter->drawLine(QLineF(x, y-w,         x,       y+w));
-       painter->drawLine(QLineF(x,   y, x-w*0.707, y+w*0.707));
-       painter->drawLine(QLineF(x,   y, x+w*0.707, y+w*0.707));
-       painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawEllipse(QPointF(x, y), w, w);
+      painter->drawLine(QLineF(x, y-w,         x,       y+w));
+      painter->drawLine(QLineF(x,   y, x-w*0.707, y+w*0.707));
+      painter->drawLine(QLineF(x,   y, x+w*0.707, y+w*0.707));
       break;
     }
     case ssPixmap:

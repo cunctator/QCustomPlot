@@ -413,7 +413,7 @@ void MainWindow::genAxisTickers()
   customPlot->xAxis->setTicker(fixedTicker);
   
   fixedTicker->setTickStep(1.0); // tick step shall be 1.0
-  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep e.g. multiples are allowed
+  fixedTicker->setScaleStrategy(QCPAxisTickerFixed::ssNone); // and no scaling of the tickstep (like multiples or powers) is allowed
   //! [axistickerfixed-creation]
   customPlot->xAxis->ticker()->setTickCount(9);
   customPlot->savePng(dir.filePath("axisticker-fixed.png"), 600, 50);
@@ -1224,7 +1224,7 @@ void MainWindow::genQCPColorGradient_LevelCount()
   customPlot->plotLayout()->addElement(0, 1, scale1);
   customPlot->plotLayout()->addElement(0, 2, r2);
   customPlot->plotLayout()->addElement(0, 3, scale2);
-  QCPColorGradient gradient;
+  QCPColorGradient gradient(QCPColorGradient::gpCold);
   scale1->setGradient(gradient);
   gradient.setLevelCount(10);
   scale2->setGradient(gradient);

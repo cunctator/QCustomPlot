@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupExportTest(mCustomPlot);
   //setupExportMapTest(mCustomPlot);
   //setupLogErrorsTest(mCustomPlot);
+  //setupLogCurveTest(mCustomPlot);
   //setupSelectTest(mCustomPlot);
   //setupDateTest(mCustomPlot);
   //setupIntegerTickStepCase(mCustomPlot);
@@ -346,6 +347,30 @@ void MainWindow::setupLogErrorsTest(QCustomPlot *customPlot)
   valueErrors->setErrorType(QCPErrorBars::etValueError);
   valueErrors->setDataPlottable(customPlot->graph());
   valueErrors->setData(yerr);
+  
+  customPlot->rescaleAxes();
+}
+
+void MainWindow::setupLogCurveTest(QCustomPlot *customPlot)
+{
+  customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->yAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  customPlot->yAxis2->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->yAxis2->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  customPlot->xAxis2->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis2->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  
+  QCPCurve *curve =  new QCPCurve(customPlot->xAxis, customPlot->yAxis);
+  curve->addData(3, 1);
+  curve->addData(2, 30);
+  curve->addData(1, 1);
+  curve->addData(4, 3);
+  
+  //customPlot->xAxis->setRangeReversed(true);
+  //customPlot->yAxis->setRangeReversed(true);
   
   customPlot->rescaleAxes();
 }
@@ -689,11 +714,11 @@ void MainWindow::setupMultiAxisRectInteractions(QCustomPlot *customPlot)
   customPlot->plotLayout()->addElement(1, 1, r3);
   
   QCPAxisRect *inset = new QCPAxisRect(customPlot);
-  inset->setMinimumSize(170, 120);
+  inset->setMinimumSize(150, 120);
   inset->setupFullAxesBox(true);
   foreach (QCPAxis *ax, inset->axes())
     ax->ticker()->setTickCount(3);
-  r3->insetLayout()->addElement(inset, Qt::AlignRight|Qt::AlignTop);
+  r3->insetLayout()->addElement(inset, Qt::AlignLeft|Qt::AlignTop);
   
   connect(mCustomPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(setupMultiAxisRectInteractionsMouseMove(QMouseEvent*)));
 }
@@ -1271,7 +1296,6 @@ void MainWindow::presetInteractive(QCustomPlot *customPlot)
                               QCP::iMultiSelect);
   customPlot->axisRect()->setRangeDrag(Qt::Horizontal|Qt::Vertical);
   customPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
-  connect(customPlot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)), Qt::UniqueConnection);
   connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectionRectChooser(QMouseEvent*)), Qt::UniqueConnection);
 }
 
@@ -1552,14 +1576,4 @@ void MainWindow::colorMapMouseMove(QMouseEvent *event)
 void MainWindow::testbedMouseClick(QMouseEvent *event)
 {
   Q_UNUSED(event)
-}
-
-void MainWindow::mouseWheel(QWheelEvent *event)
-{
-  if (event->pos().x() < 50)
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Vertical);
-  else if (event->pos().y() > mCustomPlot->height()-50)
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Horizontal);
-  else
-    mCustomPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }

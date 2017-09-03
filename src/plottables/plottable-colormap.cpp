@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "plottable-colormap.h"
@@ -684,6 +684,7 @@ QCPColorMap::QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   QCPAbstractPlottable(keyAxis, valueAxis),
   mDataScaleType(QCPAxis::stLinear),
   mMapData(new QCPColorMapData(10, 10, QCPRange(0, 5), QCPRange(0, 5))),
+  mGradient(QCPColorGradient::gpCold),
   mInterpolate(true),
   mTightBoundary(false),
   mMapImageInvalidated(true)
@@ -1010,52 +1011,60 @@ void QCPColorMap::updateMapImage()
   else if (keyAxis->orientation() == Qt::Vertical && (mMapImage.width() != valueSize*valueOversamplingFactor || mMapImage.height() != keySize*keyOversamplingFactor))
     mMapImage = QImage(QSize(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor), format);
   
-  QImage *localMapImage = &mMapImage; // this is the image on which the colorization operates. Either the final mMapImage, or if we need oversampling, mUndersampledMapImage
-  if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
+  if (mMapImage.isNull())
   {
-    // resize undersampled map image to actual key/value cell sizes:
-    if (keyAxis->orientation() == Qt::Horizontal && (mUndersampledMapImage.width() != keySize || mUndersampledMapImage.height() != valueSize))
-      mUndersampledMapImage = QImage(QSize(keySize, valueSize), format);
-    else if (keyAxis->orientation() == Qt::Vertical && (mUndersampledMapImage.width() != valueSize || mUndersampledMapImage.height() != keySize))
-      mUndersampledMapImage = QImage(QSize(valueSize, keySize), format);
-    localMapImage = &mUndersampledMapImage; // make the colorization run on the undersampled image
-  } else if (!mUndersampledMapImage.isNull())
-    mUndersampledMapImage = QImage(); // don't need oversampling mechanism anymore (map size has changed) but mUndersampledMapImage still has nonzero size, free it
-  
-  const double *rawData = mMapData->mData;
-  const unsigned char *rawAlpha = mMapData->mAlpha;
-  if (keyAxis->orientation() == Qt::Horizontal)
+    qDebug() << Q_FUNC_INFO << "Couldn't create map image (possibly too large for memory)";
+    mMapImage = QImage(QSize(10, 10), format);
+    mMapImage.fill(Qt::black);
+  } else
   {
-    const int lineCount = valueSize;
-    const int rowCount = keySize;
-    for (int line=0; line<lineCount; ++line)
+    QImage *localMapImage = &mMapImage; // this is the image on which the colorization operates. Either the final mMapImage, or if we need oversampling, mUndersampledMapImage
+    if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
     {
-      QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      if (rawAlpha)
-        mGradient.colorize(rawData+line*rowCount, rawAlpha+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
-      else
-        mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
-    }
-  } else // keyAxis->orientation() == Qt::Vertical
-  {
-    const int lineCount = keySize;
-    const int rowCount = valueSize;
-    for (int line=0; line<lineCount; ++line)
-    {
-      QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
-      if (rawAlpha)
-        mGradient.colorize(rawData+line, rawAlpha+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
-      else
-        mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
-    }
-  }
-  
-  if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
-  {
+      // resize undersampled map image to actual key/value cell sizes:
+      if (keyAxis->orientation() == Qt::Horizontal && (mUndersampledMapImage.width() != keySize || mUndersampledMapImage.height() != valueSize))
+        mUndersampledMapImage = QImage(QSize(keySize, valueSize), format);
+      else if (keyAxis->orientation() == Qt::Vertical && (mUndersampledMapImage.width() != valueSize || mUndersampledMapImage.height() != keySize))
+        mUndersampledMapImage = QImage(QSize(valueSize, keySize), format);
+      localMapImage = &mUndersampledMapImage; // make the colorization run on the undersampled image
+    } else if (!mUndersampledMapImage.isNull())
+      mUndersampledMapImage = QImage(); // don't need oversampling mechanism anymore (map size has changed) but mUndersampledMapImage still has nonzero size, free it
+    
+    const double *rawData = mMapData->mData;
+    const unsigned char *rawAlpha = mMapData->mAlpha;
     if (keyAxis->orientation() == Qt::Horizontal)
-      mMapImage = mUndersampledMapImage.scaled(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor, Qt::IgnoreAspectRatio, Qt::FastTransformation);
-    else
-      mMapImage = mUndersampledMapImage.scaled(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+    {
+      const int lineCount = valueSize;
+      const int rowCount = keySize;
+      for (int line=0; line<lineCount; ++line)
+      {
+        QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
+        if (rawAlpha)
+          mGradient.colorize(rawData+line*rowCount, rawAlpha+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+        else
+          mGradient.colorize(rawData+line*rowCount, mDataRange, pixels, rowCount, 1, mDataScaleType==QCPAxis::stLogarithmic);
+      }
+    } else // keyAxis->orientation() == Qt::Vertical
+    {
+      const int lineCount = keySize;
+      const int rowCount = valueSize;
+      for (int line=0; line<lineCount; ++line)
+      {
+        QRgb* pixels = reinterpret_cast<QRgb*>(localMapImage->scanLine(lineCount-1-line)); // invert scanline index because QImage counts scanlines from top, but our vertical index counts from bottom (mathematical coordinate system)
+        if (rawAlpha)
+          mGradient.colorize(rawData+line, rawAlpha+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+        else
+          mGradient.colorize(rawData+line, mDataRange, pixels, rowCount, lineCount, mDataScaleType==QCPAxis::stLogarithmic);
+      }
+    }
+    
+    if (keyOversamplingFactor > 1 || valueOversamplingFactor > 1)
+    {
+      if (keyAxis->orientation() == Qt::Horizontal)
+        mMapImage = mUndersampledMapImage.scaled(keySize*keyOversamplingFactor, valueSize*valueOversamplingFactor, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+      else
+        mMapImage = mUndersampledMapImage.scaled(valueSize*valueOversamplingFactor, keySize*keyOversamplingFactor, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+    }
   }
   mMapData->mDataModified = false;
   mMapImageInvalidated = false;

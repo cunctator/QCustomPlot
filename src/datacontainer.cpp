@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "datacontainer.h"
@@ -716,8 +716,9 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
 
 /*!
   Makes sure \a begin and \a end mark a data range that is both within the bounds of this data
-  container's data, as well as within the specified \a dataRange.
-
+  container's data, as well as within the specified \a dataRange. The initial range described by
+  the passed iterators \a begin and \a end is never expanded, only contracted if necessary.
+  
   This function doesn't require for \a dataRange to be within the bounds of this data container's
   valid range.
 */

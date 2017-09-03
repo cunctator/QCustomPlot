@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "layoutelement-legend.h"
@@ -229,9 +229,7 @@ void QCPAbstractLegendItem::deselectEvent(bool *selectionStateChanged)
   QCPLegend::setIconBorderPen and \ref QCPLegend::setIconTextPadding.
 
   The function \ref QCPAbstractPlottable::addToLegend/\ref QCPAbstractPlottable::removeFromLegend
-  creates/removes legend items of this type in the default implementation. However, these functions
-  may be reimplemented such that a different kind of legend item (e.g a direct subclass of
-  QCPAbstractLegendItem) is used for that plottable.
+  creates/removes legend items of this type.
   
   Since QCPLegend is based on QCPLayoutGrid, a legend item itself is just a subclass of
   QCPLayoutElement. While it could be added to a legend (or any other layout) via the normal layout
@@ -287,8 +285,8 @@ QFont QCPPlottableLegendItem::getFont() const
 /*! \internal
   
   Draws the item with \a painter. The size and position of the drawn legend item is defined by the
-  parent layout (typically a \ref QCPLegend) and the \ref minimumSizeHint and \ref maximumSizeHint
-  of this legend item.
+  parent layout (typically a \ref QCPLegend) and the \ref minimumOuterSizeHint and \ref
+  maximumOuterSizeHint of this legend item.
 */
 void QCPPlottableLegendItem::draw(QCPPainter *painter)
 {
@@ -323,7 +321,7 @@ void QCPPlottableLegendItem::draw(QCPPainter *painter)
   
   \seebaseclassmethod
 */
-QSize QCPPlottableLegendItem::minimumSizeHint() const
+QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
 {
   if (!mPlottable) return QSize();
   QSize result(0, 0);
@@ -331,8 +329,10 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
   QFontMetrics fontMetrics(getFont());
   QSize iconSize = mParentLegend->iconSize();
   textRect = fontMetrics.boundingRect(0, 0, 0, iconSize.height(), Qt::TextDontClip, mPlottable->name());
-  result.setWidth(iconSize.width() + mParentLegend->iconTextPadding() + textRect.width() + mMargins.left() + mMargins.right());
-  result.setHeight(qMax(textRect.height(), iconSize.height()) + mMargins.top() + mMargins.bottom());
+  result.setWidth(iconSize.width() + mParentLegend->iconTextPadding() + textRect.width());
+  result.setHeight(qMax(textRect.height(), iconSize.height()));
+  result.rwidth() += mMargins.left()+mMargins.right();
+  result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
 }
 
@@ -346,10 +346,14 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
 
   A legend is a small box somewhere in the plot which lists plottables with their name and icon.
 
-  Normally, the legend is populated by calling \ref QCPAbstractPlottable::addToLegend. The
-  respective legend item can be removed with \ref QCPAbstractPlottable::removeFromLegend. However,
-  QCPLegend also offers an interface to add and manipulate legend items directly: \ref item, \ref
-  itemWithPlottable, \ref itemCount, \ref addItem, \ref removeItem, etc.
+  A legend is populated with legend items by calling \ref QCPAbstractPlottable::addToLegend on the
+  plottable, for which a legend item shall be created. In the case of the main legend (\ref
+  QCustomPlot::legend), simply adding plottables to the plot while \ref
+  QCustomPlot::setAutoAddPlottableToLegend is set to true (the default) creates corresponding
+  legend items. The legend item associated with a certain plottable can be removed with \ref
+  QCPAbstractPlottable::removeFromLegend. However, QCPLegend also offers an interface to add and
+  manipulate legend items directly: \ref item, \ref itemWithPlottable, \ref itemCount, \ref
+  addItem, \ref removeItem, etc.
 
   Since \ref QCPLegend derives from \ref QCPLayoutGrid, it can be placed in any position a \ref
   QCPLayoutElement may be positioned. The legend items are themselves \ref QCPLayoutElement

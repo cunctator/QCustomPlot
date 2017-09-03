@@ -2,10 +2,10 @@
 import os, sys, subprocess, shutil, distutils.dir_util
 
 def printinfo(message):
-  print "\033[1;36m"+message+"\033[1;m"
+  print(("\033[1;36m"+message+"\033[1;m"))
 
 def printerror(message):
-  print "\033[1;31m"+message+"\033[1;m"
+  print(("\033[1;31m"+message+"\033[1;m"))
   
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:
@@ -53,7 +53,7 @@ printinfo("Compiling documentation...")
 subprocess.call("./run-doxygen.sh", shell=True)
 
 # build release packages in temp directory:
-print ""
+print("")
 tempDir = baseDir+"/temp"
 os.mkdir(tempDir)
 

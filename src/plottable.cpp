@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "plottable.h"
@@ -67,8 +67,8 @@
 QCPSelectionDecorator::QCPSelectionDecorator() :
   mPen(QColor(80, 80, 255), 2.5),
   mBrush(Qt::NoBrush),
-  mScatterStyle(QCPScatterStyle::ssNone, QPen(Qt::blue, 2), Qt::NoBrush, 6.0),
-  mUsedScatterProperties(QCPScatterStyle::spPen),
+  mScatterStyle(),
+  mUsedScatterProperties(QCPScatterStyle::spNone),
   mPlottable(0)
 {
 }
@@ -110,6 +110,8 @@ void QCPSelectionDecorator::setScatterStyle(const QCPScatterStyle &scatterStyle,
   Use this method to define which properties of the scatter style (set via \ref setScatterStyle)
   will be used for selected data segments. All properties of the scatter style that are not
   specified in \a properties will remain as specified in the plottable's original scatter style.
+  
+  \see QCPScatterStyle::ScatterProperty
 */
 void QCPSelectionDecorator::setUsedScatterProperties(const QCPScatterStyle::ScatterProperties &properties)
 {

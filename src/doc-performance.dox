@@ -37,8 +37,8 @@
   graphs. See the documentation of the respective methods for details.
 
   \li Qt4 only: Use Qt 4.8 or newer. Performance has doubled or tripled with respect to Qt 4.7.
-  However QPainter was broken and drawing pixel precise things, e.g. scatters, doesn't look as good
-  as with Qt >= 4.8. So it's a performance vs. plot quality tradeoff when switching to Qt 4.8.
+  However, QPainter was broken and drawing pixel precise elements like scatters doesn't look as
+  good as with Qt 4.7. So it's a performance vs. plot quality tradeoff when switching to Qt 4.8.
   QCustomPlot internally tries to work around the worst glitches of this kind.
 
   \li To increase responsiveness during range dragging, consider setting \ref

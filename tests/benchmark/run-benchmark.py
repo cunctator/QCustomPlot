@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import re, sys, os, subprocess, numpy, time, math, argparse, platform, getpass
 from collections import defaultdict
 
@@ -30,7 +31,7 @@ def listStd(lst):
 
 # The benchmark executable file path:
 if not os.path.isfile(config.executable):
-  print "Benchmark executable not found:", config.executable
+  print("Benchmark executable not found:", config.executable)
   exit()
 
 # Setup and start the actual benchmark loops
@@ -43,7 +44,7 @@ qtVersion = ""
 
 for i in range(config.rounds):
   if sys.stdout.isatty() and not config.quiet:
-    print "iteration "+str(i+1)+"/"+str(config.rounds)+"    \r",
+    print("iteration "+str(i+1)+"/"+str(config.rounds)+"    \r", end=' ')
     sys.stdout.flush()
   proc = subprocess.Popen([config.executable], stdout=subprocess.PIPE)
   currentName = "";
@@ -82,13 +83,13 @@ output += "Rounds: "+str(config.rounds)+"\n"
 if config.comment:
   output += "Comment: "+config.comment+"\n"
 
-for name, times in sorted(results.iteritems()):
+for name, times in sorted(results.items()):
   namePadding = " "*(maxNameLength-len(name)+1);
   output += "{} {}{: >7.3f} +/- {: <4.3f} ms\n".format(name, namePadding, listMean(times), listStd(times))
 output += "\n\n"
 
 if not config.quiet:
-  print output
+  print(output)
 
 if config.log:
   with open(config.logfile, "a") as logfile:

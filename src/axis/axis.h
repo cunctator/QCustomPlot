@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_AXIS_H
@@ -354,6 +354,9 @@ protected:
   QVector<double> mSubTickVector;
   bool mCachedMarginValid;
   int mCachedMargin;
+  bool mDragging;
+  QCPRange mDragStartRange;
+  QCP::AntialiasedElements mAADragBackup, mNotAADragBackup;
   
   // introduced virtual methods:
   virtual int calculateMargin();
@@ -365,6 +368,11 @@ protected:
   // events:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
   virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
+  // mouse events:
+  virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
+  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void wheelEvent(QWheelEvent *event);
   
   // non-virtual methods:
   void setupTickVectors();

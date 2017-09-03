@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2016 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 13.09.16                                             **
-**          Version: 2.0.0-beta                                           **
+**             Date: 04.09.17                                             **
+**          Version: 2.0.0                                                **
 ****************************************************************************/
 
 #include "layout.h"
@@ -214,7 +214,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
 
 /*! \fn QRect QCPLayoutElement::rect() const
   
-  Returns the inner rect of this layout element. The inner rect is the outer rect (\ref
+  Returns the inner rect of this layout element. The inner rect is the outer rect (\ref outerRect, \ref
   setOuterRect) shrinked by the margins (\ref setMargins, \ref setAutoMargins).
   
   In some cases, the area between outer and inner rect is left blank. In other cases the margin
@@ -223,6 +223,17 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   adapt the margins to the peripheral graphics it wants to draw. For example, \ref QCPAxisRect
   draws the axis labels and tick labels in the margin area, thus needs to adjust the margins (if
   \ref setAutoMargins is enabled) according to the space required by the labels of the axes.
+  
+  \see outerRect
+*/
+
+/*! \fn QRect QCPLayoutElement::outerRect() const
+  
+  Returns the outer rect of this layout element. The outer rect is the inner rect expanded by the
+  margins (\ref setMargins, \ref setAutoMargins). The outer rect is used (and set via \ref
+  setOuterRect) by the parent \ref QCPLayout to control the size of this layout element.
+  
+  \see rect
 */
 
 /* end documentation of inline functions */
@@ -235,6 +246,7 @@ QCPLayoutElement::QCPLayoutElement(QCustomPlot *parentPlot) :
   mParentLayout(0),
   mMinimumSize(),
   mMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX),
+  mSizeConstraintRect(scrInnerRect),
   mRect(0, 0, 0, 0),
   mOuterRect(0, 0, 0, 0),
   mMargins(0, 0, 0, 0),
@@ -324,13 +336,16 @@ void QCPLayoutElement::setAutoMargins(QCP::MarginSides sides)
 }
 
 /*!
-  Sets the minimum size for the inner \ref rect of this layout element. A parent layout tries to
-  respect the \a size here by changing row/column sizes in the layout accordingly.
+  Sets the minimum size of this layout element. A parent layout tries to respect the \a size here
+  by changing row/column sizes in the layout accordingly.
   
   If the parent layout size is not sufficient to satisfy all minimum size constraints of its child
   layout elements, the layout may set a size that is actually smaller than \a size. QCustomPlot
   propagates the layout's size constraints to the outside by setting its own minimum QWidget size
   accordingly, so violations of \a size should be exceptions.
+  
+  Whether this constraint applies to the inner or the outer rect can be specified with \ref
+  setSizeConstraintRect (see \ref rect and \ref outerRect).
 */
 void QCPLayoutElement::setMinimumSize(const QSize &size)
 {
@@ -344,7 +359,10 @@ void QCPLayoutElement::setMinimumSize(const QSize &size)
 
 /*! \overload
   
-  Sets the minimum size for the inner \ref rect of this layout element.
+  Sets the minimum size of this layout element.
+  
+  Whether this constraint applies to the inner or the outer rect can be specified with \ref
+  setSizeConstraintRect (see \ref rect and \ref outerRect).
 */
 void QCPLayoutElement::setMinimumSize(int width, int height)
 {
@@ -352,8 +370,11 @@ void QCPLayoutElement::setMinimumSize(int width, int height)
 }
 
 /*!
-  Sets the maximum size for the inner \ref rect of this layout element. A parent layout tries to
-  respect the \a size here by changing row/column sizes in the layout accordingly.
+  Sets the maximum size of this layout element. A parent layout tries to respect the \a size here
+  by changing row/column sizes in the layout accordingly.
+  
+  Whether this constraint applies to the inner or the outer rect can be specified with \ref
+  setSizeConstraintRect (see \ref rect and \ref outerRect).
 */
 void QCPLayoutElement::setMaximumSize(const QSize &size)
 {
@@ -367,11 +388,33 @@ void QCPLayoutElement::setMaximumSize(const QSize &size)
 
 /*! \overload
   
-  Sets the maximum size for the inner \ref rect of this layout element.
+  Sets the maximum size of this layout element.
+  
+  Whether this constraint applies to the inner or the outer rect can be specified with \ref
+  setSizeConstraintRect (see \ref rect and \ref outerRect).
 */
 void QCPLayoutElement::setMaximumSize(int width, int height)
 {
   setMaximumSize(QSize(width, height));
+}
+
+/*!
+  Sets to which rect of a layout element the size constraints apply. Size constraints can be set
+  via \ref setMinimumSize and \ref setMaximumSize.
+  
+  The outer rect (\ref outerRect) includes the margins (e.g. in the case of a QCPAxisRect the axis
+  labels), whereas the inner rect (\ref rect) does not.
+  
+  \see setMinimumSize, setMaximumSize
+*/
+void QCPLayoutElement::setSizeConstraintRect(SizeConstraintRect constraintRect)
+{
+  if (mSizeConstraintRect != constraintRect)
+  {
+    mSizeConstraintRect = constraintRect;
+    if (mParentLayout)
+      mParentLayout->sizeConstraintsChanged();
+  }
 }
 
 /*!
@@ -456,27 +499,41 @@ void QCPLayoutElement::update(UpdatePhase phase)
 }
 
 /*!
-  Returns the minimum size this layout element (the inner \ref rect) may be compressed to.
+  Returns the suggested minimum size this layout element (the \ref outerRect) may be compressed to,
+  if no manual minimum size is set.
   
-  if a minimum size (\ref setMinimumSize) was not set manually, parent layouts consult this
-  function to determine the minimum allowed size of this layout element. (A manual minimum size is
-  considered set if it is non-zero.)
+  if a minimum size (\ref setMinimumSize) was not set manually, parent layouts use the returned size
+  (usually indirectly through \ref QCPLayout::getFinalMinimumOuterSize) to determine the minimum
+  allowed size of this layout element.
+
+  A manual minimum size is considered set if it is non-zero.
+  
+  The default implementation simply returns the sum of the horizontal margins for the width and the
+  sum of the vertical margins for the height. Reimplementations may use their detailed knowledge
+  about the layout element's content to provide size hints.
 */
-QSize QCPLayoutElement::minimumSizeHint() const
+QSize QCPLayoutElement::minimumOuterSizeHint() const
 {
-  return mMinimumSize;
+  return QSize(mMargins.left()+mMargins.right(), mMargins.top()+mMargins.bottom());
 }
 
 /*!
-  Returns the maximum size this layout element (the inner \ref rect) may be expanded to.
+  Returns the suggested maximum size this layout element (the \ref outerRect) may be expanded to,
+  if no manual maximum size is set.
   
-  if a maximum size (\ref setMaximumSize) was not set manually, parent layouts consult this
-  function to determine the maximum allowed size of this layout element. (A manual maximum size is
-  considered set if it is smaller than Qt's QWIDGETSIZE_MAX.)
+  if a maximum size (\ref setMaximumSize) was not set manually, parent layouts use the returned
+  size (usually indirectly through \ref QCPLayout::getFinalMaximumOuterSize) to determine the
+  maximum allowed size of this layout element.
+
+  A manual maximum size is considered set if it is smaller than Qt's \c QWIDGETSIZE_MAX.
+  
+  The default implementation simply returns \c QWIDGETSIZE_MAX for both width and height, implying
+  no suggested maximum size. Reimplementations may use their detailed knowledge about the layout
+  element's content to provide size hints.
 */
-QSize QCPLayoutElement::maximumSizeHint() const
+QSize QCPLayoutElement::maximumOuterSizeHint() const
 {
-  return mMaximumSize;
+  return QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
 }
 
 /*!
@@ -648,12 +705,13 @@ QCPLayout::QCPLayout()
 }
 
 /*!
-  First calls the QCPLayoutElement::update base class implementation to update the margins on this
-  layout.
+  If \a phase is \ref upLayout, calls \ref updateLayout, which subclasses may reimplement to
+  reposition and resize their cells.
   
-  Then calls \ref updateLayout which subclasses reimplement to reposition and resize their cells.
+  Finally, the call is propagated down to all child \ref QCPLayoutElement "QCPLayoutElements".
   
-  Finally, \ref update is called on all child elements.
+  For details about this method and the update phases, see the documentation of \ref
+  QCPLayoutElement::update.
 */
 void QCPLayout::update(UpdatePhase phase)
 {
@@ -985,6 +1043,56 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
   return result;
 }
 
+/*! \internal
+  
+  This is a helper function for the implementation of subclasses.
+  
+  It returns the minimum size that should finally be used for the outer rect of the passed layout
+  element \a el.
+  
+  It takes into account whether a manual minimum size is set (\ref
+  QCPLayoutElement::setMinimumSize), which size constraint is set (\ref
+  QCPLayoutElement::setSizeConstraintRect), as well as the minimum size hint, if no manual minimum
+  size was set (\ref QCPLayoutElement::minimumOuterSizeHint).
+*/
+QSize QCPLayout::getFinalMinimumOuterSize(const QCPLayoutElement *el)
+{
+  QSize minOuterHint = el->minimumOuterSizeHint();
+  QSize minOuter = el->minimumSize(); // depending on sizeConstraitRect this might be with respect to inner rect, so possibly add margins in next four lines (preserving unset minimum of 0)
+  if (minOuter.width() > 0 && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
+    minOuter.rwidth() += el->margins().left() + el->margins().right();
+  if (minOuter.height() > 0 && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
+    minOuter.rheight() += el->margins().top() + el->margins().bottom();
+  
+  return QSize(minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
+               minOuter.height() > 0 ? minOuter.height() : minOuterHint.height());;
+}
+
+/*! \internal
+  
+  This is a helper function for the implementation of subclasses.
+  
+  It returns the maximum size that should finally be used for the outer rect of the passed layout
+  element \a el.
+  
+  It takes into account whether a manual maximum size is set (\ref
+  QCPLayoutElement::setMaximumSize), which size constraint is set (\ref
+  QCPLayoutElement::setSizeConstraintRect), as well as the maximum size hint, if no manual maximum
+  size was set (\ref QCPLayoutElement::maximumOuterSizeHint).
+*/
+QSize QCPLayout::getFinalMaximumOuterSize(const QCPLayoutElement *el)
+{
+  QSize maxOuterHint = el->maximumOuterSizeHint();
+  QSize maxOuter = el->maximumSize(); // depending on sizeConstraitRect this might be with respect to inner rect, so possibly add margins in next four lines (preserving unset maximum of QWIDGETSIZE_MAX)
+  if (maxOuter.width() < QWIDGETSIZE_MAX && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
+    maxOuter.rwidth() += el->margins().left() + el->margins().right();
+  if (maxOuter.height() < QWIDGETSIZE_MAX && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
+    maxOuter.rheight() += el->margins().top() + el->margins().bottom();
+  
+  return QSize(maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
+               maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height());
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPLayoutGrid
@@ -1160,8 +1268,9 @@ bool QCPLayoutGrid::hasElement(int row, int column)
   Sets the stretch \a factor of \a column.
   
   Stretch factors control the relative sizes of rows and columns. Cells will not be resized beyond
-  their minimum and maximum widths/heights (\ref QCPLayoutElement::setMinimumSize, \ref
-  QCPLayoutElement::setMaximumSize), regardless of the stretch factor.
+  their minimum and maximum widths/heights, regardless of the stretch factor. (see \ref
+  QCPLayoutElement::setMinimumSize, \ref QCPLayoutElement::setMaximumSize, \ref
+  QCPLayoutElement::setSizeConstraintRect.)
   
   The default stretch factor of newly created rows/columns is 1.
   
@@ -1183,8 +1292,9 @@ void QCPLayoutGrid::setColumnStretchFactor(int column, double factor)
   Sets the stretch \a factors of all columns. \a factors must have the size \ref columnCount.
   
   Stretch factors control the relative sizes of rows and columns. Cells will not be resized beyond
-  their minimum and maximum widths/heights (\ref QCPLayoutElement::setMinimumSize, \ref
-  QCPLayoutElement::setMaximumSize), regardless of the stretch factor.
+  their minimum and maximum widths/heights, regardless of the stretch factor. (see \ref
+  QCPLayoutElement::setMinimumSize, \ref QCPLayoutElement::setMaximumSize, \ref
+  QCPLayoutElement::setSizeConstraintRect.)
   
   The default stretch factor of newly created rows/columns is 1.
   
@@ -1211,8 +1321,9 @@ void QCPLayoutGrid::setColumnStretchFactors(const QList<double> &factors)
   Sets the stretch \a factor of \a row.
   
   Stretch factors control the relative sizes of rows and columns. Cells will not be resized beyond
-  their minimum and maximum widths/heights (\ref QCPLayoutElement::setMinimumSize, \ref
-  QCPLayoutElement::setMaximumSize), regardless of the stretch factor.
+  their minimum and maximum widths/heights, regardless of the stretch factor. (see \ref
+  QCPLayoutElement::setMinimumSize, \ref QCPLayoutElement::setMaximumSize, \ref
+  QCPLayoutElement::setSizeConstraintRect.)
   
   The default stretch factor of newly created rows/columns is 1.
   
@@ -1234,8 +1345,9 @@ void QCPLayoutGrid::setRowStretchFactor(int row, double factor)
   Sets the stretch \a factors of all rows. \a factors must have the size \ref rowCount.
   
   Stretch factors control the relative sizes of rows and columns. Cells will not be resized beyond
-  their minimum and maximum widths/heights (\ref QCPLayoutElement::setMinimumSize, \ref
-  QCPLayoutElement::setMaximumSize), regardless of the stretch factor.
+  their minimum and maximum widths/heights, regardless of the stretch factor. (see \ref
+  QCPLayoutElement::setMinimumSize, \ref QCPLayoutElement::setMaximumSize, \ref
+  QCPLayoutElement::setSizeConstraintRect.)
   
   The default stretch factor of newly created rows/columns is 1.
   
@@ -1311,7 +1423,7 @@ void QCPLayoutGrid::setWrap(int count)
 
   If you want to have all current elements arranged in the new order, set \a rearrange to true. The
   elements will be rearranged in a way that tries to preserve their linear index. However, empty
-  cells are skipped during build-up of the new cell order, which shifts the succeding element's
+  cells are skipped during build-up of the new cell order, which shifts the succeeding element's
   index. The rearranging is performed even if the specified \a order is already the current fill
   order. Thus this method can be used to re-wrap the current elements.
 
@@ -1410,7 +1522,8 @@ void QCPLayoutGrid::insertRow(int newIndex)
 
 /*!
   Inserts a new column with empty cells at the column index \a newIndex. Valid values for \a
-  newIndex range from 0 (inserts a row at the left) to \a rowCount (appends a row at the right).
+  newIndex range from 0 (inserts a column at the left) to \a columnCount (appends a column at the
+  right).
   
   \see insertRow
 */
@@ -1482,7 +1595,9 @@ void QCPLayoutGrid::indexToRowCol(int index, int &row, int &column) const
 {
   row = -1;
   column = -1;
-  if (columnCount() == 0 || rowCount() == 0)
+  const int nCols = columnCount();
+  const int nRows = rowCount();
+  if (nCols == 0 || nRows == 0)
     return;
   if (index < 0 || index >= elementCount())
   {
@@ -1494,14 +1609,14 @@ void QCPLayoutGrid::indexToRowCol(int index, int &row, int &column) const
   {
     case foRowsFirst:
     {
-      column = index / rowCount();
-      row = index % rowCount();
+      column = index / nRows;
+      row = index % nRows;
       break;
     }
     case foColumnsFirst:
     {
-      row = index / columnCount();
-      column = index % columnCount();
+      row = index / nCols;
+      column = index % nCols;
       break;
     }
   }
@@ -1667,7 +1782,7 @@ void QCPLayoutGrid::simplify()
 }
 
 /* inherits documentation from base class */
-QSize QCPLayoutGrid::minimumSizeHint() const
+QSize QCPLayoutGrid::minimumOuterSizeHint() const
 {
   QVector<int> minColWidths, minRowHeights;
   getMinimumRowColSizes(&minColWidths, &minRowHeights);
@@ -1676,13 +1791,15 @@ QSize QCPLayoutGrid::minimumSizeHint() const
     result.rwidth() += minColWidths.at(i);
   for (int i=0; i<minRowHeights.size(); ++i)
     result.rheight() += minRowHeights.at(i);
-  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing + mMargins.left() + mMargins.right();
-  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing + mMargins.top() + mMargins.bottom();
+  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
+  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
+  result.rwidth() += mMargins.left()+mMargins.right();
+  result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
 }
 
 /* inherits documentation from base class */
-QSize QCPLayoutGrid::maximumSizeHint() const
+QSize QCPLayoutGrid::maximumOuterSizeHint() const
 {
   QVector<int> maxColWidths, maxRowHeights;
   getMaximumRowColSizes(&maxColWidths, &maxRowHeights);
@@ -1692,8 +1809,14 @@ QSize QCPLayoutGrid::maximumSizeHint() const
     result.setWidth(qMin(result.width()+maxColWidths.at(i), QWIDGETSIZE_MAX));
   for (int i=0; i<maxRowHeights.size(); ++i)
     result.setHeight(qMin(result.height()+maxRowHeights.at(i), QWIDGETSIZE_MAX));
-  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing + mMargins.left() + mMargins.right();
-  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing + mMargins.top() + mMargins.bottom();
+  result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
+  result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
+  result.rwidth() += mMargins.left()+mMargins.right();
+  result.rheight() += mMargins.top()+mMargins.bottom();
+  if (result.height() > QWIDGETSIZE_MAX)
+    result.setHeight(QWIDGETSIZE_MAX);
+  if (result.width() > QWIDGETSIZE_MAX)
+    result.setWidth(QWIDGETSIZE_MAX);
   return result;
 }
 
@@ -1702,8 +1825,9 @@ QSize QCPLayoutGrid::maximumSizeHint() const
   Places the minimum column widths and row heights into \a minColWidths and \a minRowHeights
   respectively.
   
-  The minimum height of a row is the largest minimum height of any element in that row. The minimum
-  width of a column is the largest minimum width of any element in that column.
+  The minimum height of a row is the largest minimum height of any element's outer rect in that
+  row. The minimum width of a column is the largest minimum width of any element's outer rect in
+  that column.
   
   This is a helper function for \ref updateLayout.
   
@@ -1717,15 +1841,13 @@ void QCPLayoutGrid::getMinimumRowColSizes(QVector<int> *minColWidths, QVector<in
   {
     for (int col=0; col<columnCount(); ++col)
     {
-      if (mElements.at(row).at(col))
+      if (QCPLayoutElement *el = mElements.at(row).at(col))
       {
-        QSize minHint = mElements.at(row).at(col)->minimumSizeHint();
-        QSize min = mElements.at(row).at(col)->minimumSize();
-        QSize final(min.width() > 0 ? min.width() : minHint.width(), min.height() > 0 ? min.height() : minHint.height());
-        if (minColWidths->at(col) < final.width())
-          (*minColWidths)[col] = final.width();
-        if (minRowHeights->at(row) < final.height())
-          (*minRowHeights)[row] = final.height();
+        QSize minSize = getFinalMinimumOuterSize(el);
+        if (minColWidths->at(col) < minSize.width())
+          (*minColWidths)[col] = minSize.width();
+        if (minRowHeights->at(row) < minSize.height())
+          (*minRowHeights)[row] = minSize.height();
       }
     }
   }
@@ -1736,8 +1858,9 @@ void QCPLayoutGrid::getMinimumRowColSizes(QVector<int> *minColWidths, QVector<in
   Places the maximum column widths and row heights into \a maxColWidths and \a maxRowHeights
   respectively.
   
-  The maximum height of a row is the smallest maximum height of any element in that row. The
-  maximum width of a column is the smallest maximum width of any element in that column.
+  The maximum height of a row is the smallest maximum height of any element's outer rect in that
+  row. The maximum width of a column is the smallest maximum width of any element's outer rect in
+  that column.
   
   This is a helper function for \ref updateLayout.
   
@@ -1751,15 +1874,13 @@ void QCPLayoutGrid::getMaximumRowColSizes(QVector<int> *maxColWidths, QVector<in
   {
     for (int col=0; col<columnCount(); ++col)
     {
-      if (mElements.at(row).at(col))
+      if (QCPLayoutElement *el = mElements.at(row).at(col))
       {
-        QSize maxHint = mElements.at(row).at(col)->maximumSizeHint();
-        QSize max = mElements.at(row).at(col)->maximumSize();
-        QSize final(max.width() < QWIDGETSIZE_MAX ? max.width() : maxHint.width(), max.height() < QWIDGETSIZE_MAX ? max.height() : maxHint.height());
-        if (maxColWidths->at(col) > final.width())
-          (*maxColWidths)[col] = final.width();
-        if (maxRowHeights->at(row) > final.height())
-          (*maxRowHeights)[row] = final.height();
+        QSize maxSize = getFinalMaximumOuterSize(el);
+        if (maxColWidths->at(col) > maxSize.width())
+          (*maxColWidths)[col] = maxSize.width();
+        if (maxRowHeights->at(row) > maxSize.height())
+          (*maxRowHeights)[row] = maxSize.height();
       }
     }
   }
@@ -1908,14 +2029,10 @@ void QCPLayoutInset::updateLayout()
 {
   for (int i=0; i<mElements.size(); ++i)
   {
+    QCPLayoutElement *el = mElements.at(i);
     QRect insetRect;
-    QSize finalMinSize, finalMaxSize;
-    QSize minSizeHint = mElements.at(i)->minimumSizeHint();
-    QSize maxSizeHint = mElements.at(i)->maximumSizeHint();
-    finalMinSize.setWidth(mElements.at(i)->minimumSize().width() > 0 ? mElements.at(i)->minimumSize().width() : minSizeHint.width());
-    finalMinSize.setHeight(mElements.at(i)->minimumSize().height() > 0 ? mElements.at(i)->minimumSize().height() : minSizeHint.height());
-    finalMaxSize.setWidth(mElements.at(i)->maximumSize().width() < QWIDGETSIZE_MAX ? mElements.at(i)->maximumSize().width() : maxSizeHint.width());
-    finalMaxSize.setHeight(mElements.at(i)->maximumSize().height() < QWIDGETSIZE_MAX ? mElements.at(i)->maximumSize().height() : maxSizeHint.height());
+    QSize finalMinSize = getFinalMinimumOuterSize(el);
+    QSize finalMaxSize = getFinalMaximumOuterSize(el);
     if (mInsetPlacement.at(i) == ipFree)
     {
       insetRect = QRect(rect().x()+rect().width()*mInsetRect.at(i).x(),

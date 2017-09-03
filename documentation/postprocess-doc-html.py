@@ -5,13 +5,17 @@
 # achieved with the regular doxygen options.
 #
 
+from __future__ import print_function
 import os, sys, re
+
+def eprint(*args, **kwargs):
+  print(*args, file=sys.stderr, **kwargs)
 
 baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
 
 def performReplacement(filename):
-  print "html postprocessing '"+filename+"'..."
+  print("html postprocessing '"+filename+"'...")
   patterns = []
   patterns.append((re.compile("<div class=\"title\">Related Pages</div>"), "<div class=\"title\">Special Pages</div>"))
   patterns.append((re.compile("<div class=\"textblock\">Here is a list of all related documentation pages:</div>"), ""))
@@ -40,7 +44,7 @@ def performReplacement(filename):
 replacementFiles = ('html/pages.html', 'html/annotated.html', 'html/hierarchy.html', 'html/inherits.html', 'html/classoverview.html');
 for filename in replacementFiles:
   if not os.path.isfile(filename):
-    print "file '"+filename+"' not found"
+    eprint("file '"+filename+"' not found")
     sys.exit(-1)
   performReplacement(filename);
 

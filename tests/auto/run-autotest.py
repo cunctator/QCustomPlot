@@ -14,10 +14,10 @@ os.chdir(baseDir) # change current working dir to script dir
 
 # define functions:
 def printinfo(message):
-  print "\033[1;36m"+message+"\033[1;m"
+  print("\033[1;36m"+message+"\033[1;m")
 
 def printerror(message):
-  print "\033[1;31m"+message+"\033[1;m"
+  print("\033[1;31m"+message+"\033[1;m")
   
 def runQmakeMake(qmakecommand):
   if subprocess.call(qmakecommand, shell=True) != 0:
@@ -33,7 +33,7 @@ def runTest():
   os.remove("./Makefile")
     
 # main test loop:
-qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake502", "qmake511", "qmake520", "qmake521", "qmake532", "qmake540", "qmake542", "qmake550", "qmake551", "qmake561", "qmake570"]
+qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake502", "qmake511", "qmake520", "qmake521", "qmake532", "qmake540", "qmake542", "qmake550", "qmake551", "qmake561", "qmake570", "qmake580", "qmake591"]
 if (config.qt > 0):
   qmakeVersions = ["qmake"+str(config.qt)]
 

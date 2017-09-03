@@ -114,7 +114,7 @@ protected:
   
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
-  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize minimumOuterSizeHint() const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QPen getIconBorderPen() const;

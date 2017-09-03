@@ -2195,7 +2195,7 @@ bool QCustomPlot::saveBmp(const QString &fileName, int width, int height, double
 */
 QSize QCustomPlot::minimumSizeHint() const
 {
-  return mPlotLayout->minimumSizeHint();
+  return mPlotLayout->minimumOuterSizeHint();
 }
 
 /*! \internal
@@ -2205,7 +2205,7 @@ QSize QCustomPlot::minimumSizeHint() const
 */
 QSize QCustomPlot::sizeHint() const
 {
-  return mPlotLayout->minimumSizeHint();
+  return mPlotLayout->minimumOuterSizeHint();
 }
 
 /*! \internal

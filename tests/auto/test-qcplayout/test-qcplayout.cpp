@@ -264,7 +264,14 @@ void TestQCPLayout::layoutGridLayout()
   QCOMPARE(mainLayout->element(0, 1)->outerRect().width(), qRound(380/3.0*2)); // 380 = 500-100-20 (total-element0width-element0margin)
   QCOMPARE(mainLayout->element(0, 2)->outerRect().width(), qRound(380/3.0*1)); // 380 = 500-100-20 (total-element0width-element0margin)
   
+  mainLayout->element(0, 0)->setSizeConstraintRect(QCPLayoutElement::scrOuterRect);
+  mPlot->replot();
+  QCOMPARE(mainLayout->element(0, 0)->outerRect().width(), 100);
+  QCOMPARE(mainLayout->element(0, 1)->outerRect().width(), qRound(400/3.0*2)); // 400 = 500-100 (total-element0width)
+  QCOMPARE(mainLayout->element(0, 2)->outerRect().width(), qRound(400/3.0*1)); // 400 = 500-100 (total-element0width)
+  
   // test minimum size:
+  mainLayout->element(0, 0)->setSizeConstraintRect(QCPLayoutElement::scrInnerRect);
   mainLayout->element(0, 0)->setMinimumSize(100, 200);
   mPlot->replot();
   QCOMPARE(mainLayout->element(0, 0)->rect().width(), 100);
@@ -272,14 +279,22 @@ void TestQCPLayout::layoutGridLayout()
   QCOMPARE(mainLayout->element(1, 0)->outerRect().height(), qRound(280/5.0*2)); // 280 = 500-200-20 (total-element0height-element0margin)
   QCOMPARE(mainLayout->element(2, 0)->outerRect().height(), qRound(280/5.0*3)); // 280 = 500-200-20 (total-element0height-element0margin)
   
+  mainLayout->element(0, 0)->setSizeConstraintRect(QCPLayoutElement::scrOuterRect);
+  mPlot->replot();
+  QCOMPARE(mainLayout->element(0, 0)->outerRect().width(), 100);
+  QCOMPARE(mainLayout->element(0, 0)->outerRect().height(), 200);
+  QCOMPARE(mainLayout->element(1, 0)->outerRect().height(), qRound(300/5.0*2)); // 300 = 500-200 (total-element0height)
+  QCOMPARE(mainLayout->element(2, 0)->outerRect().height(), qRound(300/5.0*3)); // 300 = 500-200 (total-element0height)
+  
   // test minimum size hint on parent layout:
-  QCOMPARE(mainLayout->minimumSizeHint(), QSize(10+100+10 + 10+50+10 + 10+50+10, 10+200+10 + 10+50+10 + 10+50+10));
+  mainLayout->element(0, 0)->setSizeConstraintRect(QCPLayoutElement::scrInnerRect);
+  QCOMPARE(mainLayout->minimumOuterSizeHint(), QSize(10+100+10 + 10+50+10 + 10+50+10, 10+200+10 + 10+50+10 + 10+50+10));
   
   // add spacing:
   mainLayout->setRowSpacing(10);
   mainLayout->setColumnSpacing(15);
   // test minimum size hint on parent layout with spacing:
-  QCOMPARE(mainLayout->minimumSizeHint(), QSize(10+100+10 +15+ 10+50+10 +15+ 10+50+10, 10+200+10 +10+ 10+50+10 +10+ 10+50+10));
+  QCOMPARE(mainLayout->minimumOuterSizeHint(), QSize(10+100+10 +15+ 10+50+10 +15+ 10+50+10, 10+200+10 +10+ 10+50+10 +10+ 10+50+10));
 }
 
 void TestQCPLayout::marginGroup()

@@ -75,6 +75,7 @@ class QCP_LIB_DECL QCPLayoutElement : public QCPLayerable
   Q_PROPERTY(QMargins minimumMargins READ minimumMargins WRITE setMinimumMargins)
   Q_PROPERTY(QSize minimumSize READ minimumSize WRITE setMinimumSize)
   Q_PROPERTY(QSize maximumSize READ maximumSize WRITE setMaximumSize)
+  Q_PROPERTY(SizeConstraintRect sizeConstraintRect READ sizeConstraintRect WRITE setSizeConstraintRect)
   /// \endcond
 public:
   /*!
@@ -86,6 +87,17 @@ public:
                      ,upLayout     ///< Final phase in which the layout system places the rects of the elements
                    };
   Q_ENUMS(UpdatePhase)
+  
+  /*!
+    Defines to which rect of a layout element the size constraits that can be set via \ref
+    setMinimumSize and \ref setMaximumSize apply. The outer rect (\ref outerRect) includes the
+    margins (e.g. in the case of a QCPAxisRect the axis labels), whereas the inner rect (\ref rect)
+    does not.
+  */
+  enum SizeConstraintRect { scrInnerRect ///< Minimum/Maximum size constraints apply to inner rect
+                            , scrOuterRect ///< Minimum/Maximum size constraints apply to outer rect, thus include layout element margins
+                          };
+  Q_ENUMS(SizeConstraintRect)
 
   explicit QCPLayoutElement(QCustomPlot *parentPlot=0);
   virtual ~QCPLayoutElement();
@@ -99,6 +111,7 @@ public:
   QCP::MarginSides autoMargins() const { return mAutoMargins; }
   QSize minimumSize() const { return mMinimumSize; }
   QSize maximumSize() const { return mMaximumSize; }
+  SizeConstraintRect sizeConstraintRect() const { return mSizeConstraintRect; }
   QCPMarginGroup *marginGroup(QCP::MarginSide side) const { return mMarginGroups.value(side, (QCPMarginGroup*)0); }
   QHash<QCP::MarginSide, QCPMarginGroup*> marginGroups() const { return mMarginGroups; }
   
@@ -111,12 +124,13 @@ public:
   void setMinimumSize(int width, int height);
   void setMaximumSize(const QSize &size);
   void setMaximumSize(int width, int height);
+  void setSizeConstraintRect(SizeConstraintRect constraintRect);
   void setMarginGroup(QCP::MarginSides sides, QCPMarginGroup *group);
   
   // introduced virtual methods:
   virtual void update(UpdatePhase phase);
-  virtual QSize minimumSizeHint() const;
-  virtual QSize maximumSizeHint() const;
+  virtual QSize minimumOuterSizeHint() const;
+  virtual QSize maximumOuterSizeHint() const;
   virtual QList<QCPLayoutElement*> elements(bool recursive) const;
   
   // reimplemented virtual methods:
@@ -126,6 +140,7 @@ protected:
   // property members:
   QCPLayout *mParentLayout;
   QSize mMinimumSize, mMaximumSize;
+  SizeConstraintRect mSizeConstraintRect;
   QRect mRect, mOuterRect;
   QMargins mMargins, mMinimumMargins;
   QCP::MarginSides mAutoMargins;
@@ -181,6 +196,8 @@ protected:
   void adoptElement(QCPLayoutElement *el);
   void releaseElement(QCPLayoutElement *el);
   QVector<int> getSectionSizes(QVector<int> maxSizes, QVector<int> minSizes, QVector<double> stretchFactors, int totalSize) const;
+  static QSize getFinalMinimumOuterSize(const QCPLayoutElement *el);
+  static QSize getFinalMaximumOuterSize(const QCPLayoutElement *el);
   
 private:
   Q_DISABLE_COPY(QCPLayout)
@@ -246,8 +263,8 @@ public:
   virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
   virtual QList<QCPLayoutElement*> elements(bool recursive) const Q_DECL_OVERRIDE;
   virtual void simplify() Q_DECL_OVERRIDE;
-  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
-  virtual QSize maximumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize minimumOuterSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize maximumOuterSizeHint() const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   QCPLayoutElement *element(int row, int column) const;

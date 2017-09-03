@@ -321,7 +321,7 @@ void QCPPlottableLegendItem::draw(QCPPainter *painter)
   
   \seebaseclassmethod
 */
-QSize QCPPlottableLegendItem::minimumSizeHint() const
+QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
 {
   if (!mPlottable) return QSize();
   QSize result(0, 0);
@@ -331,6 +331,8 @@ QSize QCPPlottableLegendItem::minimumSizeHint() const
   textRect = fontMetrics.boundingRect(0, 0, 0, iconSize.height(), Qt::TextDontClip, mPlottable->name());
   result.setWidth(iconSize.width() + mParentLegend->iconTextPadding() + textRect.width());
   result.setHeight(qMax(textRect.height(), iconSize.height()));
+  result.rwidth() += mMargins.left()+mMargins.right();
+  result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
 }
 

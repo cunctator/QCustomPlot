@@ -98,8 +98,8 @@ protected:
   // reimplemented virtual methods:
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;
   virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
-  virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
-  virtual QSize maximumSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize minimumOuterSizeHint() const Q_DECL_OVERRIDE;
+  virtual QSize maximumOuterSizeHint() const Q_DECL_OVERRIDE;
   // events:
   virtual void selectEvent(QMouseEvent *event, bool additive, const QVariant &details, bool *selectionStateChanged) Q_DECL_OVERRIDE;
   virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;

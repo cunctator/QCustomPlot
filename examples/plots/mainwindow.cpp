@@ -1150,8 +1150,8 @@ void MainWindow::setupAdvancedAxesDemo(QCustomPlot *customPlot)
   QCPAxisRect *subRectRight = new QCPAxisRect(customPlot, false);
   subLayout->addElement(0, 0, subRectLeft);
   subLayout->addElement(0, 1, subRectRight);
-  subRectRight->setMaximumSize(150, 150); // make bottom right axis rect size fixed 150x150
-  subRectRight->setMinimumSize(150, 150); // make bottom right axis rect size fixed 150x150
+  subRectRight->setMaximumSize(100, 100); // make bottom right axis rect size fixed 100x100
+  subRectRight->setMinimumSize(100, 100); // make bottom right axis rect size fixed 100x100
   // setup axes in sub layout axis rects:
   subRectLeft->addAxes(QCPAxis::atBottom | QCPAxis::atLeft);
   subRectRight->addAxes(QCPAxis::atBottom | QCPAxis::atRight);

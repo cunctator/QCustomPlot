@@ -285,8 +285,8 @@ QFont QCPPlottableLegendItem::getFont() const
 /*! \internal
   
   Draws the item with \a painter. The size and position of the drawn legend item is defined by the
-  parent layout (typically a \ref QCPLegend) and the \ref minimumSizeHint and \ref maximumSizeHint
-  of this legend item.
+  parent layout (typically a \ref QCPLegend) and the \ref minimumOuterSizeHint and \ref
+  maximumOuterSizeHint of this legend item.
 */
 void QCPPlottableLegendItem::draw(QCPPainter *painter)
 {

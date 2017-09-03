@@ -89,10 +89,12 @@ public:
   Q_ENUMS(UpdatePhase)
   
   /*!
-    Defines to which rect of a layout element the size constraits that can be set via \ref
+    Defines to which rect of a layout element the size constraints that can be set via \ref
     setMinimumSize and \ref setMaximumSize apply. The outer rect (\ref outerRect) includes the
     margins (e.g. in the case of a QCPAxisRect the axis labels), whereas the inner rect (\ref rect)
     does not.
+    
+    \see setSizeConstraintRect
   */
   enum SizeConstraintRect { scrInnerRect ///< Minimum/Maximum size constraints apply to inner rect
                             , scrOuterRect ///< Minimum/Maximum size constraints apply to outer rect, thus include layout element margins

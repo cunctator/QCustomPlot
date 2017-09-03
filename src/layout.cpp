@@ -214,7 +214,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
 
 /*! \fn QRect QCPLayoutElement::rect() const
   
-  Returns the inner rect of this layout element. The inner rect is the outer rect (\ref
+  Returns the inner rect of this layout element. The inner rect is the outer rect (\ref outerRect, \ref
   setOuterRect) shrinked by the margins (\ref setMargins, \ref setAutoMargins).
   
   In some cases, the area between outer and inner rect is left blank. In other cases the margin
@@ -223,6 +223,17 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
   adapt the margins to the peripheral graphics it wants to draw. For example, \ref QCPAxisRect
   draws the axis labels and tick labels in the margin area, thus needs to adjust the margins (if
   \ref setAutoMargins is enabled) according to the space required by the labels of the axes.
+  
+  \see outerRect
+*/
+
+/*! \fn QRect QCPLayoutElement::outerRect() const
+  
+  Returns the outer rect of this layout element. The outer rect is the inner rect expanded by the
+  margins (\ref setMargins, \ref setAutoMargins). The outer rect is used (and set via \ref
+  setOuterRect) by the parent \ref QCPLayout to control the size of this layout element.
+  
+  \see rect
 */
 
 /* end documentation of inline functions */
@@ -394,7 +405,7 @@ void QCPLayoutElement::setMaximumSize(int width, int height)
   The outer rect (\ref outerRect) includes the margins (e.g. in the case of a QCPAxisRect the axis
   labels), whereas the inner rect (\ref rect) does not.
   
-  \see SizeConstraintRect, setMinimumSize, setMaximumSize
+  \see setMinimumSize, setMaximumSize
 */
 void QCPLayoutElement::setSizeConstraintRect(SizeConstraintRect constraintRect)
 {

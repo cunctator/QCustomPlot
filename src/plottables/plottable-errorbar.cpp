@@ -889,7 +889,7 @@ double QCPErrorBars::pointDistance(const QPointF &pixelPoint, QCPErrorBarsDataCo
   getVisibleDataBounds(begin, end, QCPDataRange(0, dataCount()));
   
   // calculate minimum distances to error backbones (whiskers are ignored for speed) and find closestData iterator:
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   QVector<QLineF> backbones, whiskers;
   for (QCPErrorBarsDataContainer::const_iterator it=begin; it!=end; ++it)
   {

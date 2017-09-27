@@ -826,7 +826,7 @@ double QCPFinancial::ohlcSelectTest(const QPointF &pos, const QCPFinancialDataCo
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)
@@ -873,7 +873,7 @@ double QCPFinancial::candlestickSelectTest(const QPointF &pos, const QCPFinancia
   QCPAxis *valueAxis = mValueAxis.data();
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return -1; }
 
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   if (keyAxis->orientation() == Qt::Horizontal)
   {
     for (QCPFinancialDataContainer::const_iterator it=begin; it!=end; ++it)

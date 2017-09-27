@@ -138,7 +138,7 @@ double QCPItemCurve::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   
   QPolygonF polygon = cubicPath.toSubpathPolygons().first();
   QCPVector2D p(pos);
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   for (int i=1; i<polygon.size(); ++i)
   {
     double distSqr = p.distanceSquaredToLine(polygon.at(i-1), polygon.at(i));

@@ -985,11 +985,11 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   if (begin == end) return;
   
   int dataCount = end-begin;
-  int maxCount = std::numeric_limits<int>::max();
+  int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     double keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
-    if (2*keyPixelSpan+2 < (double)std::numeric_limits<int>::max())
+    if (2*keyPixelSpan+2 < static_cast<double>((std::numeric_limits<int>::max)()))
       maxCount = 2*keyPixelSpan+2;
   }
   
@@ -1086,7 +1086,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
   }
   if (begin == end) return;
   int dataCount = end-begin;
-  int maxCount = std::numeric_limits<int>::max();
+  int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     int keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
@@ -1711,7 +1711,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
     return -1.0;
   
   // calculate minimum distances to graph data points and find closestData iterator:
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   // determine which key range comes into question, taking selection tolerance around pos into account:
   double posKeyMin, posKeyMax, dummy;
   pixelsToCoords(pixelPoint-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, dummy);

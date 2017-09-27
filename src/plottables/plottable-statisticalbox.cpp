@@ -446,7 +446,7 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
     QCPStatisticalBoxDataContainer::const_iterator visibleBegin, visibleEnd;
     QCPStatisticalBoxDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
     getVisibleDataBounds(visibleBegin, visibleEnd);
-    double minDistSqr = std::numeric_limits<double>::max();
+    double minDistSqr = (std::numeric_limits<double>::max)();
     for (QCPStatisticalBoxDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
     {
       if (getQuartileBox(it).contains(pos)) // quartile box

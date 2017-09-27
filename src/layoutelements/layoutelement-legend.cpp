@@ -366,7 +366,7 @@ QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
 
   Use the methods \ref setFillOrder and \ref setWrap inherited from \ref QCPLayoutGrid to control
   in which order (column first or row first) the legend is filled up when calling \ref addItem, and
-  at which column or row wrapping occurs.
+  at which column or row wrapping occurs. The default fill order for legends is \ref foRowsFirst.
 
   By default, every QCustomPlot has one legend (\ref QCustomPlot::legend) which is placed in the
   inset layout of the main axis rect (\ref QCPAxisRect::insetLayout). To move the legend to another

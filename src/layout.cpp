@@ -1143,7 +1143,7 @@ QCPLayoutGrid::QCPLayoutGrid() :
   mColumnSpacing(5),
   mRowSpacing(5),
   mWrap(0),
-  mFillOrder(foRowsFirst)
+  mFillOrder(foColumnsFirst)
 {
 }
 
@@ -1419,7 +1419,8 @@ void QCPLayoutGrid::setWrap(int count)
   The specified \a order defines whether rows or columns are filled first. Using \ref setWrap, you
   can control at which row/column count wrapping into the next column/row will occur. If you set it
   to zero, no wrapping will ever occur. Changing the fill order also changes the meaning of the
-  linear index used e.g. in \ref elementAt and \ref takeAt.
+  linear index used e.g. in \ref elementAt and \ref takeAt. The default fill order for \ref
+  QCPLayoutGrid is \ref foColumnsFirst.
 
   If you want to have all current elements arranged in the new order, set \a rearrange to true. The
   elements will be rearranged in a way that tries to preserve their linear index. However, empty

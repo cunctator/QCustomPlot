@@ -248,12 +248,21 @@ void QCPColorScale::setDataRange(const QCPRange &dataRange)
 }
 
 /*!
-  Sets the scale type of the color scale, i.e. whether values are linearly associated with colors
+  Sets the scale type of the color scale, i.e. whether values are associated with colors linearly
   or logarithmically.
   
   It is equivalent to calling QCPColorMap::setDataScaleType on any of the connected color maps. It is
   also equivalent to directly accessing the \ref axis and setting its scale type with \ref
   QCPAxis::setScaleType.
+  
+  Note that this method controls the coordinate transformation. For logarithmic scales, you will
+  likely also want to use a logarithmic tick spacing and labeling, which can be achieved by setting
+  the color scale's \ref axis ticker to an instance of \ref QCPAxisTickerLog :
+  
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpaxisticker-log-colorscale
+  
+  See the documentation of \ref QCPAxisTickerLog about the details of logarithmic axis tick
+  creation.
   
   \see setDataRange, setGradient
 */

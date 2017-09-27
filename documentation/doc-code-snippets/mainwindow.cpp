@@ -229,6 +229,21 @@ void MainWindow::snippetQCPFinancial()
   //! [qcpfinancial-creation-2]
 }
 
+void MainWindow::snippetQCPAxisTickers()
+{
+  //! [qcpaxisticker-log-creation]
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  //! [qcpaxisticker-log-creation]
+  
+  QCPColorScale *colorScale = new QCPColorScale(customPlot);
+  customPlot->plotLayout()->addElement(colorScale);
+  //! [qcpaxisticker-log-colorscale]
+  colorScale->setDataScaleType(QCPAxis::stLogarithmic);
+  colorScale->axis()->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  //! [qcpaxisticker-log-colorscale]
+}
+
 void MainWindow::snippetQCPGraphDataSharing()
 {
   QCPGraph *graph1 = customPlot->addGraph();

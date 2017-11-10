@@ -400,6 +400,9 @@ int QCPAbstractPlottable1D<DataType>::findEnd(double sortKey, bool expandedRange
   point-like. Most subclasses will want to reimplement this method again, to provide a more
   accurate hit test based on the true data visualization geometry.
 
+  If \a details is not 0, it will be set to a \ref QCPDataSelection, describing the closest data point
+  to \a pos.
+  
   \seebaseclassmethod
 */
 template <class DataType>

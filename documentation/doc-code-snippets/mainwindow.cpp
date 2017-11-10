@@ -348,6 +348,22 @@ void MainWindow::snippetQCPDataSelectionIterating()
   Q_UNUSED(average)
 }
 
+void MainWindow::snippetQCPDataSelectionPointAtPos()
+{
+  QCPGraph *graph = customPlot->addGraph();
+  //! [qcpdataselection-pointatpos]
+  QCPGraphDataContainer::const_iterator it = graph->data()->constEnd();
+  QVariant details;
+  if (graph->selectTest(QPoint(123, 456), false, &details)) // QPoint could be e.g. event->pos() of a mouse event
+  {
+    QCPDataSelection dataPoints = details.value<QCPDataSelection>();
+    if (dataPoints.dataPointCount() > 0)
+      it = graph->data()->at(dataPoints.dataRange().begin());
+  }
+  // iterator "it" now carries the data point at pixel coordinates (123, 456), or constEnd if no data point was hit.
+  //! [qcpdataselection-pointatpos]
+}
+
 void MainWindow::websiteBasicPlottingBars()
 {
   QCPBars *myBars = new QCPBars(customPlot->xAxis, customPlot->yAxis);

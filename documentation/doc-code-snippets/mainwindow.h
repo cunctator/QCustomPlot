@@ -42,6 +42,7 @@ public slots:
   void snippetQCPFinancialDataSharing();
   void snippetQCPErrorBarsDataSharing();
   void snippetQCPDataSelectionIterating();
+  void snippetQCPDataSelectionPointAtPos();
   
   // website code methods:
   void websiteBasicPlottingBars();

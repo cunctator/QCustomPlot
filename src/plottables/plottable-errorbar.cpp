@@ -470,7 +470,14 @@ int QCPErrorBars::findEnd(double sortKey, bool expandedRange) const
   return 0;
 }
 
-/* inherits documentation from base class */
+/*!
+  Implements a selectTest specific to this plottable's point geometry.
+
+  If \a details is not 0, it will be set to a \ref QCPDataSelection, describing the closest data
+  point to \a pos.
+  
+  \seebaseclassmethod \ref QCPAbstractPlottable::selectTest
+*/
 double QCPErrorBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   if (!mDataPlottable) return -1;

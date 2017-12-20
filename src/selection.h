@@ -203,8 +203,8 @@ inline const QCPDataSelection operator-(const QCPDataRange& a, const QCPDataRang
 */
 inline QDebug operator<< (QDebug d, const QCPDataRange &dataRange)
 {
-    d.nospace() << "[" << dataRange.begin() << ".." << dataRange.end()-1 << "]";
-    return d.space();
+  d.nospace() << "QCPDataRange(" << dataRange.begin() << ", " << dataRange.end() << ")";
+  return d;
 }
 
 /*! \relates QCPDataSelection
@@ -221,7 +221,7 @@ inline QDebug operator<< (QDebug d, const QCPDataSelection &selection)
       d << selection.dataRange(i);
     }
     d << ")";
-    return d.space();
+    return d;
 }
 
 

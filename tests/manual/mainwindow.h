@@ -78,12 +78,16 @@ public slots:
   
   void testbedMouseClick(QMouseEvent *event);
   
+private slots:
+  void showReplotTime();
+  
 private:
   Ui::MainWindow *ui;
   QCustomPlot *mCustomPlot;
   QCPItemTracer *tracerTestTracer;
   QTimer mReplotTimer;
   QTimer mDataTimer;
+  QLabel *mStatusBarLabel;
 };
 
 #endif // MAINWINDOW_H

@@ -7,13 +7,17 @@ MainWindow::MainWindow(QWidget *parent) :
 {
   ui->setupUi(this);
   setGeometry(300, 300, 500, 500);
+  mStatusBarLabel = new QLabel(this);
+  ui->statusBar->addPermanentWidget(mStatusBarLabel);
+  
   mCustomPlot = new QCustomPlot(this);
   QHBoxLayout *layout = new QHBoxLayout();
   ui->centralWidget->setLayout(layout);
   layout->insertWidget(0, mCustomPlot);
   mCustomPlot->axisRect()->setupFullAxesBox(true);
   connect(mCustomPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(testbedMouseClick(QMouseEvent*)));
-
+  connect(mCustomPlot, SIGNAL(afterReplot()), this, SLOT(showReplotTime()));
+  
   presetInteractive(mCustomPlot);
   //setupItemAnchorTest(mCustomPlot);
   //setupItemTracerTest(mCustomPlot);
@@ -1576,4 +1580,14 @@ void MainWindow::colorMapMouseMove(QMouseEvent *event)
 void MainWindow::testbedMouseClick(QMouseEvent *event)
 {
   Q_UNUSED(event)
+}
+
+void MainWindow::showReplotTime()
+{
+  static QDateTime lastShow = QDateTime::fromTime_t(0);
+  if (lastShow.msecsTo(QDateTime::currentDateTime()) > 100) // only update status bar label at most every 100ms
+  {
+    mStatusBarLabel->setText(QString("%1 ms (avg %2 ms)").arg(mCustomPlot->replotTime(false), 0, 'f', 1).arg(mCustomPlot->replotTime(true), 0, 'f', 1));
+    lastShow = QDateTime::currentDateTime();
+  }
 }

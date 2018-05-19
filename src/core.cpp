@@ -372,6 +372,8 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mMouseSignalLayerable(0),
   mReplotting(false),
   mReplotQueued(false),
+  mReplotTime(0),
+  mReplotTimeAverage(0),
   mOpenGlMultisamples(16),
   mOpenGlAntialiasedElementsBackup(QCP::aeNone),
   mOpenGlCacheLabelsBackup(true)
@@ -1906,6 +1908,8 @@ void QCustomPlot::deselectAll()
   If a layer is in mode \ref QCPLayer::lmBuffered (\ref QCPLayer::setMode), it is also possible to
   replot only that specific layer via \ref QCPLayer::replot. See the documentation there for
   details.
+  
+  \see replotTime
 */
 void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
 {
@@ -1925,6 +1929,14 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   mReplotQueued = false;
   emit beforeReplot();
   
+# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+  QTime replotTimer;
+  replotTimer.start();
+# else
+  QElapsedTimer replotTimer;
+  replotTimer.start();
+# endif
+  
   updateLayout();
   // draw all layered objects (grid, axes, plottables, items, legend,...) into their buffers:
   setupPaintBuffers();
@@ -1938,8 +1950,29 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   else
     update();
   
+# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+  mReplotTime = replotTimer.elapsed();
+# else
+  mReplotTime = replotTimer.nsecsElapsed()*1e-6;
+# endif
+  if (!qFuzzyIsNull(mReplotTimeAverage))
+    mReplotTimeAverage = mReplotTimeAverage*0.9 + mReplotTime*0.1; // exponential moving average with a time constant of 10 last replots
+  else
+    mReplotTimeAverage = mReplotTime; // no previous replots to average with, so initialize with replot time
+  
   emit afterReplot();
   mReplotting = false;
+}
+
+/*!
+  Returns the time in milliseconds that the last replot took. If \a average is set to true, an
+  exponential moving average over the last couple of replots is returned.
+  
+  \see replot
+*/
+double QCustomPlot::replotTime(bool average) const
+{
+  return average ? mReplotTimeAverage : mReplotTime;
 }
 
 /*!

@@ -93,6 +93,9 @@
 #endif
 // amalgamation: include end
 
+#define QCUSTOMPLOT_VERSION_STR "2.0.0"
+#define QCUSTOMPLOT_VERSION 0x020000
+
 // decl definitions for shared library compilation/usage:
 #if defined(QT_STATIC_BUILD)
 #  define QCP_LIB_DECL

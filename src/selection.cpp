@@ -528,7 +528,8 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     }
     case QCP::stDataRange:
     {
-      mDataRanges = QList<QCPDataRange>() << span();
+      if (!isEmpty())
+        mDataRanges = QList<QCPDataRange>() << span();
       break;
     }
     case QCP::stMultipleDataRanges:

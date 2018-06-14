@@ -94,7 +94,9 @@
 // amalgamation: include end
 
 // decl definitions for shared library compilation/usage:
-#if defined(QCUSTOMPLOT_COMPILE_LIBRARY)
+#if defined(QT_STATIC_BUILD)
+#  define QCP_LIB_DECL
+#elif defined(QCUSTOMPLOT_COMPILE_LIBRARY)
 #  define QCP_LIB_DECL Q_DECL_EXPORT
 #elif defined(QCUSTOMPLOT_USE_LIBRARY)
 #  define QCP_LIB_DECL Q_DECL_IMPORT

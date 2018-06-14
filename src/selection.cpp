@@ -33,8 +33,9 @@
   \brief Describes a data range given by begin and end index
   
   QCPDataRange holds two integers describing the begin (\ref setBegin) and end (\ref setEnd) index
-  of a contiguous set of data points. The end index points to the data point above the last data point that's part of
-  the data range, similarly to the nomenclature used in standard iterators.
+  of a contiguous set of data points. The end index points to the data point just after the last
+  data point that's part of the data range, similarly to the nomenclature used in standard
+  iterators.
   
   Data Ranges are not bound to a certain plottable, thus they can be freely exchanged, created and
   modified. If a non-contiguous data set shall be described, the class \ref QCPDataSelection is
@@ -81,7 +82,7 @@
 
 /*! \fn void QCPDataRange::setEnd(int end)
   
-  Sets the end of this data range. The \a end index points to the data point just above the last
+  Sets the end of this data range. The \a end index points to the data point just after the last
   data point that is part of the data range.
   
   No checks or corrections are made to ensure the resulting range is valid (\ref isValid).
@@ -197,7 +198,7 @@ bool QCPDataRange::intersects(const QCPDataRange &other) const
 }
 
 /*!
-  Returns whether all data points described by this data range are also in \a other.
+  Returns whether all data points of \a other are also contained inside this data range.
   
   \see intersects
 */

@@ -39,12 +39,12 @@ public:
   
   // setters:
   void setTicks(const QMap<double, QString> &ticks);
-  void setTicks(const QVector<double> &positions, const QVector<QString> labels);
+  void setTicks(const QVector<double> &positions, const QVector<QString> &labels);
   void setSubTickCount(int subTicks);
   
   // non-virtual methods:
   void clear();
-  void addTick(double position, QString label);
+  void addTick(double position, const QString &label);
   void addTicks(const QMap<double, QString> &ticks);
   void addTicks(const QVector<double> &positions, const QVector<QString> &labels);
   
@@ -58,7 +58,6 @@ protected:
   virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE;
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
   virtual QVector<double> createTickVector(double tickStep, const QCPRange &range) Q_DECL_OVERRIDE;
-  
 };
 
 #endif // QCP_AXISTICKERTEXT_H

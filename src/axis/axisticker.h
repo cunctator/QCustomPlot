@@ -80,6 +80,10 @@ protected:
   double pickClosest(double target, const QVector<double> &candidates) const;
   double getMantissa(double input, double *magnitude=0) const;
   double cleanMantissa(double input) const;
+  
+private:
+  Q_DISABLE_COPY(QCPAxisTicker)
+  
 };
 Q_DECLARE_METATYPE(QCPAxisTicker::TickStepStrategy)
 Q_DECLARE_METATYPE(QSharedPointer<QCPAxisTicker>)

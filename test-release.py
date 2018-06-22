@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os, sys, subprocess, shutil, distutils.dir_util, argparse
+from utilities import *
 
 # Define command line interface:
 argparser = argparse.ArgumentParser()
@@ -20,18 +21,6 @@ if config.interactive:
   execTestSuffix = "";
 qcpObjectDir = ""; # if -r option is set, points to the path of the compiled qcustomplot.o, so subsequent examples can pull them in
 
-# define functions:
-def printinfo(message):
-  print("\033[1;36m"+message+"\033[1;m")
-
-def printerror(message):
-  print("\033[1;31m"+message+"\033[1;m")
-  
-def runQmakeMake(qmakecommand):
-  if subprocess.call(qmakecommand, shell=True) != 0:
-    printerror("qmake failed"); sys.exit(1)
-  if subprocess.call("make -s -j5", shell=True) != 0:
-    printerror("make failed"); sys.exit(1)
 
 def runExample(examplePath, executableName):
   global qcpObjectDir
@@ -44,13 +33,15 @@ def runExample(examplePath, executableName):
       shutil.copy2(qcpObjectDir+"/moc_qcustomplot.o", "./")
     else:
       qcpObjectDir = os.getcwd();
-  runQmakeMake(qmakecommand)
+  run_qmake_make(qmakecommand)
   if subprocess.call("./"+executableName+execTestSuffix, shell=True) != 0:
     printerror("Execution unsuccessful")
   os.chdir(workingDirectory)
 
 # main test loop:
-qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake502", "qmake511", "qmake520", "qmake521", "qmake532", "qmake540", "qmake542", "qmake550", "qmake551", "qmake561", "qmake570", "qmake580", "qmake591"]
+qmakeVersions = list_qmakes()
+printinfo("QCustomPlot Release Package Test");
+printinfo("Found Qt versions: "+" ".join(list(map(lambda s: s[5:], qmakeVersions))))
 if (config.qt > 0):
   qmakeVersions = ["qmake"+str(config.qt)];
 for qmakecommand in qmakeVersions:
@@ -95,12 +86,12 @@ for qmakecommand in qmakeVersions:
     # sharedlib compile:
     printinfo("sharedlib-compilation")
     os.chdir(tempDir+"/qcustomplot-sharedlib/sharedlib-compilation")
-    runQmakeMake(qmakecommand)
+    run_qmake_make(qmakecommand)
     subprocess.call("cp libqcustomplot* ../sharedlib-usage", shell=True)
     # sharedlib use:
     printinfo("sharedlib-usage")
     os.chdir(tempDir+"/qcustomplot-sharedlib/sharedlib-usage")
-    runQmakeMake(qmakecommand)
+    run_qmake_make(qmakecommand)
     if subprocess.call("export LD_LIBRARY_PATH=.; ./sharedlib-usage"+execTestSuffix, shell=True) != 0:
       printerror("Execution unsuccessful")
     os.chdir(tempDir)

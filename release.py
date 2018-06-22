@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 import os, sys, subprocess, shutil, distutils.dir_util
-
-def printinfo(message):
-  print(("\033[1;36m"+message+"\033[1;m"))
-
-def printerror(message):
-  print(("\033[1;31m"+message+"\033[1;m"))
-  
-def runQmakeMake(qmakecommand):
-  if subprocess.call(qmakecommand, shell=True) != 0:
-    printerror("qmake failed"); sys.exit(1)
-  if subprocess.call("make -s -j5", shell=True) != 0:
-    printerror("make failed"); sys.exit(1)
+from utilities import *
 
 tarcommand = "GZIP=\"-9\" tar -caf" # -a means determine compressor by archive suffix
 tarsuffix = ".tar.gz"
@@ -44,7 +33,7 @@ if subprocess.call("./find-nonascii.py", shell=True) != 0:
 # generate documentation images:
 printinfo("Generating documentation images...")
 os.chdir("./documentation/doc-image-generator")
-runQmakeMake("qmake474")
+run_qmake_make("qmake474")
 if subprocess.call("./doc-image-generator", shell=True) != 0:
   printerror("Failed to generate documentation images."); sys.exit(1)
 os.chdir("../..")

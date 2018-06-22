@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import os, sys, subprocess, shutil, distutils.dir_util, argparse
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+from utilities import *
 
 # Define command line interface:
 argparser = argparse.ArgumentParser()
@@ -12,19 +14,6 @@ config = argparser.parse_args()
 baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
 
-# define functions:
-def printinfo(message):
-  print("\033[1;36m"+message+"\033[1;m")
-
-def printerror(message):
-  print("\033[1;31m"+message+"\033[1;m")
-  
-def runQmakeMake(qmakecommand):
-  if subprocess.call(qmakecommand, shell=True) != 0:
-    printerror("qmake failed"); sys.exit(1)
-  if subprocess.call("make -s -j5", shell=True) != 0: # -s (silent) parameter because for autotests we only want to see test results
-    printerror("make failed"); sys.exit(1)
-
 def runTest():
   if subprocess.call("./autotest", shell=True) != 0:
     printerror("Execution unsuccessful")
@@ -33,9 +22,10 @@ def runTest():
   os.remove("./Makefile")
     
 # main test loop:
-qmakeVersions = ["qmake464", "qmake474", "qmake486", "qmake501", "qmake502", "qmake511", "qmake520", "qmake521", "qmake532", "qmake540", "qmake542", "qmake550", "qmake551", "qmake561", "qmake570", "qmake580", "qmake591"]
+qmakeVersions = list_qmakes()
 if (config.qt > 0):
   qmakeVersions = ["qmake"+str(config.qt)]
+
 
 for qmakecommand in qmakeVersions:
   try:
@@ -45,7 +35,7 @@ for qmakecommand in qmakeVersions:
     printinfo("Qt version of '"+qmakecommand+"' not found, skipping.")
     continue
   printinfo("compiling...")
-  runQmakeMake(qmakecommand)
+  run_qmake_make(qmakecommand)
   printinfo("testing...")
   runTest()
   answer = ""

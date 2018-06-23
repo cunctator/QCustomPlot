@@ -15,10 +15,8 @@ baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
 
 def runTest():
-  if subprocess.call("./autotest", shell=True) != 0:
-    printerror("Execution unsuccessful")
-  if subprocess.call("make clean -s", shell=True) != 0:
-    printerror("make clean unsuccessful")
+  shellcall("./autotest", error="Execution unsuccessful")
+  shellcall("make clean -s", error="make clean unsuccessful")
   os.remove("./Makefile")
     
 # main test loop:

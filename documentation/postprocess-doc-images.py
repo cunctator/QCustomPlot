@@ -9,6 +9,8 @@
 
 from __future__ import print_function
 import os, sys, glob, subprocess
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+from utilities import *
 
 def eprint(*args, **kwargs):
   print(*args, file=sys.stderr, **kwargs)
@@ -119,8 +121,7 @@ for (colors, fileName) in fileList:
   allPngFiles.remove(fileName)
   if colors > 0:
     print("compressing colors of '"+fileName+"'")
-    if subprocess.call("mogrify -colorspace RGB -colors "+str(colors)+" +dither "+fileName, shell=True) != 0:
-      eprint("ERROR: color compression failed for '"+fileName+"'")
+    shellcall("mogrify -colorspace RGB -colors "+str(colors)+" +dither "+fileName, error="ERROR: color compression failed for '"+fileName+"'")
 
 
 for fileName in allPngFiles:

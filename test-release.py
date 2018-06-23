@@ -34,8 +34,7 @@ def runExample(examplePath, executableName):
     else:
       qcpObjectDir = os.getcwd();
   run_qmake_make(qmakecommand)
-  if subprocess.call("./"+executableName+execTestSuffix, shell=True) != 0:
-    printerror("Execution unsuccessful")
+  shellcall("./"+executableName+execTestSuffix, error="Execution unsuccessful")
   os.chdir(workingDirectory)
 
 # main test loop:
@@ -60,8 +59,7 @@ for qmakecommand in qmakeVersions:
   printinfo("QCustomPlot full:")
   os.chdir(tempDir)
   shutil.copy2(baseDir+"/QCustomPlot.tar.gz", "./")
-  if subprocess.call("tar -xf QCustomPlot.tar.gz", shell=True) != 0:
-    printerror("Failed to untar QCustomPlot.tar.gz"); sys.exit(1)
+  shellcall("tar -xf QCustomPlot.tar.gz", error="Failed to untar QCustomPlot.tar.gz", terminate=True)
   os.chdir(tempDir+"/qcustomplot")
   # test examples:
   runExample("examples/plots", "plot-examples")
@@ -76,24 +74,21 @@ for qmakecommand in qmakeVersions:
     printinfo("QCustomPlot sharedlib and source:")
     os.chdir(tempDir)
     shutil.copy2(baseDir+"/QCustomPlot-sharedlib.tar.gz", "./")
-    if subprocess.call("tar -xf QCustomPlot-sharedlib.tar.gz", shell=True) != 0:
-      printerror("Failed to untar QCustomPlot-sharedlib.tar.gz"); sys.exit(1)
+    shellcall("tar -xf QCustomPlot-sharedlib.tar.gz", error="Failed to untar QCustomPlot-sharedlib.tar.gz", terminate=True)
     shutil.copy2(baseDir+"/QCustomPlot-source.tar.gz", "./")
-    if subprocess.call("tar -xf QCustomPlot-source.tar.gz", shell=True) != 0:
-      printerror("Failed to untar QCustomPlot-source.tar.gz"); sys.exit(1)
+    shellcall("tar -xf QCustomPlot-source.tar.gz", error="Failed to untar QCustomPlot-source.tar.gz", terminate=True)
     shutil.copy2(tempDir+"/qcustomplot-source/qcustomplot.h", tempDir+"/")   # copy qcp source to dir above sharedlib dir (sharedlib code expects it two dirs above source files)
     shutil.copy2(tempDir+"/qcustomplot-source/qcustomplot.cpp", tempDir+"/") # copy qcp source to dir above sharedlib dir (sharedlib code expects it two dirs above source files)
     # sharedlib compile:
     printinfo("sharedlib-compilation")
     os.chdir(tempDir+"/qcustomplot-sharedlib/sharedlib-compilation")
     run_qmake_make(qmakecommand)
-    subprocess.call("cp libqcustomplot* ../sharedlib-usage", shell=True)
+    shellcall("cp libqcustomplot* ../sharedlib-usage")
     # sharedlib use:
     printinfo("sharedlib-usage")
     os.chdir(tempDir+"/qcustomplot-sharedlib/sharedlib-usage")
     run_qmake_make(qmakecommand)
-    if subprocess.call("export LD_LIBRARY_PATH=.; ./sharedlib-usage"+execTestSuffix, shell=True) != 0:
-      printerror("Execution unsuccessful")
+    shellcall("export LD_LIBRARY_PATH=.; ./sharedlib-usage"+execTestSuffix, error="Execution unsuccessful")
     os.chdir(tempDir)
 
   # ================== Cleanup ==================

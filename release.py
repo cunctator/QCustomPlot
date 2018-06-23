@@ -18,27 +18,24 @@ printinfo("Cleaning working directory...")
 shellcall("git clean -dxf -e \".idea/\"", error="Failed to clean working directory with git.", terminate=True)
 # amalgamate sources:
 printinfo("Amalgamating sources...")
-subprocess.call("./run-amalgamate.sh", shell=True)
+shellcall("./run-amalgamate.sh")
 
 # look for undocumented methods via script:
 printinfo("Checking for undocumented methods...")
-if subprocess.call("./find-undocumented.py qcustomplot.cpp", shell=True) != 0:
-  printerror("Undocumented methods found in amalgamated sources!");
+shellcall("./find-undocumented.py qcustomplot.cpp", error="Undocumented methods found in amalgamated sources!")
 # look for non-ascii characters in code files via script:
 printinfo("Checking for non-ascii characters...")
-if subprocess.call("./find-nonascii.py", shell=True) != 0:
-  printerror("Non-ASCII characters found in codebase!");
+shellcall("./find-nonascii.py", error="Non-ASCII characters found in codebase!")
 
 # generate documentation images:
 printinfo("Generating documentation images...")
 os.chdir("./documentation/doc-image-generator")
 run_qmake_make("qmake474")
-if subprocess.call("./doc-image-generator", shell=True) != 0:
-  printerror("Failed to generate documentation images."); sys.exit(1)
+shellcall("./doc-image-generator", error="Failed to generate documentation images.", terminate=True)
 os.chdir("../..")
 # generate documentation:
 printinfo("Compiling documentation...")
-subprocess.call("./run-doxygen.sh", shell=True)
+shellcall("./run-doxygen.sh")
 
 # build release packages in temp directory:
 print("")
@@ -57,9 +54,9 @@ distutils.dir_util.copy_tree(baseDir+"/examples", "./examples")
 os.chdir("./examples/plots");
 shutil.rmtree("./screenshots")
 os.chdir("../../");
-subprocess.call("find . -name .gitignore -exec rm -f \"{}\" \;", shell=True)
+shellcall("find . -name .gitignore -exec rm -f \"{}\" \;")
 os.chdir(tempDir)
-subprocess.call(tarcommand+" QCustomPlot"+tarsuffix+" *", shell=True)
+shellcall(tarcommand+" QCustomPlot"+tarsuffix+" *")
 shutil.move("QCustomPlot"+tarsuffix, baseDir+"/")
 shutil.rmtree("./qcustomplot")
 
@@ -69,9 +66,9 @@ os.chdir(tempDir+"/qcustomplot-source")
 printinfo("Building QCustomPlot-source package")
 for f in [baseDir+"/qcustomplot.h", baseDir+"/qcustomplot.cpp", baseDir+"/GPL.txt", baseDir+"/changelog.txt"]:
   shutil.copy2(f, "./")
-subprocess.call("find . -name .gitignore -exec rm -f \"{}\" \;", shell=True)
+shellcall("find . -name .gitignore -exec rm -f \"{}\" \;")
 os.chdir(tempDir)
-subprocess.call(tarcommand+" QCustomPlot-source"+tarsuffix+" *", shell=True)
+shellcall(tarcommand+" QCustomPlot-source"+tarsuffix+" *")
 shutil.move("QCustomPlot-source"+tarsuffix, baseDir+"/")
 shutil.rmtree("./qcustomplot-source")
 
@@ -80,9 +77,9 @@ os.mkdir(tempDir+"/qcustomplot-sharedlib")
 os.chdir(tempDir+"/qcustomplot-sharedlib")
 printinfo("Building QCustomPlot-sharedlib package")
 distutils.dir_util.copy_tree(baseDir+"/sharedlib/", "./")
-subprocess.call("find . -name .gitignore -exec rm -f \"{}\" \;", shell=True)
+shellcall("find . -name .gitignore -exec rm -f \"{}\" \;")
 os.chdir(tempDir)
-subprocess.call(tarcommand+" QCustomPlot-sharedlib"+tarsuffix+" *", shell=True)
+shellcall(tarcommand+" QCustomPlot-sharedlib"+tarsuffix+" *")
 shutil.move("QCustomPlot-sharedlib"+tarsuffix, baseDir+"/")
 shutil.rmtree("./qcustomplot-sharedlib")
 

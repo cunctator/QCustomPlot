@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import os, shutil, distutils.dir_util, sys, subprocess
+sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+from utilities import *
 
 os.chdir(sys.path[0]); # change current working dir to script dir
 
@@ -16,7 +18,7 @@ for fileName in os.listdir("./"):
   if os.path.isfile(fileName) and "." in fileName and fileName.split(".")[1] == "png":
     print("processing "+fileName)
     for size in sizes:
-      subprocess.call("convert -resize "+size+" "+fileName+" -sharpen 0x1 ./thumbs/"+fileName.split(".")[0]+"-thumb.png", shell=True);
+      shellcall("convert -resize "+size+" "+fileName+" -sharpen 0x1 ./thumbs/"+fileName.split(".")[0]+"-thumb.png")
     #subprocess.call("convert -crop 548x288+0+66 "+fileName+" ./thumbs/"+fileName.split(".")[0]+"-548x288.png", shell=True);
     shutil.copy2("./"+fileName, "./thumbs");
 

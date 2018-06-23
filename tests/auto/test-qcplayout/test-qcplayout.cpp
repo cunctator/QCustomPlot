@@ -86,14 +86,27 @@ void TestQCPLayout::layoutGridElementManagement()
   */
   QCOMPARE(mainLayout->columnCount(), 2);
   QCOMPARE(mainLayout->rowCount(), 2);
+  QTest::ignoreMessage(QtDebugMsg, "QCPLayoutElement* QCPLayoutGrid::element(int, int) const Requested cell is empty. Row: 1 Column: 1 ");
   QCOMPARE(mainLayout->element(0, 0), mPlot->axisRect());
   QCOMPARE(mainLayout->element(0, 1), r1);
   QCOMPARE(mainLayout->element(1, 0), r2);
-  QTest::ignoreMessage(QtDebugMsg, "QCPLayoutElement* QCPLayoutGrid::element(int, int) const Requested cell is empty. Row: 1 Column: 1 ");
   QCOMPARE(mainLayout->element(1, 1), (QCPLayoutElement*)0);
+  // test whether linear index correctly changes for different fill orders:
+  QTest::ignoreMessage(QtDebugMsg, "QCPLayoutElement* QCPLayoutGrid::element(int, int) const Requested cell is empty. Row: 1 Column: 1 ");
+  QTest::ignoreMessage(QtDebugMsg, "QCPLayoutElement* QCPLayoutGrid::element(int, int) const Requested cell is empty. Row: 1 Column: 1 ");
+  mainLayout->setFillOrder(QCPLayoutGrid::foRowsFirst, false);
+  QCOMPARE(mainLayout->elementAt(0), mainLayout->element(0, 0));
+  QCOMPARE(mainLayout->elementAt(1), mainLayout->element(1, 0));
+  QCOMPARE(mainLayout->elementAt(2), mainLayout->element(0, 1));
+  QCOMPARE(mainLayout->elementAt(3), mainLayout->element(1, 1));
+  mainLayout->setFillOrder(QCPLayoutGrid::foColumnsFirst, false);
+  QCOMPARE(mainLayout->elementAt(0), mainLayout->element(0, 0));
+  QCOMPARE(mainLayout->elementAt(1), mainLayout->element(0, 1));
+  QCOMPARE(mainLayout->elementAt(2), mainLayout->element(1, 0));
+  QCOMPARE(mainLayout->elementAt(3), mainLayout->element(1, 1));
   
   // remove r1 axis rect:
-  QCOMPARE(mainLayout->takeAt(2), r1);
+  QCOMPARE(mainLayout->takeAt(1), r1);
   delete r1;
   // now simplify should collapse to 2x1:
   mainLayout->simplify();

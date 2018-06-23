@@ -1,17 +1,16 @@
 #!/usr/bin/env python
-import os, sys, subprocess, shutil, distutils.dir_util
+import os, sys, shutil, distutils.dir_util
 from utilities import *
 
-tarcommand = "GZIP=\"-9\" tar -caf" # -a means determine compressor by archive suffix
+baseDir = sys.path[0]
+os.chdir(baseDir)  # change current working dir to script dir
+
+tarcommand = "GZIP=\"-9\" tar -caf"  # -a means determine compressor by archive suffix
 tarsuffix = ".tar.gz"
 
-
 if raw_input("\033[1;31m"+"This will completely reset the current working directory.\n(Call 'git clean -dxn -e \".idea/\"' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
-  printinfo("Aborted.")
-  sys.exit(1)
-
-baseDir = sys.path[0];
-os.chdir(baseDir) # change current working dir to script dir
+    printinfo("Aborted.")
+    sys.exit(1)
 
 # clean working dir:
 printinfo("Cleaning working directory...")
@@ -49,11 +48,11 @@ printinfo("Building full QCustomPlot package")
 distutils.dir_util.copy_tree(baseDir+"/documentation/html", "./documentation/html")
 shutil.copy2(baseDir+"/documentation/qthelp/qcustomplot.qch", "./documentation/")
 for f in [baseDir+"/qcustomplot.h", baseDir+"/qcustomplot.cpp", baseDir+"/GPL.txt", baseDir+"/changelog.txt"]:
-  shutil.copy2(f, "./")
+    shutil.copy2(f, "./")
 distutils.dir_util.copy_tree(baseDir+"/examples", "./examples")
-os.chdir("./examples/plots");
+os.chdir("./examples/plots")
 shutil.rmtree("./screenshots")
-os.chdir("../../");
+os.chdir("../../")
 shellcall("find . -name .gitignore -exec rm -f \"{}\" \;")
 os.chdir(tempDir)
 shellcall(tarcommand+" QCustomPlot"+tarsuffix+" *")
@@ -65,7 +64,7 @@ os.mkdir(tempDir+"/qcustomplot-source")
 os.chdir(tempDir+"/qcustomplot-source")
 printinfo("Building QCustomPlot-source package")
 for f in [baseDir+"/qcustomplot.h", baseDir+"/qcustomplot.cpp", baseDir+"/GPL.txt", baseDir+"/changelog.txt"]:
-  shutil.copy2(f, "./")
+    shutil.copy2(f, "./")
 shellcall("find . -name .gitignore -exec rm -f \"{}\" \;")
 os.chdir(tempDir)
 shellcall(tarcommand+" QCustomPlot-source"+tarsuffix+" *")

@@ -8,15 +8,17 @@
 #
 
 from __future__ import print_function
-import os, sys, glob, subprocess
+import os, sys, glob
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from utilities import *
 
-def eprint(*args, **kwargs):
-  print(*args, file=sys.stderr, **kwargs)
+baseDir = sys.path[0]
+os.chdir(baseDir)  # change current working dir to script dir
 
-baseDir = sys.path[0];
-os.chdir(baseDir) # change current working dir to script dir
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 
 # generate a list of (colorcount, filename) tuples.
 # If colorcount is 0, no compression is performed.
@@ -115,15 +117,15 @@ fileList += [(2   ,"html/doxygen.png")]
 
 allPngFiles = glob.glob("html/*.png")
 for (colors, fileName) in fileList:
-  if not fileName in allPngFiles:
-    eprint("WARNING: couldn't find image \""+fileName+"\"")
-    continue
-  allPngFiles.remove(fileName)
-  if colors > 0:
-    print("compressing colors of '"+fileName+"'")
-    shellcall("mogrify -colorspace RGB -colors "+str(colors)+" +dither "+fileName, error="ERROR: color compression failed for '"+fileName+"'")
+    if fileName not in allPngFiles:
+        eprint("WARNING: couldn't find image \""+fileName+"\"")
+        continue
+    allPngFiles.remove(fileName)
+    if colors > 0:
+        print("compressing colors of '"+fileName+"'")
+        shellcall("mogrify -colorspace RGB -colors "+str(colors)+" +dither "+fileName, error="ERROR: color compression failed for '"+fileName+"'")
 
 
 for fileName in allPngFiles:
-  eprint("WARNING: doc image not compressed (not specified in script). Specify with e.g.: fileList += [(8   ,\""+fileName+"\")]")
+    eprint("WARNING: doc image not compressed (not specified in script). Specify with e.g.: fileList += [(8   ,\""+fileName+"\")]")
 

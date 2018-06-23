@@ -2,8 +2,8 @@
 import sys, subprocess, os
 from utilities import *
 
-baseDir = sys.path[0];
-os.chdir(baseDir) # change current working dir to script dir
+baseDir = sys.path[0]
+os.chdir(baseDir)  # change current working dir to script dir
 
 ret = shellcall("grep --color='auto' -rInP \"[\\x80-\\xFF]\" ./*;")
 

@@ -12,14 +12,14 @@ argparser.add_argument("-s", "--short", action="store_true",
                        help="Only test the plots example.")
 argparser.add_argument("-i", "--interactive", action="store_true",
                        help="Keep tests open for user interaction and continue test only after user quits them.")
-argparser.add_argument("-r", "--reuseqcpobject", action="store_true",
-                       help="Compiles the qcustomplot.o file only once per Qt version tested, and reuses it for all test projects")
+argparser.add_argument("-nr", "--noqcpobjectreuse", action="store_true",
+                       help="Normally the the qcustomplot.o file is compiled only once per Qt version tested, and reused for all test projects. With this flag set, the object is compied for each test project separately.")
 config = argparser.parse_args()
 
 execTestSuffix = "& sleep 1; kill $!"  # appended to test execution command line. Starts test executable in background and quits it after one second (if executable fails, kill will fail and thus propagate !=0 return value)
 if config.interactive:
     execTestSuffix = ""
-qcpObjectDir = ""  # if -r option is set, points to the path of the compiled qcustomplot.o, so subsequent examples can pull them in
+qcpObjectDir = ""  # points to the path of the compiled qcustomplot.o, so subsequent examples can pull them in (except if -nr argument passed)
 
 
 def run_example(examplePath, executableName):
@@ -27,10 +27,10 @@ def run_example(examplePath, executableName):
     workingdir = os.getcwd()
     printinfo(examplePath)
     os.chdir(examplePath)
-    if config.reuseqcpobject:
-        if len(qcpObjectDir) != 0:
-            shutil.copy2(qcpObjectDir+"/qcustomplot.o", "./")
-            shutil.copy2(qcpObjectDir+"/moc_qcustomplot.o", "./")
+    if not config.noqcpobjectreuse:
+        if qcpObjectDir:
+            shutil.copy2(os.path.join(qcpObjectDir, "qcustomplot.o"), "./")
+            shutil.copy2(os.path.join(qcpObjectDir, "moc_qcustomplot.o"), "./")
         else:
             qcpObjectDir = os.getcwd()
     run_qmake_make(qmakecommand)

@@ -22,7 +22,7 @@ def shellcall(command, error="", terminate=False):
 
 
 def run_qmake_make(qmakecommand, silent=True, threads=5):
-    shellcall(qmakecommand, error="qmake failed", terminate=True)
+    shellcall(qmakecommand+" > /dev/null", error="qmake failed", terminate=True)
     shellcall("make {} -j{}".format("-s" if silent else "", threads), error="make failed", terminate=True)
 
 

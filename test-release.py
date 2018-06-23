@@ -65,6 +65,7 @@ for qmakecommand in qmakeVersions:
     # test examples:
     run_example("examples/plots", "plot-examples")
     if not config.short:
+        run_example("examples/axis-tags", "axis-tags-example")
         run_example("examples/interactions", "interaction-example")
         run_example("examples/text-document-integration", "text-document-integration")
         run_example("examples/scrollbar-axis-range-control", "scrollbar-axis-range-control")

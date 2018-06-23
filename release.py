@@ -6,17 +6,16 @@ tarcommand = "GZIP=\"-9\" tar -caf" # -a means determine compressor by archive s
 tarsuffix = ".tar.gz"
 
 
-if raw_input("\033[1;31m"+"This will call 'git clean -dxf' which will completely reset the current working directory.\n(Call 'git clean -dxn' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
-  printinfo("Aborted.");
-  sys.exit(1);
+if raw_input("\033[1;31m"+"This will completely reset the current working directory.\n(Call 'git clean -dxn -e \".idea/\"' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
+  printinfo("Aborted.")
+  sys.exit(1)
 
 baseDir = sys.path[0];
 os.chdir(baseDir) # change current working dir to script dir
 
 # clean working dir:
 printinfo("Cleaning working directory...")
-if subprocess.call("git clean -dxf", shell=True) != 0:
-  printerror("Failed to clean working directory with git."); sys.exit(1)
+shellcall("git clean -dxf -e \".idea/\"", error="Failed to clean working directory with git.", terminate=True)
 # amalgamate sources:
 printinfo("Amalgamating sources...")
 subprocess.call("./run-amalgamate.sh", shell=True)

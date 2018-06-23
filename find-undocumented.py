@@ -19,7 +19,7 @@ while line:
         foundProblem = True
     # warn for documented dtors:
     if (re.search(r"^\w+::~", line)) and hasdoc:
-        print("dtor has doc, line "+str(linenumber)+": "+line[0:-1]);
+        print("dtor has doc, line "+str(linenumber)+": "+line[0:-1])
         foundProblem = True
     # determine for next loop iteration/line whether it has doc before it
     hasdoc = line.startswith("*/") or line.startswith("/*")

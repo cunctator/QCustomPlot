@@ -11,13 +11,19 @@ def printerror(message):
 
 
 # build helpers:
+def shellcall(command, error="", terminate=False):
+    if subprocess.call(command, shell=True) != 0:
+        if error:
+            printerror(error)
+        if terminate:
+            sys.exit(1)
+        return False
+    return True
+
+
 def run_qmake_make(qmakecommand, silent=True, threads=5):
-    if subprocess.call(qmakecommand, shell=True) != 0:
-        printerror("qmake failed")
-        sys.exit(1)
-    if subprocess.call("make {} -j{}".format("-s" if silent else "", threads), shell=True) != 0:
-        printerror("make failed")
-        sys.exit(1)
+    shellcall(qmakecommand, error="qmake failed", terminate=True)
+    shellcall("make {} -j{}".format("-s" if silent else "", threads), error="make failed", terminate=True)
 
 
 def list_qmakes():

@@ -9,7 +9,7 @@
 
 from __future__ import print_function
 import os, sys, glob
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from utilities import *
 
 baseDir = sys.path[0]

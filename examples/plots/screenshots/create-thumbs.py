@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, shutil, sys
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+sys.path.insert(1, os.path.join(sys.path[0], '../../..'))
 from utilities import *
 
 os.chdir(sys.path[0])  # change current working dir to script dir

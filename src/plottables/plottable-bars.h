@@ -55,7 +55,7 @@ public:
                    };
   Q_ENUMS(SpacingType)
   
-  QCPBarsGroup(QCustomPlot *parentPlot);
+  explicit QCPBarsGroup(QCustomPlot *parentPlot);
   virtual ~QCPBarsGroup();
   
   // getters:

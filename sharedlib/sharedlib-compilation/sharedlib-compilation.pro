@@ -14,7 +14,7 @@ static {
   CONFIG += shared
 }
 
-VERSION = 2.0.0
+VERSION = 2.0.1
 
 TARGET = qcustomplot
 CONFIG(debug, debug|release) {

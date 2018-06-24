@@ -17,7 +17,7 @@ CONFIG += qt staticlib debug_and_release build_all
 
 DEFINES += QCUSTOMPLOT_USE_OPENGL
 
-VERSION = 2.0.0
+VERSION = 2.0.1
 TARGET = qcustomplot
 CONFIG(debug, debug|release) {
   TARGET = $$join(TARGET,,,d) # if compiling in debug mode, append a "d" to the library name

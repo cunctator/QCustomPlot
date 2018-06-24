@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "layer.h"
@@ -539,9 +539,13 @@ bool QCPLayerable::realVisibility() const
   placed in \a details. So in the subsequent \ref selectEvent, the decision which part was
   selected doesn't have to be done a second time for a single selection operation.
   
+  In the case of 1D Plottables (\ref QCPAbstractPlottable1D, like \ref QCPGraph or \ref QCPBars) \a
+  details will be set to a \ref QCPDataSelection, describing the closest data point to \a pos.
+  
   You may pass 0 as \a details to indicate that you are not interested in those selection details.
   
-  \see selectEvent, deselectEvent, mousePressEvent, wheelEvent, QCustomPlot::setInteractions
+  \see selectEvent, deselectEvent, mousePressEvent, wheelEvent, QCustomPlot::setInteractions,
+  QCPAbstractPlottable1D::selectTestRect
 */
 double QCPLayerable::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {

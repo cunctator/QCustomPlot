@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 /*! \file */
@@ -1687,7 +1687,17 @@ int QCustomPlot::axisRectCount() const
   added, all of them may be accessed with this function in a linear fashion (even when they are
   nested in a layout hierarchy or inside other axis rects via QCPAxisRect::insetLayout).
   
-  \see axisRectCount, axisRects
+  The order of the axis rects is given by the fill order of the \ref QCPLayout that is holding
+  them. For example, if the axis rects are in the top level grid layout (accessible via \ref
+  QCustomPlot::plotLayout), they are ordered from left to right, top to bottom, if the layout's
+  default \ref QCPLayoutGrid::setFillOrder "setFillOrder" of \ref QCPLayoutGrid::foColumnsFirst
+  "foColumnsFirst" wasn't changed.
+  
+  If you want to access axis rects by their row and column index, use the layout interface. For
+  example, use \ref QCPLayoutGrid::element of the top level grid layout, and \c qobject_cast the
+  returned layout element to \ref QCPAxisRect. (See also \ref thelayoutsystem.)
+  
+  \see axisRectCount, axisRects, QCPLayoutGrid::setFillOrder
 */
 QCPAxisRect *QCustomPlot::axisRect(int index) const
 {
@@ -1705,7 +1715,13 @@ QCPAxisRect *QCustomPlot::axisRect(int index) const
 /*!
   Returns all axis rects in the plot.
   
-  \see axisRectCount, axisRect
+  The order of the axis rects is given by the fill order of the \ref QCPLayout that is holding
+  them. For example, if the axis rects are in the top level grid layout (accessible via \ref
+  QCustomPlot::plotLayout), they are ordered from left to right, top to bottom, if the layout's
+  default \ref QCPLayoutGrid::setFillOrder "setFillOrder" of \ref QCPLayoutGrid::foColumnsFirst
+  "foColumnsFirst" wasn't changed.
+  
+  \see axisRectCount, axisRect, QCPLayoutGrid::setFillOrder
 */
 QList<QCPAxisRect*> QCustomPlot::axisRects() const
 {

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "axis.h"
@@ -550,10 +550,14 @@ QCPLineEnding QCPAxis::upperEnding() const
 /*!
   Sets whether the axis uses a linear scale or a logarithmic scale.
   
-  Note that this method controls the coordinate transformation. You will likely also want to use a
-  logarithmic tick spacing and labeling, which can be achieved by setting an instance of \ref
-  QCPAxisTickerLog via \ref setTicker. See the documentation of \ref QCPAxisTickerLog about the
-  details of logarithmic axis tick creation.
+  Note that this method controls the coordinate transformation. For logarithmic scales, you will
+  likely also want to use a logarithmic tick spacing and labeling, which can be achieved by setting
+  the axis ticker to an instance of \ref QCPAxisTickerLog :
+  
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpaxisticker-log-creation
+  
+  See the documentation of \ref QCPAxisTickerLog about the details of logarithmic axis tick
+  creation.
   
   \ref setNumberPrecision
 */

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "axistickertext.h"
@@ -93,7 +93,7 @@ void QCPAxisTickerText::setTicks(const QMap<double, QString> &ticks)
   
   \see addTicks, addTick, clear
 */
-void QCPAxisTickerText::setTicks(const QVector<double> &positions, const QVector<QString> labels)
+void QCPAxisTickerText::setTicks(const QVector<double> &positions, const QVector<QString> &labels)
 {
   clear();
   addTicks(positions, labels);
@@ -131,7 +131,7 @@ void QCPAxisTickerText::clear()
   
   \see addTicks, setTicks, clear
 */
-void QCPAxisTickerText::addTick(double position, QString label)
+void QCPAxisTickerText::addTick(double position, const QString &label)
 {
   mTicks.insert(position, label);
 }

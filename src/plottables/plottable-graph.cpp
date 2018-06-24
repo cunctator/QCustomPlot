@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "plottable-graph.h"
@@ -387,7 +387,14 @@ void QCPGraph::addData(double key, double value)
   mDataContainer->add(QCPGraphData(key, value));
 }
 
-/* inherits documentation from base class */
+/*!
+  Implements a selectTest specific to this plottable's point geometry.
+
+  If \a details is not 0, it will be set to a \ref QCPDataSelection, describing the closest data
+  point to \a pos.
+  
+  \seebaseclassmethod \ref QCPAbstractPlottable::selectTest
+*/
 double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
@@ -985,11 +992,11 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   if (begin == end) return;
   
   int dataCount = end-begin;
-  int maxCount = std::numeric_limits<int>::max();
+  int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     double keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
-    if (2*keyPixelSpan+2 < (double)std::numeric_limits<int>::max())
+    if (2*keyPixelSpan+2 < static_cast<double>((std::numeric_limits<int>::max)()))
       maxCount = 2*keyPixelSpan+2;
   }
   
@@ -1086,7 +1093,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
   }
   if (begin == end) return;
   int dataCount = end-begin;
-  int maxCount = std::numeric_limits<int>::max();
+  int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     int keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
@@ -1711,7 +1718,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
     return -1.0;
   
   // calculate minimum distances to graph data points and find closestData iterator:
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   // determine which key range comes into question, taking selection tolerance around pos into account:
   double posKeyMin, posKeyMax, dummy;
   pixelsToCoords(pixelPoint-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, dummy);

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "plottable-bars.h"
@@ -775,7 +775,14 @@ QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable
   return result;
 }
 
-/* inherits documentation from base class */
+/*!
+  Implements a selectTest specific to this plottable's point geometry.
+
+  If \a details is not 0, it will be set to a \ref QCPDataSelection, describing the closest data
+  point to \a pos.
+  
+  \seebaseclassmethod \ref QCPAbstractPlottable::selectTest
+*/
 double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   Q_UNUSED(details)

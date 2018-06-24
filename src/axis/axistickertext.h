@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #ifndef QCP_AXISTICKERTEXT_H
@@ -39,12 +39,12 @@ public:
   
   // setters:
   void setTicks(const QMap<double, QString> &ticks);
-  void setTicks(const QVector<double> &positions, const QVector<QString> labels);
+  void setTicks(const QVector<double> &positions, const QVector<QString> &labels);
   void setSubTickCount(int subTicks);
   
   // non-virtual methods:
   void clear();
-  void addTick(double position, QString label);
+  void addTick(double position, const QString &label);
   void addTicks(const QMap<double, QString> &ticks);
   void addTicks(const QVector<double> &positions, const QVector<QString> &labels);
   
@@ -58,7 +58,6 @@ protected:
   virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE;
   virtual QString getTickLabel(double tick, const QLocale &locale, QChar formatChar, int precision) Q_DECL_OVERRIDE;
   virtual QVector<double> createTickVector(double tickStep, const QCPRange &range) Q_DECL_OVERRIDE;
-  
 };
 
 #endif // QCP_AXISTICKERTEXT_H

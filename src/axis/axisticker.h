@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #ifndef QCPAXISTICKER_H
@@ -80,6 +80,10 @@ protected:
   double pickClosest(double target, const QVector<double> &candidates) const;
   double getMantissa(double input, double *magnitude=0) const;
   double cleanMantissa(double input) const;
+  
+private:
+  Q_DISABLE_COPY(QCPAxisTicker)
+  
 };
 Q_DECLARE_METATYPE(QCPAxisTicker::TickStepStrategy)
 Q_DECLARE_METATYPE(QSharedPointer<QCPAxisTicker>)

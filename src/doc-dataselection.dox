@@ -83,6 +83,15 @@
   
   Of course, the data selections returned by \ref QCPAbstractPlottable::selection are always within
   the plottable's data bounds, as long as they aren't changed after retrieving the selection.
+  
+  \section dataselection-dataatpos Retrieving the data point at a given pixel position
+
+  If you only want to find out which data point of a plottable is at or close to a given pixel
+  position (without the need for a click or actual selection event), you can use \ref
+  QCPAbstractPlottable::selectTest. For example, the following code retrieves an iterator to the
+  data point closest to a given QPoint in pixel coordinates:
+  
+  \snippet documentation/doc-code-snippets/mainwindow.cpp qcpdataselection-pointatpos
 
   <br><br><br>
   <br><br><br>

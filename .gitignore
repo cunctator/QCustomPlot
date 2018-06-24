@@ -25,6 +25,11 @@ ui_*.h
 *.moc
 .qmake.stash
 
+# PyCharm:
+
+.idea/
+*.pyc
+
 # Compilation Binaries:
 
 *.o

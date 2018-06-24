@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "colorgradient.h"
@@ -586,10 +586,22 @@ void QCPColorGradient::updateColorBuffer()
       QMap<double, QColor>::const_iterator it = mColorStops.lowerBound(position);
       if (it == mColorStops.constEnd()) // position is on or after last stop, use color of last stop
       {
-        mColorBuffer[i] = (it-1).value().rgba();
+        if (useAlpha)
+        {
+          const QColor col = (it-1).value();
+          const float alphaPremultiplier = col.alpha()/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
+          mColorBuffer[i] = qRgba(col.red()*alphaPremultiplier, col.green()*alphaPremultiplier, col.blue()*alphaPremultiplier, col.alpha());
+        } else
+          mColorBuffer[i] = (it-1).value().rgba();
       } else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
       {
-        mColorBuffer[i] = it.value().rgba();
+        if (useAlpha)
+        {
+          const QColor col = it.value();
+          const float alphaPremultiplier = col.alpha()/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
+          mColorBuffer[i] = qRgba(col.red()*alphaPremultiplier, col.green()*alphaPremultiplier, col.blue()*alphaPremultiplier, col.alpha());
+        } else
+          mColorBuffer[i] = it.value().rgba();
       } else // position is in between stops (or on an intermediate stop), interpolate color
       {
         QMap<double, QColor>::const_iterator high = it;

@@ -229,6 +229,21 @@ void MainWindow::snippetQCPFinancial()
   //! [qcpfinancial-creation-2]
 }
 
+void MainWindow::snippetQCPAxisTickers()
+{
+  //! [qcpaxisticker-log-creation]
+  customPlot->xAxis->setScaleType(QCPAxis::stLogarithmic);
+  customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  //! [qcpaxisticker-log-creation]
+  
+  QCPColorScale *colorScale = new QCPColorScale(customPlot);
+  customPlot->plotLayout()->addElement(colorScale);
+  //! [qcpaxisticker-log-colorscale]
+  colorScale->setDataScaleType(QCPAxis::stLogarithmic);
+  colorScale->axis()->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
+  //! [qcpaxisticker-log-colorscale]
+}
+
 void MainWindow::snippetQCPGraphDataSharing()
 {
   QCPGraph *graph1 = customPlot->addGraph();
@@ -331,6 +346,22 @@ void MainWindow::snippetQCPDataSelectionIterating()
   //! [qcpdataselection-iterating-1]
   
   Q_UNUSED(average)
+}
+
+void MainWindow::snippetQCPDataSelectionPointAtPos()
+{
+  QCPGraph *graph = customPlot->addGraph();
+  //! [qcpdataselection-pointatpos]
+  QCPGraphDataContainer::const_iterator it = graph->data()->constEnd();
+  QVariant details;
+  if (graph->selectTest(QPoint(123, 456), false, &details)) // QPoint could be e.g. event->pos() of a mouse event
+  {
+    QCPDataSelection dataPoints = details.value<QCPDataSelection>();
+    if (dataPoints.dataPointCount() > 0)
+      it = graph->data()->at(dataPoints.dataRange().begin());
+  }
+  // iterator "it" now carries the data point at pixel coordinates (123, 456), or constEnd if no data point was hit.
+  //! [qcpdataselection-pointatpos]
 }
 
 void MainWindow::websiteBasicPlottingBars()

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "layoutelement-legend.h"
@@ -366,7 +366,7 @@ QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
 
   Use the methods \ref setFillOrder and \ref setWrap inherited from \ref QCPLayoutGrid to control
   in which order (column first or row first) the legend is filled up when calling \ref addItem, and
-  at which column or row wrapping occurs.
+  at which column or row wrapping occurs. The default fill order for legends is \ref foRowsFirst.
 
   By default, every QCustomPlot has one legend (\ref QCustomPlot::legend) which is placed in the
   inset layout of the main axis rect (\ref QCPAxisRect::insetLayout). To move the legend to another

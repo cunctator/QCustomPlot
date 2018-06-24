@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "selection.h"
@@ -33,8 +33,9 @@
   \brief Describes a data range given by begin and end index
   
   QCPDataRange holds two integers describing the begin (\ref setBegin) and end (\ref setEnd) index
-  of a contiguous set of data points. The end index points to the data point above the last data point that's part of
-  the data range, similarly to the nomenclature used in standard iterators.
+  of a contiguous set of data points. The end index points to the data point just after the last
+  data point that's part of the data range, similarly to the nomenclature used in standard
+  iterators.
   
   Data Ranges are not bound to a certain plottable, thus they can be freely exchanged, created and
   modified. If a non-contiguous data set shall be described, the class \ref QCPDataSelection is
@@ -81,7 +82,7 @@
 
 /*! \fn void QCPDataRange::setEnd(int end)
   
-  Sets the end of this data range. The \a end index points to the data point just above the last
+  Sets the end of this data range. The \a end index points to the data point just after the last
   data point that is part of the data range.
   
   No checks or corrections are made to ensure the resulting range is valid (\ref isValid).
@@ -197,7 +198,7 @@ bool QCPDataRange::intersects(const QCPDataRange &other) const
 }
 
 /*!
-  Returns whether all data points described by this data range are also in \a other.
+  Returns whether all data points of \a other are also contained inside this data range.
   
   \see intersects
 */
@@ -528,7 +529,8 @@ void QCPDataSelection::enforceType(QCP::SelectionType type)
     }
     case QCP::stDataRange:
     {
-      mDataRanges = QList<QCPDataRange>() << span();
+      if (!isEmpty())
+        mDataRanges = QList<QCPDataRange>() << span();
       break;
     }
     case QCP::stMultipleDataRanges:

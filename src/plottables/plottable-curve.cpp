@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "plottable-curve.h"
@@ -394,7 +394,14 @@ void QCPCurve::addData(double key, double value)
     mDataContainer->add(QCPCurveData(0.0, key, value));
 }
 
-/* inherits documentation from base class */
+/*!
+  Implements a selectTest specific to this plottable's point geometry.
+
+  If \a details is not 0, it will be set to a \ref QCPDataSelection, describing the closest data
+  point to \a pos.
+  
+  \seebaseclassmethod \ref QCPAbstractPlottable::selectTest
+*/
 double QCPCurve::selectTest(const QPointF &pos, bool onlySelectable, QVariant *details) const
 {
   if ((onlySelectable && mSelectable == QCP::stNone) || mDataContainer->isEmpty())
@@ -1444,7 +1451,7 @@ double QCPCurve::pointDistance(const QPointF &pixelPoint, QCPCurveDataContainer:
   }
   
   // calculate minimum distances to curve data points and find closestData iterator:
-  double minDistSqr = std::numeric_limits<double>::max();
+  double minDistSqr = (std::numeric_limits<double>::max)();
   // iterate over found data points and then choose the one with the shortest distance to pos:
   QCPCurveDataContainer::const_iterator begin = mDataContainer->constBegin();
   QCPCurveDataContainer::const_iterator end = mDataContainer->constEnd();

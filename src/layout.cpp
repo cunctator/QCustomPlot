@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2017 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 04.09.17                                             **
-**          Version: 2.0.0                                                **
+**             Date: 25.06.18                                             **
+**          Version: 2.0.1                                                **
 ****************************************************************************/
 
 #include "layout.h"
@@ -1143,7 +1143,7 @@ QCPLayoutGrid::QCPLayoutGrid() :
   mColumnSpacing(5),
   mRowSpacing(5),
   mWrap(0),
-  mFillOrder(foRowsFirst)
+  mFillOrder(foColumnsFirst)
 {
 }
 
@@ -1419,7 +1419,8 @@ void QCPLayoutGrid::setWrap(int count)
   The specified \a order defines whether rows or columns are filled first. Using \ref setWrap, you
   can control at which row/column count wrapping into the next column/row will occur. If you set it
   to zero, no wrapping will ever occur. Changing the fill order also changes the meaning of the
-  linear index used e.g. in \ref elementAt and \ref takeAt.
+  linear index used e.g. in \ref elementAt and \ref takeAt. The default fill order for \ref
+  QCPLayoutGrid is \ref foColumnsFirst.
 
   If you want to have all current elements arranged in the new order, set \a rearrange to true. The
   elements will be rearranged in a way that tries to preserve their linear index. However, empty

@@ -56,6 +56,9 @@
 #endif
 // amalgamation: include end
 
+#define QCUSTOMPLOT_VERSION_STR "1.3.2"
+#define QCUSTOMPLOT_VERSION 0x010302
+
 // decl definitions for shared library compilation/usage:
 #if defined(QT_STATIC_BUILD)
 #  define QCP_LIB_DECL

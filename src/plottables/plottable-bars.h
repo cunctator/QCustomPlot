@@ -52,7 +52,7 @@ public:
                      ,stAxisRectRatio ///< Bar spacing is given by a fraction of the axis rect size
                      ,stPlotCoords    ///< Bar spacing is in key coordinates and thus scales with the key axis range
                  };
-  QCPBarsGroup(QCustomPlot *parentPlot);
+  explicit QCPBarsGroup(QCustomPlot *parentPlot);
   ~QCPBarsGroup();
   
   // getters:

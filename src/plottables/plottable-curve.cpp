@@ -1242,12 +1242,12 @@ bool QCPCurve::getTraverse(double prevKey, double prevValue, double key, double 
   const double valuePx = mValueAxis->coordToPixel(value);
   const double prevKeyPx = mKeyAxis->coordToPixel(prevKey);
   const double prevValuePx = mValueAxis->coordToPixel(prevValue);
-  if (qFuzzyIsNull(key-prevKey)) // line is parallel to value axis
+  if (qFuzzyIsNull(keyPx-prevKeyPx)) // line is parallel to value axis
   {
     // due to region filter in mayTraverse(), if line is parallel to value or key axis, region 5 is traversed here
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyPx, valueMinPx) : QPointF(valueMinPx, keyPx)); // direction will be taken care of at end of method
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyPx, valueMaxPx) : QPointF(valueMaxPx, keyPx));
-  } else if (qFuzzyIsNull(value-prevValue)) // line is parallel to key axis
+  } else if (qFuzzyIsNull(valuePx-prevValuePx)) // line is parallel to key axis
   {
     // due to region filter in mayTraverse(), if line is parallel to value or key axis, region 5 is traversed here
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyMinPx, valuePx) : QPointF(valuePx, keyMinPx)); // direction will be taken care of at end of method

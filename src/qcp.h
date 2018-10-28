@@ -72,5 +72,9 @@
 #include "items/item-pixmap.h"
 #include "items/item-tracer.h"
 #include "items/item-bracket.h"
+#include "polar/radialaxis.h"
+#include "polar/layoutelement-angularaxis.h"
+#include "polar/polargrid.h"
+#include "polar/polargraph.h"
 
 #endif // QCP_H

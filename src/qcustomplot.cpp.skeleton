@@ -35,6 +35,7 @@
 //amalgamation: add selectionrect.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
+//amalgamation: add axis/labelpainter.cpp
 //amalgamation: add axis/axisticker.cpp
 //amalgamation: add axis/axistickerdatetime.cpp
 //amalgamation: add axis/axistickertime.cpp
@@ -71,4 +72,8 @@
 //amalgamation: add items/item-pixmap.cpp
 //amalgamation: add items/item-tracer.cpp
 //amalgamation: add items/item-bracket.cpp
+//amalgamation: add polar/radialaxis.cpp
+//amalgamation: add polar/layoutelement-angularaxis.cpp
+//amalgamation: add polar/polargrid.cpp
+//amalgamation: add polar/polargraph.cpp
 

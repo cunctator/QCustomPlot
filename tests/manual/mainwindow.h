@@ -52,6 +52,7 @@ public:
   void setupErrorBarTest(QCustomPlot *customPlot);
   void setupDataSelectTest(QCustomPlot *customPlot);
   void setupScatterSkipTest(QCustomPlot *customPlot);
+  void setupPolarAxisTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   
@@ -70,6 +71,7 @@ public slots:
   void tracerTestMouseMove(QMouseEvent *event);
   void selectTestColorMapRefresh();
   void mouseMoveRotateTickLabels(QMouseEvent *event);
+  void mouseMoveRotateAngularTickLabels(QMouseEvent *event);
   void tickLabelTestTimerSlot();
   void setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event);
   void daqPerformanceDataSlot();

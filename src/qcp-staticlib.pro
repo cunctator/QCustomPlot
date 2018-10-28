@@ -34,6 +34,7 @@ HEADERS += \
     paintbuffer.h \
     layer.h \
     axis/range.h \
+    axis/labelpainter.h \
     axis/axis.h \
     axis/axisticker.h \
     plottable.h \
@@ -74,13 +75,18 @@ HEADERS += \
     selectionrect.h \
     plottable1d.h \
     scatterstyle.h \
-    selectiondecorator-bracket.h
+    selectiondecorator-bracket.h \
+    polar/radialaxis.h \
+    polar/layoutelement-angularaxis.h \
+    polar/polargrid.h \
+    polar/polargraph.h
 
 SOURCES += \
     painter.cpp \
     paintbuffer.cpp \
     layer.cpp \
     axis/range.cpp \
+    axis/labelpainter.cpp \
     axis/axis.cpp \
     axis/axisticker.cpp \
     plottable.cpp \
@@ -121,7 +127,11 @@ SOURCES += \
     selectionrect.cpp \
     plottable1d.cpp \
     scatterstyle.cpp \
-    selectiondecorator-bracket.cpp
+    selectiondecorator-bracket.cpp \
+    polar/radialaxis.cpp \
+    polar/layoutelement-angularaxis.cpp \
+    polar/polargrid.cpp \
+    polar/polargraph.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

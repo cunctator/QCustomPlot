@@ -39,6 +39,7 @@
 //amalgamation: add selectionrect.h
 //amalgamation: add layout.h
 //amalgamation: add lineending.h
+//amalgamation: add axis/labelpainter.h
 //amalgamation: add axis/axisticker.h
 //amalgamation: add axis/axistickerdatetime.h
 //amalgamation: add axis/axistickertime.h
@@ -75,6 +76,10 @@
 //amalgamation: add items/item-pixmap.h
 //amalgamation: add items/item-tracer.h
 //amalgamation: add items/item-bracket.h
+//amalgamation: add polar/radialaxis.h
+//amalgamation: add polar/layoutelement-angularaxis.h
+//amalgamation: add polar/polargrid.h
+//amalgamation: add polar/polargraph.h
 
 #endif // QCUSTOMPLOT_H
 

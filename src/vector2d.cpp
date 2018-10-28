@@ -68,6 +68,13 @@
   \see length
 */
 
+/*! \fn double QCPVector2D::angle() const
+  
+  Returns the angle of the vector in radians. The angle is measured between the positive x line and
+  the vector, counter-clockwise in a mathematical coordinate system (y axis upwards positive). In
+  screen/widget coordinates where the y axis is inverted, the angle appears clockwise.
+*/
+
 /*! \fn QPoint QCPVector2D::toPoint() const
   
   Returns a QPoint which has the x and y coordinates of this vector, truncating any floating point

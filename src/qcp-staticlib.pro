@@ -74,7 +74,8 @@ HEADERS += \
     selectionrect.h \
     plottable1d.h \
     scatterstyle.h \
-    selectiondecorator-bracket.h
+    selectiondecorator-bracket.h \
+    interface-clipprovider.h
 
 SOURCES += \
     painter.cpp \
@@ -121,7 +122,8 @@ SOURCES += \
     selectionrect.cpp \
     plottable1d.cpp \
     scatterstyle.cpp \
-    selectiondecorator-bracket.cpp
+    selectiondecorator-bracket.cpp \
+    interface-clipprovider.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

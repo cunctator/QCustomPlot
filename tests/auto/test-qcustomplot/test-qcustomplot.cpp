@@ -12,6 +12,27 @@ void TestQCustomPlot::cleanup()
   delete mPlot;
 }
 
+void TestQCustomPlot::interface_plottables()
+{
+  mPlot->setGeometry(50, 50, 500, 500);
+  mPlot->axisRect()->setAutoMargins(QCP::msNone);
+  mPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
+  // set axes so plot coordinates equate pixel coordinates:
+  mPlot->xAxis->setRange(mPlot->axisRect()->left(), mPlot->axisRect()->right());
+  mPlot->yAxis->setRange(mPlot->axisRect()->top(), mPlot->axisRect()->bottom());
+  mPlot->yAxis->setRangeReversed(true);
+  
+  QCPGraph *g1 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
+  QCPGraph *g2 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
+  g1->setData(QVector<double>() << 200 << 300, QVector<double>() << 100 << 120);
+  g2->setData(QVector<double>() << 200 << 300, QVector<double>() << 103 << 123);
+  
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 111), false, 0), g1);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 113), false, 0), g2);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 130), false, 0), static_cast<QCPGraph*>(0));
+  QCOMPARE(mPlot->plottableAt<QCPBars>(QPointF(250, 110), false, 0), static_cast<QCPBars*>(0));
+}
+
 void TestQCustomPlot::rescaleAxes_GraphVisibility()
 {
   mPlot->setGeometry(50, 50, 500, 500);

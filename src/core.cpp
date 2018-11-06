@@ -1105,38 +1105,17 @@ QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 }
 
 /*!
-  Returns the plottable at the pixel position \a pos. Plottables that only consist of single lines
-  (like graphs) have a tolerance band around them, see \ref setSelectionTolerance. If multiple
-  plottables come into consideration, the one closest to \a pos is returned.
+  Returns any plottable at the pixel position \a pos. Since it can capture all plottables, the
+  return type is the abstract base class of all plottables, QCPAbstractPlottable.
   
-  If \a onlySelectable is true, only plottables that are selectable
-  (QCPAbstractPlottable::setSelectable) are considered.
+  For details, and if you wish to specify a certain plottable type (e.g. QCPGraph), see the
+  template method plottableAt<PlottableType>()
   
-  If there is no plottable at \a pos, the return value is 0.
-  
-  \see itemAt, layoutElementAt
+  \see plottableAt<PlottableType>(), itemAt, layoutElementAt
 */
-QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable) const
+QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable, int *dataIndex) const
 {
-  QCPAbstractPlottable *resultPlottable = 0;
-  double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
-  {
-    if (onlySelectable && !plottable->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPabstractPlottable::selectable
-      continue;
-    if ((plottable->keyAxis()->axisRect()->rect() & plottable->valueAxis()->axisRect()->rect()).contains(pos.toPoint())) // only consider clicks inside the rect that is spanned by the plottable's key/value axes
-    {
-      double currentDistance = plottable->selectTest(pos, false);
-      if (currentDistance >= 0 && currentDistance < resultDistance)
-      {
-        resultPlottable = plottable;
-        resultDistance = currentDistance;
-      }
-    }
-  }
-  
-  return resultPlottable;
+  return plottableAt<QCPAbstractPlottable>(pos, onlySelectable, dataIndex);
 }
 
 /*!
@@ -3099,7 +3078,8 @@ QCPLayerable *QCustomPlot::layerableAt(const QPointF &pos, bool onlySelectable, 
   layerables that are selectable will be considered. (Layerable subclasses communicate their
   selectability via the QCPLayerable::selectTest method, by returning -1.)
 
-  The returned list is sorted by the layerable/drawing order. If you only need to know the top-most
+  The returned list is sorted by the layerable/drawing order such that the layerable that appears
+  on top in the plot is at index 0 of the returned list. If you only need to know the top
   layerable, rather use \ref layerableAt.
 
   \a selectionDetails is an output parameter that contains selection specifics of the affected

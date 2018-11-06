@@ -30,10 +30,10 @@
 #include "axis/range.h"
 #include "axis/axis.h"
 #include "paintbuffer.h"
+#include "plottable.h"
 
 class QCPPainter;
 class QCPLayer;
-class QCPAbstractPlottable;
 class QCPAbstractItem;
 class QCPGraph;
 class QCPLegend;
@@ -133,7 +133,9 @@ public:
   int clearPlottables();
   int plottableCount() const;
   QList<QCPAbstractPlottable*> selectedPlottables() const;
-  QCPAbstractPlottable *plottableAt(const QPointF &pos, bool onlySelectable=false) const;
+  template<class PlottableType>
+  PlottableType *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=0) const;
+  QCPAbstractPlottable *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=0) const;
   bool hasPlottable(QCPAbstractPlottable *plottable) const;
  
   // specialized interface for QCPGraph:
@@ -303,5 +305,54 @@ protected:
 };
 Q_DECLARE_METATYPE(QCustomPlot::LayerInsertMode)
 Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)
+
+
+// implementation of template functions:
+
+/*!
+  Returns the plottable at the pixel position \a pos. The plottable type (a QCPAbstractPlottable
+  subclass) that shall be taken into consideration can be specified via the template parameter.
+
+  Plottables that only consist of single lines (like graphs) have a tolerance band around them, see
+  \ref setSelectionTolerance. If multiple plottables come into consideration, the one closest to \a
+  pos is returned.
+  
+  If \a onlySelectable is true, only plottables that are selectable
+  (QCPAbstractPlottable::setSelectable) are considered.
+  
+  if \a dataIndex is non-null, it is set to the index of the plottable's data point that is closest
+  to \a pos.
+
+  If there is no plottable of the specified type at \a pos, the return value is 0.
+  
+  \see itemAt, layoutElementAt
+*/
+template<class PlottableType>
+PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable, int *dataIndex) const
+{
+  PlottableType *resultPlottable = 0;
+  double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
+  
+  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  {
+    PlottableType *currentPlottable = qobject_cast<PlottableType*>(plottable);
+    if (!currentPlottable || (onlySelectable && !currentPlottable->selectable())) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractPlottable::selectable
+      continue;
+    if (currentPlottable->clipRect().contains(pos.toPoint())) // only consider clicks where the plottable is actually visible
+    {
+      QVariant details;
+      double currentDistance = currentPlottable->selectTest(pos, false, dataIndex ? &details : 0);
+      if (currentDistance >= 0 && currentDistance < resultDistance)
+      {
+        resultPlottable = currentPlottable;
+        resultDistance = currentDistance;
+      }
+    }
+  }
+  
+  return resultPlottable;
+}
+
+
 
 #endif // QCP_CORE_H

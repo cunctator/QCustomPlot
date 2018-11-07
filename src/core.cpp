@@ -1380,39 +1380,17 @@ QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 }
 
 /*!
-  Returns the item at the pixel position \a pos. Items that only consist of single lines (e.g. \ref
-  QCPItemLine or \ref QCPItemCurve) have a tolerance band around them, see \ref
-  setSelectionTolerance. If multiple items come into consideration, the one closest to \a pos is
-  returned.
+  Returns the item at the pixel position \a pos. Since it can capture all items, the
+  return type is the abstract base class of all items, QCPAbstractItem.
   
-  If \a onlySelectable is true, only items that are selectable (QCPAbstractItem::setSelectable) are
-  considered.
+  For details, and if you wish to specify a certain item type (e.g. QCPItemLine), see the
+  template method itemAt<ItemType>()
   
-  If there is no item at \a pos, the return value is 0.
-  
-  \see plottableAt, layoutElementAt
+  \see itemAt<ItemType>(), plottableAt, layoutElementAt
 */
 QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) const
 {
-  QCPAbstractItem *resultItem = 0;
-  double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractItem *item, mItems)
-  {
-    if (onlySelectable && !item->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
-      continue;
-    if (!item->clipToAxisRect() || item->clipRect().contains(pos.toPoint())) // only consider clicks inside axis cliprect of the item if actually clipped to it
-    {
-      double currentDistance = item->selectTest(pos, false);
-      if (currentDistance >= 0 && currentDistance < resultDistance)
-      {
-        resultItem = item;
-        resultDistance = currentDistance;
-      }
-    }
-  }
-  
-  return resultItem;
+  return itemAt<QCPAbstractItem>(pos, onlySelectable);
 }
 
 /*!

@@ -156,6 +156,8 @@ public:
   int clearItems();
   int itemCount() const;
   QList<QCPAbstractItem*> selectedItems() const;
+  template<class ItemType>
+  ItemType *itemAt(const QPointF &pos, bool onlySelectable=false) const;
   QCPAbstractItem *itemAt(const QPointF &pos, bool onlySelectable=false) const;
   bool hasItem(QCPAbstractItem *item) const;
   
@@ -359,6 +361,44 @@ PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable,
       *dataIndex = sel.dataRange(0).begin();
   }
   return resultPlottable;
+}
+
+/*!
+  Returns the item at the pixel position \a pos. The item type (a QCPAbstractItem subclass) that shall be
+  taken into consideration can be specified via the template parameter. Items that only consist of single
+  lines (e.g. \ref QCPItemLine or \ref QCPItemCurve) have a tolerance band around them, see \ref
+  setSelectionTolerance. If multiple items come into consideration, the one closest to \a pos is returned.
+  
+  If \a onlySelectable is true, only items that are selectable (QCPAbstractItem::setSelectable) are
+  considered.
+  
+  If there is no item at \a pos, the return value is 0.
+  
+  \see plottableAt, layoutElementAt
+*/
+template<class ItemType>
+ItemType *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) const
+{
+  ItemType *resultItem = 0;
+  double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
+  
+  foreach (QCPAbstractItem *item, mItems)
+  {
+    ItemType *currentItem = qobject_cast<ItemType*>(item);
+    if (!currentItem || (onlySelectable && !currentItem->selectable())) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
+      continue;
+    if (!currentItem->clipToAxisRect() || currentItem->clipRect().contains(pos.toPoint())) // only consider clicks inside axis cliprect of the item if actually clipped to it
+    {
+      double currentDistance = currentItem->selectTest(pos, false);
+      if (currentDistance >= 0 && currentDistance < resultDistance)
+      {
+        resultItem = currentItem;
+        resultDistance = currentDistance;
+      }
+    }
+  }
+  
+  return resultItem;
 }
 
 

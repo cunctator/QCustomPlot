@@ -331,6 +331,7 @@ template<class PlottableType>
 PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable, int *dataIndex) const
 {
   PlottableType *resultPlottable = 0;
+  QVariant resultDetails;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
   foreach (QCPAbstractPlottable *plottable, mPlottables)
@@ -345,11 +346,18 @@ PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable,
       if (currentDistance >= 0 && currentDistance < resultDistance)
       {
         resultPlottable = currentPlottable;
+        resultDetails = details;
         resultDistance = currentDistance;
       }
     }
   }
   
+  if (resultPlottable && dataIndex)
+  {
+    QCPDataSelection sel = resultDetails.value<QCPDataSelection>();
+    if (!sel.isEmpty())
+      *dataIndex = sel.dataRange(0).begin();
+  }
   return resultPlottable;
 }
 

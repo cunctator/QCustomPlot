@@ -1609,8 +1609,7 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   QCPList<QCPLayerable*> children = layer->children();
   if (isFirstLayer) // prepend in reverse order (so order relative to each other stays the same)
   {
-    QCPList<QCPLayerable*>::iterator iter = children.end();
-    for (iter--; iter != children.end(); iter--) {
+    for (auto iter = children.rbegin(); iter != children.rend(); iter++) {
       QCPLayerable *c = *iter;
       c->moveToLayer(targetLayer, true);
     }
@@ -3094,8 +3093,7 @@ QList<QCPLayerable*> QCustomPlot::layerableListAt(const QPointF &pos, bool onlyS
   for (int layerIndex=mLayers.size()-1; layerIndex>=0; --layerIndex)
   {
     const QCPList<QCPLayerable*> &layerables = mLayers.at(layerIndex)->children();
-    auto iter = layerables.cend();
-    for (iter--; iter != layerables.cend(); iter--)
+    for (auto iter = layerables.crbegin(); iter != layerables.crend(); iter++)
     {
       QCPLayerable *layerable = *iter;
       if (!layerable->realVisibility())

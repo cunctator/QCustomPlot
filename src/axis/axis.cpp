@@ -1625,15 +1625,15 @@ QList<QCPAbstractItem*> QCPAxis::items() const
 {
   QList<QCPAbstractItem*> result;
   if (!mParentPlot) return result;
-  
-  for (int itemId=0; itemId<mParentPlot->mItems.size(); ++itemId)
+
+  for (auto iter = mParentPlot->mItems.begin(); iter != mParentPlot->mItems.end(); iter++)
   {
-    QList<QCPItemPosition*> positions = mParentPlot->mItems.at(itemId)->positions();
+    QList<QCPItemPosition*> positions = (*iter)->positions();
     for (int posId=0; posId<positions.size(); ++posId)
     {
       if (positions.at(posId)->keyAxis() == this || positions.at(posId)->valueAxis() == this)
       {
-        result.append(mParentPlot->mItems.at(itemId));
+        result.append(*iter);
         break;
       }
     }

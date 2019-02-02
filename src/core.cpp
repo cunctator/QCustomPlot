@@ -1285,26 +1285,6 @@ QList<QCPGraph*> QCustomPlot::selectedGraphs() const
   return result;
 }
 
-/*!
-  Returns the item with \a index. If the index is invalid, returns 0.
-  
-  There is an overloaded version of this function with no parameter which returns the last added
-  item, see QCustomPlot::item()
-  
-  \see itemCount
-*/
-QCPAbstractItem *QCustomPlot::item(int index) const
-{
-  if (index >= 0 && index < mItems.size())
-  {
-    return mItems.at(index);
-  } else
-  {
-    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
-  }
-}
-
 /*! \overload
   
   Returns the last item that was added to this plot. If there are no items in the plot,
@@ -1342,21 +1322,6 @@ bool QCustomPlot::removeItem(QCPAbstractItem *item)
   }
 }
 
-/*! \overload
-  
-  Removes and deletes the item by its \a index.
-*/
-bool QCustomPlot::removeItem(int index)
-{
-  if (index >= 0 && index < mItems.size())
-    return removeItem(mItems[index]);
-  else
-  {
-    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return false;
-  }
-}
-
 /*!
   Removes all items from the plot and deletes them.
   
@@ -1367,8 +1332,9 @@ bool QCustomPlot::removeItem(int index)
 int QCustomPlot::clearItems()
 {
   int c = mItems.size();
-  for (int i=c-1; i >= 0; --i)
-    removeItem(mItems[i]);
+  for (auto iter = mItems.rbegin(); iter != mItems.rend(); iter++)
+	  delete *iter;
+  mItems.clear();
   return c;
 }
 
@@ -1390,8 +1356,9 @@ int QCustomPlot::itemCount() const
 QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 {
   QList<QCPAbstractItem*> result;
-  foreach (QCPAbstractItem *item, mItems)
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (item->selected())
       result.append(item);
   }
@@ -1415,9 +1382,10 @@ QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) co
 {
   QCPAbstractItem *resultItem = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractItem *item, mItems)
+
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (onlySelectable && !item->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
       continue;
     if (!item->clipToAxisRect() || item->clipRect().contains(pos.toPoint())) // only consider clicks inside axis cliprect of the item if actually clipped to it

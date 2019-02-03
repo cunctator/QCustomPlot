@@ -25,7 +25,6 @@
 
 #ifndef QCP_CORE_H
 #define QCP_CORE_H
-
 #include "global.h"
 #include "axis/range.h"
 #include "axis/axis.h"
@@ -128,10 +127,8 @@ public:
   
   // non-property methods:
   // plottable interface:
-  QCPAbstractPlottable *plottable(int index);
   QCPAbstractPlottable *plottable();
   bool removePlottable(QCPAbstractPlottable *plottable);
-  bool removePlottable(int index);
   int clearPlottables();
   int plottableCount() const;
   QList<QCPAbstractPlottable*> selectedPlottables() const;
@@ -139,11 +136,9 @@ public:
   bool hasPlottable(QCPAbstractPlottable *plottable) const;
  
   // specialized interface for QCPGraph:
-  QCPGraph *graph(int index) const;
   QCPGraph *graph() const;
   QCPGraph *addGraph(QCPAxis *keyAxis=0, QCPAxis *valueAxis=0);
   bool removeGraph(QCPGraph *graph);
-  bool removeGraph(int index);
   int clearGraphs();
   int graphCount() const;
   QList<QCPGraph*> selectedGraphs() const;
@@ -218,8 +213,8 @@ protected:
   double mBufferDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
-  QList<QCPAbstractPlottable*> mPlottables;
-  QList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
+  QCPList<QCPAbstractPlottable*> mPlottables;
+  QCPList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
   QCPList<QCPAbstractItem*> mItems;
   QList<QCPLayer*> mLayers;
   QCP::AntialiasedElements mAntialiasedElements, mNotAntialiasedElements;
@@ -298,6 +293,7 @@ protected:
   friend class QCPAbstractPlottable;
   friend class QCPGraph;
   friend class QCPAbstractItem;
+  friend class QCPColorScale;
 };
 Q_DECLARE_METATYPE(QCustomPlot::LayerInsertMode)
 Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)

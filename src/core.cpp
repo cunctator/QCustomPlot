@@ -980,26 +980,6 @@ void QCustomPlot::setBackgroundScaledMode(Qt::AspectRatioMode mode)
   mBackgroundScaledMode = mode;
 }
 
-/*!
-  Returns the plottable with \a index. If the index is invalid, returns 0.
-  
-  There is an overloaded version of this function with no parameter which returns the last added
-  plottable, see QCustomPlot::plottable()
-  
-  \see plottableCount
-*/
-QCPAbstractPlottable *QCustomPlot::plottable(int index)
-{
-  if (index >= 0 && index < mPlottables.size())
-  {
-    return mPlottables.at(index);
-  } else
-  {
-    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
-  }
-}
-
 /*! \overload
   
   Returns the last plottable that was added to the plot. If there are no plottables in the plot,
@@ -1043,21 +1023,6 @@ bool QCustomPlot::removePlottable(QCPAbstractPlottable *plottable)
   return true;
 }
 
-/*! \overload
-  
-  Removes and deletes the plottable by its \a index.
-*/
-bool QCustomPlot::removePlottable(int index)
-{
-  if (index >= 0 && index < mPlottables.size())
-    return removePlottable(mPlottables[index]);
-  else
-  {
-    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return false;
-  }
-}
-
 /*!
   Removes all plottables from the plot and deletes them. Corresponding legend items are also
   removed from the default legend (QCustomPlot::legend).
@@ -1069,8 +1034,17 @@ bool QCustomPlot::removePlottable(int index)
 int QCustomPlot::clearPlottables()
 {
   int c = mPlottables.size();
-  for (int i=c-1; i >= 0; --i)
-    removePlottable(mPlottables[i]);
+  auto iter = mPlottables.rbegin();
+  while (iter != mPlottables.rend())
+  {
+    QCPAbstractPlottable* plottable = *iter;
+    /*
+     * NB: We must advance the iterator before removing the graph, otherwise the iterator will become
+     * invalid, because removePlottable() will remove it from mPlottables
+     */
+    iter++;
+    removePlottable(plottable);
+  }
   return c;
 }
 
@@ -1094,8 +1068,9 @@ int QCustomPlot::plottableCount() const
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
   QList<QCPAbstractPlottable*> result;
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  for (auto iter = mPlottables.cbegin(); iter != mPlottables.cend(); iter++)
   {
+    QCPAbstractPlottable *plottable = *iter;
     if (plottable->selected())
       result.append(plottable);
   }
@@ -1118,9 +1093,10 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySele
 {
   QCPAbstractPlottable *resultPlottable = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+
+  for (auto iter = mPlottables.cbegin(); iter != mPlottables.cend(); iter++)
   {
+    QCPAbstractPlottable *plottable = *iter;
     if (onlySelectable && !plottable->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPabstractPlottable::selectable
       continue;
     if ((plottable->keyAxis()->axisRect()->rect() & plottable->valueAxis()->axisRect()->rect()).contains(pos.toPoint())) // only consider clicks inside the rect that is spanned by the plottable's key/value axes
@@ -1143,26 +1119,6 @@ QCPAbstractPlottable *QCustomPlot::plottableAt(const QPointF &pos, bool onlySele
 bool QCustomPlot::hasPlottable(QCPAbstractPlottable *plottable) const
 {
   return mPlottables.contains(plottable);
-}
-
-/*!
-  Returns the graph with \a index. If the index is invalid, returns 0.
-  
-  There is an overloaded version of this function with no parameter which returns the last created
-  graph, see QCustomPlot::graph()
-  
-  \see graphCount, addGraph
-*/
-QCPGraph *QCustomPlot::graph(int index) const
-{
-  if (index >= 0 && index < mGraphs.size())
-  {
-    return mGraphs.at(index);
-  } else
-  {
-    qDebug() << Q_FUNC_INFO << "index out of bounds:" << index;
-    return 0;
-  }
 }
 
 /*! \overload
@@ -1228,18 +1184,6 @@ bool QCustomPlot::removeGraph(QCPGraph *graph)
   return removePlottable(graph);
 }
 
-/*! \overload
-  
-  Removes and deletes the graph by its \a index.
-*/
-bool QCustomPlot::removeGraph(int index)
-{
-  if (index >= 0 && index < mGraphs.size())
-    return removeGraph(mGraphs[index]);
-  else
-    return false;
-}
-
 /*!
   Removes all graphs from the plot and deletes them. Corresponding legend items are also removed
   from the default legend (QCustomPlot::legend).
@@ -1251,8 +1195,17 @@ bool QCustomPlot::removeGraph(int index)
 int QCustomPlot::clearGraphs()
 {
   int c = mGraphs.size();
-  for (int i=c-1; i >= 0; --i)
-    removeGraph(mGraphs[i]);
+  auto iter = mGraphs.rbegin();
+  while (iter != mGraphs.rend())
+  {
+    QCPGraph *graph = *iter;
+    /*
+     * NB: We must advance the iterator before removing the graph, otherwise the iterator will become
+     * invalid, because removeGraph() will remove it from mGraphs
+     */
+    iter++;
+    removeGraph(graph);
+  }
   return c;
 }
 
@@ -1277,8 +1230,9 @@ int QCustomPlot::graphCount() const
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {
   QList<QCPGraph*> result;
-  foreach (QCPGraph *graph, mGraphs)
+  for (auto iter = mGraphs.cbegin(); iter != mGraphs.cend(); iter++)
   {
+    QCPGraph *graph = *iter;
     if (graph->selected())
       result.append(graph);
   }

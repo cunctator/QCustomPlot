@@ -526,10 +526,11 @@ QList<QCPAbstractPlottable*> QCPAxisRect::plottables() const
 {
   // Note: don't append all QCPAxis::plottables() into a list, because we might get duplicate entries
   QList<QCPAbstractPlottable*> result;
-  for (int i=0; i<mParentPlot->mPlottables.size(); ++i)
+  for (auto iter = mParentPlot->mPlottables.cbegin(); iter != mParentPlot->mPlottables.cend(); iter++)
   {
-    if (mParentPlot->mPlottables.at(i)->keyAxis()->axisRect() == this || mParentPlot->mPlottables.at(i)->valueAxis()->axisRect() == this)
-      result.append(mParentPlot->mPlottables.at(i));
+    QCPAbstractPlottable* plottable = *iter;
+    if (plottable->keyAxis()->axisRect() == this || plottable->valueAxis()->axisRect() == this)
+      result.append(plottable);
   }
   return result;
 }
@@ -546,10 +547,11 @@ QList<QCPGraph*> QCPAxisRect::graphs() const
 {
   // Note: don't append all QCPAxis::graphs() into a list, because we might get duplicate entries
   QList<QCPGraph*> result;
-  for (int i=0; i<mParentPlot->mGraphs.size(); ++i)
+  for (auto iter = mParentPlot->mGraphs.cbegin(); iter != mParentPlot->mGraphs.cend(); iter++)
   {
-    if (mParentPlot->mGraphs.at(i)->keyAxis()->axisRect() == this || mParentPlot->mGraphs.at(i)->valueAxis()->axisRect() == this)
-      result.append(mParentPlot->mGraphs.at(i));
+    QCPGraph* graph = *iter;
+    if (graph->keyAxis()->axisRect() == this || graph->valueAxis()->axisRect() == this)
+      result.append(graph);
   }
   return result;
 }

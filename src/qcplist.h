@@ -188,6 +188,8 @@ void QCPList<T>::deleteAll()
 		i = i->next;
 		delete p;
 	}
+	head.next = &head;
+	head.prev = &head;
 }
 
 template<class T>

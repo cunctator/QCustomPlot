@@ -130,6 +130,8 @@ public:
 	void append(const T &value);
 	void prepend(const T &value);
 	bool removeOne(const T &value);
+	void removeOne(iterator i);
+	void removeOne(reverse_iterator i);
 	bool isEmpty() const;
 	const T &last() const;
 	T &last();
@@ -241,6 +243,18 @@ bool QCPList<T>::removeOne(const T &value)
 		return true;
 	}
 	return false;
+}
+
+template<class T>
+void QCPList<T>::removeOne(iterator i)
+{
+	removeElement(i.ptr);
+}
+
+template<class T>
+void QCPList<T>::removeOne(reverse_iterator i)
+{
+	removeElement(i.ptr);
 }
 
 template<class T>

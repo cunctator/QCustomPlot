@@ -85,7 +85,7 @@ public:
 		iterator operator++(int);
 		iterator operator--(int);
 		T &operator*();
-		T operator->();
+		T *operator->();
 		bool operator==(iterator i);
 		bool operator!=(iterator i);
 	protected:
@@ -97,7 +97,7 @@ public:
 		const_iterator operator++(int);
 		const_iterator operator--(int);
 		const T &operator*();
-		const T operator->();
+		const T *operator->();
 		bool operator==(const_iterator i);
 		bool operator!=(const_iterator i);
 	protected:
@@ -109,7 +109,7 @@ public:
 		reverse_iterator operator++(int);
 		reverse_iterator operator--(int);
 		T &operator*();
-		T operator->();
+		T *operator->();
 		bool operator==(reverse_iterator i);
 		bool operator!=(reverse_iterator i);
 	protected:
@@ -121,7 +121,7 @@ public:
 		const_reverse_iterator operator++(int);
 		const_reverse_iterator operator--(int);
 		const T &operator*();
-		const T operator->();
+		const T *operator->();
 		bool operator==(const_reverse_iterator i);
 		bool operator!=(const_reverse_iterator i);
 	protected:
@@ -337,9 +337,9 @@ T &QCPList<T>::iterator::operator*()
 }
 
 template<class T>
-T QCPList<T>::iterator::operator->()
+T *QCPList<T>::iterator::operator->()
 {
-	return ptr->value;
+	return &ptr->value;
 }
 
 template<class T>
@@ -396,9 +396,9 @@ const T &QCPList<T>::const_iterator::operator*()
 }
 
 template<class T>
-const T QCPList<T>::const_iterator::operator->()
+const T *QCPList<T>::const_iterator::operator->()
 {
-	return ptr->value;
+	return &ptr->value;
 }
 
 template<class T>
@@ -456,9 +456,9 @@ T &QCPList<T>::reverse_iterator::operator*()
 }
 
 template<class T>
-T QCPList<T>::reverse_iterator::operator->()
+T *QCPList<T>::reverse_iterator::operator->()
 {
-	return ptr->value;
+	return &ptr->value;
 }
 
 template<class T>
@@ -516,9 +516,9 @@ const T &QCPList<T>::const_reverse_iterator::operator*()
 }
 
 template<class T>
-const T QCPList<T>::const_reverse_iterator::operator->()
+const T *QCPList<T>::const_reverse_iterator::operator->()
 {
-	return ptr->value;
+	return &ptr->value;
 }
 
 #endif /* QCPLIST_H  */

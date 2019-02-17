@@ -672,8 +672,8 @@ QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
   QCPErrorBarsDataContainer::const_iterator itEnd = mDataContainer->constEnd();
   if (mDataPlottable->interface1D()->sortKeyIsMainKey() && restrictKeyRange)
   {
-    itBegin = mDataContainer->constBegin()+findBegin(inKeyRange.lower);
-    itEnd = mDataContainer->constBegin()+findEnd(inKeyRange.upper);
+    itBegin = mDataContainer->constBegin()+findBegin(inKeyRange.lower, false);
+    itEnd = mDataContainer->constBegin()+findEnd(inKeyRange.upper, false);
   }
   for (QCPErrorBarsDataContainer::const_iterator it = itBegin; it != itEnd; ++it)
   {

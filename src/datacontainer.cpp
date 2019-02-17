@@ -651,8 +651,8 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
   QCPDataContainer<DataType>::const_iterator itEnd = constEnd();
   if (DataType::sortKeyIsMainKey() && restrictKeyRange)
   {
-    itBegin = findBegin(inKeyRange.lower);
-    itEnd = findEnd(inKeyRange.upper);
+    itBegin = findBegin(inKeyRange.lower, false);
+    itEnd = findEnd(inKeyRange.upper, false);
   }
   if (signDomain == QCP::sdBoth) // range may be anywhere
   {

@@ -865,8 +865,8 @@ QCPRange QCPBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain, 
   QCPBarsDataContainer::const_iterator itEnd = mDataContainer->constEnd();
   if (inKeyRange != QCPRange())
   {
-    itBegin = mDataContainer->findBegin(inKeyRange.lower);
-    itEnd = mDataContainer->findEnd(inKeyRange.upper);
+    itBegin = mDataContainer->findBegin(inKeyRange.lower, false);
+    itEnd = mDataContainer->findEnd(inKeyRange.upper, false);
   }
   for (QCPBarsDataContainer::const_iterator it = itBegin; it != itEnd; ++it)
   {

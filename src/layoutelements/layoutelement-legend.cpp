@@ -802,8 +802,12 @@ bool QCPLegend::removeItem(QCPAbstractLegendItem *item)
 */
 void QCPLegend::clearItems()
 {
-  for (int i=itemCount()-1; i>=0; --i)
-    removeItem(i);
+  for (int i=elementCount()-1; i>=0; --i)
+  {
+    if (item(i))
+      removeAt(i); // don't use removeItem() because it would unnecessarily reorder the whole legend for each item
+  }
+  setFillOrder(fillOrder(), true); // get rid of empty cells by reordering once after all items are removed
 }
 
 /*!

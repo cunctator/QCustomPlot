@@ -668,7 +668,8 @@ void QCPLegend::setSelectedTextColor(const QColor &color)
 }
 
 /*!
-  Returns the item with index \a i.
+  Returns the item with index \a i. If non-legend items were added to the legend, and the element
+  at the specified cell index is not a QCPAbstractLegendItem, returns 0.
 
   Note that the linear index depends on the current fill order (\ref setFillOrder).
 
@@ -699,7 +700,9 @@ QCPPlottableLegendItem *QCPLegend::itemWithPlottable(const QCPAbstractPlottable 
 }
 
 /*!
-  Returns the number of items currently in the legend.
+  Returns the number of items currently in the legend. It is identical to the base class
+  QCPLayoutGrid::elementCount(), and unlike the other "item" interface methods of QCPLegend,
+  doesn't only address elements which can be cast to QCPAbstractLegendItem.
 
   Note that if empty cells are in the legend (e.g. by calling methods of the \ref QCPLayoutGrid
   base class which allows creating empty cells), they are included in the returned count.

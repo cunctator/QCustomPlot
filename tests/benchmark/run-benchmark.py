@@ -52,7 +52,7 @@ for i in range(config.rounds):
     proc = subprocess.Popen([config.executable], stdout=subprocess.PIPE)
     currentName = ""
     for line in proc.stdout:
-
+        line = line.decode('utf-8')
         m = namePattern.search(line)
         if m:
             currentName = m.group(1)
@@ -69,9 +69,9 @@ for i in range(config.rounds):
 
 # Output result statistics:
 proc = subprocess.Popen(["git", "status", "--porcelain", "--branch"], stdout=subprocess.PIPE)
-gitBranch = re.search(r"## (.*)", proc.stdout.readline()).group(1)
+gitBranch = re.search(r"## (.*)", proc.stdout.readline().decode('utf-8')).group(1)
 proc = subprocess.Popen(["git", "log", "HEAD^..HEAD", "--oneline"], stdout=subprocess.PIPE)
-gitHead = proc.stdout.readline().rstrip()
+gitHead = proc.stdout.readline().decode('utf-8').rstrip()
 timeStamp = time.strftime("%Y-%m-%d %H:%M", time.localtime())
 
 output = "*** Benchmark on "+timeStamp+" ***\n"

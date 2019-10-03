@@ -5,6 +5,7 @@
 class Benchmark : public QObject
 {
   Q_OBJECT
+
 private slots:
   void init();
   void cleanup();
@@ -31,6 +32,7 @@ private slots:
   
 private:
   QCustomPlot *mPlot;
+  QWidget mContainerWidget;
 };
 
 QTEST_MAIN(Benchmark)
@@ -41,12 +43,17 @@ QTEST_MAIN(Benchmark)
 /////// Benchmark Implementation
 ////////////////////////////////////////////////////////////////////
 
-
 void Benchmark::init()
 {
-  mPlot = new QCustomPlot(0);
+  if (!mContainerWidget.isVisible())
+  {
+    mContainerWidget.setGeometry(0, 0, 640, 360);
+    mContainerWidget.show();
+  }
+  mPlot = new QCustomPlot(&mContainerWidget);
   mPlot->setGeometry(0, 0, 640, 360);
   mPlot->show();
+  qApp->processEvents();
 }
 
 void Benchmark::cleanup()

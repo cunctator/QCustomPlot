@@ -286,3 +286,32 @@ QCPGraph_RemoveDataBetween         1.000 +/- 0.000 ms
 QCPGraph_Standard                  2.020 +/- 0.040 ms
 
 
+*** Benchmark on 2019-10-04 00:01 ***
+Platform: Windows-10-10.0.18362-SP0, anonymous
+Qt Version: 5.13.0
+Git Branch: dev-2.1.0...origin/dev-2.1.0 [ahead 4]
+Git Head: 940ef86 - benchmark project now avoids re-creating a window for each test case, allowing faster iterations - updated benchmark python script for newer python versions
+Rounds: 20
+Comment: Before QCPColorMap NaN handling
+QCPAxis_TickLabels                 3.530 +/- 0.056 ms
+QCPAxis_TickLabelsCached           0.515 +/- 0.043 ms
+QCPColorMap_ColorizeMap            0.568 +/- 0.009 ms
+QCPColorMap_Standard               0.560 +/- 0.054 ms
+QCPGraph_AddDataAtBeginSorted     11.500 +/- 0.500 ms
+QCPGraph_AddDataAtBeginUnsorted   44.150 +/- 0.357 ms
+QCPGraph_AddDataAtEndSorted       10.200 +/- 0.400 ms
+QCPGraph_AddDataAtEndUnsorted     34.150 +/- 0.357 ms
+QCPGraph_AddDataMixedSorted       20.650 +/- 0.654 ms
+QCPGraph_AddDataMixedUnsorted     45.450 +/- 1.117 ms
+QCPGraph_AddDataSingleAtBegin      0.150 +/- 0.050 ms
+QCPGraph_AddDataSingleAtEnd        0.100 +/- 0.000 ms
+QCPGraph_AddDataSingleRandom      15.000 +/- 0.000 ms
+QCPGraph_ManyLines                 2.170 +/- 0.090 ms
+QCPGraph_ManyOffScreenLines        0.711 +/- 0.019 ms
+QCPGraph_ManyPoints                4.405 +/- 0.120 ms
+QCPGraph_RemoveDataAfter           0.001 +/- 0.000 ms
+QCPGraph_RemoveDataBefore          0.810 +/- 0.030 ms
+QCPGraph_RemoveDataBetween         0.335 +/- 0.048 ms
+QCPGraph_Standard                  1.735 +/- 0.153 ms
+
+

@@ -26,7 +26,11 @@ private slots:
   void QCPGraph_AddDataSingleAtEnd();
   void QCPGraph_AddDataSingleAtBegin();
   void QCPGraph_AddDataSingleRandom();
-
+  
+  void QCPColorMap_Standard();
+  void QCPColorMap_ColorizeMap();
+  
+  
   void QCPAxis_TickLabels();
   void QCPAxis_TickLabelsCached();
   
@@ -524,6 +528,69 @@ void Benchmark::QCPGraph_AddDataSingleRandom()
     ++iteration;
   }
   QTest::setBenchmarkResult(elapsed/1e3/(double)iteration, QTest::WalltimeMilliseconds); // 1e3 instead of 1e6 is intentional to get time of 1000 iterations (fits better to precision of benchmark script)
+}
+
+void Benchmark::QCPColorMap_Standard()
+{
+  QCPColorMap *map = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
+  const int n = 200;
+  map->data()->setSize(n, n);
+  map->data()->setRange(QCPRange(0, 5), QCPRange(0, 5));
+  qsrand(0);
+  for (int x=0; x<map->data()->keySize(); ++x)
+  {
+    for (int y=0; y<map->data()->valueSize(); ++y)
+    {
+      map->data()->setCell(x, y, qrand()/double(RAND_MAX));
+    }
+  }
+  
+  const int nanCount = 50;
+  for (int i=0; i<nanCount*nanCount; ++i)
+    map->data()->setCell(i%nanCount + n/2-nanCount/2, i/nanCount + n/2-nanCount/2, qQNaN()); // insert NaNs in reproducible pseudorandom locations
+  
+  QCPColorGradient gradient(QCPColorGradient::gpHot);
+  map->setGradient(gradient);
+  map->setInterpolate(false);
+  map->rescaleDataRange();
+  mPlot->rescaleAxes();
+  
+  QBENCHMARK
+  {
+    mPlot->replot();
+  }
+}
+
+void Benchmark::QCPColorMap_ColorizeMap()
+{
+  QCPColorMap *map = new QCPColorMap(mPlot->xAxis, mPlot->yAxis);
+  const int n = 200;
+  map->data()->setSize(n, n);
+  map->data()->setRange(QCPRange(0, 5), QCPRange(0, 5));
+  qsrand(0);
+  for (int x=0; x<map->data()->keySize(); ++x)
+  {
+    for (int y=0; y<map->data()->valueSize(); ++y)
+    {
+      map->data()->setCell(x, y, qrand()/double(RAND_MAX));
+    }
+  }
+  
+  const int nanCount = 50;
+  for (int i=0; i<nanCount*nanCount; ++i)
+    map->data()->setCell(i%nanCount + n/2-nanCount/2, i/nanCount + n/2-nanCount/2, qQNaN()); // insert NaNs in reproducible pseudorandom locations
+  
+  QCPColorGradient gradient(QCPColorGradient::gpHot);
+  map->setGradient(gradient);
+  map->setInterpolate(false);
+  map->rescaleDataRange();
+  mPlot->rescaleAxes();
+  
+  QBENCHMARK
+  {
+    map->data()->setCell(0, 0, 0); // to invalidate the currently cached map image
+    mPlot->replot();
+  }
 }
 
 void Benchmark::QCPAxis_TickLabels()

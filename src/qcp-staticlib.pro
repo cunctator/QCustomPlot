@@ -14,6 +14,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TEMPLATE = lib
 CONFIG += qt staticlib debug_and_release build_all
+DESTDIR = $$PWD
 
 DEFINES += QCUSTOMPLOT_USE_OPENGL
 

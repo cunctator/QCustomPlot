@@ -15,23 +15,18 @@ CONFIG(debug, debug|release) {
 } else {
   qcplib.commands = cd ../../src && $(MAKE) release
 }
+
 QMAKE_EXTRA_TARGETS += qcplib
 PRE_TARGETDEPS += qcplib
 
 SOURCES += main.cpp\
-mainwindow.cpp
+           mainwindow.cpp
 HEADERS  += mainwindow.h \
-../../src/qcp.h
+            ../../src/qcp.h
 FORMS    += mainwindow.ui
-OTHER_FILES += \
-../../changelog.txt
+OTHER_FILES += ../../changelog.txt
 
-LIBS += -L../../src
-CONFIG(debug, debug|release) {
-  LIBS += -lqcustomplotd
-} else {
-  LIBS += -lqcustomplot
-}
+include(../../src/qcp-staticlib.pri)
 
 
 

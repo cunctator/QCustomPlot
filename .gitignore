@@ -24,11 +24,13 @@ ui_*.h
 *.autosave
 *.moc
 .qmake.stash
+object_script.*
 
-# PyCharm:
+# Python:
 
 .idea/
 *.pyc
+__pycache__/
 
 # Compilation Binaries:
 

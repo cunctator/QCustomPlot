@@ -2631,8 +2631,8 @@ QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
 
   If any buffer is invalidated, a partial replot (\ref QCPLayer::replot) is not allowed and always
   causes a full replot (\ref QCustomPlot::replot) of all layers. This is the case when for example
-  the layer order has changed, new layers were added, layers were removed, or layer modes were
-  changed (\ref QCPLayer::setMode).
+  the layer order has changed, new layers were added or removed, layer modes were changed (\ref
+  QCPLayer::setMode), or layerables were added or removed.
 
   \see QCPAbstractPaintBuffer::setInvalidated
 */

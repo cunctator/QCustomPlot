@@ -236,11 +236,12 @@ void QCPLayer::drawToPaintBuffer()
   the layerables on this specific layer, without the need to replot all other layers (as a call to
   \ref QCustomPlot::replot would do).
 
+  QCustomPlot also makes sure to replot all layers instead of only this one, if the layer ordering
+  or any layerable-layer-association has changed since the last full replot and any other paint
+  buffers were thus invalidated.
+
   If the layer mode is \ref lmLogical however, this method simply calls \ref QCustomPlot::replot on
   the parent QCustomPlot instance.
-
-  QCustomPlot also makes sure to replot all layers instead of only this one, if the layer ordering
-  has changed since the last full replot and the other paint buffers were thus invalidated.
 
   \see draw
 */
@@ -252,11 +253,11 @@ void QCPLayer::replot()
     {
       mPaintBuffer.data()->clear(Qt::transparent);
       drawToPaintBuffer();
-      mPaintBuffer.data()->setInvalidated(false);
+      mPaintBuffer.data()->setInvalidated(false); // since layer is lmBuffered, we know only this layer is on buffer and we can reset invalidated flag
       mParentPlot->update();
     } else
       qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
-  } else if (mMode == lmLogical)
+  } else
     mParentPlot->replot();
 }
 

@@ -593,13 +593,14 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
   
   \section qcpcolormap-appearance Changing the appearance
   
-  The central part of the appearance is the color gradient, which can be specified via \ref
+  Most important to the appearance is the color gradient, which can be specified via \ref
   setGradient. See the documentation of \ref QCPColorGradient for details on configuring a color
   gradient.
   
   The \a data range that is mapped to the colors of the gradient can be specified with \ref
   setDataRange. To make the data range encompass the whole data set minimum to maximum, call \ref
-  rescaleDataRange.
+  rescaleDataRange. If your data may contain NaN values, use \ref QCPColorGradient::setNanHandling
+  to define how they are displayed.
   
   \section qcpcolormap-transparency Transparency
   

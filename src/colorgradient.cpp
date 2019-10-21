@@ -227,7 +227,7 @@ void QCPColorGradient::setPeriodic(bool enabled)
   
   Use the overloaded method to additionally provide alpha map data.
 
-  The QRgb values that are placed in \a scanLine have their r, g and b components premultiplied
+  The QRgb values that are placed in \a scanLine have their r, g, and b components premultiplied
   with alpha (see QImage::Format_ARGB32_Premultiplied).
 */
 void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb *scanLine, int n, int dataIndexFactor, bool logarithmic)
@@ -246,108 +246,33 @@ void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb 
   if (mColorBufferInvalidated)
     updateColorBuffer();
   
-  const bool skipNanCheck = mNanHandling != nhNone;
-  if (!logarithmic)
+  const bool skipNanCheck = mNanHandling == nhNone;
+  const double posToIndexFactor = !logarithmic ? (mLevelCount-1)/range.size() : (mLevelCount-1)/qLn(range.upper/range.lower);
+  for (int i=0; i<n; ++i)
   {
-    const double posToIndexFactor = (mLevelCount-1)/range.size();
-    if (mPeriodic)
+    const double value = data[dataIndexFactor*i];
+    if (skipNanCheck || !std::isnan(value))
     {
-      for (int i=0; i<n; ++i)
+      int index = int((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
+      if (!mPeriodic)
       {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int((value-range.lower)*posToIndexFactor) % mLevelCount;
-          if (index < 0)
-            index += mLevelCount;
-          scanLine[i] = mColorBuffer.at(index);
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
+        index = qBound(0, index, mLevelCount-1);
+      } else
+      {
+        index %= mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
       }
+      scanLine[i] = mColorBuffer.at(index);
     } else
     {
-      for (int i=0; i<n; ++i)
+      switch(mNanHandling)
       {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int((value-range.lower)*posToIndexFactor);
-          if (index < 0)
-            index = 0;
-          else if (index >= mLevelCount)
-            index = mLevelCount-1;
-          scanLine[i] = mColorBuffer.at(index);
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
-      }
-    }
-  } else // logarithmic == true
-  {
-    if (mPeriodic)
-    {
-      for (int i=0; i<n; ++i)
-      {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int(qLn(value/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1)) % mLevelCount;
-          if (index < 0)
-            index += mLevelCount;
-          scanLine[i] = mColorBuffer.at(index);
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
-      }
-    } else
-    {
-      for (int i=0; i<n; ++i)
-      {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int(qLn(value/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1));
-          if (index < 0)
-            index = 0;
-          else if (index >= mLevelCount)
-            index = mLevelCount-1;
-          scanLine[i] = mColorBuffer.at(index);
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
+      case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
+      case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
+      case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
+      case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
+      case nhNone: break; // shouldn't happen
       }
     }
   }
@@ -382,140 +307,41 @@ void QCPColorGradient::colorize(const double *data, const unsigned char *alpha, 
   if (mColorBufferInvalidated)
     updateColorBuffer();
   
-  const bool skipNanCheck = mNanHandling != nhNone;
-  if (!logarithmic)
+  const bool skipNanCheck = mNanHandling == nhNone;
+  const double posToIndexFactor = !logarithmic ? (mLevelCount-1)/range.size() : (mLevelCount-1)/qLn(range.upper/range.lower);
+  for (int i=0; i<n; ++i)
   {
-    const double posToIndexFactor = (mLevelCount-1)/range.size();
-    if (mPeriodic)
+    const double value = data[dataIndexFactor*i];
+    if (skipNanCheck || !std::isnan(value))
     {
-      for (int i=0; i<n; ++i)
+      int index = int((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
+      if (!mPeriodic)
       {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int((value-range.lower)*posToIndexFactor) % mLevelCount;
-          if (index < 0)
-            index += mLevelCount;
-          if (alpha[dataIndexFactor*i] == 255)
-          {
-            scanLine[i] = mColorBuffer.at(index);
-          } else
-          {
-            const QRgb rgb = mColorBuffer.at(index);
-            const float alphaF = alpha[dataIndexFactor*i]/255.0f;
-            scanLine[i] = qRgba(int(qRed(rgb)*alphaF), int(qGreen(rgb)*alphaF), int(qBlue(rgb)*alphaF), int(qAlpha(rgb)*alphaF));
-          }
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
+        index = qBound(0, index, mLevelCount-1);
+      } else
+      {
+        index %= mLevelCount;
+        if (index < 0)
+          index += mLevelCount;
+      }
+      if (alpha[dataIndexFactor*i] == 255)
+      {
+        scanLine[i] = mColorBuffer.at(index);
+      } else
+      {
+        const QRgb rgb = mColorBuffer.at(index);
+        const float alphaF = alpha[dataIndexFactor*i]/255.0f;
+        scanLine[i] = qRgba(int(qRed(rgb)*alphaF), int(qGreen(rgb)*alphaF), int(qBlue(rgb)*alphaF), int(qAlpha(rgb)*alphaF)); // also multiply r,g,b with alpha, to conform to Format_ARGB32_Premultiplied
       }
     } else
     {
-      for (int i=0; i<n; ++i)
+      switch(mNanHandling)
       {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int((value-range.lower)*posToIndexFactor);
-          if (index < 0)
-            index = 0;
-          else if (index >= mLevelCount)
-            index = mLevelCount-1;
-          if (alpha[dataIndexFactor*i] == 255)
-          {
-            scanLine[i] = mColorBuffer.at(index);
-          } else
-          {
-            const QRgb rgb = mColorBuffer.at(index);
-            const float alphaF = alpha[dataIndexFactor*i]/255.0f;
-            scanLine[i] = qRgba(int(qRed(rgb)*alphaF), int(qGreen(rgb)*alphaF), int(qBlue(rgb)*alphaF), int(qAlpha(rgb)*alphaF));
-          }
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
-      }
-    }
-  } else // logarithmic == true
-  {
-    if (mPeriodic)
-    {
-      for (int i=0; i<n; ++i)
-      {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int(qLn(value/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1)) % mLevelCount;
-          if (index < 0)
-            index += mLevelCount;
-          if (alpha[dataIndexFactor*i] == 255)
-          {
-            scanLine[i] = mColorBuffer.at(index);
-          } else
-          {
-            const QRgb rgb = mColorBuffer.at(index);
-            const float alphaF = alpha[dataIndexFactor*i]/255.0f;
-            scanLine[i] = qRgba(int(qRed(rgb)*alphaF), int(qGreen(rgb)*alphaF), int(qBlue(rgb)*alphaF), int(qAlpha(rgb)*alphaF));
-          }
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
-      }
-    } else
-    {
-      for (int i=0; i<n; ++i)
-      {
-        const double value = data[dataIndexFactor*i];
-        if (skipNanCheck || !std::isnan(value))
-        {
-          int index = int(qLn(value/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1));
-          if (index < 0)
-            index = 0;
-          else if (index >= mLevelCount)
-            index = mLevelCount-1;
-          if (alpha[dataIndexFactor*i] == 255)
-          {
-            scanLine[i] = mColorBuffer.at(index);
-          } else
-          {
-            const QRgb rgb = mColorBuffer.at(index);
-            const float alphaF = alpha[dataIndexFactor*i]/255.0f;
-            scanLine[i] = qRgba(int(qRed(rgb)*alphaF), int(qGreen(rgb)*alphaF), int(qBlue(rgb)*alphaF), int(qAlpha(rgb)*alphaF));
-          }
-        } else
-        {
-          switch(mNanHandling)
-          {
-          case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
-          case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
-          case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
-          case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
-          case nhNone: break; // shouldn't happen
-          }
-        }
+      case nhLowestColor: scanLine[i] = mColorBuffer.first(); break;
+      case nhHighestColor: scanLine[i] = mColorBuffer.last(); break;
+      case nhTransparent: scanLine[i] = qRgba(0, 0, 0, 0); break;
+      case nhNanColor: scanLine[i] = mNanColor.rgba(); break;
+      case nhNone: break; // shouldn't happen
       }
     }
   }
@@ -539,7 +365,7 @@ QRgb QCPColorGradient::color(double position, const QCPRange &range, bool logari
   if (mColorBufferInvalidated)
     updateColorBuffer();
   
-  const bool skipNanCheck = mNanHandling != nhNone;
+  const bool skipNanCheck = mNanHandling == nhNone;
   if (!skipNanCheck && std::isnan(position))
   {
     switch(mNanHandling)
@@ -552,22 +378,16 @@ QRgb QCPColorGradient::color(double position, const QCPRange &range, bool logari
     }
   }
   
-  int index = 0;
-  if (!logarithmic)
-    index = (position-range.lower)*(mLevelCount-1)/range.size();
-  else
-    index = qLn(position/range.lower)/qLn(range.upper/range.lower)*(mLevelCount-1);
-  if (mPeriodic)
+  const double posToIndexFactor = !logarithmic ? (mLevelCount-1)/range.size() : (mLevelCount-1)/qLn(range.upper/range.lower);
+  int index = int((!logarithmic ? position-range.lower : qLn(position/range.lower)) * posToIndexFactor);
+  if (!mPeriodic)
   {
-    index = index % mLevelCount;
-    if (index < 0)
-      index += mLevelCount;
+    index = qBound(0, index, mLevelCount-1);
   } else
   {
+    index %= mLevelCount;
     if (index < 0)
-      index = 0;
-    else if (index >= mLevelCount)
-      index = mLevelCount-1;
+      index += mLevelCount;
   }
   return mColorBuffer.at(index);
 }

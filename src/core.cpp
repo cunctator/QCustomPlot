@@ -1579,8 +1579,8 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   if (layer == mCurrentLayer)
     setCurrentLayer(targetLayer);
   // invalidate the paint buffer that was responsible for this layer:
-  if (!layer->mPaintBuffer.isNull())
-    layer->mPaintBuffer.data()->setInvalidated();
+  if (QSharedPointer<QCPAbstractPaintBuffer> pb = layer->mPaintBuffer.toStrongRef())
+    pb->setInvalidated();
   // remove layer:
   delete layer;
   mLayers.removeOne(layer);
@@ -1616,10 +1616,10 @@ bool QCustomPlot::moveLayer(QCPLayer *layer, QCPLayer *otherLayer, QCustomPlot::
     mLayers.move(layer->index(), otherLayer->index() + (insertMode==limAbove ? 0:-1));
   
   // invalidate the paint buffers that are responsible for the layers:
-  if (!layer->mPaintBuffer.isNull())
-    layer->mPaintBuffer.data()->setInvalidated();
-  if (!otherLayer->mPaintBuffer.isNull())
-    otherLayer->mPaintBuffer.data()->setInvalidated();
+  if (QSharedPointer<QCPAbstractPaintBuffer> pb = layer->mPaintBuffer.toStrongRef())
+    pb->setInvalidated();
+  if (QSharedPointer<QCPAbstractPaintBuffer> pb = otherLayer->mPaintBuffer.toStrongRef())
+    pb->setInvalidated();
   
   updateLayerIndices();
   return true;

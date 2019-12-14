@@ -179,8 +179,8 @@ void QCPLayer::setMode(QCPLayer::LayerMode mode)
   if (mMode != mode)
   {
     mMode = mode;
-    if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+    if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef())
+      pb->setInvalidated();
   }
 }
 
@@ -215,16 +215,16 @@ void QCPLayer::draw(QCPPainter *painter)
 */
 void QCPLayer::drawToPaintBuffer()
 {
-  if (!mPaintBuffer.isNull())
+  if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef())
   {
-    if (QCPPainter *painter = mPaintBuffer.data()->startPainting())
+    if (QCPPainter *painter = pb->startPainting())
     {
       if (painter->isActive())
         draw(painter);
       else
         qDebug() << Q_FUNC_INFO << "paint buffer returned inactive painter";
       delete painter;
-      mPaintBuffer.data()->donePainting();
+      pb->donePainting();
     } else
       qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
   } else
@@ -249,11 +249,11 @@ void QCPLayer::replot()
 {
   if (mMode == lmBuffered && !mParentPlot->hasInvalidatedPaintBuffers())
   {
-    if (!mPaintBuffer.isNull())
+    if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef())
     {
-      mPaintBuffer.data()->clear(Qt::transparent);
+      pb->clear(Qt::transparent);
       drawToPaintBuffer();
-      mPaintBuffer.data()->setInvalidated(false); // since layer is lmBuffered, we know only this layer is on buffer and we can reset invalidated flag
+      pb->setInvalidated(false); // since layer is lmBuffered, we know only this layer is on buffer and we can reset invalidated flag
       mParentPlot->update();
     } else
       qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
@@ -279,8 +279,8 @@ void QCPLayer::addChild(QCPLayerable *layerable, bool prepend)
       mChildren.prepend(layerable);
     else
       mChildren.append(layerable);
-    if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+    if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef())
+      pb->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is already child of this layer" << reinterpret_cast<quintptr>(layerable);
 }
@@ -298,8 +298,8 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
 {
   if (mChildren.removeOne(layerable))
   {
-    if (!mPaintBuffer.isNull())
-      mPaintBuffer.data()->setInvalidated();
+    if (QSharedPointer<QCPAbstractPaintBuffer> pb = mPaintBuffer.toStrongRef())
+      pb->setInvalidated();
   } else
     qDebug() << Q_FUNC_INFO << "layerable is not child of this layer" << reinterpret_cast<quintptr>(layerable);
 }

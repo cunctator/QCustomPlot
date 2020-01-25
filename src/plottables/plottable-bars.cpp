@@ -791,7 +791,7 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     // get visible data range:
     QCPBarsDataContainer::const_iterator visibleBegin, visibleEnd;

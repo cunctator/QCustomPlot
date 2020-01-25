@@ -913,7 +913,7 @@ double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     double posKey, posValue;
     pixelsToCoords(pos, posKey, posValue);

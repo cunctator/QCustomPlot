@@ -513,9 +513,9 @@ void QCPColorMapData::coordToCell(double key, double value, int *keyIndex, int *
 void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, double *value) const
 {
   if (key)
-    *key = keyIndex/(double)(mKeySize-1)*(mKeyRange.upper-mKeyRange.lower)+mKeyRange.lower;
+    *key = keyIndex/double(mKeySize-1)*(mKeyRange.upper-mKeyRange.lower)+mKeyRange.lower;
   if (value)
-    *value = valueIndex/(double)(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
+    *value = valueIndex/double(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
 }
 
 /*! \internal
@@ -1003,8 +1003,8 @@ void QCPColorMap::updateMapImage()
   const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
   const int keySize = mMapData->keySize();
   const int valueSize = mMapData->valueSize();
-  int keyOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)keySize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
-  int valueOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)valueSize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
+  int keyOversamplingFactor = mInterpolate ? 1 : int(1.0+100.0/double(keySize)); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
+  int valueOversamplingFactor = mInterpolate ? 1 : int(1.0+100.0/double(valueSize)); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
   
   // resize mMapImage to correct dimensions including possible oversampling factors, according to key/value axes orientation:
   if (keyAxis->orientation() == Qt::Horizontal && (mMapImage.width() != keySize*keyOversamplingFactor || mMapImage.height() != valueSize*valueOversamplingFactor))
@@ -1105,15 +1105,15 @@ void QCPColorMap::draw(QCPPainter *painter)
   if (keyAxis()->orientation() == Qt::Horizontal)
   {
     if (mMapData->keySize() > 1)
-      halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->keySize()-1);
+      halfCellWidth = 0.5*imageRect.width()/double(mMapData->keySize()-1);
     if (mMapData->valueSize() > 1)
-      halfCellHeight = 0.5*imageRect.height()/(double)(mMapData->valueSize()-1);
+      halfCellHeight = 0.5*imageRect.height()/double(mMapData->valueSize()-1);
   } else // keyAxis orientation is Qt::Vertical
   {
     if (mMapData->keySize() > 1)
-      halfCellHeight = 0.5*imageRect.height()/(double)(mMapData->keySize()-1);
+      halfCellHeight = 0.5*imageRect.height()/double(mMapData->keySize()-1);
     if (mMapData->valueSize() > 1)
-      halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->valueSize()-1);
+      halfCellWidth = 0.5*imageRect.width()/double(mMapData->valueSize()-1);
   }
   imageRect.adjust(-halfCellWidth, -halfCellHeight, halfCellWidth, halfCellHeight);
   const bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();

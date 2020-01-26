@@ -107,16 +107,16 @@ double QCPAxisTickerFixed::getTickStep(const QCPRange &range)
     }
     case ssMultiples:
     {
-      double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+      double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
       if (exactStep < mTickStep)
         return mTickStep;
       else
-        return (qint64)(cleanMantissa(exactStep/mTickStep)+0.5)*mTickStep;
+        return qint64(cleanMantissa(exactStep/mTickStep)+0.5)*mTickStep;
     }
     case ssPowers:
     {
-      double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
-      return qPow(mTickStep, (int)(qLn(exactStep)/qLn(mTickStep)+0.5));
+      double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+      return qPow(mTickStep, int(qLn(exactStep)/qLn(mTickStep)+0.5));
     }
   }
   return mTickStep;

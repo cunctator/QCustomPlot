@@ -349,7 +349,7 @@ void QCPItemTracer::updatePosition()
             {
               // interpolate between iterators around mGraphKey:
               double slope = 0;
-              if (!qFuzzyCompare((double)it->key, (double)prevIt->key))
+              if (!qFuzzyCompare(double(it->key), double(prevIt->key)))
                 slope = (it->value-prevIt->value)/(it->key-prevIt->key);
               position->setCoords(mGraphKey, (mGraphKey-prevIt->key)*slope+prevIt->value);
             } else

@@ -101,7 +101,7 @@ public:
                           };
   Q_ENUMS(SizeConstraintRect)
 
-  explicit QCPLayoutElement(QCustomPlot *parentPlot=0);
+  explicit QCPLayoutElement(QCustomPlot *parentPlot=nullptr);
   virtual ~QCPLayoutElement();
   
   // getters:
@@ -114,7 +114,7 @@ public:
   QSize minimumSize() const { return mMinimumSize; }
   QSize maximumSize() const { return mMaximumSize; }
   SizeConstraintRect sizeConstraintRect() const { return mSizeConstraintRect; }
-  QCPMarginGroup *marginGroup(QCP::MarginSide side) const { return mMarginGroups.value(side, (QCPMarginGroup*)0); }
+  QCPMarginGroup *marginGroup(QCP::MarginSide side) const { return mMarginGroups.value(side, nullptr); }
   QHash<QCP::MarginSide, QCPMarginGroup*> marginGroups() const { return mMarginGroups; }
   
   // setters:

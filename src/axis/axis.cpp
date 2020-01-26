@@ -1394,7 +1394,7 @@ void QCPAxis::setScaleRatio(const QCPAxis *otherAxis, double ratio)
   else
     ownPixelSize = axisRect()->height();
   
-  double newRangeSize = ratio*otherAxis->range().size()*ownPixelSize/(double)otherPixelSize;
+  double newRangeSize = ratio*otherAxis->range().size()*ownPixelSize/double(otherPixelSize);
   setRange(range().center(), newRangeSize, Qt::AlignCenter);
 }
 
@@ -1460,30 +1460,30 @@ double QCPAxis::pixelToCoord(double value) const
     if (mScaleType == stLinear)
     {
       if (!mRangeReversed)
-        return (value-mAxisRect->left())/(double)mAxisRect->width()*mRange.size()+mRange.lower;
+        return (value-mAxisRect->left())/double(mAxisRect->width())*mRange.size()+mRange.lower;
       else
-        return -(value-mAxisRect->left())/(double)mAxisRect->width()*mRange.size()+mRange.upper;
+        return -(value-mAxisRect->left())/double(mAxisRect->width())*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
       if (!mRangeReversed)
-        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->left())/(double)mAxisRect->width())*mRange.lower;
+        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->left())/double(mAxisRect->width()))*mRange.lower;
       else
-        return qPow(mRange.upper/mRange.lower, (mAxisRect->left()-value)/(double)mAxisRect->width())*mRange.upper;
+        return qPow(mRange.upper/mRange.lower, (mAxisRect->left()-value)/double(mAxisRect->width()))*mRange.upper;
     }
   } else // orientation() == Qt::Vertical
   {
     if (mScaleType == stLinear)
     {
       if (!mRangeReversed)
-        return (mAxisRect->bottom()-value)/(double)mAxisRect->height()*mRange.size()+mRange.lower;
+        return (mAxisRect->bottom()-value)/double(mAxisRect->height())*mRange.size()+mRange.lower;
       else
-        return -(mAxisRect->bottom()-value)/(double)mAxisRect->height()*mRange.size()+mRange.upper;
+        return -(mAxisRect->bottom()-value)/double(mAxisRect->height())*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
       if (!mRangeReversed)
-        return qPow(mRange.upper/mRange.lower, (mAxisRect->bottom()-value)/(double)mAxisRect->height())*mRange.lower;
+        return qPow(mRange.upper/mRange.lower, (mAxisRect->bottom()-value)/double(mAxisRect->height()))*mRange.lower;
       else
-        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->bottom())/(double)mAxisRect->height())*mRange.upper;
+        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->bottom())/double(mAxisRect->height()))*mRange.upper;
     }
   }
 }
@@ -1655,7 +1655,7 @@ QCPAxis::AxisType QCPAxis::marginSideToAxisType(QCP::MarginSide side)
     case QCP::msBottom: return atBottom;
     default: break;
   }
-  qDebug() << Q_FUNC_INFO << "Invalid margin side passed:" << (int)side;
+  qDebug() << Q_FUNC_INFO << "Invalid margin side passed:" << static_cast<int>(side);
   return atLeft;
 }
 
@@ -1916,7 +1916,7 @@ void QCPAxis::setupTickVectors()
   if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
   QVector<QString> oldLabels = mTickVectorLabels;
-  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : 0, mTickLabels ? &mTickVectorLabels : 0);
+  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : nullptr, mTickLabels ? &mTickVectorLabels : nullptr);
   mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
 }
 
@@ -2359,9 +2359,9 @@ QByteArray QCPAxisPainterPrivate::generateLabelParameterHash() const
   QByteArray result;
   result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(tickLabelRotation));
-  result.append(QByteArray::number((int)tickLabelSide));
-  result.append(QByteArray::number((int)substituteExponent));
-  result.append(QByteArray::number((int)numberMultiplyCross));
+  result.append(QByteArray::number(int(tickLabelSide)));
+  result.append(QByteArray::number(int(substituteExponent)));
+  result.append(QByteArray::number(int(numberMultiplyCross)));
   result.append(tickLabelColor.name().toLatin1()+QByteArray::number(tickLabelColor.alpha(), 16));
   result.append(tickLabelFont.toString().toLatin1());
   return result;

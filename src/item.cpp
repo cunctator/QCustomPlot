@@ -88,12 +88,12 @@ QCPItemAnchor::~QCPItemAnchor()
   foreach (QCPItemPosition *child, mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
   foreach (QCPItemPosition *child, mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
 }
 
@@ -253,8 +253,8 @@ QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *paren
   mPositionTypeY(ptAbsolute),
   mKey(0),
   mValue(0),
-  mParentAnchorX(0),
-  mParentAnchorY(0)
+  mParentAnchorX(nullptr),
+  mParentAnchorY(nullptr)
 {
 }
 
@@ -266,12 +266,12 @@ QCPItemPosition::~QCPItemPosition()
   foreach (QCPItemPosition *child, mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
   foreach (QCPItemPosition *child, mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
   // unregister as child in parent:
   if (mParentAnchorX)
@@ -716,7 +716,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
         x -= mParentAnchorX->pixelPosition().x();
       else
         x -= mParentPlot->viewport().left();
-      x /= (double)mParentPlot->viewport().width();
+      x /= double(mParentPlot->viewport().width());
       break;
     }
     case ptAxisRectRatio:
@@ -727,7 +727,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
           x -= mParentAnchorX->pixelPosition().x();
         else
           x -= mAxisRect.data()->left();
-        x /= (double)mAxisRect.data()->width();
+        x /= double(mAxisRect.data()->width());
       } else
         qDebug() << Q_FUNC_INFO << "Item position type x is ptAxisRectRatio, but no axis rect was defined";
       break;
@@ -758,7 +758,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
         y -= mParentAnchorY->pixelPosition().y();
       else
         y -= mParentPlot->viewport().top();
-      y /= (double)mParentPlot->viewport().height();
+      y /= double(mParentPlot->viewport().height());
       break;
     }
     case ptAxisRectRatio:
@@ -769,7 +769,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
           y -= mParentAnchorY->pixelPosition().y();
         else
           y -= mAxisRect.data()->top();
-        y /= (double)mAxisRect.data()->height();
+        y /= double(mAxisRect.data()->height());
       } else
         qDebug() << Q_FUNC_INFO << "Item position type y is ptAxisRectRatio, but no axis rect was defined";
       break;
@@ -1075,7 +1075,7 @@ QCPItemPosition *QCPAbstractItem::position(const QString &name) const
       return mPositions.at(i);
   }
   qDebug() << Q_FUNC_INFO << "position with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -1096,7 +1096,7 @@ QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
       return mAnchors.at(i);
   }
   qDebug() << Q_FUNC_INFO << "anchor with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!

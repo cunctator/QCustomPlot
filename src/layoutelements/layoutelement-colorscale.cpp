@@ -197,7 +197,7 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     QString labelTransfer;
     QSharedPointer<QCPAxisTicker> tickerTransfer;
     // transfer/revert some settings on old axis if it exists:
-    bool doTransfer = (bool)mColorAxis;
+    bool doTransfer = !mColorAxis.isNull();
     if (doTransfer)
     {
       rangeTransfer = mColorAxis.data()->range();

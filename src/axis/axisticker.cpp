@@ -185,7 +185,7 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
 */
 double QCPAxisTicker::getTickStep(const QCPRange &range)
 {
-  double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   return cleanMantissa(exactStep);
 }
 
@@ -282,7 +282,7 @@ QVector<double> QCPAxisTicker::createSubTickVector(int subTickCount, const QVect
   result.reserve((ticks.size()-1)*subTickCount);
   for (int i=1; i<ticks.size(); ++i)
   {
-    double subTickStep = (ticks.at(i)-ticks.at(i-1))/(double)(subTickCount+1);
+    double subTickStep = (ticks.at(i)-ticks.at(i-1))/double(subTickCount+1);
     for (int k=1; k<=subTickCount; ++k)
       result.append(ticks.at(i-1) + k*subTickStep);
   }
@@ -432,9 +432,9 @@ double QCPAxisTicker::cleanMantissa(double input) const
     {
       // this gives effectively a mantissa of 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0
       if (mantissa <= 5.0)
-        return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
+        return int(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
       else
-        return (int)(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
+        return int(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
     }
   }
   return input;

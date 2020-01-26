@@ -303,8 +303,8 @@ void QCPLineEnding::draw(QCPPainter *painter, const QCPVector2D &pos, const QCPV
       } else
       {
         // if drawing with thick (non-cosmetic) pen, shift bar a little in line direction to prevent line from sticking through bar slightly
-        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF(),
-                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF());
+        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, float(painter->pen().widthF()))*0.5f).toPointF(),
+                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, float(painter->pen().widthF()))*0.5f).toPointF());
       }
       break;
     }

@@ -152,7 +152,7 @@ void QCPAxisTickerTime::setFieldWidth(QCPAxisTickerTime::TimeUnit unit, int widt
 */
 double QCPAxisTickerTime::getTickStep(const QCPRange &range)
 {
-  double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  double result = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
   if (result < 1) // ideal tick step is below 1 second -> use normal clean mantissa algorithm in units of seconds
   {

@@ -1517,7 +1517,7 @@ void QCPLayoutGrid::insertRow(int newIndex)
   mRowStretchFactors.insert(newIndex, 1);
   QList<QCPLayoutElement*> newRow;
   for (int col=0; col<columnCount(); ++col)
-    newRow.append((QCPLayoutElement*)0);
+    newRow.append(nullptr);
   mElements.insert(newIndex, newRow);
 }
 
@@ -1543,7 +1543,7 @@ void QCPLayoutGrid::insertColumn(int newIndex)
   
   mColumnStretchFactors.insert(newIndex, 1);
   for (int row=0; row<rowCount(); ++row)
-    mElements[row].insert(newIndex, (QCPLayoutElement*)0);
+    mElements[row].insert(newIndex, nullptr);
 }
 
 /*!

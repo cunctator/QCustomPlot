@@ -555,7 +555,7 @@ void QCPColorGradient::updateColorBuffer()
     mColorBuffer.resize(mLevelCount);
   if (mColorStops.size() > 1)
   {
-    double indexToPosFactor = 1.0/(double)(mLevelCount-1);
+    double indexToPosFactor = 1.0/double(mLevelCount-1);
     const bool useAlpha = stopsUseAlpha();
     for (int i=0; i<mLevelCount; ++i)
     {

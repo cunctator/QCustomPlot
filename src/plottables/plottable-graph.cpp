@@ -1008,7 +1008,7 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
     QCPGraphDataContainer::const_iterator currentIntervalFirstPoint = it;
     int reversedFactor = keyAxis->pixelOrientation(); // is used to calculate keyEpsilon pixel into the correct direction
     int reversedRound = reversedFactor==-1 ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-    double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(begin->key)+reversedRound));
+    double currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(begin->key)+reversedRound));
     double lastIntervalEndKey = currentIntervalStartKey;
     double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
     bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
@@ -1039,7 +1039,7 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
         minValue = it->value;
         maxValue = it->value;
         currentIntervalFirstPoint = it;
-        currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
+        currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(it->key)+reversedRound));
         if (keyEpsilonVariable)
           keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
         intervalDataCount = 1;
@@ -1113,7 +1113,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
     QCPGraphDataContainer::const_iterator currentIntervalStart = it;
     int reversedFactor = keyAxis->pixelOrientation(); // is used to calculate keyEpsilon pixel into the correct direction
     int reversedRound = reversedFactor==-1 ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-    double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(begin->key)+reversedRound));
+    double currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(begin->key)+reversedRound));
     double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
     bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
     int intervalDataCount = 1;
@@ -1170,7 +1170,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
         minValue = it->value;
         maxValue = it->value;
         currentIntervalStart = it;
-        currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
+        currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(it->key)+reversedRound));
         if (keyEpsilonVariable)
           keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
         intervalDataCount = 1;

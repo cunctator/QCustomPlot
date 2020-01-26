@@ -272,7 +272,7 @@ double QCPSelectionDecoratorBracket::getTangentAngle(const QCPPlottableInterface
     pointsAverage += points[i];
     currentIndex += direction;
   }
-  pointsAverage /= (double)averageCount;
+  pointsAverage /= double(averageCount);
   
   // calculate slope of linear regression through points:
   double numSum = 0;

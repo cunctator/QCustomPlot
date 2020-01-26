@@ -113,7 +113,7 @@ void QCPAxisTickerPi::setFractionStyle(QCPAxisTickerPi::FractionStyle style)
 */
 double QCPAxisTickerPi::getTickStep(const QCPRange &range)
 {
-  mPiTickStep = range.size()/mPiValue/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  mPiTickStep = range.size()/mPiValue/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   mPiTickStep = cleanMantissa(mPiTickStep);
   return mPiTickStep*mPiValue;
 }
@@ -211,7 +211,7 @@ QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
   if (mFractionStyle == fsFloatingPoint) // should never be the case when calling this function
   {
     qDebug() << Q_FUNC_INFO << "shouldn't be called with fraction style fsDecimal";
-    return QString::number(numerator/(double)denominator); // failsafe
+    return QString::number(numerator/double(denominator)); // failsafe
   }
   int sign = numerator*denominator < 0 ? -1 : 1;
   numerator = qAbs(numerator);

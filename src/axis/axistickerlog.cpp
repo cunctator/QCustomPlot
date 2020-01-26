@@ -133,8 +133,8 @@ QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRan
   QVector<double> result;
   if (range.lower > 0 && range.upper > 0) // positive range
   {
-    double exactPowerStep =  qLn(range.upper/range.lower)*mLogBaseLnInv/(double)(mTickCount+1e-10);
-    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    double exactPowerStep =  qLn(range.upper/range.lower)*mLogBaseLnInv/double(mTickCount+1e-10);
+    double newLogBase = qPow(mLogBase, qMax(int(cleanMantissa(exactPowerStep)), 1));
     double currentTick = qPow(newLogBase, qFloor(qLn(range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick > 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
@@ -144,8 +144,8 @@ QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRan
     }
   } else if (range.lower < 0 && range.upper < 0) // negative range
   {
-    double exactPowerStep =  qLn(range.lower/range.upper)*mLogBaseLnInv/(double)(mTickCount+1e-10);
-    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    double exactPowerStep =  qLn(range.lower/range.upper)*mLogBaseLnInv/double(mTickCount+1e-10);
+    double newLogBase = qPow(mLogBase, qMax(int(cleanMantissa(exactPowerStep)), 1));
     double currentTick = -qPow(newLogBase, qCeil(qLn(-range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick < 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case

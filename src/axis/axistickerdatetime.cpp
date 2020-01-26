@@ -145,7 +145,7 @@ void QCPAxisTickerDateTime::setTickOrigin(const QDateTime &origin)
 */
 double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
 {
-  double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  double result = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
   mDateStrategy = dsNone;
   if (result < 1) // ideal tick step is below 1 second -> use normal clean mantissa algorithm in units of seconds
@@ -196,11 +196,11 @@ int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
     case 86400*5: result = 4; break;
     case 86400*7: result = 6; break;
     case 86400*14: result = 1; break;
-    case (int)(86400*30.4375+0.5): result = 3; break;
-    case (int)(86400*30.4375*2+0.5): result = 1; break;
-    case (int)(86400*30.4375*3+0.5): result = 2; break;
-    case (int)(86400*30.4375*6+0.5): result = 5; break;
-    case (int)(86400*30.4375*12+0.5): result = 3; break;
+    case int(86400*30.4375+0.5): result = 3; break;
+    case int(86400*30.4375*2+0.5): result = 1; break;
+    case int(86400*30.4375*3+0.5): result = 2; break;
+    case int(86400*30.4375*6+0.5): result = 5; break;
+    case int(86400*30.4375*12+0.5): result = 3; break;
   }
   return result;
 }

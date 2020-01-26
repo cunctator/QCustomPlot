@@ -16,6 +16,11 @@ TEMPLATE = lib
 CONFIG += qt staticlib debug_and_release build_all
 DESTDIR = $$PWD
 
+QMAKE_CXXFLAGS += -Wall -Wextra
+QMAKE_CXXFLAGS += -Wold-style-cast -Wlogical-op -Wduplicated-branches -Wduplicated-cond
+#QMAKE_CXXFLAGS += -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
+#QMAKE_CXXFLAGS += -Werror
+
 DEFINES += QCUSTOMPLOT_USE_OPENGL
 
 VERSION = 2.0.1

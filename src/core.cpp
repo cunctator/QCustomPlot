@@ -1367,8 +1367,9 @@ bool QCustomPlot::removeItem(int index)
 int QCustomPlot::clearItems()
 {
   int c = mItems.size();
-  for (int i=c-1; i >= 0; --i)
-    removeItem(mItems[i]);
+  for (auto iter = mItems.rbegin(); iter != mItems.rend(); iter++)
+    delete *iter;
+  mItems.clear();
   return c;
 }
 
@@ -1390,8 +1391,9 @@ int QCustomPlot::itemCount() const
 QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 {
   QList<QCPAbstractItem*> result;
-  foreach (QCPAbstractItem *item, mItems)
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (item->selected())
       result.append(item);
   }
@@ -1415,9 +1417,10 @@ QCPAbstractItem *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) co
 {
   QCPAbstractItem *resultItem = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractItem *item, mItems)
+
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (onlySelectable && !item->selectable()) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
       continue;
     if (!item->clipToAxisRect() || item->clipRect().contains(pos.toPoint())) // only consider clicks inside axis cliprect of the item if actually clipped to it

@@ -569,21 +569,21 @@ QList<QCPAbstractItem *> QCPAxisRect::items() const
   // Note: don't just append all QCPAxis::items() into a list, because we might get duplicate entries
   //       and miss those items that have this axis rect as clipAxisRect.
   QList<QCPAbstractItem*> result;
-  for (int itemId=0; itemId<mParentPlot->mItems.size(); ++itemId)
+  for (auto iter = mParentPlot->mItems.begin(); iter != mParentPlot->mItems.end(); iter++)
   {
-    if (mParentPlot->mItems.at(itemId)->clipAxisRect() == this)
+    if ((*iter)->clipAxisRect() == this)
     {
-      result.append(mParentPlot->mItems.at(itemId));
+      result.append(*iter);
       continue;
     }
-    QList<QCPItemPosition*> positions = mParentPlot->mItems.at(itemId)->positions();
+    QList<QCPItemPosition*> positions = (*iter)->positions();
     for (int posId=0; posId<positions.size(); ++posId)
     {
       if (positions.at(posId)->axisRect() == this ||
           positions.at(posId)->keyAxis()->axisRect() == this ||
           positions.at(posId)->valueAxis()->axisRect() == this)
       {
-        result.append(mParentPlot->mItems.at(itemId));
+        result.append(*iter);
         break;
       }
     }

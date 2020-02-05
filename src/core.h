@@ -30,6 +30,7 @@
 #include "axis/range.h"
 #include "axis/axis.h"
 #include "paintbuffer.h"
+#include "qcplist.h"
 
 class QCPPainter;
 class QCPLayer;
@@ -147,10 +148,10 @@ public:
   QList<QCPGraph*> selectedGraphs() const;
 
   // item interface:
-  QCPAbstractItem *item(int index) const;
+  QCPAbstractItem *item(int index) const __attribute__ ((deprecated("This function now has bad performance if there are many items in the plot!")));
   QCPAbstractItem *item() const;
   bool removeItem(QCPAbstractItem *item);
-  bool removeItem(int index);
+  bool removeItem(int index) __attribute__ ((deprecated("This function now has bad performance if there are many items in the plot!")));
   int clearItems();
   int itemCount() const;
   QList<QCPAbstractItem*> selectedItems() const;
@@ -220,7 +221,7 @@ protected:
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;
   QList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
-  QList<QCPAbstractItem*> mItems;
+  QCPList<QCPAbstractItem*> mItems;
   QList<QCPLayer*> mLayers;
   QCP::AntialiasedElements mAntialiasedElements, mNotAntialiasedElements;
   QCP::Interactions mInteractions;

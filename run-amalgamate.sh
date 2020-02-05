@@ -6,3 +6,4 @@ cd "$( dirname "$0" )"
 cd src
 mv qcustomplot.h ../qcustomplot.h
 mv qcustomplot.cpp ../qcustomplot.cpp
+cp qcplist.h ../qcplist.h

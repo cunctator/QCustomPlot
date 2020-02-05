@@ -1606,15 +1606,19 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   int removedIndex = layer->index();
   bool isFirstLayer = removedIndex==0;
   QCPLayer *targetLayer = isFirstLayer ? mLayers.at(removedIndex+1) : mLayers.at(removedIndex-1);
-  QList<QCPLayerable*> children = layer->children();
+  QCPList<QCPLayerable*> children = layer->children();
   if (isFirstLayer) // prepend in reverse order (so order relative to each other stays the same)
   {
-    for (int i=children.size()-1; i>=0; --i)
-      children.at(i)->moveToLayer(targetLayer, true);
+    for (auto iter = children.rbegin(); iter != children.rend(); iter++) {
+      QCPLayerable *c = *iter;
+      c->moveToLayer(targetLayer, true);
+    }
   } else  // append normally
   {
-    for (int i=0; i<children.size(); ++i)
-      children.at(i)->moveToLayer(targetLayer, false);
+    for (auto iter = children.begin(); iter != children.end(); iter++) {
+      QCPLayerable *layerable = *iter;
+      layerable->moveToLayer(targetLayer, false);
+    }
   }
   // if removed layer is current layer, change current layer to layer below/above:
   if (layer == mCurrentLayer)
@@ -1877,8 +1881,11 @@ void QCustomPlot::deselectAll()
 {
   foreach (QCPLayer *layer, mLayers)
   {
-    foreach (QCPLayerable *layerable, layer->children())
+    QCPList<QCPLayerable*> &children = layer->children();
+    for (auto iter = children.begin(); iter != children.end(); iter++) {
+      QCPLayerable *layerable = *iter;
       layerable->deselectEvent(0);
+    }
   }
 }
 
@@ -2822,8 +2829,9 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         // emit deselection except to those plottables who will be selected afterwards:
         foreach (QCPLayer *layer, mLayers)
         {
-          foreach (QCPLayerable *layerable, layer->children())
-          {
+	  QCPList<QCPLayerable*> &children = layer->children();
+	  for (auto iter = children.begin(); iter != children.end(); iter++) {
+            QCPLayerable *layerable = *iter;
             if ((potentialSelections.isEmpty() || potentialSelections.constBegin()->first != layerable) && mInteractions.testFlag(layerable->selectionCategory()))
             {
               bool selChanged = false;
@@ -2908,8 +2916,9 @@ void QCustomPlot::processPointSelection(QMouseEvent *event)
   {
     foreach (QCPLayer *layer, mLayers)
     {
-      foreach (QCPLayerable *layerable, layer->children())
-      {
+      QCPList<QCPLayerable*> &children = layer->children();
+      for (auto iter = children.begin(); iter != children.end(); iter++) {
+        QCPLayerable *layerable = *iter;
         if (layerable != clickedLayerable && mInteractions.testFlag(layerable->selectionCategory()))
         {
           bool selChanged = false;
@@ -3083,16 +3092,17 @@ QList<QCPLayerable*> QCustomPlot::layerableListAt(const QPointF &pos, bool onlyS
   QList<QCPLayerable*> result;
   for (int layerIndex=mLayers.size()-1; layerIndex>=0; --layerIndex)
   {
-    const QList<QCPLayerable*> layerables = mLayers.at(layerIndex)->children();
-    for (int i=layerables.size()-1; i>=0; --i)
+    const QCPList<QCPLayerable*> &layerables = mLayers.at(layerIndex)->children();
+    for (auto iter = layerables.crbegin(); iter != layerables.crend(); iter++)
     {
-      if (!layerables.at(i)->realVisibility())
+      QCPLayerable *layerable = *iter;
+      if (!layerable->realVisibility())
         continue;
       QVariant details;
-      double dist = layerables.at(i)->selectTest(pos, onlySelectable, selectionDetails ? &details : 0);
+      double dist = layerable->selectTest(pos, onlySelectable, selectionDetails ? &details : 0);
       if (dist >= 0 && dist < selectionTolerance())
       {
-        result.append(layerables.at(i));
+        result.append(layerable);
         if (selectionDetails)
           selectionDetails->append(details);
       }

@@ -1588,11 +1588,12 @@ QList<QCPAbstractPlottable*> QCPAxis::plottables() const
 {
   QList<QCPAbstractPlottable*> result;
   if (!mParentPlot) return result;
-  
-  for (int i=0; i<mParentPlot->mPlottables.size(); ++i)
+
+  for (auto iter = mParentPlot->mPlottables.cbegin(); iter != mParentPlot->mPlottables.cend(); iter++)
   {
-    if (mParentPlot->mPlottables.at(i)->keyAxis() == this ||mParentPlot->mPlottables.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mPlottables.at(i));
+    QCPAbstractPlottable *plottable = *iter;
+    if (plottable->keyAxis() == this || plottable->valueAxis() == this)
+      result.append(plottable);
   }
   return result;
 }
@@ -1606,11 +1607,12 @@ QList<QCPGraph*> QCPAxis::graphs() const
 {
   QList<QCPGraph*> result;
   if (!mParentPlot) return result;
-  
-  for (int i=0; i<mParentPlot->mGraphs.size(); ++i)
+
+  for (auto iter = mParentPlot->mGraphs.cbegin(); iter != mParentPlot->mGraphs.cend(); iter++)
   {
-    if (mParentPlot->mGraphs.at(i)->keyAxis() == this || mParentPlot->mGraphs.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mGraphs.at(i));
+    QCPGraph* graph = *iter;
+    if (graph->keyAxis() == this || graph->valueAxis() == this)
+      result.append(graph);
   }
   return result;
 }

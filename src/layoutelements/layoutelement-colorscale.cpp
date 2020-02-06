@@ -367,9 +367,10 @@ void QCPColorScale::setRangeZoom(bool enabled)
 QList<QCPColorMap*> QCPColorScale::colorMaps() const
 {
   QList<QCPColorMap*> result;
-  for (int i=0; i<mParentPlot->plottableCount(); ++i)
+  for (auto iter = mParentPlot->mPlottables.cbegin(); iter != mParentPlot->mPlottables.cend(); iter++)
   {
-    if (QCPColorMap *cm = qobject_cast<QCPColorMap*>(mParentPlot->plottable(i)))
+    QCPAbstractPlottable* plottable = *iter;
+    if (QCPColorMap *cm = qobject_cast<QCPColorMap*>(plottable))
       if (cm->colorScale() == this)
         result.append(cm);
   }

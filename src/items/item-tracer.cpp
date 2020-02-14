@@ -74,7 +74,7 @@ QCPItemTracer::QCPItemTracer(QCustomPlot *parentPlot) :
   position(createPosition(QLatin1String("position"))),
   mSize(6),
   mStyle(tsCrosshair),
-  mGraph(0),
+  mGraph(nullptr),
   mGraphKey(0),
   mInterpolating(false)
 {
@@ -174,7 +174,7 @@ void QCPItemTracer::setGraph(QCPGraph *graph)
       qDebug() << Q_FUNC_INFO << "graph isn't in same QCustomPlot instance as this item";
   } else
   {
-    mGraph = 0;
+    mGraph = nullptr;
   }
 }
 

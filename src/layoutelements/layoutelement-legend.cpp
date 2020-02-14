@@ -696,7 +696,7 @@ QCPPlottableLegendItem *QCPLegend::itemWithPlottable(const QCPAbstractPlottable 
         return pli;
     }
   }
-  return 0;
+  return nullptr;
 }
 
 /*!

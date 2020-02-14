@@ -69,7 +69,7 @@ QCPSelectionDecorator::QCPSelectionDecorator() :
   mBrush(Qt::NoBrush),
   mScatterStyle(),
   mUsedScatterProperties(QCPScatterStyle::spNone),
-  mPlottable(0)
+  mPlottable(nullptr)
 {
 }
 
@@ -433,7 +433,7 @@ QCPAbstractPlottable::QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis)
   mKeyAxis(keyAxis),
   mValueAxis(valueAxis),
   mSelectable(QCP::stWhole),
-  mSelectionDecorator(0)
+  mSelectionDecorator(nullptr)
 {
   if (keyAxis->parentPlot() != valueAxis->parentPlot())
     qDebug() << Q_FUNC_INFO << "Parent plot of keyAxis is not the same as that of valueAxis.";
@@ -449,7 +449,7 @@ QCPAbstractPlottable::~QCPAbstractPlottable()
   if (mSelectionDecorator)
   {
     delete mSelectionDecorator;
-    mSelectionDecorator = 0;
+    mSelectionDecorator = nullptr;
   }
 }
 
@@ -588,14 +588,13 @@ void QCPAbstractPlottable::setSelectionDecorator(QCPSelectionDecorator *decorato
   {
     if (decorator->registerWithPlottable(this))
     {
-      if (mSelectionDecorator) // delete old decorator if necessary
-        delete mSelectionDecorator;
+      delete mSelectionDecorator; // delete old decorator if necessary
       mSelectionDecorator = decorator;
     }
   } else if (mSelectionDecorator) // just clear decorator
   {
     delete mSelectionDecorator;
-    mSelectionDecorator = 0;
+    mSelectionDecorator = nullptr;
   }
 }
 

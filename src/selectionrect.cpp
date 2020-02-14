@@ -173,7 +173,7 @@ void QCPSelectionRect::cancel()
   if (mActive)
   {
     mActive = false;
-    emit canceled(mRect, 0);
+    emit canceled(mRect, nullptr);
   }
 }
 

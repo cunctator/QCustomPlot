@@ -222,13 +222,13 @@ void QCPErrorBars::setDataPlottable(QCPAbstractPlottable *plottable)
 {
   if (plottable && qobject_cast<QCPErrorBars*>(plottable))
   {
-    mDataPlottable = 0;
+    mDataPlottable = nullptr;
     qDebug() << Q_FUNC_INFO << "can't set another QCPErrorBars instance as data plottable";
     return;
   }
   if (plottable && !plottable->interface1D())
   {
-    mDataPlottable = 0;
+    mDataPlottable = nullptr;
     qDebug() << Q_FUNC_INFO << "passed plottable doesn't implement 1d interface, can't associate with QCPErrorBars";
     return;
   }

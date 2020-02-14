@@ -89,8 +89,8 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
   mKeyRange(keyRange),
   mValueRange(valueRange),
   mIsEmpty(true),
-  mData(0),
-  mAlpha(0),
+  mData(nullptr),
+  mAlpha(nullptr),
   mDataModified(true)
 {
   setSize(keySize, valueSize);
@@ -99,10 +99,8 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
 
 QCPColorMapData::~QCPColorMapData()
 {
-  if (mData)
-    delete[] mData;
-  if (mAlpha)
-    delete[] mAlpha;
+  delete[] mData;
+  delete[] mAlpha;
 }
 
 /*!
@@ -112,8 +110,8 @@ QCPColorMapData::QCPColorMapData(const QCPColorMapData &other) :
   mKeySize(0),
   mValueSize(0),
   mIsEmpty(true),
-  mData(0),
-  mAlpha(0),
+  mData(nullptr),
+  mAlpha(nullptr),
   mDataModified(true)
 {
   *this = other;
@@ -201,8 +199,7 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
   {
     mKeySize = keySize;
     mValueSize = valueSize;
-    if (mData)
-      delete[] mData;
+    delete[] mData;
     mIsEmpty = mKeySize == 0 || mValueSize == 0;
     if (!mIsEmpty)
     {
@@ -211,14 +208,14 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
 #endif
       mData = new double[mKeySize*mValueSize];
 #ifdef __EXCEPTIONS
-      } catch (...) { mData = 0; }
+      } catch (...) { mData = nullptr; }
 #endif
       if (mData)
         fill(0);
       else
         qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
     } else
-      mData = 0;
+      mData = nullptr;
     
     if (mAlpha) // if we had an alpha map, recreate it with new size
       createAlpha();
@@ -433,7 +430,7 @@ void QCPColorMapData::clearAlpha()
   if (mAlpha)
   {
     delete[] mAlpha;
-    mAlpha = 0;
+    mAlpha = nullptr;
     mDataModified = true;
   }
 }
@@ -542,7 +539,7 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
 #endif
     mAlpha = new unsigned char[mKeySize*mValueSize];
 #ifdef __EXCEPTIONS
-  } catch (...) { mAlpha = 0; }
+  } catch (...) { mAlpha = nullptr; }
 #endif
   if (mAlpha)
   {

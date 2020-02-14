@@ -205,7 +205,7 @@ int QCPAxisTicker::getSubTickCount(double tickStep)
   double intPartf;
   int intPart;
   double fracPart = modf(getMantissa(tickStep), &intPartf);
-  intPart = intPartf;
+  intPart = int(intPartf);
   
   // handle cases with (almost) integer mantissa:
   if (fracPart < epsilon || 1.0-fracPart < epsilon)
@@ -308,9 +308,9 @@ QVector<double> QCPAxisTicker::createTickVector(double tickStep, const QCPRange 
 {
   QVector<double> result;
   // Generate tick positions according to tickStep:
-  qint64 firstStep = floor((range.lower-mTickOrigin)/tickStep); // do not use qFloor here, or we'll lose 64 bit precision
-  qint64 lastStep = ceil((range.upper-mTickOrigin)/tickStep); // do not use qCeil here, or we'll lose 64 bit precision
-  int tickcount = lastStep-firstStep+1;
+  qint64 firstStep = qint64(floor((range.lower-mTickOrigin)/tickStep)); // do not use qFloor here, or we'll lose 64 bit precision
+  qint64 lastStep = qint64(ceil((range.upper-mTickOrigin)/tickStep)); // do not use qCeil here, or we'll lose 64 bit precision
+  int tickcount = int(lastStep-firstStep+1);
   if (tickcount < 0) tickcount = 0;
   result.resize(tickcount);
   for (int i=0; i<tickcount; ++i)

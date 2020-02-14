@@ -415,7 +415,7 @@ double QCPCurve::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
     double result = pointDistance(pos, closestDataPoint);
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int( closestDataPoint-mDataContainer->constBegin() );
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return result;
@@ -716,7 +716,7 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
     return;
   const int scatterModulo = mScatterSkip+1;
   const bool doScatterSkip = mScatterSkip > 0;
-  int endIndex = end-mDataContainer->constBegin();
+  int endIndex = int( end-mDataContainer->constBegin() );
   
   QCPRange keyRange = keyAxis->range();
   QCPRange valueRange = valueAxis->range();
@@ -727,7 +727,7 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
   valueRange.upper = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueRange.upper)+scatterWidth*valueAxis->pixelOrientation());
   
   QCPCurveDataContainer::const_iterator it = begin;
-  int itIndex = begin-mDataContainer->constBegin();
+  int itIndex = int( begin-mDataContainer->constBegin() );
   while (doScatterSkip && it != end && itIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
   {
     ++itIndex;

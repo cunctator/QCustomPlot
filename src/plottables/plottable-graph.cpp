@@ -408,7 +408,7 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
     double result = pointDistance(pos, closestDataPoint);
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int(closestDataPoint-mDataContainer->constBegin());
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return result;
@@ -991,13 +991,13 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (begin == end) return;
   
-  int dataCount = end-begin;
+  int dataCount = int(end-begin);
   int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     double keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
     if (2*keyPixelSpan+2 < static_cast<double>((std::numeric_limits<int>::max)()))
-      maxCount = 2*keyPixelSpan+2;
+      maxCount = int(2*keyPixelSpan+2);
   }
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average
@@ -1084,19 +1084,19 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
   
   const int scatterModulo = mScatterSkip+1;
   const bool doScatterSkip = mScatterSkip > 0;
-  int beginIndex = begin-mDataContainer->constBegin();
-  int endIndex = end-mDataContainer->constBegin();
+  int beginIndex = int(begin-mDataContainer->constBegin());
+  int endIndex = int(end-mDataContainer->constBegin());
   while (doScatterSkip && begin != end && beginIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
   {
     ++beginIndex;
     ++begin;
   }
   if (begin == end) return;
-  int dataCount = end-begin;
+  int dataCount = int(end-begin);
   int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
-    int keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
+    int keyPixelSpan = int(qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key)));
     maxCount = 2*keyPixelSpan+2;
   }
   
@@ -1105,7 +1105,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
     double valueMaxRange = valueAxis->range().upper;
     double valueMinRange = valueAxis->range().lower;
     QCPGraphDataContainer::const_iterator it = begin;
-    int itIndex = beginIndex;
+    int itIndex = int(beginIndex);
     double minValue = it->value;
     double maxValue = it->value;
     QCPGraphDataContainer::const_iterator minValueIt = it;
@@ -1197,7 +1197,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
       double valuePixelSpan = qAbs(valueAxis->coordToPixel(minValue)-valueAxis->coordToPixel(maxValue));
       int dataModulo = qMax(1, qRound(intervalDataCount/(valuePixelSpan/4.0))); // approximately every 4 value pixels one data point on average
       QCPGraphDataContainer::const_iterator intervalIt = currentIntervalStart;
-      int intervalItIndex = intervalIt-mDataContainer->constBegin();
+      int intervalItIndex = int(intervalIt-mDataContainer->constBegin());
       int c = 0;
       while (intervalIt != it)
       {

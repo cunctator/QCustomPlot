@@ -481,7 +481,7 @@ void QCPScatterStyle::drawShape(QCPPainter *painter, double x, double y) const
       const QRectF clipRect = painter->clipBoundingRect().adjusted(-widthHalf, -heightHalf, widthHalf, heightHalf);
 #endif
       if (clipRect.contains(x, y))
-        painter->drawPixmap(x-widthHalf, y-heightHalf, mPixmap);
+        painter->drawPixmap(qRound(x-widthHalf), qRound(y-heightHalf), mPixmap);
       break;
     }
     case ssCustom:

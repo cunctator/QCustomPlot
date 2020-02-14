@@ -769,7 +769,7 @@ QCPDataSelection QCPBars::selectTestRect(const QRectF &rect, bool onlySelectable
   for (QCPBarsDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
     if (rect.intersects(getBarRect(it->key, it->value)))
-      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+      result.addDataRange(QCPDataRange(int(it-mDataContainer->constBegin()), int(it-mDataContainer->constBegin()+1)), false);
   }
   result.simplify();
   return result;
@@ -802,7 +802,7 @@ double QCPBars::selectTest(const QPointF &pos, bool onlySelectable, QVariant *de
       {
         if (details)
         {
-          int pointIndex = it-mDataContainer->constBegin();
+          int pointIndex = int(it-mDataContainer->constBegin());
           details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
         }
         return mParentPlot->selectionTolerance()*0.99;

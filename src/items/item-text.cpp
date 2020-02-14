@@ -254,7 +254,7 @@ void QCPItemText::draw(QCPPainter *painter)
   QPointF textPos = getTextDrawPoint(QPointF(0, 0), textBoxRect, mPositionAlignment); // 0, 0 because the transform does the translation
   textRect.moveTopLeft(textPos.toPoint()+QPoint(mPadding.left(), mPadding.top()));
   textBoxRect.moveTopLeft(textPos.toPoint());
-  double clipPad = mainPen().widthF();
+  int clipPad = qCeil(mainPen().widthF());
   QRect boundingRect = textBoxRect.adjusted(-clipPad, -clipPad, clipPad, clipPad);
   if (transform.mapRect(boundingRect).intersects(painter->transform().mapRect(clipRect())))
   {

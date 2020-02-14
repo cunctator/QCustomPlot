@@ -2036,10 +2036,10 @@ void QCPLayoutInset::updateLayout()
     QSize finalMaxSize = getFinalMaximumOuterSize(el);
     if (mInsetPlacement.at(i) == ipFree)
     {
-      insetRect = QRect(rect().x()+rect().width()*mInsetRect.at(i).x(),
-                        rect().y()+rect().height()*mInsetRect.at(i).y(),
-                        rect().width()*mInsetRect.at(i).width(),
-                        rect().height()*mInsetRect.at(i).height());
+      insetRect = QRect(int( rect().x()+rect().width()*mInsetRect.at(i).x() ),
+                        int( rect().y()+rect().height()*mInsetRect.at(i).y() ),
+                        int( rect().width()*mInsetRect.at(i).width() ),
+                        int( rect().height()*mInsetRect.at(i).height() ));
       if (insetRect.size().width() < finalMinSize.width())
         insetRect.setWidth(finalMinSize.width());
       if (insetRect.size().height() < finalMinSize.height())
@@ -2054,10 +2054,10 @@ void QCPLayoutInset::updateLayout()
       Qt::Alignment al = mInsetAlignment.at(i);
       if (al.testFlag(Qt::AlignLeft)) insetRect.moveLeft(rect().x());
       else if (al.testFlag(Qt::AlignRight)) insetRect.moveRight(rect().x()+rect().width());
-      else insetRect.moveLeft(rect().x()+rect().width()*0.5-finalMinSize.width()*0.5); // default to Qt::AlignHCenter
+      else insetRect.moveLeft(int( rect().x()+rect().width()*0.5-finalMinSize.width()*0.5 )); // default to Qt::AlignHCenter
       if (al.testFlag(Qt::AlignTop)) insetRect.moveTop(rect().y());
       else if (al.testFlag(Qt::AlignBottom)) insetRect.moveBottom(rect().y()+rect().height());
-      else insetRect.moveTop(rect().y()+rect().height()*0.5-finalMinSize.height()*0.5); // default to Qt::AlignVCenter
+      else insetRect.moveTop(int( rect().y()+rect().height()*0.5-finalMinSize.height()*0.5 )); // default to Qt::AlignVCenter
     }
     mElements.at(i)->setOuterRect(insetRect);
   }

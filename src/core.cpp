@@ -3119,7 +3119,7 @@ bool QCustomPlot::saveRastered(const QString &fileName, int width, int height, d
   {
     case QCP::ruDotsPerMeter: dotsPerMeter = resolution; break;
     case QCP::ruDotsPerCentimeter: dotsPerMeter = resolution*100; break;
-    case QCP::ruDotsPerInch: dotsPerMeter = resolution/0.0254; break;
+    case QCP::ruDotsPerInch: dotsPerMeter = int(resolution/0.0254); break;
   }
   buffer.setDotsPerMeterX(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools
   buffer.setDotsPerMeterY(dotsPerMeter); // this is saved together with some image formats, e.g. PNG, and is relevant when opening image in other tools

@@ -127,13 +127,14 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, dou
   QCPLayoutElement(parentPlot),
   mText(text),
   mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
-  mFont(QFont(QLatin1String("sans serif"), pointSize)), // will be taken from parentPlot if available, see below
+  mFont(QFont(QLatin1String("sans serif"), int(pointSize))), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
-  mSelectedFont(QFont(QLatin1String("sans serif"), pointSize)), // will be taken from parentPlot if available, see below
+  mSelectedFont(QFont(QLatin1String("sans serif"), int(pointSize))), // will be taken from parentPlot if available, see below
   mSelectedTextColor(Qt::blue),
   mSelectable(false),
   mSelected(false)
 {
+  mFont.setPointSizeF(pointSize); // set here again as floating point, because constructor above only takes integer
   if (parentPlot)
   {
     mFont = parentPlot->font();
@@ -154,13 +155,14 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, con
   QCPLayoutElement(parentPlot),
   mText(text),
   mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
-  mFont(QFont(fontFamily, pointSize)),
+  mFont(QFont(fontFamily, int(pointSize))),
   mTextColor(Qt::black),
-  mSelectedFont(QFont(fontFamily, pointSize)),
+  mSelectedFont(QFont(fontFamily, int(pointSize))),
   mSelectedTextColor(Qt::blue),
   mSelectable(false),
   mSelected(false)
 {
+  mFont.setPointSizeF(pointSize); // set here again as floating point, because constructor above only takes integer
   setMargins(QMargins(2, 2, 2, 2));
 }
 

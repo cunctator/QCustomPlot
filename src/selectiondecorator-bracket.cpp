@@ -167,12 +167,12 @@ void QCPSelectionDecoratorBracket::drawBracket(QCPPainter *painter, int directio
     }
     case bsHalfEllipse:
     {
-      painter->drawArc(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight, -90*16, -180*16*direction);
+      painter->drawArc(QRectF(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight), -90*16, -180*16*direction);
       break;
     }
     case bsEllipse:
     {
-      painter->drawEllipse(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight);
+      painter->drawEllipse(QRectF(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight));
       break;
     }
     case bsPlus:

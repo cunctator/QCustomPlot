@@ -98,7 +98,7 @@ void QCPItemStraightLine::draw(QCPPainter *painter)
   QCPVector2D start(point1->pixelPosition());
   QCPVector2D end(point2->pixelPosition());
   // get visible segment of straight line inside clipRect:
-  double clipPad = mainPen().widthF();
+  int clipPad = qCeil(mainPen().widthF());
   QLineF line = getRectClippedStraightLine(start, end-start, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));
   // paint visible segment, if existent:
   if (!line.isNull())

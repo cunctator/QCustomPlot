@@ -128,8 +128,8 @@ void QCPItemLine::draw(QCPPainter *painter)
   if (qFuzzyIsNull((startVec-endVec).lengthSquared()))
     return;
   // get visible segment of straight line inside clipRect:
-  double clipPad = qMax(mHead.boundingDistance(), mTail.boundingDistance());
-  clipPad = qMax(clipPad, double(mainPen().widthF()));
+  int clipPad = int(qMax(mHead.boundingDistance(), mTail.boundingDistance()));
+  clipPad = qMax(clipPad, qCeil(mainPen().widthF()));
   QLineF line = getRectClippedLine(startVec, endVec, clipRect().adjusted(-clipPad, -clipPad, clipPad, clipPad));
   // paint visible segment, if existent:
   if (!line.isNull())
@@ -153,8 +153,8 @@ void QCPItemLine::draw(QCPPainter *painter)
 */
 QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector2D &end, const QRect &rect) const
 {
-  bool containsStart = rect.contains(start.x(), start.y());
-  bool containsEnd = rect.contains(end.x(), end.y());
+  bool containsStart = rect.contains(qRound(start.x()), qRound(start.y()));
+  bool containsEnd = rect.contains(qRound(end.x()), qRound(end.y()));
   if (containsStart && containsEnd)
     return QLineF(start.toPointF(), end.toPointF());
   

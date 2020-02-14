@@ -137,7 +137,7 @@ void QCPItemPixmap::draw(QCPPainter *painter)
   bool flipHorz = false;
   bool flipVert = false;
   QRect rect = getFinalRect(&flipHorz, &flipVert);
-  double clipPad = mainPen().style() == Qt::NoPen ? 0 : mainPen().widthF();
+  int clipPad = mainPen().style() == Qt::NoPen ? 0 : qCeil(mainPen().widthF());
   QRect boundingRect = rect.adjusted(-clipPad, -clipPad, clipPad, clipPad);
   if (boundingRect.intersects(clipRect()))
   {
@@ -156,8 +156,8 @@ void QCPItemPixmap::draw(QCPPainter *painter)
 /* inherits documentation from base class */
 QPointF QCPItemPixmap::anchorPixelPosition(int anchorId) const
 {
-  bool flipHorz;
-  bool flipVert;
+  bool flipHorz = false;
+  bool flipVert = false;
   QRect rect = getFinalRect(&flipHorz, &flipVert);
   // we actually want denormal rects (negative width/height) here, so restore
   // the flipped state:

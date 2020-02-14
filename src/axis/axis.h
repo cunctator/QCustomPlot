@@ -431,7 +431,7 @@ public:
   QFont tickLabelFont;
   QColor tickLabelColor;
   QRect axisRect, viewportRect;
-  double offset; // directly accessed by QCPAxis setters/getters
+  int offset; // directly accessed by QCPAxis setters/getters
   bool abbreviateDecimalPowers;
   bool reversedEndings;
   

@@ -566,8 +566,11 @@ void QCPColorGradient::updateColorBuffer()
         if (useAlpha)
         {
           const QColor col = (it-1).value();
-          const float alphaPremultiplier = col.alpha()/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
-          mColorBuffer[i] = qRgba(col.red()*alphaPremultiplier, col.green()*alphaPremultiplier, col.blue()*alphaPremultiplier, col.alpha());
+          const double alphaPremultiplier = col.alpha()/255.0; // since we use QImage::Format_ARGB32_Premultiplied
+          mColorBuffer[i] = qRgba(int(col.red()*alphaPremultiplier),
+                                  int(col.green()*alphaPremultiplier),
+                                  int(col.blue()*alphaPremultiplier),
+                                  col.alpha());
         } else
           mColorBuffer[i] = (it-1).value().rgba();
       } else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
@@ -575,8 +578,11 @@ void QCPColorGradient::updateColorBuffer()
         if (useAlpha)
         {
           const QColor col = it.value();
-          const float alphaPremultiplier = col.alpha()/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
-          mColorBuffer[i] = qRgba(col.red()*alphaPremultiplier, col.green()*alphaPremultiplier, col.blue()*alphaPremultiplier, col.alpha());
+          const double alphaPremultiplier = col.alpha()/255.0; // since we use QImage::Format_ARGB32_Premultiplied
+          mColorBuffer[i] = qRgba(int(col.red()*alphaPremultiplier),
+                                  int(col.green()*alphaPremultiplier),
+                                  int(col.blue()*alphaPremultiplier),
+                                  col.alpha());
         } else
           mColorBuffer[i] = it.value().rgba();
       } else // position is in between stops (or on an intermediate stop), interpolate color
@@ -590,17 +596,17 @@ void QCPColorGradient::updateColorBuffer()
           {
             if (useAlpha)
             {
-              const int alpha = (1-t)*low.value().alpha() + t*high.value().alpha();
-              const float alphaPremultiplier = alpha/255.0f; // since we use QImage::Format_ARGB32_Premultiplied
-              mColorBuffer[i] = qRgba(((1-t)*low.value().red() + t*high.value().red())*alphaPremultiplier,
-                                      ((1-t)*low.value().green() + t*high.value().green())*alphaPremultiplier,
-                                      ((1-t)*low.value().blue() + t*high.value().blue())*alphaPremultiplier,
+              const int alpha = int((1-t)*low.value().alpha() + t*high.value().alpha());
+              const double alphaPremultiplier = alpha/255.0; // since we use QImage::Format_ARGB32_Premultiplied
+              mColorBuffer[i] = qRgba(int( ((1-t)*low.value().red() + t*high.value().red())*alphaPremultiplier ),
+                                      int( ((1-t)*low.value().green() + t*high.value().green())*alphaPremultiplier ),
+                                      int( ((1-t)*low.value().blue() + t*high.value().blue())*alphaPremultiplier ),
                                       alpha);
             } else
             {
-              mColorBuffer[i] = qRgb(((1-t)*low.value().red() + t*high.value().red()),
-                                     ((1-t)*low.value().green() + t*high.value().green()),
-                                     ((1-t)*low.value().blue() + t*high.value().blue()));
+              mColorBuffer[i] = qRgb(int( ((1-t)*low.value().red() + t*high.value().red()) ),
+                                     int( ((1-t)*low.value().green() + t*high.value().green()) ),
+                                     int( ((1-t)*low.value().blue() + t*high.value().blue())) );
             }
             break;
           }
@@ -623,8 +629,8 @@ void QCPColorGradient::updateColorBuffer()
               const QRgb rgb = QColor::fromHsvF(hue,
                                                 (1-t)*lowHsv.saturationF() + t*highHsv.saturationF(),
                                                 (1-t)*lowHsv.valueF() + t*highHsv.valueF()).rgb();
-              const float alpha = (1-t)*lowHsv.alphaF() + t*highHsv.alphaF();
-              mColorBuffer[i] = qRgba(qRed(rgb)*alpha, qGreen(rgb)*alpha, qBlue(rgb)*alpha, 255*alpha);
+              const double alpha = (1-t)*lowHsv.alphaF() + t*highHsv.alphaF();
+              mColorBuffer[i] = qRgba(int(qRed(rgb)*alpha), int(qGreen(rgb)*alpha), int(qBlue(rgb)*alpha), int(255*alpha));
             }
             else
             {
@@ -640,8 +646,8 @@ void QCPColorGradient::updateColorBuffer()
   } else if (mColorStops.size() == 1)
   {
     const QRgb rgb = mColorStops.constBegin().value().rgb();
-    const float alpha = mColorStops.constBegin().value().alphaF();
-    mColorBuffer.fill(qRgba(qRed(rgb)*alpha, qGreen(rgb)*alpha, qBlue(rgb)*alpha, 255*alpha));
+    const double alpha = mColorStops.constBegin().value().alphaF();
+    mColorBuffer.fill(qRgba(int(qRed(rgb)*alpha), int(qGreen(rgb)*alpha), int(qBlue(rgb)*alpha), int(255*alpha)));
   } else // mColorStops is empty, fill color buffer with black
   {
     mColorBuffer.fill(qRgb(0, 0, 0));

@@ -629,7 +629,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
       pixels.append(reinterpret_cast<QRgb*>(mGradientImage.scanLine(y)));
     mParentColorScale->mGradient.colorize(data.constData(), QCPRange(0, n-1), pixels.first(), n);
     for (int y=1; y<h; ++y)
-      memcpy(pixels.at(y), pixels.first(), n*sizeof(QRgb));
+      memcpy(pixels.at(y), pixels.first(), size_t(n)*sizeof(QRgb));
   } else
   {
     w = rect().width();

@@ -122,7 +122,7 @@ public:
   bool setParentAnchorX(QCPItemAnchor *parentAnchor, bool keepPixelPosition=false);
   bool setParentAnchorY(QCPItemAnchor *parentAnchor, bool keepPixelPosition=false);
   void setCoords(double key, double value);
-  void setCoords(const QPointF &coords);
+  void setCoords(const QPointF &pos);
   void setAxes(QCPAxis* keyAxis, QCPAxis* valueAxis);
   void setAxisRect(QCPAxisRect *axisRect);
   void setPixelPosition(const QPointF &pixelPosition);

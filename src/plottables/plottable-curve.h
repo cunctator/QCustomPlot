@@ -132,7 +132,7 @@ protected:
   void getCurveLines(QVector<QPointF> *lines, const QCPDataRange &dataRange, double penWidth) const;
   void getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataRange, double scatterWidth) const;
   int getRegion(double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
-  QPointF getOptimizedPoint(int prevRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
+  QPointF getOptimizedPoint(int otherRegion, double otherKey, double otherValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   QVector<QPointF> getOptimizedCornerPoints(int prevRegion, int currentRegion, double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin) const;
   bool mayTraverse(int prevRegion, int currentRegion) const;
   bool getTraverse(double prevKey, double prevValue, double key, double value, double keyMin, double valueMax, double keyMax, double valueMin, QPointF &crossA, QPointF &crossB) const;

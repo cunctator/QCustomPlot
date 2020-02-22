@@ -65,7 +65,7 @@ protected:
   virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   
   // non-virtual methods:
-  QLineF getRectClippedStraightLine(const QCPVector2D &point1, const QCPVector2D &vec, const QRect &rect) const;
+  QLineF getRectClippedStraightLine(const QCPVector2D &base, const QCPVector2D &vec, const QRect &rect) const;
   QPen mainPen() const;
 };
 

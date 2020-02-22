@@ -186,7 +186,9 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis)
+  QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis),
+  mScatterSkip{},
+  mLineStyle{}
 {
   // modify inherited properties from abstract plottable:
   setPen(QPen(Qt::blue, 0));

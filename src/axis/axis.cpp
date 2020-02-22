@@ -57,6 +57,9 @@
 */
 QCPGrid::QCPGrid(QCPAxis *parentAxis) :
   QCPLayerable(parentAxis->parentPlot(), QString(), parentAxis),
+  mSubGridVisible{},
+  mAntialiasedSubGrid{},
+  mAntialiasedZeroLine{},
   mParentAxis(parentAxis)
 {
   // warning: this is called in QCPAxis constructor, so parentAxis members should not be accessed/called

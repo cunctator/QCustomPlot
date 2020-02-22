@@ -186,7 +186,10 @@ QCPGraphData::QCPGraphData(double key, double value) :
   To directly create a graph inside a plot, you can also use the simpler QCustomPlot::addGraph function.
 */
 QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable1D<QCPGraphData>(keyAxis, valueAxis)
+  QCPAbstractPlottable1D<QCPGraphData>(keyAxis, valueAxis),
+  mLineStyle{},
+  mScatterSkip{},
+  mAdaptiveSampling{}
 {
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);

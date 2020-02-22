@@ -392,7 +392,8 @@ QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
   Note that by default, QCustomPlot already contains a legend ready to be used as \ref
   QCustomPlot::legend
 */
-QCPLegend::QCPLegend()
+QCPLegend::QCPLegend() :
+  mIconTextPadding{}
 {
   setFillOrder(QCPLayoutGrid::foRowsFirst);
   setWrap(0);

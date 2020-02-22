@@ -78,7 +78,7 @@ protected:
   // non-virtual methods:
   void trimTicks(const QCPRange &range, QVector<double> &ticks, bool keepOneOutlier) const;
   double pickClosest(double target, const QVector<double> &candidates) const;
-  double getMantissa(double input, double *magnitude=0) const;
+  double getMantissa(double input, double *magnitude=nullptr) const;
   double cleanMantissa(double input) const;
   
 private:

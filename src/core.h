@@ -78,7 +78,7 @@ public:
                        };
   Q_ENUMS(RefreshPriority)
   
-  explicit QCustomPlot(QWidget *parent = 0);
+  explicit QCustomPlot(QWidget *parent = nullptr);
   virtual ~QCustomPlot();
   
   // getters:
@@ -134,14 +134,14 @@ public:
   int plottableCount() const;
   QList<QCPAbstractPlottable*> selectedPlottables() const;
   template<class PlottableType>
-  PlottableType *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=0) const;
-  QCPAbstractPlottable *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=0) const;
+  PlottableType *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=nullptr) const;
+  QCPAbstractPlottable *plottableAt(const QPointF &pos, bool onlySelectable=false, int *dataIndex=nullptr) const;
   bool hasPlottable(QCPAbstractPlottable *plottable) const;
  
   // specialized interface for QCPGraph:
   QCPGraph *graph(int index) const;
   QCPGraph *graph() const;
-  QCPGraph *addGraph(QCPAxis *keyAxis=0, QCPAxis *valueAxis=0);
+  QCPGraph *addGraph(QCPAxis *keyAxis=nullptr, QCPAxis *valueAxis=nullptr);
   bool removeGraph(QCPGraph *graph);
   bool removeGraph(int index);
   int clearGraphs();
@@ -168,7 +168,7 @@ public:
   bool setCurrentLayer(const QString &name);
   bool setCurrentLayer(QCPLayer *layer);
   int layerCount() const;
-  bool addLayer(const QString &name, QCPLayer *otherLayer=0, LayerInsertMode insertMode=limAbove);
+  bool addLayer(const QString &name, QCPLayer *otherLayer=nullptr, LayerInsertMode insertMode=limAbove);
   bool removeLayer(QCPLayer *layer);
   bool moveLayer(QCPLayer *layer, QCPLayer *otherLayer, LayerInsertMode insertMode=limAbove);
   
@@ -288,8 +288,8 @@ protected:
   bool registerGraph(QCPGraph *graph);
   bool registerItem(QCPAbstractItem* item);
   void updateLayerIndices() const;
-  QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=0) const;
-  QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=0) const;
+  QCPLayerable *layerableAt(const QPointF &pos, bool onlySelectable, QVariant *selectionDetails=nullptr) const;
+  QList<QCPLayerable*> layerableListAt(const QPointF &pos, bool onlySelectable, QList<QVariant> *selectionDetails=nullptr) const;
   void drawBackground(QCPPainter *painter);
   void setupPaintBuffers();
   QCPAbstractPaintBuffer *createPaintBuffer();
@@ -344,7 +344,7 @@ PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable,
     if (currentPlottable->clipRect().contains(pos.toPoint())) // only consider clicks where the plottable is actually visible
     {
       QVariant details;
-      double currentDistance = currentPlottable->selectTest(pos, false, dataIndex ? &details : 0);
+      double currentDistance = currentPlottable->selectTest(pos, false, dataIndex ? &details : nullptr);
       if (currentDistance >= 0 && currentDistance < resultDistance)
       {
         resultPlottable = currentPlottable;

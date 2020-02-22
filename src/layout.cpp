@@ -1489,7 +1489,7 @@ void QCPLayoutGrid::expandTo(int newRowCount, int newColumnCount)
   for (int i=0; i<rowCount(); ++i)
   {
     while (mElements.at(i).size() < newColCount)
-      mElements[i].append(0);
+      mElements[i].append(nullptr);
   }
   while (mColumnStretchFactors.size() < newColCount)
     mColumnStretchFactors.append(1);
@@ -1686,7 +1686,7 @@ QCPLayoutElement *QCPLayoutGrid::takeAt(int index)
     releaseElement(el);
     int row, col;
     indexToRowCol(index, row, col);
-    mElements[row][col] = 0;
+    mElements[row][col] = nullptr;
     return el;
   } else
   {

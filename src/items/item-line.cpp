@@ -156,7 +156,7 @@ QLineF QCPItemLine::getRectClippedLine(const QCPVector2D &start, const QCPVector
   bool containsStart = rect.contains(qRound(start.x()), qRound(start.y()));
   bool containsEnd = rect.contains(qRound(end.x()), qRound(end.y()));
   if (containsStart && containsEnd)
-    return QLineF(start.toPointF(), end.toPointF());
+    return {start.toPointF(), end.toPointF()};
   
   QCPVector2D base = start;
   QCPVector2D vec = end-start;

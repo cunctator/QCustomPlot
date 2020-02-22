@@ -938,9 +938,9 @@ QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double oth
     }
   }
   if (mKeyAxis->orientation() == Qt::Horizontal)
-    return QPointF(intersectKeyPx, intersectValuePx);
+    return {intersectKeyPx, intersectValuePx};
   else
-    return QPointF(intersectValuePx, intersectKeyPx);
+    return {intersectValuePx, intersectKeyPx};
 }
 
 /*! \internal

@@ -954,7 +954,7 @@ QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDoma
     if (mMapData->keyRange().upper < inKeyRange.lower || mMapData->keyRange().lower > inKeyRange.upper)
     {
       foundRange = false;
-      return QCPRange();
+      return {};
     }
   }
   

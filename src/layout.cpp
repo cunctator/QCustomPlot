@@ -514,7 +514,7 @@ void QCPLayoutElement::update(UpdatePhase phase)
 */
 QSize QCPLayoutElement::minimumOuterSizeHint() const
 {
-  return QSize(mMargins.left()+mMargins.right(), mMargins.top()+mMargins.bottom());
+  return {mMargins.left()+mMargins.right(), mMargins.top()+mMargins.bottom()};
 }
 
 /*!
@@ -533,7 +533,7 @@ QSize QCPLayoutElement::minimumOuterSizeHint() const
 */
 QSize QCPLayoutElement::maximumOuterSizeHint() const
 {
-  return QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+  return {QWIDGETSIZE_MAX, QWIDGETSIZE_MAX};
 }
 
 /*!
@@ -1064,8 +1064,8 @@ QSize QCPLayout::getFinalMinimumOuterSize(const QCPLayoutElement *el)
   if (minOuter.height() > 0 && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
     minOuter.rheight() += el->margins().top() + el->margins().bottom();
   
-  return QSize(minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
-               minOuter.height() > 0 ? minOuter.height() : minOuterHint.height());;
+  return {minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
+               minOuter.height() > 0 ? minOuter.height() : minOuterHint.height()};
 }
 
 /*! \internal
@@ -1089,8 +1089,8 @@ QSize QCPLayout::getFinalMaximumOuterSize(const QCPLayoutElement *el)
   if (maxOuter.height() < QWIDGETSIZE_MAX && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
     maxOuter.rheight() += el->margins().top() + el->margins().bottom();
   
-  return QSize(maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
-               maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height());
+  return {maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
+               maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height()};
 }
 
 
@@ -1973,7 +1973,7 @@ QRectF QCPLayoutInset::insetRect(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
-    return QRectF();
+    return {};
   }
 }
 

@@ -250,7 +250,7 @@ QPointF QCPItemBracket::anchorPixelPosition(int anchorId) const
       return centerVec.toPointF();
   }
   qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
-  return QPointF();
+  return {};
 }
 
 /*! \internal

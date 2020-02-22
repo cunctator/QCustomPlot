@@ -370,13 +370,13 @@ QCPRange QCPErrorBars::dataValueRange(int index) const
   {
     const double value = mDataPlottable->interface1D()->dataMainValue(index);
     if (index >= 0 && index < mDataContainer->size() && mErrorType == etValueError)
-      return QCPRange(value-mDataContainer->at(index).errorMinus, value+mDataContainer->at(index).errorPlus);
+      return {value-mDataContainer->at(index).errorMinus, value+mDataContainer->at(index).errorPlus};
     else
-      return QCPRange(value, value);
+      return {value, value};
   } else
   {
     qDebug() << Q_FUNC_INFO << "no data plottable set";
-    return QCPRange();
+    return {};
   }
 }
 
@@ -387,7 +387,7 @@ QPointF QCPErrorBars::dataPixelPosition(int index) const
     return mDataPlottable->interface1D()->dataPixelPosition(index);
   else
     qDebug() << Q_FUNC_INFO << "no data plottable set";
-  return QPointF();
+  return {};
 }
 
 /* inherits documentation from base class */
@@ -587,7 +587,7 @@ QCPRange QCPErrorBars::getKeyRange(bool &foundRange, QCP::SignDomain inSignDomai
   if (!mDataPlottable)
   {
     foundRange = false;
-    return QCPRange();
+    return {};
   }
   
   QCPRange range;
@@ -661,7 +661,7 @@ QCPRange QCPErrorBars::getValueRange(bool &foundRange, QCP::SignDomain inSignDom
   if (!mDataPlottable)
   {
     foundRange = false;
-    return QCPRange();
+    return {};
   }
   
   QCPRange range;

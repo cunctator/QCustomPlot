@@ -113,12 +113,12 @@ QPointF QCPItemAnchor::pixelPosition() const
     } else
     {
       qDebug() << Q_FUNC_INFO << "no valid anchor id set:" << mAnchorId;
-      return QPointF();
+      return {};
     }
   } else
   {
     qDebug() << Q_FUNC_INFO << "no parent item set";
-    return QPointF();
+    return {};
   }
 }
 
@@ -1204,7 +1204,7 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
 QPointF QCPAbstractItem::anchorPixelPosition(int anchorId) const
 {
   qDebug() << Q_FUNC_INFO << "called on item which shouldn't have any anchors (this method not reimplemented). anchorId" << anchorId;
-  return QPointF();
+  return {};
 }
 
 /*! \internal

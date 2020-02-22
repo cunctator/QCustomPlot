@@ -898,19 +898,19 @@ QPointF QCPBars::dataPixelPosition(int index) const
   {
     QCPAxis *keyAxis = mKeyAxis.data();
     QCPAxis *valueAxis = mValueAxis.data();
-    if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
+    if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {}; }
     
     const QCPDataContainer<QCPBarsData>::const_iterator it = mDataContainer->constBegin()+index;
     const double valuePixel = valueAxis->coordToPixel(getStackedBaseValue(it->key, it->value >= 0) + it->value);
     const double keyPixel = keyAxis->coordToPixel(it->key) + (mBarsGroup ? mBarsGroup->keyPixelOffset(this, it->key) : 0);
     if (keyAxis->orientation() == Qt::Horizontal)
-      return QPointF(keyPixel, valuePixel);
+      return {keyPixel, valuePixel};
     else
-      return QPointF(valuePixel, keyPixel);
+      return {valuePixel, keyPixel};
   } else
   {
     qDebug() << Q_FUNC_INFO << "Index out of bounds" << index;
-    return QPointF();
+    return {};
   }
 }
 
@@ -1053,7 +1053,7 @@ QRectF QCPBars::getBarRect(double key, double value) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {}; }
   
   double lowerPixelWidth, upperPixelWidth;
   getPixelWidth(key, lowerPixelWidth, upperPixelWidth);

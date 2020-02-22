@@ -177,7 +177,7 @@ QPointF QCPItemPixmap::anchorPixelPosition(int anchorId) const
   }
   
   qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
-  return QPointF();
+  return {};
 }
 
 /*! \internal
@@ -243,7 +243,7 @@ QRect QCPItemPixmap::getFinalRect(bool *flippedHorz, bool *flippedVert) const
   QPoint p1 = topLeft->pixelPosition().toPoint();
   QPoint p2 = bottomRight->pixelPosition().toPoint();
   if (p1 == p2)
-    return QRect(p1, QSize(0, 0));
+    return {p1, QSize(0, 0)};
   if (mScaled)
   {
     QSize newSize = QSize(p2.x()-p1.x(), p2.y()-p1.y());

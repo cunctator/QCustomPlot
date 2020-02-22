@@ -894,7 +894,7 @@ QRect QCPAbstractPlottable::clipRect() const
   if (mKeyAxis && mValueAxis)
     return mKeyAxis.data()->axisRect()->rect() & mValueAxis.data()->axisRect()->rect();
   else
-    return QRect();
+    return {};
 }
 
 /* inherits documentation from base class */

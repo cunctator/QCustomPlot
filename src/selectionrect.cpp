@@ -133,13 +133,13 @@ QCPRange QCPSelectionRect::range(const QCPAxis *axis) const
   if (axis)
   {
     if (axis->orientation() == Qt::Horizontal)
-      return QCPRange(axis->pixelToCoord(mRect.left()), axis->pixelToCoord(mRect.left()+mRect.width()));
+      return {axis->pixelToCoord(mRect.left()), axis->pixelToCoord(mRect.left()+mRect.width())};
     else
-      return QCPRange(axis->pixelToCoord(mRect.top()+mRect.height()), axis->pixelToCoord(mRect.top()));
+      return {axis->pixelToCoord(mRect.top()+mRect.height()), axis->pixelToCoord(mRect.top())};
   } else
   {
     qDebug() << Q_FUNC_INFO << "called with axis zero";
-    return QCPRange();
+    return {};
   }
 }
 

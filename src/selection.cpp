@@ -164,7 +164,7 @@ QCPDataRange QCPDataRange::bounded(const QCPDataRange &other) const
 */
 QCPDataRange QCPDataRange::expanded(const QCPDataRange &other) const
 {
-  return QCPDataRange(qMin(mBegin, other.mBegin), qMax(mEnd, other.mEnd));
+  return {qMin(mBegin, other.mBegin), qMax(mEnd, other.mEnd)};
 }
 
 /*!
@@ -183,7 +183,7 @@ QCPDataRange QCPDataRange::intersection(const QCPDataRange &other) const
   if (result.isValid())
     return result;
   else
-    return QCPDataRange();
+    return {};
 }
 
 /*!
@@ -415,7 +415,7 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
   } else
   {
     qDebug() << Q_FUNC_INFO << "index out of range:" << index;
-    return QCPDataRange();
+    return {};
   }
 }
 
@@ -426,9 +426,9 @@ QCPDataRange QCPDataSelection::dataRange(int index) const
 QCPDataRange QCPDataSelection::span() const
 {
   if (isEmpty())
-    return QCPDataRange();
+    return {};
   else
-    return QCPDataRange(mDataRanges.first().begin(), mDataRanges.last().end());
+    return {mDataRanges.first().begin(), mDataRanges.last().end()};
 }
 
 /*!

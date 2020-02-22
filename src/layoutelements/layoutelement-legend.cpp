@@ -323,7 +323,7 @@ void QCPPlottableLegendItem::draw(QCPPainter *painter)
 */
 QSize QCPPlottableLegendItem::minimumOuterSizeHint() const
 {
-  if (!mPlottable) return QSize();
+  if (!mPlottable) return {};
   QSize result(0, 0);
   QRect textRect;
   QFontMetrics fontMetrics(getFont());

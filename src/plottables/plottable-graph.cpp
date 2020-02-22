@@ -1447,7 +1447,7 @@ QPointF QCPGraph::getFillBasePoint(QPointF matchingDataPoint) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {}; }
   
   QPointF result;
   if (valueAxis->scaleType() == QCPAxis::stLinear)

@@ -704,7 +704,7 @@ QRect QCPLayerable::clipRect() const
   if (mParentPlot)
     return mParentPlot->viewport();
   else
-    return QRect();
+    return {};
 }
 
 /*! \internal

@@ -301,7 +301,7 @@ QPointF QCPItemText::anchorPixelPosition(int anchorId) const
   }
   
   qDebug() << Q_FUNC_INFO << "invalid anchorId" << anchorId;
-  return QPointF();
+  return {};
 }
 
 /*! \internal

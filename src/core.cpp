@@ -2218,7 +2218,7 @@ QSize QCustomPlot::sizeHint() const
 */
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
-  Q_UNUSED(event);
+  Q_UNUSED(event)
   QCPPainter painter(this);
   if (painter.isActive())
   {

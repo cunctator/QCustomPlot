@@ -1593,7 +1593,7 @@ QList<QCPAbstractPlottable*> QCPAxis::plottables() const
   
   foreach (QCPAbstractPlottable *plottable, mParentPlot->mPlottables)
   {
-    if (plottable->keyAxis() == this ||plottable->valueAxis() == this)
+    if (plottable->keyAxis() == this || plottable->valueAxis() == this)
       result.append(plottable);
   }
   return result;

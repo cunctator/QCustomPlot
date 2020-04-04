@@ -1069,10 +1069,10 @@ void QCPAbstractItem::setSelected(bool selected)
 */
 QCPItemPosition *QCPAbstractItem::position(const QString &name) const
 {
-  for (int i=0; i<mPositions.size(); ++i)
+  foreach (QCPItemPosition *position, mPositions)
   {
-    if (mPositions.at(i)->name() == name)
-      return mPositions.at(i);
+    if (position->name() == name)
+      return position;
   }
   qDebug() << Q_FUNC_INFO << "position with name not found:" << name;
   return nullptr;
@@ -1090,10 +1090,10 @@ QCPItemPosition *QCPAbstractItem::position(const QString &name) const
 */
 QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
 {
-  for (int i=0; i<mAnchors.size(); ++i)
+  foreach (QCPItemAnchor *anchor, mAnchors)
   {
-    if (mAnchors.at(i)->name() == name)
-      return mAnchors.at(i);
+    if (anchor->name() == name)
+      return anchor;
   }
   qDebug() << Q_FUNC_INFO << "anchor with name not found:" << name;
   return nullptr;
@@ -1109,9 +1109,9 @@ QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
 */
 bool QCPAbstractItem::hasAnchor(const QString &name) const
 {
-  for (int i=0; i<mAnchors.size(); ++i)
+  foreach (QCPItemAnchor *anchor, mAnchors)
   {
-    if (mAnchors.at(i)->name() == name)
+    if (anchor->name() == name)
       return true;
   }
   return false;

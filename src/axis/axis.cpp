@@ -246,16 +246,16 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   painter->setPen(mSubGridPen);
   if (mParentAxis->orientation() == Qt::Horizontal)
   {
-    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    foreach (double tickCoord, mParentAxis->mSubTickVector)
     {
-      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // x
+      t = mParentAxis->coordToPixel(tickCoord); // x
       painter->drawLine(QLineF(t, mParentAxis->mAxisRect->bottom(), t, mParentAxis->mAxisRect->top()));
     }
   } else
   {
-    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    foreach (double tickCoord, mParentAxis->mSubTickVector)
     {
-      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // y
+      t = mParentAxis->coordToPixel(tickCoord); // y
       painter->drawLine(QLineF(mParentAxis->mAxisRect->left(), t, mParentAxis->mAxisRect->right(), t));
     }
   }
@@ -1409,22 +1409,21 @@ void QCPAxis::setScaleRatio(const QCPAxis *otherAxis, double ratio)
 */
 void QCPAxis::rescale(bool onlyVisiblePlottables)
 {
-  QList<QCPAbstractPlottable*> p = plottables();
   QCPRange newRange;
   bool haveRange = false;
-  for (int i=0; i<p.size(); ++i)
+  foreach (QCPAbstractPlottable *plottable, plottables())
   {
-    if (!p.at(i)->realVisibility() && onlyVisiblePlottables)
+    if (!plottable->realVisibility() && onlyVisiblePlottables)
       continue;
     QCPRange plottableRange;
     bool currentFoundRange;
     QCP::SignDomain signDomain = QCP::sdBoth;
     if (mScaleType == stLogarithmic)
       signDomain = (mRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-    if (p.at(i)->keyAxis() == this)
-      plottableRange = p.at(i)->getKeyRange(currentFoundRange, signDomain);
+    if (plottable->keyAxis() == this)
+      plottableRange = plottable->getKeyRange(currentFoundRange, signDomain);
     else
-      plottableRange = p.at(i)->getValueRange(currentFoundRange, signDomain);
+      plottableRange = plottable->getValueRange(currentFoundRange, signDomain);
     if (currentFoundRange)
     {
       if (!haveRange)
@@ -1592,10 +1591,10 @@ QList<QCPAbstractPlottable*> QCPAxis::plottables() const
   QList<QCPAbstractPlottable*> result;
   if (!mParentPlot) return result;
   
-  for (int i=0; i<mParentPlot->mPlottables.size(); ++i)
+  foreach (QCPAbstractPlottable *plottable, mParentPlot->mPlottables)
   {
-    if (mParentPlot->mPlottables.at(i)->keyAxis() == this ||mParentPlot->mPlottables.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mPlottables.at(i));
+    if (plottable->keyAxis() == this ||plottable->valueAxis() == this)
+      result.append(plottable);
   }
   return result;
 }
@@ -1610,10 +1609,10 @@ QList<QCPGraph*> QCPAxis::graphs() const
   QList<QCPGraph*> result;
   if (!mParentPlot) return result;
   
-  for (int i=0; i<mParentPlot->mGraphs.size(); ++i)
+  foreach (QCPGraph *graph, mParentPlot->mGraphs)
   {
-    if (mParentPlot->mGraphs.at(i)->keyAxis() == this || mParentPlot->mGraphs.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mGraphs.at(i));
+    if (graph->keyAxis() == this || graph->valueAxis() == this)
+      result.append(graph);
   }
   return result;
 }
@@ -1629,14 +1628,13 @@ QList<QCPAbstractItem*> QCPAxis::items() const
   QList<QCPAbstractItem*> result;
   if (!mParentPlot) return result;
   
-  for (int itemId=0; itemId<mParentPlot->mItems.size(); ++itemId)
+  foreach (QCPAbstractItem *item, mParentPlot->mItems)
   {
-    QList<QCPItemPosition*> positions = mParentPlot->mItems.at(itemId)->positions();
-    for (int posId=0; posId<positions.size(); ++posId)
+    foreach (QCPItemPosition *position, item->positions())
     {
-      if (positions.at(posId)->keyAxis() == this || positions.at(posId)->valueAxis() == this)
+      if (position->keyAxis() == this || position->valueAxis() == this)
       {
-        result.append(mParentPlot->mItems.at(itemId));
+        result.append(item);
         break;
       }
     }
@@ -2157,12 +2155,12 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
     int tickDir = (type == QCPAxis::atBottom || type == QCPAxis::atRight) ? -1 : 1; // direction of ticks ("inward" is right for left axis and left for right axis)
     if (QCPAxis::orientation(type) == Qt::Horizontal)
     {
-      for (int i=0; i<tickPositions.size(); ++i)
-        painter->drawLine(QLineF(tickPositions.at(i)+xCor, origin.y()-tickLengthOut*tickDir+yCor, tickPositions.at(i)+xCor, origin.y()+tickLengthIn*tickDir+yCor));
+      foreach (double tickPos, tickPositions)
+        painter->drawLine(QLineF(tickPos+xCor, origin.y()-tickLengthOut*tickDir+yCor, tickPos+xCor, origin.y()+tickLengthIn*tickDir+yCor));
     } else
     {
-      for (int i=0; i<tickPositions.size(); ++i)
-        painter->drawLine(QLineF(origin.x()-tickLengthOut*tickDir+xCor, tickPositions.at(i)+yCor, origin.x()+tickLengthIn*tickDir+xCor, tickPositions.at(i)+yCor));
+      foreach (double tickPos, tickPositions)
+        painter->drawLine(QLineF(origin.x()-tickLengthOut*tickDir+xCor, tickPos+yCor, origin.x()+tickLengthIn*tickDir+xCor, tickPos+yCor));
     }
   }
   
@@ -2174,12 +2172,12 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
     int tickDir = (type == QCPAxis::atBottom || type == QCPAxis::atRight) ? -1 : 1;
     if (QCPAxis::orientation(type) == Qt::Horizontal)
     {
-      for (int i=0; i<subTickPositions.size(); ++i)
-        painter->drawLine(QLineF(subTickPositions.at(i)+xCor, origin.y()-subTickLengthOut*tickDir+yCor, subTickPositions.at(i)+xCor, origin.y()+subTickLengthIn*tickDir+yCor));
+      foreach (double subTickPos, subTickPositions)
+        painter->drawLine(QLineF(subTickPos+xCor, origin.y()-subTickLengthOut*tickDir+yCor, subTickPos+xCor, origin.y()+subTickLengthIn*tickDir+yCor));
     } else
     {
-      for (int i=0; i<subTickPositions.size(); ++i)
-        painter->drawLine(QLineF(origin.x()-subTickLengthOut*tickDir+xCor, subTickPositions.at(i)+yCor, origin.x()+subTickLengthIn*tickDir+xCor, subTickPositions.at(i)+yCor));
+      foreach (double subTickPos, subTickPositions)
+        painter->drawLine(QLineF(origin.x()-subTickLengthOut*tickDir+xCor, subTickPos+yCor, origin.x()+subTickLengthIn*tickDir+xCor, subTickPos+yCor));
     }
   }
   margin += qMax(0, qMax(tickLengthOut, subTickLengthOut));
@@ -2320,8 +2318,8 @@ int QCPAxisPainterPrivate::size() const
     QSize tickLabelsSize(0, 0);
     if (!tickLabels.isEmpty())
     {
-      for (int i=0; i<tickLabels.size(); ++i)
-        getMaxTickLabelSize(tickLabelFont, tickLabels.at(i), &tickLabelsSize);
+      foreach (const QString &tickLabel, tickLabels)
+        getMaxTickLabelSize(tickLabelFont, tickLabel, &tickLabelsSize);
       result += QCPAxis::orientation(type) == Qt::Horizontal ? tickLabelsSize.height() : tickLabelsSize.width();
     result += tickLabelPadding;
     }

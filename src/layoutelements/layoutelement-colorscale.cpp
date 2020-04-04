@@ -207,7 +207,7 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
       disconnect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
       disconnect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
     }
-    QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atLeft << QCPAxis::atRight << QCPAxis::atBottom << QCPAxis::atTop;
+    const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atLeft << QCPAxis::atRight << QCPAxis::atBottom << QCPAxis::atTop;
     foreach (QCPAxis::AxisType atype, allAxisTypes)
     {
       mAxisRect.data()->axis(atype)->setTicks(atype == mType);
@@ -391,15 +391,15 @@ void QCPColorScale::rescaleDataRange(bool onlyVisibleMaps)
   QCP::SignDomain sign = QCP::sdBoth;
   if (mDataScaleType == QCPAxis::stLogarithmic)
     sign = (mDataRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-  for (int i=0; i<maps.size(); ++i)
+  foreach (QCPColorMap *map, maps)
   {
-    if (!maps.at(i)->realVisibility() && onlyVisibleMaps)
+    if (!map->realVisibility() && onlyVisibleMaps)
       continue;
     QCPRange mapRange;
-    if (maps.at(i)->colorScale() == this)
+    if (map->colorScale() == this)
     {
       bool currentFoundRange = true;
-      mapRange = maps.at(i)->data()->dataBounds();
+      mapRange = map->data()->dataBounds();
       if (sign == QCP::sdPositive)
       {
         if (mapRange.lower <= 0 && mapRange.upper > 0)
@@ -553,7 +553,7 @@ QCPColorScaleAxisRectPrivate::QCPColorScaleAxisRectPrivate(QCPColorScale *parent
 {
   setParentLayerable(parentColorScale);
   setMinimumMargins(QMargins(0, 0, 0, 0));
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     axis(type)->setVisible(true);
@@ -654,7 +654,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
 void QCPColorScaleAxisRectPrivate::axisSelectionChanged(QCPAxis::SelectableParts selectedParts)
 {
   // axis bases of four axes shall always (de-)selected synchronously:
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     if (QCPAxis *senderAxis = qobject_cast<QCPAxis*>(sender()))
@@ -679,7 +679,7 @@ void QCPColorScaleAxisRectPrivate::axisSelectionChanged(QCPAxis::SelectableParts
 void QCPColorScaleAxisRectPrivate::axisSelectableChanged(QCPAxis::SelectableParts selectableParts)
 {
   // synchronize axis base selectability:
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     if (QCPAxis *senderAxis = qobject_cast<QCPAxis*>(sender()))

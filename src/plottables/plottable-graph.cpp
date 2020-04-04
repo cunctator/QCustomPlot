@@ -901,12 +901,12 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lines) const
   if (painter->brush().style() == Qt::NoBrush || painter->brush().color().alpha() == 0) return;
   
   applyFillAntialiasingHint(painter);
-  QVector<QCPDataRange> segments = getNonNanSegments(lines, keyAxis()->orientation());
+  const QVector<QCPDataRange> segments = getNonNanSegments(lines, keyAxis()->orientation());
   if (!mChannelFillGraph)
   {
     // draw base fill under graph, fill goes all the way to the zero-value-line:
-    for (int i=0; i<segments.size(); ++i)
-      painter->drawPolygon(getFillPolygon(lines, segments.at(i)));
+    foreach (QCPDataRange segment, segments)
+      painter->drawPolygon(getFillPolygon(lines, segment));
   } else
   {
     // draw fill between this graph and mChannelFillGraph:
@@ -933,8 +933,8 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scat
 {
   applyScattersAntialiasingHint(painter);
   style.applyTo(painter, mPen);
-  for (int i=0; i<scatters.size(); ++i)
-    style.drawShape(painter, scatters.at(i).x(), scatters.at(i).y());
+  foreach (const QPointF &scatter, scatters)
+    style.drawShape(painter, scatter.x(), scatter.y());
 }
 
 /*!  \internal

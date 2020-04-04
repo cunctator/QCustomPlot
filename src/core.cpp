@@ -891,8 +891,8 @@ void QCustomPlot::setBufferDevicePixelRatio(double ratio)
   {
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
     mBufferDevicePixelRatio = ratio;
-    for (int i=0; i<mPaintBuffers.size(); ++i)
-      mPaintBuffers.at(i)->setDevicePixelRatio(mBufferDevicePixelRatio);
+    foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
+      buffer->setDevicePixelRatio(mBufferDevicePixelRatio);
     // Note: axis label cache has devicePixelRatio as part of cache hash, so no need to manually clear cache here
 #else
     qDebug() << Q_FUNC_INFO << "Device pixel ratios not supported for Qt versions before 5.4";
@@ -1567,7 +1567,7 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   QList<QCPLayerable*> children = layer->children();
   if (isFirstLayer) // prepend in reverse order (such that relative order stays the same)
     std::reverse(children.begin(), children.end());
-  for (auto child : children)
+  foreach (QCPLayerable *child, children)
     child->moveToLayer(targetLayer, isFirstLayer); // prepend if isFirstLayer, otherwise append
   
   // if removed layer is current layer, change current layer to layer below/above:
@@ -1896,8 +1896,8 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   setupPaintBuffers();
   foreach (QCPLayer *layer, mLayers)
     layer->drawToPaintBuffer();
-  for (int i=0; i<mPaintBuffers.size(); ++i)
-    mPaintBuffers.at(i)->setInvalidated(false);
+  foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
+    buffer->setInvalidated(false);
   
   if ((refreshPriority == rpRefreshHint && mPlottingHints.testFlag(QCP::phImmediateRefresh)) || refreshPriority==rpImmediateRefresh)
     repaint();
@@ -2226,8 +2226,8 @@ void QCustomPlot::paintEvent(QPaintEvent *event)
     if (mBackgroundBrush.style() != Qt::NoBrush)
       painter.fillRect(mViewport, mBackgroundBrush);
     drawBackground(&painter);
-    for (int bufferIndex = 0; bufferIndex < mPaintBuffers.size(); ++bufferIndex)
-      mPaintBuffers.at(bufferIndex)->draw(&painter);
+    foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
+      buffer->draw(&painter);
   }
 }
 
@@ -2442,11 +2442,10 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
   // forward event to layerable under cursor:
-  QList<QCPLayerable*> candidates = layerableListAt(event->pos(), false);
-  for (int i=0; i<candidates.size(); ++i)
+  foreach (QCPLayerable *candidate, layerableListAt(event->pos(), false))
   {
     event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
-    candidates.at(i)->wheelEvent(event);
+    candidate->wheelEvent(event);
     if (event->isAccepted())
       break;
   }
@@ -2475,7 +2474,7 @@ void QCustomPlot::draw(QCPPainter *painter)
     layer->draw(painter);
   
   /* Debug code to draw all layout element rects
-  foreach (QCPLayoutElement* el, findChildren<QCPLayoutElement*>())
+  foreach (QCPLayoutElement *el, findChildren<QCPLayoutElement*>())
   {
     painter->setBrush(Qt::NoBrush);
     painter->setPen(QPen(QColor(0, 0, 0, 100), 0, Qt::DashLine));
@@ -2590,11 +2589,11 @@ void QCustomPlot::setupPaintBuffers()
   while (mPaintBuffers.size()-1 > bufferIndex)
     mPaintBuffers.removeLast();
   // resize buffers to viewport size and clear contents:
-  for (int i=0; i<mPaintBuffers.size(); ++i)
+  foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
   {
-    mPaintBuffers.at(i)->setSize(viewport().size()); // won't do anything if already correct size
-    mPaintBuffers.at(i)->clear(Qt::transparent);
-    mPaintBuffers.at(i)->setInvalidated();
+    buffer->setSize(viewport().size()); // won't do anything if already correct size
+    buffer->clear(Qt::transparent);
+    buffer->setInvalidated();
   }
 }
 
@@ -2635,9 +2634,9 @@ QCPAbstractPaintBuffer *QCustomPlot::createPaintBuffer()
 */
 bool QCustomPlot::hasInvalidatedPaintBuffers()
 {
-  for (int i=0; i<mPaintBuffers.size(); ++i)
+  foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
   {
-    if (mPaintBuffers.at(i)->invalidated())
+    if (buffer->invalidated())
       return true;
   }
   return false;

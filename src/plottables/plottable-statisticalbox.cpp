@@ -466,10 +466,10 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
         }
       } else // whiskers
       {
-        const QVector<QLineF> whiskerBackbones(getWhiskerBackboneLines(it));
-        for (int i=0; i<whiskerBackbones.size(); ++i)
+        const QVector<QLineF> whiskerBackbones = getWhiskerBackboneLines(it);
+        foreach (const QLineF &backbone, whiskerBackbones)
         {
-          double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(whiskerBackbones.at(i));
+          double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(backbone);
           if (currentDistSqr < minDistSqr)
           {
             minDistSqr = currentDistSqr;

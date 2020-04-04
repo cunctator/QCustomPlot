@@ -163,8 +163,9 @@ QCPBars *QCPBarsGroup::bars(int index) const
 */
 void QCPBarsGroup::clear()
 {
-  foreach (QCPBars *bars, mBars) // since foreach takes a copy, removing bars in the loop is okay
-    bars->setBarsGroup(nullptr); // removes itself via removeBars
+  const QList<QCPBars*> oldBars = mBars;
+  foreach (QCPBars *bars, oldBars)
+    bars->setBarsGroup(nullptr); // removes itself from mBars via removeBars
 }
 
 /*!

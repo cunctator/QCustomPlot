@@ -1173,10 +1173,11 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
   QList<QLineF> lines;
   lines << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
         << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
+  const QCPVector2D posVec(pos);
   double minDistSqr = (std::numeric_limits<double>::max)();
-  for (int i=0; i<lines.size(); ++i)
+  foreach (const auto &line, lines)
   {
-    double distSqr = QCPVector2D(pos).distanceSquaredToLine(lines.at(i).p1(), lines.at(i).p2());
+    double distSqr = posVec.distanceSquaredToLine(line.p1(), line.p2());
     if (distSqr < minDistSqr)
       minDistSqr = distSqr;
   }

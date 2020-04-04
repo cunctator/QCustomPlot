@@ -1565,21 +1565,19 @@ bool QCustomPlot::removeLayer(QCPLayer *layer)
   bool isFirstLayer = removedIndex==0;
   QCPLayer *targetLayer = isFirstLayer ? mLayers.at(removedIndex+1) : mLayers.at(removedIndex-1);
   QList<QCPLayerable*> children = layer->children();
-  if (isFirstLayer) // prepend in reverse order (so order relative to each other stays the same)
-  {
-    for (int i=children.size()-1; i>=0; --i)
-      children.at(i)->moveToLayer(targetLayer, true);
-  } else  // append normally
-  {
-    for (int i=0; i<children.size(); ++i)
-      children.at(i)->moveToLayer(targetLayer, false);
-  }
+  if (isFirstLayer) // prepend in reverse order (such that relative order stays the same)
+    std::reverse(children.begin(), children.end());
+  for (auto child : children)
+    child->moveToLayer(targetLayer, isFirstLayer); // prepend if isFirstLayer, otherwise append
+  
   // if removed layer is current layer, change current layer to layer below/above:
   if (layer == mCurrentLayer)
     setCurrentLayer(targetLayer);
+  
   // invalidate the paint buffer that was responsible for this layer:
   if (QSharedPointer<QCPAbstractPaintBuffer> pb = layer->mPaintBuffer.toStrongRef())
     pb->setInvalidated();
+  
   // remove layer:
   delete layer;
   mLayers.removeOne(layer);

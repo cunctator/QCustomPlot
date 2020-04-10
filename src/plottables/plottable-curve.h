@@ -87,7 +87,7 @@ public:
   Q_ENUMS(LineStyle)
   
   explicit QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPCurve();
+  virtual ~QCPCurve() Q_DECL_OVERRIDE;
   
   // getters:
   QSharedPointer<QCPCurveDataContainer> data() const { return mDataContainer; }

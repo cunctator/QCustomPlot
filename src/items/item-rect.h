@@ -43,7 +43,7 @@ class QCP_LIB_DECL QCPItemRect : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemRect(QCustomPlot *parentPlot);
-  virtual ~QCPItemRect();
+  virtual ~QCPItemRect() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

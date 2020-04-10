@@ -97,7 +97,7 @@ public:
   Q_ENUMS(PositionType)
   
   QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name);
-  virtual ~QCPItemPosition();
+  virtual ~QCPItemPosition() Q_DECL_OVERRIDE;
   
   // getters:
   PositionType type() const { return typeX(); }
@@ -156,7 +156,7 @@ class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable
   /// \endcond
 public:
   explicit QCPAbstractItem(QCustomPlot *parentPlot);
-  virtual ~QCPAbstractItem();
+  virtual ~QCPAbstractItem() Q_DECL_OVERRIDE;
   
   // getters:
   bool clipToAxisRect() const { return mClipToAxisRect; }

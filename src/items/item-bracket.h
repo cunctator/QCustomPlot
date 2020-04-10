@@ -56,7 +56,7 @@ public:
   Q_ENUMS(BracketStyle)
 
   explicit QCPItemBracket(QCustomPlot *parentPlot);
-  virtual ~QCPItemBracket();
+  virtual ~QCPItemBracket() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

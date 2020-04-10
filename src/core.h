@@ -79,7 +79,7 @@ public:
   Q_ENUMS(RefreshPriority)
   
   explicit QCustomPlot(QWidget *parent = nullptr);
-  virtual ~QCustomPlot();
+  virtual ~QCustomPlot() Q_DECL_OVERRIDE;
   
   // getters:
   QRect viewport() const { return mViewport; }

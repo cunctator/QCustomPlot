@@ -45,7 +45,7 @@ class QCP_LIB_DECL QCPItemPixmap : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemPixmap(QCustomPlot *parentPlot);
-  virtual ~QCPItemPixmap();
+  virtual ~QCPItemPixmap() Q_DECL_OVERRIDE;
   
   // getters:
   QPixmap pixmap() const { return mPixmap; }

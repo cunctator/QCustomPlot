@@ -103,7 +103,7 @@ public:
   Q_ENUMS(ChartStyle)
   
   explicit QCPFinancial(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPFinancial();
+  virtual ~QCPFinancial() Q_DECL_OVERRIDE;
   
   // getters:
   QSharedPointer<QCPFinancialDataContainer> data() const { return mDataContainer; }

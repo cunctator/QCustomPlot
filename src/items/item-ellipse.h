@@ -43,7 +43,7 @@ class QCP_LIB_DECL QCPItemEllipse : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemEllipse(QCustomPlot *parentPlot);
-  virtual ~QCPItemEllipse();
+  virtual ~QCPItemEllipse() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

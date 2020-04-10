@@ -87,7 +87,7 @@ public:
   Q_ENUMS(ErrorType)
   
   explicit QCPErrorBars(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPErrorBars();
+  virtual ~QCPErrorBars() Q_DECL_OVERRIDE;
   // getters:
   QSharedPointer<QCPErrorBarsDataContainer> data() const { return mDataContainer; }
   QCPAbstractPlottable *dataPlottable() const { return mDataPlottable.data(); }

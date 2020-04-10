@@ -102,7 +102,7 @@ public:
   Q_ENUMS(SizeConstraintRect)
 
   explicit QCPLayoutElement(QCustomPlot *parentPlot=nullptr);
-  virtual ~QCPLayoutElement();
+  virtual ~QCPLayoutElement() Q_DECL_OVERRIDE;
   
   // getters:
   QCPLayout *layout() const { return mParentLayout; }
@@ -235,7 +235,7 @@ public:
   Q_ENUMS(FillOrder)
   
   explicit QCPLayoutGrid();
-  virtual ~QCPLayoutGrid();
+  virtual ~QCPLayoutGrid() Q_DECL_OVERRIDE;
   
   // getters:
   int rowCount() const { return mElements.size(); }
@@ -311,7 +311,7 @@ public:
   Q_ENUMS(InsetPlacement)
   
   explicit QCPLayoutInset();
-  virtual ~QCPLayoutInset();
+  virtual ~QCPLayoutInset() Q_DECL_OVERRIDE;
   
   // getters:
   InsetPlacement insetPlacement(int index) const;

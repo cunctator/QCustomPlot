@@ -62,7 +62,7 @@ public:
   Q_ENUMS(TracerStyle)
 
   explicit QCPItemTracer(QCustomPlot *parentPlot);
-  virtual ~QCPItemTracer();
+  virtual ~QCPItemTracer() Q_DECL_OVERRIDE;
 
   // getters:
   QPen pen() const { return mPen; }

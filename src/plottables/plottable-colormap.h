@@ -106,7 +106,7 @@ class QCP_LIB_DECL QCPColorMap : public QCPAbstractPlottable
   /// \endcond
 public:
   explicit QCPColorMap(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPColorMap();
+  virtual ~QCPColorMap() Q_DECL_OVERRIDE;
   
   // getters:
   QCPColorMapData *data() const { return mMapData; }

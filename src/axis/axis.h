@@ -186,7 +186,7 @@ public:
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   explicit QCPAxis(QCPAxisRect *parent, AxisType type);
-  virtual ~QCPAxis();
+  virtual ~QCPAxis() Q_DECL_OVERRIDE;
   
   // getters:
   AxisType axisType() const { return mAxisType; }

@@ -44,7 +44,7 @@ class QCP_LIB_DECL QCPItemCurve : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemCurve(QCustomPlot *parentPlot);
-  virtual ~QCPItemCurve();
+  virtual ~QCPItemCurve() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

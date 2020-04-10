@@ -49,7 +49,7 @@ public:
   Q_ENUMS(BracketStyle)
   
   QCPSelectionDecoratorBracket();
-  virtual ~QCPSelectionDecoratorBracket();
+  virtual ~QCPSelectionDecoratorBracket() Q_DECL_OVERRIDE;
   
   // getters:
   QPen bracketPen() const { return mBracketPen; }

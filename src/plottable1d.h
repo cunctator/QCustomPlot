@@ -54,7 +54,7 @@ class QCPAbstractPlottable1D : public QCPAbstractPlottable, public QCPPlottableI
   
 public:
   QCPAbstractPlottable1D(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPAbstractPlottable1D();
+  virtual ~QCPAbstractPlottable1D() Q_DECL_OVERRIDE;
   
   // virtual methods of 1d plottable interface:
   virtual int dataCount() const Q_DECL_OVERRIDE;

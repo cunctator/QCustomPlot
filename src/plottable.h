@@ -103,7 +103,7 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPAbstractPlottable();
+  virtual ~QCPAbstractPlottable() Q_DECL_OVERRIDE;
   
   // getters:
   QString name() const { return mName; }

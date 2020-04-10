@@ -77,7 +77,7 @@ class QCP_LIB_DECL QCPColorScale : public QCPLayoutElement
   /// \endcond
 public:
   explicit QCPColorScale(QCustomPlot *parentPlot);
-  virtual ~QCPColorScale();
+  virtual ~QCPColorScale() Q_DECL_OVERRIDE;
   
   // getters:
   QCPAxis *axis() const { return mColorAxis.data(); }

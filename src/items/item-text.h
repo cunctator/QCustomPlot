@@ -52,7 +52,7 @@ class QCP_LIB_DECL QCPItemText : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemText(QCustomPlot *parentPlot);
-  virtual ~QCPItemText();
+  virtual ~QCPItemText() Q_DECL_OVERRIDE;
   
   // getters:
   QColor color() const { return mColor; }

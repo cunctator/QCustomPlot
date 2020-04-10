@@ -157,7 +157,7 @@ public:
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   explicit QCPLegend();
-  virtual ~QCPLegend();
+  virtual ~QCPLegend() Q_DECL_OVERRIDE;
   
   // getters:
   QPen borderPen() const { return mBorderPen; }

@@ -157,7 +157,7 @@ public:
   Q_ENUMS(WidthType)
   
   explicit QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPBars();
+  virtual ~QCPBars() Q_DECL_OVERRIDE;
   
   // getters:
   double width() const { return mWidth; }

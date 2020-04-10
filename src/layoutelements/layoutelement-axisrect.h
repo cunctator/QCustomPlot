@@ -49,7 +49,7 @@ class QCP_LIB_DECL QCPAxisRect : public QCPLayoutElement
   /// \endcond
 public:
   explicit QCPAxisRect(QCustomPlot *parentPlot, bool setupDefaultAxes=true);
-  virtual ~QCPAxisRect();
+  virtual ~QCPAxisRect() Q_DECL_OVERRIDE;
   
   // getters:
   QPixmap background() const { return mBackgroundPixmap; }

@@ -41,7 +41,7 @@ class QCP_LIB_DECL QCPItemStraightLine : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemStraightLine(QCustomPlot *parentPlot);
-  virtual ~QCPItemStraightLine();
+  virtual ~QCPItemStraightLine() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

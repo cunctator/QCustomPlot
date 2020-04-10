@@ -44,7 +44,7 @@ class QCP_LIB_DECL QCPItemLine : public QCPAbstractItem
   /// \endcond
 public:
   explicit QCPItemLine(QCustomPlot *parentPlot);
-  virtual ~QCPItemLine();
+  virtual ~QCPItemLine() Q_DECL_OVERRIDE;
   
   // getters:
   QPen pen() const { return mPen; }

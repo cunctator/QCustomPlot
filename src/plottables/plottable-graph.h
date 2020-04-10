@@ -93,7 +93,7 @@ public:
   Q_ENUMS(LineStyle)
   
   explicit QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPGraph();
+  virtual ~QCPGraph() Q_DECL_OVERRIDE;
   
   // getters:
   QSharedPointer<QCPGraphDataContainer> data() const { return mDataContainer; }

@@ -276,7 +276,7 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime::fromTime_t(key).addMSecs((key-(qint64)key)*1000);
 # else
-  return QDateTime::fromMSecsSinceEpoch(key*1000.0);
+  return QDateTime::fromMSecsSinceEpoch(qint64(key*1000.0));
 # endif
 }
 

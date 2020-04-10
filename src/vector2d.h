@@ -49,7 +49,7 @@ public:
   // non-virtual methods:
   double length() const { return qSqrt(mX*mX+mY*mY); }
   double lengthSquared() const { return mX*mX+mY*mY; }
-  QPoint toPoint() const { return QPoint(mX, mY); }
+  QPoint toPoint() const { return QPoint(int(mX), int(mY)); }
   QPointF toPointF() const { return QPointF(mX, mY); }
   
   bool isNull() const { return qIsNull(mX) && qIsNull(mY); }

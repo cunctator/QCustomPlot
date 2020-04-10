@@ -179,7 +179,8 @@ void QCPItemBracket::draw(QCPPainter *painter)
   QPolygon boundingPoly;
   boundingPoly << leftVec.toPoint() << rightVec.toPoint()
                << (rightVec-lengthVec).toPoint() << (leftVec-lengthVec).toPoint();
-  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  const int clipEnlarge = qCeil(mainPen().widthF());
+  QRect clip = clipRect().adjusted(-clipEnlarge, -clipEnlarge, clipEnlarge, clipEnlarge);
   if (clip.intersects(boundingPoly.boundingRect()))
   {
     painter->setPen(mainPen());

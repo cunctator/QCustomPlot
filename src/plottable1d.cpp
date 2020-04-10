@@ -28,6 +28,7 @@
 #include "painter.h"
 #include "core.h"
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// QCPPlottableInterface1D
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +55,11 @@
   value. If it indeed implements this interface, you may use it to access the plottable's data
   without needing to know the exact type of the plottable or its data point type.
 */
+
+QCPPlottableInterface1D::~QCPPlottableInterface1D()
+{
+  
+}
 
 /* start documentation of pure virtual functions */
 

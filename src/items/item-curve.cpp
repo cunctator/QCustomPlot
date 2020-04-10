@@ -165,7 +165,8 @@ void QCPItemCurve::draw(QCPPainter *painter)
   cubicPath.cubicTo(startDirVec.toPointF(), endDirVec.toPointF(), endVec.toPointF());
 
   // paint visible segment, if existent:
-  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  const int clipEnlarge = qCeil(mainPen().widthF());
+  QRect clip = clipRect().adjusted(-clipEnlarge, -clipEnlarge, clipEnlarge, clipEnlarge);
   QRect cubicRect = cubicPath.controlPointRect().toRect();
   if (cubicRect.isEmpty()) // may happen when start and end exactly on same x or y position
     cubicRect.adjust(0, 0, 1, 1);

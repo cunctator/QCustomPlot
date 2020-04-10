@@ -135,9 +135,9 @@ QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
     setRange(other.keyRange(), other.valueRange());
     if (!isEmpty())
     {
-      memcpy(mData, other.mData, sizeof(mData[0])*keySize*valueSize);
+      memcpy(mData, other.mData, sizeof(mData[0])*size_t(keySize*valueSize));
       if (mAlpha)
-        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*keySize*valueSize);
+        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*size_t(keySize*valueSize));
     }
     mDataBounds = other.mDataBounds;
     mDataModified = true;
@@ -206,7 +206,7 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
 #ifdef __EXCEPTIONS
       try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
 #endif
-      mData = new double[mKeySize*mValueSize];
+      mData = new double[size_t(mKeySize*mValueSize)];
 #ifdef __EXCEPTIONS
       } catch (...) { mData = nullptr; }
 #endif
@@ -537,7 +537,7 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
 #ifdef __EXCEPTIONS
   try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
 #endif
-    mAlpha = new unsigned char[mKeySize*mValueSize];
+    mAlpha = new unsigned char[size_t(mKeySize*mValueSize)];
 #ifdef __EXCEPTIONS
   } catch (...) { mAlpha = nullptr; }
 #endif

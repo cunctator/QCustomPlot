@@ -1671,8 +1671,9 @@ QCPAxis::AxisType QCPAxis::opposite(QCPAxis::AxisType type)
     case atRight: return atLeft;
     case atBottom: return atTop;
     case atTop: return atBottom;
-    default: qDebug() << Q_FUNC_INFO << "invalid axis type"; return atLeft;
   }
+  qDebug() << Q_FUNC_INFO << "invalid axis type";
+  return atLeft;
 }
 
 /* inherits documentation from base class */

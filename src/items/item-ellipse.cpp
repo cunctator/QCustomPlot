@@ -150,7 +150,8 @@ void QCPItemEllipse::draw(QCPPainter *painter)
   if (p1.toPoint() == p2.toPoint())
     return;
   QRectF ellipseRect = QRectF(p1, p2).normalized();
-  QRect clip = clipRect().adjusted(-mainPen().widthF(), -mainPen().widthF(), mainPen().widthF(), mainPen().widthF());
+  const int clipEnlarge = qCeil(mainPen().widthF());
+  QRect clip = clipRect().adjusted(-clipEnlarge, -clipEnlarge, clipEnlarge, clipEnlarge);
   if (ellipseRect.intersects(clip)) // only draw if bounding rect of ellipse is visible in cliprect
   {
     painter->setPen(mainPen());

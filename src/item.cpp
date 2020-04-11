@@ -971,7 +971,7 @@ QCPAbstractItem::QCPAbstractItem(QCustomPlot *parentPlot) :
   parentPlot->registerItem(this);
   
   QList<QCPAxisRect*> rects = parentPlot->axisRects();
-  if (rects.size() > 0)
+  if (!rects.isEmpty())
   {
     setClipToAxisRect(true);
     setClipAxisRect(rects.first());

@@ -438,7 +438,8 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mAxisPainter(new QCPAxisPainterPrivate(parent->parentPlot())),
   mTicker(new QCPAxisTicker),
   mCachedMarginValid(false),
-  mCachedMargin(0)
+  mCachedMargin(0),
+  mDragging(false)
 {
   setParent(parent);
   mGrid->setVisible(false);

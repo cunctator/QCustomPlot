@@ -45,8 +45,8 @@ public:
   
   // static methods:
   static QDateTime keyToDateTime(double key);
-  static double dateTimeToKey(const QDateTime dateTime);
-  static double dateTimeToKey(const QDate date);
+  static double dateTimeToKey(const QDateTime &dateTime);
+  static double dateTimeToKey(const QDate &date);
   
 protected:
   // property members:

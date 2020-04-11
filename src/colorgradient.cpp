@@ -577,7 +577,7 @@ void QCPColorGradient::updateColorBuffer()
       {
         if (useAlpha)
         {
-          const QColor col = it.value();
+          const QColor &col = it.value();
           const double alphaPremultiplier = col.alpha()/255.0; // since we use QImage::Format_ARGB32_Premultiplied
           mColorBuffer[i] = qRgba(int(col.red()*alphaPremultiplier),
                                   int(col.green()*alphaPremultiplier),

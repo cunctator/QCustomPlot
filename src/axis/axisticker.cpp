@@ -158,7 +158,7 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
   // generate sub ticks between major ticks:
   if (subTicks)
   {
-    if (ticks.size() > 0)
+    if (!ticks.isEmpty())
     {
       *subTicks = createSubTickVector(getSubTickCount(tickStep), ticks);
       trimTicks(range, *subTicks, false);

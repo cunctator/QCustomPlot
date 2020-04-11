@@ -291,7 +291,7 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
   
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
+double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime &dateTime)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return dateTime.toTime_t()+dateTime.time().msec()/1000.0;
@@ -308,7 +308,7 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
   
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDate date)
+double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime(date).toTime_t();

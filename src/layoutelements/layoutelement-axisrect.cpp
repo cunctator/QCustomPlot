@@ -326,7 +326,7 @@ QCPAxis *QCPAxisRect::addAxis(QCPAxis::AxisType type, QCPAxis *axis)
       return nullptr;
     }
   }
-  if (mAxes[type].size() > 0) // multiple axes on one side, add half-bar axis ending to additional axes with offset
+  if (!mAxes[type].isEmpty()) // multiple axes on one side, add half-bar axis ending to additional axes with offset
   {
     bool invert = (type == QCPAxis::atRight) || (type == QCPAxis::atBottom);
     newAxis->setLowerEnding(QCPLineEnding(QCPLineEnding::esHalfBar, 6, 10, !invert));
@@ -1108,7 +1108,7 @@ int QCPAxisRect::calculateAutoMargin(QCP::MarginSide side)
   
   // note: only need to look at the last (outer most) axis to determine the total margin, due to updateAxisOffset call
   const QList<QCPAxis*> axesList = mAxes.value(QCPAxis::marginSideToAxisType(side));
-  if (axesList.size() > 0)
+  if (!axesList.isEmpty())
     return axesList.last()->offset() + axesList.last()->calculateMargin();
   else
     return 0;

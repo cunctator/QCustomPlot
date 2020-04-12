@@ -474,8 +474,8 @@ void QCPColorMapData::fillAlpha(unsigned char alpha)
   
   The retrieved key/value cell indices can then be used for example with \ref setCell.
   
-  If you are only interested in a key or value index, you may pass 0 as \a valueIndex or \a
-  keyIndex.
+  If you are only interested in a key or value index, you may pass \c nullptr as \a valueIndex or
+  \a keyIndex.
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
   value axis is set to a logarithmic scaling. If you want to use QCPColorMap with logarithmic axes,
@@ -497,7 +497,7 @@ void QCPColorMapData::coordToCell(double key, double value, int *keyIndex, int *
   instance. The resulting coordinates are returned via the output parameters \a key and \a
   value.
   
-  If you are only interested in a key or value coordinate, you may pass 0 as \a key or \a
+  If you are only interested in a key or value coordinate, you may pass \c nullptr as \a key or \a
   value.
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
@@ -819,7 +819,7 @@ void QCPColorMap::setTightBoundary(bool enabled)
   type of \a colorScale. After this call, you may change these properties at either the color map
   or the color scale, and the setting will be applied to both.
   
-  Pass 0 as \a colorScale to disconnect the color scale from this color map again.
+  Pass \c nullptr as \a colorScale to disconnect the color scale from this color map again.
 */
 void QCPColorMap::setColorScale(QCPColorScale *colorScale)
 {

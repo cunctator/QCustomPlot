@@ -824,9 +824,9 @@ double QCPAxisRect::rangeZoomFactor(Qt::Orientation orientation)
   default, the horizontal axis is the bottom axis (xAxis) and the vertical axis
   is the left axis (yAxis).
   
-  To disable range dragging entirely, pass 0 as \a orientations or remove \ref QCP::iRangeDrag from \ref
-  QCustomPlot::setInteractions. To enable range dragging for both directions, pass <tt>Qt::Horizontal |
-  Qt::Vertical</tt> as \a orientations.
+  To disable range dragging entirely, pass \c nullptr as \a orientations or remove \ref
+  QCP::iRangeDrag from \ref QCustomPlot::setInteractions. To enable range dragging for both
+  directions, pass <tt>Qt::Horizontal | Qt::Vertical</tt> as \a orientations.
   
   In addition to setting \a orientations to a non-zero value, make sure \ref QCustomPlot::setInteractions
   contains \ref QCP::iRangeDrag to enable the range dragging interaction.
@@ -844,9 +844,9 @@ void QCPAxisRect::setRangeDrag(Qt::Orientations orientations)
   QCPAxis *vertical). By default, the horizontal axis is the bottom axis (xAxis) and the vertical
   axis is the left axis (yAxis).
 
-  To disable range zooming entirely, pass 0 as \a orientations or remove \ref QCP::iRangeZoom from \ref
-  QCustomPlot::setInteractions. To enable range zooming for both directions, pass <tt>Qt::Horizontal |
-  Qt::Vertical</tt> as \a orientations.
+  To disable range zooming entirely, pass \c nullptr as \a orientations or remove \ref
+  QCP::iRangeZoom from \ref QCustomPlot::setInteractions. To enable range zooming for both
+  directions, pass <tt>Qt::Horizontal | Qt::Vertical</tt> as \a orientations.
   
   In addition to setting \a orientations to a non-zero value, make sure \ref QCustomPlot::setInteractions
   contains \ref QCP::iRangeZoom to enable the range zooming interaction.
@@ -861,7 +861,8 @@ void QCPAxisRect::setRangeZoom(Qt::Orientations orientations)
 /*! \overload
   
   Sets the axes whose range will be dragged when \ref setRangeDrag enables mouse range dragging on
-  the QCustomPlot widget. Pass 0 if no axis shall be dragged in the respective orientation.
+  the QCustomPlot widget. Pass \c nullptr if no axis shall be dragged in the respective
+  orientation.
 
   Use the overload taking a list of axes, if multiple axes (more than one per orientation) shall
   react to dragging interactions.
@@ -930,7 +931,7 @@ void QCPAxisRect::setRangeDragAxes(QList<QCPAxis*> horizontal, QList<QCPAxis*> v
 
 /*!
   Sets the axes whose range will be zoomed when \ref setRangeZoom enables mouse wheel zooming on
-  the QCustomPlot widget. Pass 0 if no axis shall be zoomed in the respective orientation.
+  the QCustomPlot widget. Pass \c nullptr if no axis shall be zoomed in the respective orientation.
 
   The two axes can be zoomed with different strengths, when different factors are passed to \ref
   setRangeZoomFactor(double horizontalFactor, double verticalFactor).

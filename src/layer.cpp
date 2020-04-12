@@ -543,7 +543,8 @@ bool QCPLayerable::realVisibility() const
   In the case of 1D Plottables (\ref QCPAbstractPlottable1D, like \ref QCPGraph or \ref QCPBars) \a
   details will be set to a \ref QCPDataSelection, describing the closest data point to \a pos.
   
-  You may pass 0 as \a details to indicate that you are not interested in those selection details.
+  You may pass \c nullptr as \a details to indicate that you are not interested in those selection
+  details.
   
   \see selectEvent, deselectEvent, mousePressEvent, wheelEvent, QCustomPlot::setInteractions,
   QCPAbstractPlottable1D::selectTestRect

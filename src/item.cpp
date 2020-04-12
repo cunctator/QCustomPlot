@@ -1170,12 +1170,11 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
   double result = -1;
 
   // distance to border:
-  QList<QLineF> lines;
-  lines << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
-        << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
+  const QList<QLineF> lines = QList<QLineF>() << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
+                                              << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
   const QCPVector2D posVec(pos);
   double minDistSqr = (std::numeric_limits<double>::max)();
-  foreach (const auto &line, lines)
+  foreach (const QLineF &line, lines)
   {
     double distSqr = posVec.distanceSquaredToLine(line.p1(), line.p2());
     if (distSqr < minDistSqr)

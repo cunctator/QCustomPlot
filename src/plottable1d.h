@@ -33,7 +33,7 @@
 class QCPPlottableInterface1D
 {
 public:
-  virtual ~QCPPlottableInterface1D();
+  virtual ~QCPPlottableInterface1D() = default;
   // introduced pure virtual methods:
   virtual int dataCount() const = 0;
   virtual double dataMainKey(int index) const = 0;

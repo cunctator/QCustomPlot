@@ -56,11 +56,6 @@
   without needing to know the exact type of the plottable or its data point type.
 */
 
-QCPPlottableInterface1D::~QCPPlottableInterface1D()
-{
-  
-}
-
 /* start documentation of pure virtual functions */
 
 /*! \fn virtual int QCPPlottableInterface1D::dataCount() const = 0;

@@ -91,6 +91,9 @@
 #  include <QtWidgets/QWidget>
 #  include <QtPrintSupport/QtPrintSupport>
 #endif
+#if QT_VERSION >= QT_VERSION_CHECK(4, 8, 0)
+#  include <QtCore/QElapsedTimer>
+#endif
 // amalgamation: include end
 
 #define QCUSTOMPLOT_VERSION_STR "2.0.1"

@@ -1883,7 +1883,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   mReplotQueued = false;
   emit beforeReplot();
   
-# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+# if QT_VERSION < QT_VERSION_CHECK(4, 8, 0)
   QTime replotTimer;
   replotTimer.start();
 # else
@@ -1904,7 +1904,7 @@ void QCustomPlot::replot(QCustomPlot::RefreshPriority refreshPriority)
   else
     update();
   
-# if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
+# if QT_VERSION < QT_VERSION_CHECK(4, 8, 0)
   mReplotTime = replotTimer.elapsed();
 # else
   mReplotTime = replotTimer.nsecsElapsed()*1e-6;

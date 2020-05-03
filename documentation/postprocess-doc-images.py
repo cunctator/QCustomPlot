@@ -9,16 +9,11 @@
 
 from __future__ import print_function
 import os, sys, glob
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+sys.path.insert(1, os.path.join(sys.path[0], '..')) # include parent dir in search path for module import
 from utilities import *
 
 baseDir = sys.path[0]
 os.chdir(baseDir)  # change current working dir to script dir
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
 
 # generate a list of (colorcount, filename) tuples.
 # If colorcount is 0, no compression is performed.

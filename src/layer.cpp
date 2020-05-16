@@ -868,10 +868,10 @@ void QCPLayerable::mouseDoubleClickEvent(QMouseEvent *event, const QVariant &det
   The current pixel position of the cursor on the QCustomPlot widget is accessible via \c
   event->pos().
 
-  The \c event->delta() indicates how far the mouse wheel was turned, which is usually +/- 120 for
-  single rotation steps. However, if the mouse wheel is turned rapidly, multiple steps may
-  accumulate to one event, making \c event->delta() larger. On the other hand, if the wheel has
-  very smooth steps or none at all, the delta may be smaller.
+  The \c event->angleDelta() indicates how far the mouse wheel was turned, which is usually +/- 120
+  for single rotation steps. However, if the mouse wheel is turned rapidly, multiple steps may
+  accumulate to one event, making the delta larger. On the other hand, if the wheel has very smooth
+  steps or none at all, the delta may be smaller.
 
   The default implementation does nothing.
 

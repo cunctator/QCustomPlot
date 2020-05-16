@@ -1263,11 +1263,11 @@ void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
   dependent on the mouse wheel delta (which direction the wheel was rotated) to provide a natural
   zooming feel. The Strength of the zoom can be controlled via \ref setRangeZoomFactor.
   
-  Note, that event->delta() is usually +/-120 for single rotation steps. However, if the mouse
-  wheel is turned rapidly, many steps may bunch up to one event, so the event->delta() may then be
-  multiples of 120. This is taken into account here, by calculating \a wheelSteps and using it as
-  exponent of the range zoom factor. This takes care of the wheel direction automatically, by
-  inverting the factor, when the wheel step is negative (f^-1 = 1/f).
+  Note, that event->angleDelta() is usually +/-120 for single rotation steps. However, if the mouse
+  wheel is turned rapidly, many steps may bunch up to one event, so the delta may then be multiples
+  of 120. This is taken into account here, by calculating \a wheelSteps and using it as exponent of
+  the range zoom factor. This takes care of the wheel direction automatically, by inverting the
+  factor, when the wheel step is negative (f^-1 = 1/f).
 */
 void QCPAxisRect::wheelEvent(QWheelEvent *event)
 {
@@ -1277,7 +1277,7 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
     if (mRangeZoom != 0)
     {
       double factor;
-      double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+      double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
       if (mRangeZoom.testFlag(Qt::Horizontal))
       {
         factor = qPow(mRangeZoomFactorHorz, wheelSteps);

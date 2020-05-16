@@ -302,17 +302,22 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime &dateTime)
 
 /*! \overload
   
-  A convenience method which turns a QDate object into a double value that corresponds to
-  seconds since Epoch (1. Jan 1970, 00:00 UTC). This is the format used as axis coordinates by
-  QCPAxisTickerDateTime.
+  A convenience method which turns a QDate object into a double value that corresponds to seconds
+  since Epoch (1. Jan 1970, 00:00 UTC). This is the format used
+  as axis coordinates by QCPAxisTickerDateTime.
+  
+  The returned value will be the start of the passed day of \a date, interpreted in the given \a
+  timeSpec.
   
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date)
+double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date, Qt::TimeSpec timeSpec)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  return QDateTime(date).toTime_t();
+  return QDateTime(date, QTime(0, 0), timeSpec).toTime_t();
+# elif QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  return QDateTime(date, QTime(0, 0), timeSpec).toMSecsSinceEpoch()/1000.0;
 # else
-  return QDateTime(date).toMSecsSinceEpoch()/1000.0;
+  return date.startOfDay(timeSpec).toMSecsSinceEpoch()/1000.0;
 # endif
 }

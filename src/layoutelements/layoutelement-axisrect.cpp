@@ -1271,6 +1271,12 @@ void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
 */
 void QCPAxisRect::wheelEvent(QWheelEvent *event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  const QPointF pos = event->posF();
+#else
+  const QPointF pos = event->position();
+#endif
+  
   // Mouse range zooming interaction:
   if (mParentPlot->interactions().testFlag(QCP::iRangeZoom))
   {
@@ -1284,7 +1290,7 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
         foreach (QPointer<QCPAxis> axis, mRangeZoomHorzAxis)
         {
           if (!axis.isNull())
-            axis->scaleRange(factor, axis->pixelToCoord(event->pos().x()));
+            axis->scaleRange(factor, axis->pixelToCoord(pos.x()));
         }
       }
       if (mRangeZoom.testFlag(Qt::Vertical))
@@ -1293,7 +1299,7 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
         foreach (QPointer<QCPAxis> axis, mRangeZoomVertAxis)
         {
           if (!axis.isNull())
-            axis->scaleRange(factor, axis->pixelToCoord(event->pos().y()));
+            axis->scaleRange(factor, axis->pixelToCoord(pos.y()));
         }
       }
       mParentPlot->replot();

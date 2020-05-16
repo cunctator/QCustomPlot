@@ -2441,8 +2441,15 @@ void QCustomPlot::mouseReleaseEvent(QMouseEvent *event)
 void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
+  
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  const QPointF pos = event->posF();
+#else
+  const QPointF pos = event->position();
+#endif
+  
   // forward event to layerable under cursor:
-  foreach (QCPLayerable *candidate, layerableListAt(event->pos(), false))
+  foreach (QCPLayerable *candidate, layerableListAt(pos, false))
   {
     event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
     candidate->wheelEvent(event);

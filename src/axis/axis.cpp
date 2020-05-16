@@ -1825,9 +1825,14 @@ void QCPAxis::wheelEvent(QWheelEvent *event)
     return;
   }
   
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  const QPointF pos = event->posF();
+#else
+  const QPointF pos = event->position();
+#endif
   const double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
   const double factor = qPow(mAxisRect->rangeZoomFactor(orientation()), wheelSteps);
-  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
+  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? pos.x() : pos.y()));
   mParentPlot->replot();
 }
 

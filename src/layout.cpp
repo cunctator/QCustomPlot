@@ -1955,7 +1955,11 @@ Qt::Alignment QCPLayoutInset::insetAlignment(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
+#if QT_VERSION < QT_VERSION_CHECK(5, 2, 0)
     return nullptr;
+#else
+    return {};
+#endif
   }
 }
 

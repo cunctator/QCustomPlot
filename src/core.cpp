@@ -355,7 +355,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
   mNotAntialiasedElements(QCP::aeNone),
-  mInteractions(nullptr),
+  mInteractions(QCP::iNone),
   mSelectionTolerance(8),
   mNoAntialiasingOnDrag(false),
   mBackgroundBrush(Qt::white, Qt::SolidPattern),

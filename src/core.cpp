@@ -2778,11 +2778,14 @@ void QCustomPlot::legendRemoved(QCPLegend *legend)
 */
 void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
 {
+  typedef QPair<QCPAbstractPlottable*, QCPDataSelection> SelectionCandidate;
+  typedef QMultiMap<int, SelectionCandidate> SelectionCandidates; // map key is number of selected data points, so we have selections sorted by size
+  
   bool selectionStateChanged = false;
   
   if (mInteractions.testFlag(QCP::iSelectPlottables))
   {
-    QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> > potentialSelections; // map key is number of selected data points, so we have selections sorted by size
+    SelectionCandidates potentialSelections;
     QRectF rectF(rect.normalized());
     if (QCPAxisRect *affectedAxisRect = axisRectAt(rectF.topLeft()))
     {
@@ -2793,7 +2796,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         {
           QCPDataSelection dataSel = plottableInterface->selectTestRect(rectF, true);
           if (!dataSel.isEmpty())
-            potentialSelections.insertMulti(dataSel.dataPointCount(), QPair<QCPAbstractPlottable*, QCPDataSelection>(plottable, dataSel));
+            potentialSelections.insert(dataSel.dataPointCount(), SelectionCandidate(plottable, dataSel));
         }
       }
       
@@ -2802,7 +2805,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         // only leave plottable with most selected points in map, since we will only select a single plottable:
         if (!potentialSelections.isEmpty())
         {
-          QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::iterator it = potentialSelections.begin();
+          SelectionCandidates::iterator it = potentialSelections.begin();
           while (it != potentialSelections.end()-1) // erase all except last element
             it = potentialSelections.erase(it);
         }
@@ -2828,7 +2831,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
       }
       
       // go through selections in reverse (largest selection first) and emit select events:
-      QMap<int, QPair<QCPAbstractPlottable*, QCPDataSelection> >::const_iterator it = potentialSelections.constEnd();
+      SelectionCandidates::const_iterator it = potentialSelections.constEnd();
       while (it != potentialSelections.constBegin())
       {
         --it;

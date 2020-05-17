@@ -1271,8 +1271,14 @@ void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos)
 */
 void QCPAxisRect::wheelEvent(QWheelEvent *event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  const double delta = event->delta();
+#else
+  const double delta = event->angleDelta().y();
+#endif
+  
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-  const QPointF pos = event->posF();
+  const QPointF pos = event->pos();
 #else
   const QPointF pos = event->position();
 #endif
@@ -1283,7 +1289,7 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
     if (mRangeZoom != 0)
     {
       double factor;
-      double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
+      double wheelSteps = delta/120.0; // a single step delta is +/-120 usually
       if (mRangeZoom.testFlag(Qt::Horizontal))
       {
         factor = qPow(mRangeZoomFactorHorz, wheelSteps);

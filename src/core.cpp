@@ -2443,7 +2443,7 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
   emit mouseWheel(event);
   
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-  const QPointF pos = event->posF();
+  const QPointF pos = event->pos();
 #else
   const QPointF pos = event->position();
 #endif

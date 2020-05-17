@@ -16,7 +16,7 @@ def printerror(message):
 
 # build helpers:
 def shellcall(command, error="", terminate=False):
-    if subprocess.call(command, shell=True) != 0:
+    if subprocess.call(command, shell=True) != 0: # .call is like .Popen only that it waits till the process finishes
         if error:
             printerror(error)
         if terminate:
@@ -24,8 +24,21 @@ def shellcall(command, error="", terminate=False):
         return False
     return True
 
+def shellcallListen(command, error="", terminate=False):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    while(True):
+        retcode = p.poll() # returns None while subprocess is running
+        line = p.stdout.readline().decode('utf-8')
+        yield line
+        if retcode is not None:
+            if retcode != 0:
+                if error:
+                    printerror(error)
+                if terminate:
+                    sys.exit(1)
+            break
 
-def run_qmake_make(qmakecommand, silent=True, threads=5):
+def run_qmake_make(qmakecommand, silent=True, threads=5): # silent prevents make from echoing commands it issues. It does not silent warnings or errors of the called compiler/linker
     shellcall(qmakecommand+" > /dev/null", error="qmake failed", terminate=True)
     shellcall("make {} -j{}".format("-s" if silent else "", threads), error="make failed", terminate=True)
 

@@ -20,7 +20,7 @@ preferredDoxygenVersion = '1.8.12'
 inputFilePath = "xml/index.xml"
 outputFilePath = "doclinks.sql"
 
-validKind = ('class', 'function', 'namespace', 'variable', 'enum', 'enumvalue', 'typedef')
+validKind = ('class', 'function', 'signal', 'namespace', 'variable', 'enum', 'enumvalue', 'typedef')
 excludeName = re.compile("^(m[A-Z]|Q_|operator\\W|~)") # entries that match this name will be completely omitted
 excludeParent = re.compile("(\\.h|\\.cpp)$") # if an entry's parent name matches this, the parent name is left empty but the entry is still used
 

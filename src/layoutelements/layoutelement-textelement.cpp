@@ -303,14 +303,14 @@ void QCPTextElement::draw(QCPPainter *painter)
 {
   painter->setFont(mainFont());
   painter->setPen(QPen(mainTextColor()));
-  painter->drawText(mRect, Qt::AlignCenter, mText, &mTextBoundingRect);
+  painter->drawText(mRect, mTextFlags, mText, &mTextBoundingRect);
 }
 
 /* inherits documentation from base class */
 QSize QCPTextElement::minimumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size());
+  QSize result(metrics.boundingRect(0, 0, 0, 0, mTextFlags, mText).size());
   result.rwidth() += mMargins.left()+mMargins.right();
   result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
@@ -320,7 +320,7 @@ QSize QCPTextElement::minimumOuterSizeHint() const
 QSize QCPTextElement::maximumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::AlignCenter, mText).size());
+  QSize result(metrics.boundingRect(0, 0, 0, 0, mTextFlags, mText).size());
   result.setWidth(QWIDGETSIZE_MAX);
   result.rheight() += mMargins.top()+mMargins.bottom();
   return result;

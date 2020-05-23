@@ -20,7 +20,7 @@ preferredDoxygenVersion = '1.8.12'
 inputFilePath = "xml/index.xml"
 outputFilePath = "doclinks.sql"
 
-validKind = ('class', 'function', 'signal', 'namespace', 'variable', 'enum', 'enumvalue', 'typedef')
+validKind = ('class', 'function', 'signal', 'namespace', 'variable', 'enum', 'enumvalue', 'typedef') # if you edit this, don't forget to also update SQL table creation statement below
 excludeName = re.compile("^(m[A-Z]|Q_|operator\\W|~)") # entries that match this name will be completely omitted
 excludeParent = re.compile("(\\.h|\\.cpp)$") # if an entry's parent name matches this, the parent name is left empty but the entry is still used
 
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `doclinks` (
   `name` varchar(100) NOT NULL,
   `parent` varchar(100) NOT NULL,
   `ref` tinytext NOT NULL,
-  `type` enum('class','function','namespace','variable','enum','enumvalue','page','typedef') NOT NULL,
+  `type` enum('class','function','signal','namespace','variable','enum','enumvalue','page','typedef') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `doclinks_name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;

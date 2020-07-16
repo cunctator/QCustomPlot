@@ -85,8 +85,8 @@
 
 /*! \fn void QCPSelectionRect::canceled(const QRect &rect, QInputEvent *event);
   
-  This signal is emitted when the selection interaction was cancelled. Note that \a event is 0 if
-  the selection interaction was cancelled programmatically, by a call to \ref cancel.
+  This signal is emitted when the selection interaction was cancelled. Note that \a event is \c
+  nullptr if the selection interaction was cancelled programmatically, by a call to \ref cancel.
   
   The user may cancel the selection interaction by pressing the escape key. In this case, \a event
   holds the respective input event.

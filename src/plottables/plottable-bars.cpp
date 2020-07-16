@@ -140,7 +140,7 @@ void QCPBarsGroup::setSpacing(double spacing)
 
 /*!
   Returns the QCPBars instance with the specified \a index in this group. If no such QCPBars
-  exists, returns 0.
+  exists, returns \c nullptr.
 
   \see bars(), size
 */
@@ -493,14 +493,14 @@ QCPBarsData::QCPBarsData(double key, double value) :
 
 /*! \fn QCPBars *QCPBars::barBelow() const
   Returns the bars plottable that is directly below this bars plottable.
-  If there is no such plottable, returns 0.
+  If there is no such plottable, returns \c nullptr.
   
   \see barAbove, moveBelow, moveAbove
 */
 
 /*! \fn QCPBars *QCPBars::barAbove() const
   Returns the bars plottable that is directly above this bars plottable.
-  If there is no such plottable, returns 0.
+  If there is no such plottable, returns \c nullptr.
   
   \see barBelow, moveBelow, moveAbove
 */
@@ -605,7 +605,7 @@ void QCPBars::setWidthType(QCPBars::WidthType widthType)
   Sets to which QCPBarsGroup this QCPBars instance belongs to. Alternatively, you can also use \ref
   QCPBarsGroup::append.
   
-  To remove this QCPBars from any group, set \a barsGroup to 0.
+  To remove this QCPBars from any group, set \a barsGroup to \c nullptr.
 */
 void QCPBars::setBarsGroup(QCPBarsGroup *barsGroup)
 {
@@ -697,7 +697,7 @@ void QCPBars::addData(double key, double value)
   is already between two other bars, the two other bars will be stacked on top of each other after
   the operation.
   
-  To remove this bars plottable from any stacking, set \a bars to 0.
+  To remove this bars plottable from any stacking, set \a bars to \c nullptr.
   
   \see moveBelow, barAbove, barBelow
 */
@@ -730,7 +730,7 @@ void QCPBars::moveBelow(QCPBars *bars)
   is already between two other bars, the two other bars will be stacked on top of each other after
   the operation.
   
-  To remove this bars plottable from any stacking, set \a bars to 0.
+  To remove this bars plottable from any stacking, set \a bars to \c nullptr.
   
   \see moveBelow, barBelow, barAbove
 */

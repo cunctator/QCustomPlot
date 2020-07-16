@@ -183,8 +183,8 @@
   
   \a event is the mouse event that caused the click, \a legend is the legend that received the
   click and \a item is the legend item that received the click. If only the legend and no item is
-  clicked, \a item is 0. This happens for a click inside the legend padding or the space between
-  two items.
+  clicked, \a item is \c nullptr. This happens for a click inside the legend padding or the space
+  between two items.
   
   \see legendDoubleClick
 */
@@ -195,8 +195,8 @@
   
   \a event is the mouse event that caused the click, \a legend is the legend that received the
   click and \a item is the legend item that received the click. If only the legend and no item is
-  clicked, \a item is 0. This happens for a click inside the legend padding or the space between
-  two items.
+  clicked, \a item is \c nullptr. This happens for a click inside the legend padding or the space
+  between two items.
   
   \see legendClick
 */
@@ -252,12 +252,12 @@
   layout system\endlink to add multiple axis rects or multiple axes to one side, use the \ref
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
-  axis rect), the corresponding pointers become 0.
+  axis rect), the corresponding pointers become \c nullptr.
   
-  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
-  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
-  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
-  added after the main legend was removed before.
+  If an axis convenience pointer is currently \c nullptr and a new axis rect or a corresponding
+  axis is added in the place of the main axis rect, QCustomPlot resets the convenience pointers to
+  the according new axes. Similarly the \ref legend convenience pointer will be reset if a legend
+  is added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis
@@ -270,12 +270,12 @@
   layout system\endlink to add multiple axis rects or multiple axes to one side, use the \ref
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
-  axis rect), the corresponding pointers become 0.
+  axis rect), the corresponding pointers become \c nullptr.
   
-  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
-  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
-  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
-  added after the main legend was removed before.
+  If an axis convenience pointer is currently \c nullptr and a new axis rect or a corresponding
+  axis is added in the place of the main axis rect, QCustomPlot resets the convenience pointers to
+  the according new axes. Similarly the \ref legend convenience pointer will be reset if a legend
+  is added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::xAxis2
@@ -290,12 +290,12 @@
   layout system\endlink to add multiple axis rects or multiple axes to one side, use the \ref
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
-  axis rect), the corresponding pointers become 0.
+  axis rect), the corresponding pointers become \c nullptr.
   
-  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
-  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
-  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
-  added after the main legend was removed before.
+  If an axis convenience pointer is currently \c nullptr and a new axis rect or a corresponding
+  axis is added in the place of the main axis rect, QCustomPlot resets the convenience pointers to
+  the according new axes. Similarly the \ref legend convenience pointer will be reset if a legend
+  is added after the main legend was removed before.
 */
 
 /*! \var QCPAxis *QCustomPlot::yAxis2
@@ -310,12 +310,12 @@
   layout system\endlink to add multiple axis rects or multiple axes to one side, use the \ref
   QCPAxisRect::axis interface to access the new axes. If one of the four default axes or the
   default legend is removed due to manipulation of the layout system (e.g. by removing the main
-  axis rect), the corresponding pointers become 0.
+  axis rect), the corresponding pointers become \c nullptr.
   
-  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
-  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
-  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
-  added after the main legend was removed before.
+  If an axis convenience pointer is currently \c nullptr and a new axis rect or a corresponding
+  axis is added in the place of the main axis rect, QCustomPlot resets the convenience pointers to
+  the according new axes. Similarly the \ref legend convenience pointer will be reset if a legend
+  is added after the main legend was removed before.
 */
 
 /*! \var QCPLegend *QCustomPlot::legend
@@ -330,12 +330,12 @@
   access the new legend. For example, legends can be placed inside an axis rect's \ref
   QCPAxisRect::insetLayout "inset layout", and must then also be accessed via the inset layout. If
   the default legend is removed due to manipulation of the layout system (e.g. by removing the main
-  axis rect), the corresponding pointer becomes 0.
+  axis rect), the corresponding pointer becomes \c nullptr.
   
-  If an axis convenience pointer is currently zero and a new axis rect or a corresponding axis is
-  added in the place of the main axis rect, QCustomPlot resets the convenience pointers to the
-  according new axes. Similarly the \ref legend convenience pointer will be reset if a legend is
-  added after the main legend was removed before.
+  If an axis convenience pointer is currently \c nullptr and a new axis rect or a corresponding
+  axis is added in the place of the main axis rect, QCustomPlot resets the convenience pointers to
+  the according new axes. Similarly the \ref legend convenience pointer will be reset if a legend
+  is added after the main legend was removed before.
 */
 
 /* end of documentation of public members */
@@ -982,7 +982,7 @@ void QCustomPlot::setBackgroundScaledMode(Qt::AspectRatioMode mode)
 }
 
 /*!
-  Returns the plottable with \a index. If the index is invalid, returns 0.
+  Returns the plottable with \a index. If the index is invalid, returns \c nullptr.
   
   There is an overloaded version of this function with no parameter which returns the last added
   plottable, see QCustomPlot::plottable()
@@ -1004,7 +1004,7 @@ QCPAbstractPlottable *QCustomPlot::plottable(int index)
 /*! \overload
   
   Returns the last plottable that was added to the plot. If there are no plottables in the plot,
-  returns 0.
+  returns \c nullptr.
   
   \see plottableCount
 */
@@ -1126,7 +1126,7 @@ bool QCustomPlot::hasPlottable(QCPAbstractPlottable *plottable) const
 }
 
 /*!
-  Returns the graph with \a index. If the index is invalid, returns 0.
+  Returns the graph with \a index. If the index is invalid, returns \c nullptr.
   
   There is an overloaded version of this function with no parameter which returns the last created
   graph, see QCustomPlot::graph()
@@ -1148,7 +1148,7 @@ QCPGraph *QCustomPlot::graph(int index) const
 /*! \overload
   
   Returns the last graph, that was created with \ref addGraph. If there are no graphs in the plot,
-  returns 0.
+  returns \c nullptr.
   
   \see graphCount, addGraph
 */
@@ -1169,7 +1169,7 @@ QCPGraph *QCustomPlot::graph() const
   \a keyAxis will be used as key axis (typically "x") and \a valueAxis as value axis (typically
   "y") for the graph.
   
-  Returns a pointer to the newly created graph, or 0 if adding the graph failed.
+  Returns a pointer to the newly created graph, or \c nullptr if adding the graph failed.
   
   \see graph, graphCount, removeGraph, clearGraphs
 */
@@ -1197,7 +1197,7 @@ QCPGraph *QCustomPlot::addGraph(QCPAxis *keyAxis, QCPAxis *valueAxis)
   Removes the specified \a graph from the plot and deletes it. If necessary, the corresponding
   legend item is also removed from the default legend (QCustomPlot::legend). If any other graphs in
   the plot have a channel fill set towards the removed graph, the channel fill property of those
-  graphs is reset to zero (no channel fill).
+  graphs is reset to \c nullptr (no channel fill).
   
   Returns true on success.
   
@@ -1266,7 +1266,7 @@ QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 }
 
 /*!
-  Returns the item with \a index. If the index is invalid, returns 0.
+  Returns the item with \a index. If the index is invalid, returns \c nullptr.
   
   There is an overloaded version of this function with no parameter which returns the last added
   item, see QCustomPlot::item()
@@ -1288,7 +1288,7 @@ QCPAbstractItem *QCustomPlot::item(int index) const
 /*! \overload
   
   Returns the last item that was added to this plot. If there are no items in the plot,
-  returns 0.
+  returns \c nullptr.
   
   \see itemCount
 */
@@ -1403,8 +1403,8 @@ bool QCustomPlot::hasItem(QCPAbstractItem *item) const
 }
 
 /*!
-  Returns the layer with the specified \a name. If there is no layer with the specified name, 0 is
-  returned.
+  Returns the layer with the specified \a name. If there is no layer with the specified name, \c
+  nullptr is returned.
   
   Layer names are case-sensitive.
   
@@ -1422,7 +1422,7 @@ QCPLayer *QCustomPlot::layer(const QString &name) const
 
 /*! \overload
   
-  Returns the layer by \a index. If the index is invalid, 0 is returned.
+  Returns the layer by \a index. If the index is invalid, \c nullptr is returned.
   
   \see addLayer, moveLayer, removeLayer
 */
@@ -1704,7 +1704,7 @@ QList<QCPAxisRect*> QCustomPlot::axisRects() const
 
 /*!
   Returns the layout element at pixel position \a pos. If there is no element at that position,
-  returns 0.
+  returns \c nullptr.
   
   Only visible elements are used. If \ref QCPLayoutElement::setVisible on the element itself or on
   any of its parent elements is set to false, it will not be considered.
@@ -1734,7 +1734,7 @@ QCPLayoutElement *QCustomPlot::layoutElementAt(const QPointF &pos) const
 /*!
   Returns the layout element of type \ref QCPAxisRect at pixel position \a pos. This method ignores
   other layout elements even if they are visually in front of the axis rect (e.g. a \ref
-  QCPLegend). If there is no axis rect at that position, returns 0.
+  QCPLegend). If there is no axis rect at that position, returns \c nullptr.
 
   Only visible axis rects are used. If \ref QCPLayoutElement::setVisible on the axis rect itself or
   on any of its parent elements is set to false, it will not be considered.

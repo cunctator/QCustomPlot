@@ -137,7 +137,7 @@ QCPLayer::~QCPLayer()
     mChildren.last()->setLayer(nullptr); // removes itself from mChildren via removeChild()
   
   if (mParentPlot->currentLayer() == this)
-    qDebug() << Q_FUNC_INFO << "The parent plot's mCurrentLayer will be a dangling pointer. Should have been set to a valid layer or 0 beforehand.";
+    qDebug() << Q_FUNC_INFO << "The parent plot's mCurrentLayer will be a dangling pointer. Should have been set to a valid layer or nullptr beforehand.";
 }
 
 /*!
@@ -226,7 +226,7 @@ void QCPLayer::drawToPaintBuffer()
       delete painter;
       pb->donePainting();
     } else
-      qDebug() << Q_FUNC_INFO << "paint buffer returned zero painter";
+      qDebug() << Q_FUNC_INFO << "paint buffer returned nullptr painter";
   } else
     qDebug() << Q_FUNC_INFO << "no valid paint buffer associated with this layer";
 }
@@ -330,7 +330,8 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   only get drawn if their parent layerables are visible, too.
   
   Note that a parent layerable is not necessarily also the QObject parent for memory management.
-  Further, a layerable doesn't always have a parent layerable, so this function may return 0.
+  Further, a layerable doesn't always have a parent layerable, so this function may return \c
+  nullptr.
   
   A parent layerable is set implicitly when placed inside layout elements and doesn't need to be
   set manually by the user.
@@ -402,8 +403,8 @@ void QCPLayer::removeChild(QCPLayerable *layerable)
   targetLayer is an empty string, it places itself on the current layer of the plot (see \ref
   QCustomPlot::setCurrentLayer).
   
-  It is possible to provide 0 as \a plot. In that case, you should assign a parent plot at a later
-  time with \ref initializeParentPlot.
+  It is possible to provide \c nullptr as \a plot. In that case, you should assign a parent plot at
+  a later time with \ref initializeParentPlot.
   
   The layerable's parent layerable is set to \a parentLayerable, if provided. Direct layerable
   parents are mainly used to control visibility in a hierarchy of layerables. This means a
@@ -560,11 +561,11 @@ double QCPLayerable::selectTest(const QPointF &pos, bool onlySelectable, QVarian
 /*! \internal
   
   Sets the parent plot of this layerable. Use this function once to set the parent plot if you have
-  passed 0 in the constructor. It can not be used to move a layerable from one QCustomPlot to
-  another one.
+  passed \c nullptr in the constructor. It can not be used to move a layerable from one QCustomPlot
+  to another one.
   
-  Note that, unlike when passing a non-null parent plot in the constructor, this function does not
-  make \a parentPlot the QObject-parent of this layerable. If you want this, call
+  Note that, unlike when passing a non \c nullptr parent plot in the constructor, this function
+  does not make \a parentPlot the QObject-parent of this layerable. If you want this, call
   QObject::setParent(\a parentPlot) in addition to this function.
   
   Further, you will probably want to set a layer (\ref setLayer) after calling this function, to
@@ -657,8 +658,8 @@ void QCPLayerable::applyAntialiasingHint(QCPPainter *painter, bool localAntialia
 /*! \internal
 
   This function is called by \ref initializeParentPlot, to allow subclasses to react on the setting
-  of a parent plot. This is the case when 0 was passed as parent plot in the constructor, and the
-  parent plot is set at a later time.
+  of a parent plot. This is the case when \c nullptr was passed as parent plot in the constructor,
+  and the parent plot is set at a later time.
   
   For example, QCPLayoutElement/QCPLayout hierarchies may be created independently of any
   QCustomPlot at first. When they are then added to a layout inside the QCustomPlot, the top level

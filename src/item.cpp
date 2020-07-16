@@ -59,8 +59,8 @@
 
 /*! \fn virtual QCPItemPosition *QCPItemAnchor::toQCPItemPosition()
   
-  Returns 0 if this instance is merely a QCPItemAnchor, and a valid pointer of type QCPItemPosition* if
-  it actually is a QCPItemPosition (which is a subclass of QCPItemAnchor).
+  Returns \c nullptr if this instance is merely a QCPItemAnchor, and a valid pointer of type
+  QCPItemPosition* if it actually is a QCPItemPosition (which is a subclass of QCPItemAnchor).
   
   This safe downcast functionality could also be achieved with a dynamic_cast. However, QCustomPlot avoids
   dynamic_cast to work with projects that don't have RTTI support enabled (e.g. -fno-rtti flag with
@@ -387,7 +387,7 @@ void QCPItemPosition::setTypeY(QCPItemPosition::PositionType type)
   during reparenting. If it's set to false, the coordinates are set to (0, 0), i.e. the position
   will be exactly on top of the parent anchor.
   
-  To remove this QCPItemPosition from any parent anchor, set \a parentAnchor to 0.
+  To remove this QCPItemPosition from any parent anchor, set \a parentAnchor to \c nullptr.
   
   If the QCPItemPosition previously had no parent and the type is \ref ptPlotCoords, the type is
   set to \ref ptAbsolute, to keep the position in a valid state.
@@ -1059,7 +1059,7 @@ void QCPAbstractItem::setSelected(bool selected)
 
 /*!
   Returns the QCPItemPosition with the specified \a name. If this item doesn't have a position by
-  that name, returns 0.
+  that name, returns \c nullptr.
   
   This function provides an alternative way to access item positions. Normally, you access
   positions direcly by their member pointers (which typically have the same variable name as \a
@@ -1080,7 +1080,7 @@ QCPItemPosition *QCPAbstractItem::position(const QString &name) const
 
 /*!
   Returns the QCPItemAnchor with the specified \a name. If this item doesn't have an anchor by
-  that name, returns 0.
+  that name, returns \c nullptr.
   
   This function provides an alternative way to access item anchors. Normally, you access
   anchors direcly by their member pointers (which typically have the same variable name as \a

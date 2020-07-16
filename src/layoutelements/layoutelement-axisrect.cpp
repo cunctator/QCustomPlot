@@ -291,7 +291,7 @@ QList<QCPAxis*> QCPAxisRect::axes() const
   previously created outside QCustomPlot. It is important to note that QCustomPlot takes ownership
   of the axis, so you may not delete it afterwards. Further, the \a axis must have been created
   with this axis rect as parent and with the same axis type as specified in \a type. If this is not
-  the case, a debug output is generated, the axis is not added, and the method returns 0.
+  the case, a debug output is generated, the axis is not added, and the method returns \c nullptr.
 
   This method can not be used to move \a axis between axis rects. The same \a axis instance must
   not be added multiple times to the same or different axis rects.

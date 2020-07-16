@@ -325,7 +325,7 @@ Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)
   if \a dataIndex is non-null, it is set to the index of the plottable's data point that is closest
   to \a pos.
 
-  If there is no plottable of the specified type at \a pos, the return value is 0.
+  If there is no plottable of the specified type at \a pos, returns \c nullptr.
   
   \see itemAt, layoutElementAt
 */
@@ -372,7 +372,7 @@ PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable,
   If \a onlySelectable is true, only items that are selectable (QCPAbstractItem::setSelectable) are
   considered.
   
-  If there is no item at \a pos, the return value is 0.
+  If there is no item at \a pos, returns \c nullptr.
   
   \see plottableAt, layoutElementAt
 */

@@ -670,7 +670,7 @@ void QCPLegend::setSelectedTextColor(const QColor &color)
 
 /*!
   Returns the item with index \a i. If non-legend items were added to the legend, and the element
-  at the specified cell index is not a QCPAbstractLegendItem, returns 0.
+  at the specified cell index is not a QCPAbstractLegendItem, returns \c nullptr.
 
   Note that the linear index depends on the current fill order (\ref setFillOrder).
 
@@ -683,7 +683,7 @@ QCPAbstractLegendItem *QCPLegend::item(int index) const
 
 /*!
   Returns the QCPPlottableLegendItem which is associated with \a plottable (e.g. a \ref QCPGraph*).
-  If such an item isn't in the legend, returns 0.
+  If such an item isn't in the legend, returns \c nullptr.
   
   \see hasItemWithPlottable
 */

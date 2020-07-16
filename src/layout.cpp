@@ -422,7 +422,7 @@ void QCPLayoutElement::setSizeConstraintRect(SizeConstraintRect constraintRect)
   Margin groups allow synchronizing specified margins across layout elements, see the documentation
   of \ref QCPMarginGroup.
   
-  To unset the margin group of \a sides, set \a group to 0.
+  To unset the margin group of \a sides, set \a group to \c nullptr.
   
   Note that margin groups only work for margin sides that are set to automatic (\ref
   setAutoMargins).
@@ -538,8 +538,8 @@ QSize QCPLayoutElement::maximumOuterSizeHint() const
   Returns a list of all child elements in this layout element. If \a recursive is true, all
   sub-child elements are included in the list, too.
   
-  \warning There may be entries with value 0 in the returned list. (For example, QCPLayoutGrid may have
-  empty cells which yield 0 at the respective index.)
+  \warning There may be \c nullptr entries in the returned list. For example, QCPLayoutGrid may
+  have empty cells which yield \c nullptr at the respective index.
 */
 QList<QCPLayoutElement*> QCPLayoutElement::elements(bool recursive) const
 {
@@ -659,11 +659,12 @@ void QCPLayoutElement::layoutChanged()
 
 /*! \fn virtual QCPLayoutElement* QCPLayout::elementAt(int index) const = 0
   
-  Returns the element in the cell with the given \a index. If \a index is invalid, returns 0.
+  Returns the element in the cell with the given \a index. If \a index is invalid, returns \c
+  nullptr.
   
   Note that even if \a index is valid, the respective cell may be empty in some layouts (e.g.
-  QCPLayoutGrid), so this function may return 0 in those cases. You may use this function to check
-  whether a cell is empty or not.
+  QCPLayoutGrid), so this function may return \c nullptr in those cases. You may use this function
+  to check whether a cell is empty or not.
   
   \see elements, elementCount, takeAt
 */
@@ -672,7 +673,7 @@ void QCPLayoutElement::layoutChanged()
   
   Removes the element with the given \a index from the layout and returns it.
   
-  If the \a index is invalid or the cell with that index is empty, returns 0.
+  If the \a index is invalid or the cell with that index is empty, returns \c nullptr.
   
   Note that some layouts don't remove the respective cell right away but leave an empty cell after
   successful removal of the layout element. To collapse empty cells, use \ref simplify.
@@ -1154,8 +1155,8 @@ QCPLayoutGrid::~QCPLayoutGrid()
 /*!
   Returns the element in the cell in \a row and \a column.
   
-  Returns 0 if either the row/column is invalid or if the cell is empty. In those cases, a qDebug
-  message is printed. To check whether a cell exists and isn't empty, use \ref hasElement.
+  Returns \c nullptr if either the row/column is invalid or if the cell is empty. In those cases, a
+  qDebug message is printed. To check whether a cell exists and isn't empty, use \ref hasElement.
   
   \see addElement, hasElement
 */
@@ -1707,7 +1708,7 @@ bool QCPLayoutGrid::take(QCPLayoutElement *element)
     }
     qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
   } else
-    qDebug() << Q_FUNC_INFO << "Can't take null element";
+    qDebug() << Q_FUNC_INFO << "Can't take nullptr element";
   return false;
 }
 
@@ -2112,7 +2113,7 @@ bool QCPLayoutInset::take(QCPLayoutElement *element)
     }
     qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
   } else
-    qDebug() << Q_FUNC_INFO << "Can't take null element";
+    qDebug() << Q_FUNC_INFO << "Can't take nullptr element";
   return false;
 }
 
@@ -2164,7 +2165,7 @@ void QCPLayoutInset::addElement(QCPLayoutElement *element, Qt::Alignment alignme
     mInsetRect.append(QRectF(0.6, 0.6, 0.4, 0.4));
     adoptElement(element);
   } else
-    qDebug() << Q_FUNC_INFO << "Can't add null element";
+    qDebug() << Q_FUNC_INFO << "Can't add nullptr element";
 }
 
 /*!
@@ -2190,5 +2191,5 @@ void QCPLayoutInset::addElement(QCPLayoutElement *element, const QRectF &rect)
     mInsetRect.append(rect);
     adoptElement(element);
   } else
-    qDebug() << Q_FUNC_INFO << "Can't add null element";
+    qDebug() << Q_FUNC_INFO << "Can't add nullptr element";
 }

@@ -772,7 +772,7 @@ void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
   if (ticker)
     mTicker = ticker;
   else
-    qDebug() << Q_FUNC_INFO << "can not set 0 as axis ticker";
+    qDebug() << Q_FUNC_INFO << "can not set nullptr as axis ticker";
   // no need to invalidate margin cache here because produced tick labels are checked for changes in setupTickVector
 }
 

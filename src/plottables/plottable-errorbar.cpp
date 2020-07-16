@@ -946,8 +946,8 @@ void QCPErrorBars::getDataSegments(QList<QCPDataRange> &selectedSegments, QList<
   range.
 
   This method assumes for performance reasons without checking that the key axis, the value axis,
-  and the data plottable (\ref setDataPlottable) are not zero and that \a index is within valid
-  bounds of this \ref QCPErrorBars instance and the bounds of the data plottable.
+  and the data plottable (\ref setDataPlottable) are not \c nullptr and that \a index is within
+  valid bounds of this \ref QCPErrorBars instance and the bounds of the data plottable.
 */
 bool QCPErrorBars::errorBarVisible(int index) const
 {

@@ -144,9 +144,9 @@ void QCPAxisTicker::setTickOrigin(double origin)
   even irrelevant) for certain QCPAxisTicker subclasses.
   
   The output parameter \a ticks is filled with the generated tick positions in axis coordinates.
-  The output parameters \a subTicks and \a tickLabels are optional (set them to 0 if not needed)
-  and are respectively filled with sub tick coordinates, and tick label strings belonging to \a
-  ticks by index.
+  The output parameters \a subTicks and \a tickLabels are optional (set them to \c nullptr if not
+  needed) and are respectively filled with sub tick coordinates, and tick label strings belonging
+  to \a ticks by index.
 */
 void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> *subTicks, QVector<QString> *tickLabels)
 {

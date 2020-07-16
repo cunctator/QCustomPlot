@@ -154,9 +154,9 @@ void QCPItemTracer::setStyle(QCPItemTracer::TracerStyle style)
   Sets the QCPGraph this tracer sticks to. The tracer \a position will be set to type
   QCPItemPosition::ptPlotCoords and the axes will be set to the axes of \a graph.
   
-  To free the tracer from any graph, set \a graph to 0. The tracer \a position can then be placed
-  freely like any other item position. This is the state the tracer will assume when its graph gets
-  deleted while still attached to it.
+  To free the tracer from any graph, set \a graph to \c nullptr. The tracer \a position can then be
+  placed freely like any other item position. This is the state the tracer will assume when its
+  graph gets deleted while still attached to it.
   
   \see setGraphKey
 */

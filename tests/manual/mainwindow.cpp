@@ -150,7 +150,7 @@ void MainWindow::setupItemTracerTest(QCustomPlot *customPlot)
   QVector<double> x(n), y(n);
   for (int i=0; i<n; ++i)
   {
-    x[i] = 0.5+i/(double)n*4;
+    x[i] = 0.5+i/double(n)*4;
     y[i] = qSin(x[i])+1.5;
   }
   graph->setData(x, y);
@@ -196,7 +196,7 @@ void MainWindow::setupGraphTest(QCustomPlot *customPlot)
 
   QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
   int n = 10e6;
-  QTime t;
+  QElapsedTimer t;
   t.start();
   for (int i=0; i<n; ++i)
   {
@@ -248,7 +248,7 @@ void MainWindow::setupExportTest(QCustomPlot *customPlot)
   QVector<double> x, y;
   for (int i=1; i<100; ++i)
   {
-    x << 1.0 - 1.0/(double)i;
+    x << 1.0 - 1.0/double(i);
     y << i;
   }
   x << 0.3 << 0.6; // point that should perfectly match grid
@@ -748,7 +748,7 @@ void MainWindow::setupColorMapTest(QCustomPlot *customPlot)
     {
       colorMap->data()->setCell(x, y, qExp(-qSqrt((x-310)*(x-310)+(y-260)*(y-260))/200.0)+
                                       qExp(-qSqrt((x-200)*(x-200)+(y-290)*(y-290))/80.0)-qExp(-qSqrt((x-180)*(x-180)+(y-140)*(y-140))/200.0));
-      colorMap->data()->setAlpha(x, y, qBound(0.0, (1-((x-nx*0.5)*(x-nx*0.5)+(y-ny*0.5)*(y-ny*0.5))/(double)(nx*nx*0.25))*255.0, 255.0));
+      colorMap->data()->setAlpha(x, y, static_cast<unsigned char>(qBound(0.0, (1-((x-nx*0.5)*(x-nx*0.5)+(y-ny*0.5)*(y-ny*0.5))/double(nx*nx*0.25))*255.0, 255.0)));
     }
   }
   
@@ -1078,7 +1078,7 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<82000; ++i)
-      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/double(RAND_MAX)*0.3));
     g->setData(data);
   }
   qDebug() << "create" << timer.nsecsElapsed()/1e6 << "ms";
@@ -1097,7 +1097,7 @@ void MainWindow::setupLargeDataSetDelete(QCustomPlot *customPlot)
     QCPGraph *g = customPlot->addGraph();
     QSharedPointer<QCPGraphDataContainer> data(new QCPGraphDataContainer);
     for (int i=0; i<5000; ++i)
-      data->add(QCPGraphData(i, n+rand()/(double)RAND_MAX*0.3));
+      data->add(QCPGraphData(i, n+rand()/double(RAND_MAX)*0.3));
     g->setData(data);
   }
   customPlot->rescaleAxes();
@@ -1159,21 +1159,21 @@ void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
-    x << i/(double)(n/2-1)*4-5;
+    x << i/double(n/2-1)*4-5;
     if (qrand()%(n/25) == 0)
-      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + 5*qSin(x[i]);
+      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   x << 0.5;
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
-    x << i/(double)(n/2-1)*4+1;
+    x << i/double(n/2-1)*4+1;
     if (qrand()%(n/25) == 0)
-      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + qSin(5*x[i]);
+      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + qSin(5*x[i]);
   }
   x << 6;
   y << -1;
@@ -1227,7 +1227,7 @@ void MainWindow::setupScatterSkipTest(QCustomPlot *customPlot)
   c->setScatterSkip(4);
   int n = 1000;
   for (int i=0; i<n; ++i)
-    c->addData(qCos(i/(double)n*10*M_PI)*i/(double)n*2+2, qSin(i/(double)n*10*M_PI)*i/(double)n*2);
+    c->addData(qCos(i/double(n)*10*M_PI)*i/double(n)*2+2, qSin(i/double(n)*10*M_PI)*i/double(n)*2);
   
   QCPGraph *g = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
   n = 10000;
@@ -1236,11 +1236,11 @@ void MainWindow::setupScatterSkipTest(QCustomPlot *customPlot)
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
-    x << i/(double)(n/2-1)*4-5;
+    x << i/double(n/2-1)*4-5;
     if (qrand()%(n/25) == 0)
-      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + 5*qSin(x[i]);
+      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   g->setData(x, y);
   g->setScatterStyle(QCPScatterStyle::ssPlus);
@@ -1259,21 +1259,21 @@ void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
-    x << i/(double)(n/2-1)*4-5;
+    x << i/double(n/2-1)*4-5;
     if (qrand()%(n/25) == 0)
-      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + 5*qSin(x[i]);
+      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   x << 0.5;
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
-    x << i/(double)(n/2-1)*4+1;
+    x << i/double(n/2-1)*4+1;
     if (qrand()%(n/25) == 0)
-      y << qrand()/(double)RAND_MAX*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/(double)RAND_MAX*2*M_PI)*qSqrt(-2*qLn(qrand()/(double)RAND_MAX)) + qSin(5*x[i]);
+      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + qSin(5*x[i]);
   }
   x << 6;
   y << -1;
@@ -1303,7 +1303,7 @@ void MainWindow::presetInteractive(QCustomPlot *customPlot)
   connect(customPlot, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(selectionRectChooser(QMouseEvent*)), Qt::UniqueConnection);
 }
 
-void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool circle, bool labelBelow)
+void MainWindow::labelItemAnchors(QCPAbstractItem *item, int fontSize, bool circle, bool labelBelow)
 {
   QList<QCPItemAnchor*> anchors = item->anchors();
   for (int i=0; i<anchors.size(); ++i)
@@ -1370,8 +1370,8 @@ void MainWindow::showSelectTestColorMap(QCustomPlot *customPlot)
           int r = qRed(p[x]);
           int g = qGreen(p[x]);
           int b = qBlue(p[x]);
-          r += 255.0/(dist*0.25+1.0);
-          b += -255.0/(dist*0.25+1.0);
+          r += int(255.0/(dist*0.25+1.0));
+          b += int(-255.0/(dist*0.25+1.0));
           if (qAbs(dist-customPlot->selectionTolerance()) < 0.5)
             g += 255;
           p[x] = qRgb(qBound(0, r, 255), qBound(0, g, 255), qBound(0, b, 255));
@@ -1394,8 +1394,8 @@ void MainWindow::showSelectTestColorMap(QCustomPlot *customPlot)
           int r = qRed(p[x]);
           int g = qGreen(p[x]);
           int b = qBlue(p[x]);
-          r += 255.0/(dist*0.25+1.0);
-          b += -255.0/(dist*0.25+1.0);
+          r += int(255.0/(dist*0.25+1.0));
+          b += int(-255.0/(dist*0.25+1.0));
           if (qAbs(dist-customPlot->selectionTolerance()) < 0.5)
             g += 255;
           p[x] = qRgb(qBound(0, r, 255), qBound(0, g, 255), qBound(0, b, 255));
@@ -1472,8 +1472,8 @@ void MainWindow::setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event)
 
 void MainWindow::daqPerformanceDataSlot()
 {
-  static qint64 start = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
-  qint64 currentMillisecond = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000 - start;
+  static qint64 start = qint64(QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000);
+  qint64 currentMillisecond = qint64(QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000) - start;
   static qint64 lastMillisecond = currentMillisecond;
   static int ptsInThisMillisecond = 0;
   if (lastMillisecond != currentMillisecond)
@@ -1535,12 +1535,12 @@ void MainWindow::daqPerformanceReplotSlot()
   
   int dataPoints = mCustomPlot->graph(0)->data()->size();
   static int lastDataPoints = dataPoints;
-  qint64 now = QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000;
+  qint64 now = qint64(QCPAxisTickerDateTime::dateTimeToKey(QDateTime::currentDateTime())*1000);
   static qint64 lastT = now;
   static QString dataPointFrequency("0 Hz");
   if (now-lastT > 1000)
   {
-    dataPointFrequency = QString::number((dataPoints-lastDataPoints)/(double)(now-lastT)*1000.0)+" Hz";
+    dataPointFrequency = QString::number((dataPoints-lastDataPoints)/double(now-lastT)*1000.0)+" Hz";
     lastT = now;
     lastDataPoints = dataPoints;
   }

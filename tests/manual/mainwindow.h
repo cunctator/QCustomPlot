@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
   
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
   
   // tests:
@@ -59,7 +59,7 @@ public:
   void presetInteractive(QCustomPlot *customPlot);
   
   // helpers:
-  void labelItemAnchors(QCPAbstractItem *item, double fontSize=8, bool circle=true, bool labelBelow=true);
+  void labelItemAnchors(QCPAbstractItem *item, int fontSize=8, bool circle=true, bool labelBelow=true);
   void showSelectTestColorMap(QCustomPlot *customPlot);
   
   // special use cases test:

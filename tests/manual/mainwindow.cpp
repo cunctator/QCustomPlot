@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupDataSelectTest(mCustomPlot);
   //setupErrorBarTest(mCustomPlot);
   //setupScatterSkipTest(mCustomPlot);
+  //setupTimeZoneTest(mCustomPlot);
   setupTestbed(mCustomPlot);
 }
 
@@ -1247,6 +1248,26 @@ void MainWindow::setupScatterSkipTest(QCustomPlot *customPlot)
   g->setScatterSkip(4);
   
   customPlot->rescaleAxes();
+}
+
+void MainWindow::setupTimeZoneTest(QCustomPlot *customPlot)
+{
+# if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+  QSharedPointer<QCPAxisTickerDateTime> ticker(new QCPAxisTickerDateTime);
+  customPlot->xAxis->setTicker(ticker);
+  QCPGraph *graph = customPlot->addGraph();
+  
+  double timeStamp = 1577883600; // Wednesday, January 1, 2020 13:00:00 (UTC)
+  graph->setData({timeStamp+3600*0, timeStamp+3600*1, timeStamp+3600*2, timeStamp+3600*3}, {1.0, 2.0, 2.5, 2.75});
+  
+  ticker->setDateTimeFormat("yyyy-MM-dd\nhh:mm:ss");
+  ticker->setTickOrigin(QDateTime(QDate(2020, 1, 15), QTime(17, 17, 17), QTimeZone("UTC")));
+  //qDebug() << QTimeZone::availableTimeZoneIds();
+  ticker->setTimeZone(QTimeZone("Europe/Berlin"));
+  
+  customPlot->xAxis->rescale();
+  customPlot->xAxis->scaleRange(1.1);
+# endif
 }
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)

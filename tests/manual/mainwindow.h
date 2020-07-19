@@ -52,6 +52,7 @@ public:
   void setupErrorBarTest(QCustomPlot *customPlot);
   void setupDataSelectTest(QCustomPlot *customPlot);
   void setupScatterSkipTest(QCustomPlot *customPlot);
+  void setupTimeZoneTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   

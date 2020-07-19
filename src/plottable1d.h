@@ -424,16 +424,16 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
     if (currentSegmentBegin == -1)
     {
       if (valueRange.contains(it->mainValue()) && keyRange.contains(it->mainKey())) // start segment
-        currentSegmentBegin = it-mDataContainer->constBegin();
+        currentSegmentBegin = int(it-mDataContainer->constBegin());
     } else if (!valueRange.contains(it->mainValue()) || !keyRange.contains(it->mainKey())) // segment just ended
     {
-      result.addDataRange(QCPDataRange(currentSegmentBegin, it-mDataContainer->constBegin()), false);
+      result.addDataRange(QCPDataRange(currentSegmentBegin, int(it-mDataContainer->constBegin())), false);
       currentSegmentBegin = -1;
     }
   }
   // process potential last segment:
   if (currentSegmentBegin != -1)
-    result.addDataRange(QCPDataRange(currentSegmentBegin, end-mDataContainer->constBegin()), false);
+    result.addDataRange(QCPDataRange(currentSegmentBegin, int(end-mDataContainer->constBegin())), false);
   
   result.simplify();
   return result;
@@ -445,7 +445,7 @@ QCPDataSelection QCPAbstractPlottable1D<DataType>::selectTestRect(const QRectF &
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::findBegin(double sortKey, bool expandedRange) const
 {
-  return mDataContainer->findBegin(sortKey, expandedRange)-mDataContainer->constBegin();
+  return int(mDataContainer->findBegin(sortKey, expandedRange)-mDataContainer->constBegin());
 }
 
 /*!
@@ -454,7 +454,7 @@ int QCPAbstractPlottable1D<DataType>::findBegin(double sortKey, bool expandedRan
 template <class DataType>
 int QCPAbstractPlottable1D<DataType>::findEnd(double sortKey, bool expandedRange) const
 {
-  return mDataContainer->findEnd(sortKey, expandedRange)-mDataContainer->constBegin();
+  return int(mDataContainer->findEnd(sortKey, expandedRange)-mDataContainer->constBegin());
 }
 
 /*!
@@ -506,7 +506,7 @@ double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onl
       if (currentDistSqr < minDistSqr)
       {
         minDistSqr = currentDistSqr;
-        minDistIndex = it-mDataContainer->constBegin();
+        minDistIndex = int(it-mDataContainer->constBegin());
       }
     }
   }

@@ -394,7 +394,7 @@ void QCPDataContainer<DataType>::removeBefore(double sortKey)
 {
   QCPDataContainer<DataType>::iterator it = begin();
   QCPDataContainer<DataType>::iterator itEnd = std::lower_bound(begin(), end(), DataType::fromSortKey(sortKey), qcpLessThanSortKey<DataType>);
-  mPreallocSize += itEnd-it; // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
+  mPreallocSize += int(itEnd-it); // don't actually delete, just add it to the preallocated block (if it gets too large, squeeze will take care of it)
   if (mAutoSqueeze)
     performAutoSqueeze();
 }
@@ -798,7 +798,7 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
 template <class DataType>
 void QCPDataContainer<DataType>::limitIteratorsToDataRange(const_iterator &begin, const_iterator &end, const QCPDataRange &dataRange) const
 {
-  QCPDataRange iteratorRange(begin-constBegin(), end-constBegin());
+  QCPDataRange iteratorRange(int(begin-constBegin()), int(end-constBegin()));
   iteratorRange = iteratorRange.bounded(dataRange.bounded(this->dataRange()));
   begin = constBegin()+iteratorRange.begin();
   end = constBegin()+iteratorRange.end();

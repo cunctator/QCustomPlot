@@ -44,11 +44,9 @@
 //amalgamation: add axis/axistickerlog.cpp
 //amalgamation: add axis/axis.cpp
 //amalgamation: add scatterstyle.cpp
-//amalgamation: add datacontainer.cpp
 //amalgamation: add plottable.cpp
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp
-//amalgamation: add plottable1d.cpp
 //amalgamation: add colorgradient.cpp
 //amalgamation: add selectiondecorator-bracket.cpp
 //amalgamation: add layoutelements/layoutelement-axisrect.cpp

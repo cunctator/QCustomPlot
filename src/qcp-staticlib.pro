@@ -125,10 +125,8 @@ SOURCES += \
     axis/axistickertext.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp \
-    datacontainer.cpp \
     selection.cpp \
     selectionrect.cpp \
-    plottable1d.cpp \
     scatterstyle.cpp \
     selectiondecorator-bracket.cpp
 

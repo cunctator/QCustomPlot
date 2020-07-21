@@ -441,7 +441,6 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
   bracket->left->setCoords(-0.2, 0.35);
   bracket->right->setCoords(1.2, 0.65);
   bracket->setLength(22);
-  */
   
   // QCPFinancial:
   QCPFinancial *f = new QCPFinancial(customPlot->xAxis, customPlot->yAxis);
@@ -458,7 +457,12 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
   //customPlot->xAxis->setRangeReversed(true);
   customPlot->xAxis->setRange(-2, 22);
   customPlot->yAxis->setRange(160, 220);
+  */
   
+  // QCPGraph:
+  QCPGraph *g = customPlot->addGraph();
+  g->addData(QVector<double>() << -15 << -12 << -5 << 0 << 0.1 << 0.1 << 5 << 10 << 11,
+             QVector<double>() << 0 << -5 << 5 << 0 << 6 << -2 << 4 << 7 << 5);
   
   connect(customPlot, SIGNAL(beforeReplot()), this, SLOT(selectTestColorMapRefresh()));
 }

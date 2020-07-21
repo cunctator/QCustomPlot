@@ -1746,7 +1746,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
   {
     // line displayed, calculate distance to line segments:
     QVector<QPointF> lineData;
-    getLines(&lineData, QCPDataRange(0, dataCount()));
+    getLines(&lineData, QCPDataRange(0, dataCount())); // don't limit data range further since with sharp data spikes, line segments may be closer to test point than segments with closer key coordinate
     QCPVector2D p(pixelPoint);
     const int step = mLineStyle==lsImpulse ? 2 : 1; // impulse plot differs from other line styles in that the lineData points are only pairwise connected
     for (int i=0; i<lineData.size()-1; i+=step)

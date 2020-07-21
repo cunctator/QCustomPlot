@@ -143,25 +143,30 @@ QCPVector2D::QCPVector2D(const QPointF &point) :
 /*!
   Normalizes this vector. After this operation, the length of the vector is equal to 1.
   
+  If the vector has both entries set to zero, this method does nothing.
+  
   \see normalized, length, lengthSquared
 */
 void QCPVector2D::normalize()
 {
-  double len = length();
-  mX /= len;
-  mY /= len;
+  if (mX == 0.0 && mY == 0.0) return;
+  const double lenInv = 1.0/length();
+  mX *= lenInv;
+  mY *= lenInv;
 }
 
 /*!
   Returns a normalized version of this vector. The length of the returned vector is equal to 1.
   
+  If the vector has both entries set to zero, this method returns the vector unmodified.
+  
   \see normalize, length, lengthSquared
 */
 QCPVector2D QCPVector2D::normalized() const
 {
-  QCPVector2D result(mX, mY);
-  result.normalize();
-  return result;
+  if (mX == 0.0 && mY == 0.0) return *this;
+  const double lenInv = 1.0/length();
+  return QCPVector2D(mX*lenInv, mY*lenInv);
 }
 
 /*! \overload
@@ -173,11 +178,11 @@ QCPVector2D QCPVector2D::normalized() const
 */
 double QCPVector2D::distanceSquaredToLine(const QCPVector2D &start, const QCPVector2D &end) const
 {
-  QCPVector2D v(end-start);
-  double vLengthSqr = v.lengthSquared();
+  const QCPVector2D v(end-start);
+  const double vLengthSqr = v.lengthSquared();
   if (!qFuzzyIsNull(vLengthSqr))
   {
-    double mu = v.dot(*this-start)/vLengthSqr;
+    const double mu = v.dot(*this-start)/vLengthSqr;
     if (mu < 0)
       return (*this-start).lengthSquared();
     else if (mu > 1)

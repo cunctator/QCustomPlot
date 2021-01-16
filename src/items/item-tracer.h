@@ -28,10 +28,10 @@
 
 #include "../global.h"
 #include "../item.h"
+#include "../plottables/plottable-graph.h"
 
 class QCPPainter;
 class QCustomPlot;
-class QCPGraph;
 
 class QCP_LIB_DECL QCPItemTracer : public QCPAbstractItem
 {

@@ -29,8 +29,8 @@
 #include "global.h"
 #include "vector2d.h"
 #include "axis/range.h"
-#include "layer.h"
 #include "axis/axis.h"
+#include "layer.h"
 #include "selection.h"
 #include "scatterstyle.h"
 

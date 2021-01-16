@@ -470,7 +470,8 @@ void MainWindow::setupSelectTest(QCustomPlot *customPlot)
 void MainWindow::setupDateTest(QCustomPlot *customPlot)
 {
   customPlot->xAxis->setTicker(QSharedPointer<QCPAxisTicker>(new QCPAxisTickerDateTime));
-  customPlot->xAxis->setRange(QDateTime(QDate(2015, 1, 1)).toTime_t(), QDateTime(QDate(2020, 1, 1)).toTime_t());
+  customPlot->xAxis->setRange(QDateTime(QDate(2015, 1, 1).startOfDay()).toMSecsSinceEpoch()/1000.0,
+                              QDateTime(QDate(2020, 1, 1).startOfDay()).toMSecsSinceEpoch()/1000.0);
   QCPGraph *g = customPlot->addGraph();
   g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2015,1,1)), 1);
   g->addData(QCPAxisTickerDateTime::dateTimeToKey(QDate(2015,6,1)), 2);
@@ -1154,7 +1155,7 @@ void MainWindow::setupErrorBarTest(QCustomPlot *customPlot)
 
 void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
 {
-  qsrand(1);
+  std::srand(1);
   customPlot->setSelectionRectMode(QCP::srmSelect);
   
   QCPGraph *g = customPlot->addGraph();
@@ -1165,20 +1166,20 @@ void MainWindow::setupDataSelectTest(QCustomPlot *customPlot)
   for (int i=0; i<n/2; ++i)
   {
     x << i/double(n/2-1)*4-5;
-    if (qrand()%(n/25) == 0)
-      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    if (std::rand()%(n/25) == 0)
+      y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   x << 0.5;
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
     x << i/double(n/2-1)*4+1;
-    if (qrand()%(n/25) == 0)
-      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    if (std::rand()%(n/25) == 0)
+      y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + qSin(5*x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + qSin(5*x[i]);
   }
   x << 6;
   y << -1;
@@ -1242,10 +1243,10 @@ void MainWindow::setupScatterSkipTest(QCustomPlot *customPlot)
   for (int i=0; i<n/2; ++i)
   {
     x << i/double(n/2-1)*4-5;
-    if (qrand()%(n/25) == 0)
-      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    if (std::rand()%(n/25) == 0)
+      y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   g->setData(x, y);
   g->setScatterStyle(QCPScatterStyle::ssPlus);
@@ -1276,7 +1277,7 @@ void MainWindow::setupTimeZoneTest(QCustomPlot *customPlot)
 
 void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
 {
-  qsrand(1);
+  std::srand(1);
   QCPGraph *g = customPlot->addGraph();
   int n = 200000;
   QVector<double> x, y;
@@ -1285,20 +1286,20 @@ void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
   for (int i=0; i<n/2; ++i)
   {
     x << i/double(n/2-1)*4-5;
-    if (qrand()%(n/25) == 0)
-      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    if (std::rand()%(n/25) == 0)
+      y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + 5*qSin(x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   x << 0.5;
   y << 2;
   for (int i=0; i<n/2; ++i)
   {
     x << i/double(n/2-1)*4+1;
-    if (qrand()%(n/25) == 0)
-      y << qrand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
+    if (std::rand()%(n/25) == 0)
+      y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(qrand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(qrand()/double(RAND_MAX))) + qSin(5*x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + qSin(5*x[i]);
   }
   x << 6;
   y << -1;
@@ -1511,17 +1512,17 @@ void MainWindow::daqPerformanceDataSlot()
   if (mCustomPlot->graph()->data()->size() > 100000)
     grow = false;
   
-  if (rand()%100000 < 100)
+  if (std::rand()%100000 < 100)
   {
     if (grow)
     {
-      if (rand()%1000 < 280)
+      if (std::rand()%1000 < 280)
         dir = -1;
       else
         dir = 1;
     } else
     {
-      if (rand()%1000 < 450)
+      if (std::rand()%1000 < 450)
         dir = -1;
       else
         dir = 1;
@@ -1539,7 +1540,7 @@ void MainWindow::daqPerformanceDataSlot()
     }
   } else
   {
-    if (rand()%10 < 1)
+    if (std::rand()%10 < 1)
       mCustomPlot->graph(0)->data()->removeBefore(mCustomPlot->graph(0)->data()->constBegin()->key+0.00000001);
     else
       mCustomPlot->graph(0)->data()->remove((mCustomPlot->graph(0)->data()->constEnd()-1)->key);
@@ -1609,7 +1610,7 @@ void MainWindow::testbedMouseClick(QMouseEvent *event)
 
 void MainWindow::showReplotTime()
 {
-  static QDateTime lastShow = QDateTime::fromTime_t(0);
+  static QDateTime lastShow = QDateTime::fromMSecsSinceEpoch(0);
   if (lastShow.msecsTo(QDateTime::currentDateTime()) > 100) // only update status bar label at most every 100ms
   {
     mStatusBarLabel->setText(QString("%1 ms (avg %2 ms)").arg(mCustomPlot->replotTime(false), 0, 'f', 1).arg(mCustomPlot->replotTime(true), 0, 'f', 1));

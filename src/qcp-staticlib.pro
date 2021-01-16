@@ -9,7 +9,7 @@
 # (note that qmake understands "*.h" if you choose the latter option.)
 #
 
-QT += core gui opengl
+QT += core gui# opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): CONFIG += c++11
@@ -24,7 +24,7 @@ QMAKE_CXXFLAGS += -Wold-style-cast -Wlogical-op -Wduplicated-branches -Wduplicat
 #QMAKE_CXXFLAGS += -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
 #QMAKE_CXXFLAGS += -Werror
 
-DEFINES += QCUSTOMPLOT_USE_OPENGL
+#DEFINES += QCUSTOMPLOT_USE_OPENGL
 
 VERSION = 2.0.1
 TARGET = qcustomplot

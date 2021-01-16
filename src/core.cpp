@@ -2222,7 +2222,9 @@ void QCustomPlot::paintEvent(QPaintEvent *event)
   QCPPainter painter(this);
   if (painter.isActive())
   {
-    painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  painter.setRenderHint(QPainter::HighQualityAntialiasing); // to make Antialiasing look good if using the OpenGL graphicssystem
+#endif
     if (mBackgroundBrush.style() != Qt::NoBrush)
       painter.fillRect(mViewport, mBackgroundBrush);
     drawBackground(&painter);
@@ -2806,7 +2808,7 @@ void QCustomPlot::processRectSelection(QRect rect, QMouseEvent *event)
         if (!potentialSelections.isEmpty())
         {
           SelectionCandidates::iterator it = potentialSelections.begin();
-          while (it != potentialSelections.end()-1) // erase all except last element
+          while (it != std::prev(potentialSelections.end())) // erase all except last element
             it = potentialSelections.erase(it);
         }
       }

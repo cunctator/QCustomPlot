@@ -565,14 +565,14 @@ void QCPColorGradient::updateColorBuffer()
       {
         if (useAlpha)
         {
-          const QColor col = (it-1).value();
+          const QColor col = std::prev(it).value();
           const double alphaPremultiplier = col.alpha()/255.0; // since we use QImage::Format_ARGB32_Premultiplied
           mColorBuffer[i] = qRgba(int(col.red()*alphaPremultiplier),
                                   int(col.green()*alphaPremultiplier),
                                   int(col.blue()*alphaPremultiplier),
                                   col.alpha());
         } else
-          mColorBuffer[i] = (it-1).value().rgba();
+          mColorBuffer[i] = std::prev(it).value().rgba();
       } else if (it == mColorStops.constBegin()) // position is on or before first stop, use color of first stop
       {
         if (useAlpha)
@@ -588,7 +588,7 @@ void QCPColorGradient::updateColorBuffer()
       } else // position is in between stops (or on an intermediate stop), interpolate color
       {
         QMap<double, QColor>::const_iterator high = it;
-        QMap<double, QColor>::const_iterator low = it-1;
+        QMap<double, QColor>::const_iterator low = std::prev(it);
         double t = (position-low.key())/(high.key()-low.key()); // interpolation factor 0..1
         switch (mColorInterpolation)
         {

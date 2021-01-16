@@ -72,7 +72,12 @@
 #include <algorithm>
 #ifdef QCP_OPENGL_FBO
 #  include <QtGui/QOpenGLContext>
-#  include <QtGui/QOpenGLFramebufferObject>
+#  if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#    include <QtGui/QOpenGLFramebufferObject>
+#  else
+#    include <QOpenGLFramebufferObject>
+#    include <QOpenGLPaintDevice>
+#  endif
 #  ifdef QCP_OPENGL_OFFSCREENSURFACE
 #    include <QtGui/QOffscreenSurface>
 #  else

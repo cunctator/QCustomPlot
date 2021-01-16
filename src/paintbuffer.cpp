@@ -214,7 +214,9 @@ QCPPaintBufferPixmap::~QCPPaintBufferPixmap()
 QCPPainter *QCPPaintBufferPixmap::startPainting()
 {
   QCPPainter *result = new QCPPainter(&mBuffer);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   result->setRenderHint(QPainter::HighQualityAntialiasing);
+#endif
   return result;
 }
 
@@ -414,7 +416,9 @@ QCPPainter *QCPPaintBufferGlFbo::startPainting()
     context->makeCurrent(context->surface());
   mGlFrameBuffer->bind();
   QCPPainter *result = new QCPPainter(paintDevice.data());
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
   result->setRenderHint(QPainter::HighQualityAntialiasing);
+#endif
   return result;
 }
 

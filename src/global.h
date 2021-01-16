@@ -53,6 +53,7 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QWheelEvent>
@@ -93,6 +94,9 @@
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(4, 8, 0)
 #  include <QtCore/QElapsedTimer>
+#endif
+# if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+#  include <QtCore/QTimeZone>
 #endif
 // amalgamation: include end
 

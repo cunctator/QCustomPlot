@@ -1520,8 +1520,8 @@ void MainWindow::resetPlot(bool clearAxes)
     customPlot = 0;
   }
   customPlot = new QCustomPlot(0);
-  customPlot->show();
-  qApp->processEvents();
+  //customPlot->show();
+  //qApp->processEvents();
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);

@@ -76,7 +76,7 @@
 QCPTextElement::QCPTextElement(QCustomPlot *parentPlot) :
   QCPLayoutElement(parentPlot),
   mText(),
-  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mTextFlags(Qt::AlignCenter),
   mFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
   mSelectedFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
@@ -101,7 +101,7 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot) :
 QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text) :
   QCPLayoutElement(parentPlot),
   mText(text),
-  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mTextFlags(Qt::AlignCenter),
   mFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
   mSelectedFont(QFont(QLatin1String("sans serif"), 12)), // will be taken from parentPlot if available, see below
@@ -126,7 +126,7 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text) :
 QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, double pointSize) :
   QCPLayoutElement(parentPlot),
   mText(text),
-  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mTextFlags(Qt::AlignCenter),
   mFont(QFont(QLatin1String("sans serif"), int(pointSize))), // will be taken from parentPlot if available, see below
   mTextColor(Qt::black),
   mSelectedFont(QFont(QLatin1String("sans serif"), int(pointSize))), // will be taken from parentPlot if available, see below
@@ -154,7 +154,7 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, dou
 QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QString &fontFamily, double pointSize) :
   QCPLayoutElement(parentPlot),
   mText(text),
-  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mTextFlags(Qt::AlignCenter),
   mFont(QFont(fontFamily, int(pointSize))),
   mTextColor(Qt::black),
   mSelectedFont(QFont(fontFamily, int(pointSize))),
@@ -175,7 +175,7 @@ QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, con
 QCPTextElement::QCPTextElement(QCustomPlot *parentPlot, const QString &text, const QFont &font) :
   QCPLayoutElement(parentPlot),
   mText(text),
-  mTextFlags(Qt::AlignCenter|Qt::TextWordWrap),
+  mTextFlags(Qt::AlignCenter),
   mFont(font),
   mTextColor(Qt::black),
   mSelectedFont(font),
@@ -310,7 +310,7 @@ void QCPTextElement::draw(QCPPainter *painter)
 QSize QCPTextElement::minimumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result(metrics.boundingRect(0, 0, 0, 0, mTextFlags, mText).size());
+  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip, mText).size());
   result.rwidth() += mMargins.left()+mMargins.right();
   result.rheight() += mMargins.top()+mMargins.bottom();
   return result;
@@ -320,7 +320,7 @@ QSize QCPTextElement::minimumOuterSizeHint() const
 QSize QCPTextElement::maximumOuterSizeHint() const
 {
   QFontMetrics metrics(mFont);
-  QSize result(metrics.boundingRect(0, 0, 0, 0, mTextFlags, mText).size());
+  QSize result(metrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip, mText).size());
   result.setWidth(QWIDGETSIZE_MAX);
   result.rheight() += mMargins.top()+mMargins.bottom();
   return result;

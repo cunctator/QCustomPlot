@@ -2318,9 +2318,16 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
   Returns the size ("margin" in QCPAxisRect context, so measured perpendicular to the axis backbone
   direction) needed to fit the axis.
 */
-int QCPAxisPainterPrivate::size() const
+int QCPAxisPainterPrivate::size()
 {
   int result = 0;
+
+  QByteArray newHash = generateLabelParameterHash();
+  if (newHash != mLabelParameterHash)
+  {
+    mLabelCache.clear();
+    mLabelParameterHash = newHash;
+  }
   
   // get length of tick marks pointing outwards:
   if (!tickPositions.isEmpty())

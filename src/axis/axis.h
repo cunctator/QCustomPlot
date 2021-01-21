@@ -409,7 +409,7 @@ public:
   virtual ~QCPAxisPainterPrivate();
   
   virtual void draw(QCPPainter *painter);
-  virtual int size() const;
+  virtual int size();
   void clearCache();
   
   QRect axisSelectionBox() const { return mAxisSelectionBox; }

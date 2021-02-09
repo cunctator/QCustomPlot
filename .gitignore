@@ -11,6 +11,7 @@ build-release/
 build-debug/
 *-build-*-Release/
 *-build-*-Debug/
+build-*/
 *.pro.user*
 Makefile*
 moc_*.cpp

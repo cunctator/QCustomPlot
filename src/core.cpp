@@ -225,7 +225,28 @@
   It is safe to mutually connect the replot slot with this signal on two QCustomPlots to make them
   replot synchronously, it won't cause an infinite recursion.
   
-  \see replot, afterReplot
+  \see replot, afterReplot, afterLayout
+*/
+
+/*! \fn void QCustomPlot::afterLayout()
+
+  This signal is emitted immediately after the layout step has been completed, which occurs right
+  before drawing the plot. This is typically during a call to \ref replot, and in such cases this
+  signal is emitted in between the signals \ref beforeReplot and \ref afterReplot. Unlike those
+  signals however, this signal is also emitted during off-screen painting, such as when calling
+  \ref toPixmap or \ref savePdf.
+
+  The layout step queries all layouts and layout elements in the plot for their proposed size and
+  arranges the objects accordingly as preparation for the subsequent drawing step. Through this
+  signal, you have the opportunity to update certain things in your plot that depend crucially on
+  the exact dimensions/positioning of layout elements such as axes and axis rects.
+
+  \warning However, changing any parameters of this QCustomPlot instance which would normally
+  affect the layouting (e.g. axis range order of magnitudes, tick label sizes, etc.) will not issue
+  a second run of the layout step. It will propagate directly to the draw step and may cause
+  graphical inconsistencies such as overlapping objects, if sizes or positions have changed.
+
+  \see updateLayout, beforeReplot, afterReplot
 */
 
 /*! \fn void QCustomPlot::afterReplot()
@@ -236,7 +257,7 @@
   It is safe to mutually connect the replot slot with this signal on two QCustomPlots to make them
   replot synchronously, it won't cause an infinite recursion.
   
-  \see replot, beforeReplot
+  \see replot, beforeReplot, afterLayout
 */
 
 /* end of documentation of signals */
@@ -2508,6 +2529,8 @@ void QCustomPlot::updateLayout()
   mPlotLayout->update(QCPLayoutElement::upPreparation);
   mPlotLayout->update(QCPLayoutElement::upMargins);
   mPlotLayout->update(QCPLayoutElement::upLayout);
+
+  emit afterLayout();
 }
 
 /*! \internal

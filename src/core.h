@@ -215,6 +215,7 @@ signals:
   
   void selectionChangedByUser();
   void beforeReplot();
+  void afterLayout();
   void afterReplot();
   
 protected:

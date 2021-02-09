@@ -192,10 +192,11 @@ void QCPItemAnchor::removeChildY(QCPItemPosition *pos)
 
   QCPItemPosition has a type (\ref PositionType) that can be set with \ref setType. This type
   defines how coordinates passed to \ref setCoords are to be interpreted, e.g. as absolute pixel
-  coordinates, as plot coordinates of certain axes, etc. For more advanced plots it is also
+  coordinates, as plot coordinates of certain axes (\ref QCPItemPosition::setAxes), as fractions of
+  the axis rect (\ref QCPItemPosition::setAxisRect), etc. For more advanced plots it is also
   possible to assign different types per X/Y coordinate of the position (see \ref setTypeX, \ref
-  setTypeY). This way an item could be positioned at a fixed pixel distance from the top in the Y
-  direction, while following a plot coordinate in the X direction.
+  setTypeY). This way an item could be positioned for example at a fixed pixel distance from the
+  top in the Y direction, while following a plot coordinate in the X direction.
 
   A QCPItemPosition may have a parent QCPItemAnchor, see \ref setParentAnchor. This way you can tie
   multiple items together. If the QCPItemPosition has a parent, its coordinates (\ref setCoords)

@@ -880,11 +880,16 @@ void QCPAxis::setTickLabelSide(LabelSide side)
   of the format code used e.g. by QString::number() and QLocale::toString(). For reference about
   that, see the "Argument Formats" section in the detailed description of the QString class.
   
-  \a formatCode is a string of one, two or three characters. The first character is identical to
+  \a formatCode is a string of one, two or three characters.
+
+  <b>The first character</b> is identical to
   the normal format code used by Qt. In short, this means: 'e'/'E' scientific format, 'f' fixed
-  format, 'g'/'G' scientific or fixed, whichever is shorter.
-  
-  The second and third characters are optional and specific to QCustomPlot:\n
+  format, 'g'/'G' scientific or fixed, whichever is shorter. For the 'e', 'E', and 'f' formats,
+  the precision set by \ref setNumberPrecision represents the number of digits after the decimal
+  point. For the 'g' and 'G' formats, the precision represents the maximum number of significant
+  digits, trailing zeroes are omitted.
+
+  <b>The second and third characters</b> are optional and specific to QCustomPlot:\n
   If the first char was 'e' or 'g', numbers are/might be displayed in the scientific format, e.g.
   "5.5e9", which is ugly in a plot. So when the second char of \a formatCode is set to 'b' (for
   "beautiful"), those exponential numbers are formatted in a more natural way, i.e. "5.5
@@ -2354,7 +2359,7 @@ int QCPAxisPainterPrivate::size()
     bounds = fontMetrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip | Qt::AlignHCenter | Qt::AlignVCenter, label);
     result += bounds.height() + labelPadding;
   }
-  
+
   return result;
 }
 

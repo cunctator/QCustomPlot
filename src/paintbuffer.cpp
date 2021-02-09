@@ -163,7 +163,7 @@ void QCPAbstractPaintBuffer::setInvalidated(bool invalidated)
 }
 
 /*!
-  Sets the the device pixel ratio to \a ratio. This is useful to render on high-DPI output devices.
+  Sets the device pixel ratio to \a ratio. This is useful to render on high-DPI output devices.
   The ratio is automatically set to the device pixel ratio used by the parent QCustomPlot instance.
 
   The buffer is reallocated (by calling \ref reallocateBuffer), so any painters that were obtained

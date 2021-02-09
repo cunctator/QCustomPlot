@@ -203,6 +203,7 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   // add data point graph:
   customPlot->addGraph();
   customPlot->graph(3)->setPen(QPen(Qt::blue));
+  customPlot->graph(3)->setName("Measurement");
   customPlot->graph(3)->setLineStyle(QCPGraph::lsNone);
   customPlot->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCross, 4));
   // add error bars:
@@ -211,7 +212,6 @@ void MainWindow::setupSincScatterDemo(QCustomPlot *customPlot)
   errorBars->setAntialiased(false);
   errorBars->setDataPlottable(customPlot->graph(3));
   errorBars->setPen(QPen(QColor(180,180,180)));
-  customPlot->graph(3)->setName("Measurement");
 
   // generate ideal sinc curve data and some randomly perturbed data for scatter plot:
   QVector<double> x0(250), y0(250);

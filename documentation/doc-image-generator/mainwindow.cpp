@@ -343,12 +343,12 @@ void MainWindow::genAxisRectSpacingOverview()
   customPlot->yAxis->setTickLengthOut(5);
   customPlot->yAxis->setSubTickLengthOut(2);
   
-  addBracket(QPointF(200-95-27-17, 30), QPointF(1, 30), "Padding (if auto margins enabled)", QPointF(-25, -5), false, Qt::AlignLeft|Qt::AlignBottom);
-  addBracket(QPointF(1, 370), QPointF(200, 370), "Margin", QPointF(0, 5), false, Qt::AlignHCenter|Qt::AlignTop);
-  addBracket(QPointF(200-30, 240), QPointF(200, 240), "Axis offset", QPointF(-1, 5), true, Qt::AlignRight|Qt::AlignVCenter);
-  addBracket(QPointF(200-35, 250), QPointF(200-30, 250), "Tick length out", QPointF(-1, 5), true, Qt::AlignRight|Qt::AlignVCenter);
-  addBracket(QPointF(200-65, 240), QPointF(200-35, 240), "Tick label padding", QPointF(-1, 5), true, Qt::AlignRight|Qt::AlignVCenter);
-  addBracket(QPointF(200-95-25, 240), QPointF(200-65-25, 240), "Label padding", QPointF(-1, 5), true, Qt::AlignRight|Qt::AlignVCenter);
+  addBracket(QPointF(200-95-27-17, 30), QPointF(1, 30), "QCPAxis::padding (if auto margins enabled)", QPointF(-25, -5), 0, Qt::AlignLeft|Qt::AlignBottom);
+  addBracket(QPointF(1, 370), QPointF(200, 370), "QCPAxisRect::margin", QPointF(0, 5), 0, Qt::AlignHCenter|Qt::AlignTop);
+  addBracket(QPointF(200-30, 240), QPointF(200, 240), "QCPAxis::offset", QPointF(-1, 7), 50, Qt::AlignLeft|Qt::AlignVCenter);
+  addBracket(QPointF(200-35, 250), QPointF(200-30, 250), "QCPAxis:tickLengthOut", QPointF(-1, 7), 50, Qt::AlignLeft|Qt::AlignVCenter);
+  addBracket(QPointF(200-65, 240), QPointF(200-35, 240), "QCPAxis::tickLabelPadding", QPointF(-1, 7), -50, Qt::AlignRight|Qt::AlignVCenter);
+  addBracket(QPointF(200-95-25, 240), QPointF(200-65-25, 240), "QCPAxis::labelPadding", QPointF(-1, 7), -50, Qt::AlignRight|Qt::AlignVCenter);
   
   QCPItemLine *leftBorder = new QCPItemLine(customPlot);
   leftBorder->setClipToAxisRect(false);
@@ -565,7 +565,7 @@ void MainWindow::genLayoutsystem_AddingLegendTitle()
   QCPTextElement *legendTitle = new QCPTextElement(customPlot);
   legendTitle->setLayer(customPlot->legend->layer()); // place text element on same layer as legend, or it ends up below legend
   legendTitle->setText("Engine Status");
-  legendTitle->setFont(QFont("sans", 9, QFont::Bold));
+  legendTitle->setFont(QFont("sans", 7, QFont::Bold));
   // then we add it to the QCPLegend (which is a subclass of QCPLayoutGrid):
   if (customPlot->legend->hasElement(0, 0)) // if top cell isn't empty, insert an empty row at top
     customPlot->legend->insertRow(0);
@@ -1413,7 +1413,7 @@ void MainWindow::labelItemAnchors(QCPAbstractItem *item, double fontSize, bool c
   }
 }
 
-void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF textOffset, bool textSideways, Qt::Alignment textAlign, QCPItemBracket::BracketStyle style)
+void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF textOffset, int rotation, Qt::Alignment textAlign, QCPItemBracket::BracketStyle style)
 {
   QCPItemBracket *bracket = new QCPItemBracket(customPlot);
   bracket->setClipToAxisRect(false);
@@ -1429,8 +1429,7 @@ void MainWindow::addBracket(QPointF left, QPointF right, QString text, QPointF t
   textItem->setClipToAxisRect(false);
   textItem->setText(text);
   textItem->setPositionAlignment(textAlign);
-  if (textSideways)
-    textItem->setRotation(-90);
+  textItem->setRotation(rotation);
   textItem->position->setParentAnchor(bracket->center);
   textItem->position->setCoords(textOffset);
   textItem->setColor(Qt::blue);
@@ -1520,6 +1519,7 @@ void MainWindow::resetPlot(bool clearAxes)
     customPlot = 0;
   }
   customPlot = new QCustomPlot(0);
+  customPlot->setLocale(QLocale::c());
   //customPlot->show();
   //qApp->processEvents();
   if (clearAxes)

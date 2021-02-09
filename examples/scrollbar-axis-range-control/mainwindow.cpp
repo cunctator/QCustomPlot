@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
   // Since scroll bars only support integer values, we'll set a high default range of -500..500 and
   // divide scroll bar position values by 100 to provide a scroll range -5..5 in floating point
   // axis coordinates. if you want to dynamically grow the range accessible with the scroll bar,
-  // just increase the the minimum/maximum values of the scroll bars as needed.
+  // just increase the minimum/maximum values of the scroll bars as needed.
   ui->horizontalScrollBar->setRange(-500, 500);
   ui->verticalScrollBar->setRange(-500, 500);
   

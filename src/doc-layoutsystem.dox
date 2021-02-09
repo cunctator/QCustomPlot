@@ -87,7 +87,7 @@
   </td></tr></table>
 
   <br><br>
-  <b >Moving the legend outside the axis rect</b> can be achieved as follows:
+  <b>Moving the legend outside the axis rect</b> can be achieved as follows:
   <table><tr><td>
     \image html layoutsystem-movinglegend.png
   </td><td>
@@ -96,6 +96,7 @@
 
   <br><br>
   <b>Arranging multiple axis rects</b> actually is the central purpose of the layout system.
+  A QCPMarginGroup can be used to align the axes across multiple axis rects (not shown here).
   <table><tr><td>
     \image html layoutsystem-multipleaxisrects.png
   </td><td>

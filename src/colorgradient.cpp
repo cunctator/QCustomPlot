@@ -50,7 +50,7 @@
   
   \image html QCPColorGradient.png
   
-  The \ref QCPColorGradient(GradientPreset preset) constructor allows directly converting a \ref
+  The constructor \ref QCPColorGradient(GradientPreset preset) allows directly converting a \ref
   GradientPreset to a QCPColorGradient. This means that you can directly pass \ref GradientPreset
   to all the \a setGradient methods, e.g.:
   \snippet documentation/doc-code-snippets/mainwindow.cpp qcpcolorgradient-setgradient

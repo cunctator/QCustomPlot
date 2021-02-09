@@ -855,7 +855,7 @@ void QCustomPlot::setOpenGl(bool enabled, int multisampling)
   Sets the viewport of this QCustomPlot. Usually users of QCustomPlot don't need to change the
   viewport manually.
 
-  The viewport is the area in which the plot is drawn. All mechanisms, e.g. margin caluclation take
+  The viewport is the area in which the plot is drawn. All mechanisms, e.g. margin calculation take
   the viewport to be the outer border of the plot. The viewport normally is the rect() of the
   QCustomPlot widget, i.e. a rect with top left (0, 0) and size of the QCustomPlot widget.
 

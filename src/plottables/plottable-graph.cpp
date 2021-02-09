@@ -536,7 +536,7 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 
 /*! \internal
 
-  This method retrieves an optimized set of data points via \ref getOptimizedLineData, an branches
+  This method retrieves an optimized set of data points via \ref getOptimizedLineData, and branches
   out to the line style specific functions such as \ref dataToLines, \ref dataToStepLeftLines, etc.
   according to the line style of the graph.
 

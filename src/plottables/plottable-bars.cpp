@@ -523,7 +523,7 @@ QCPBars::QCPBars(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   mWidthType(wtPlotCoords),
   mBarsGroup(nullptr),
   mBaseValue(0),
-  mStackingGap(0)
+  mStackingGap(1)
 {
   // modify inherited properties from abstract plottable:
   mPen.setColor(Qt::blue);

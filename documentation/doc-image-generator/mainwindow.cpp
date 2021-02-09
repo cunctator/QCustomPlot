@@ -699,9 +699,9 @@ void MainWindow::genQCPBars()
   customPlot->yAxis->setTickLabels(false);
   
   QVector<double> x1, y1, y2;
-  x1 << -2 << -1 << 0 << 1 << 2;
-  y1 << 0.5 << -0.4 << 0.2 << 0.8 << 1.2;
-  y2 << 0.3 << -0.2 << 0.2 << 0.3 << 0.4;
+  x1 << -3 << -2 << -1 << 0 << 1 << 2 << 3;
+  y1 << 0.7 << 0.5 << -0.4 << 0.2 << 0.8 << 1.2 << 1.3;
+  y2 << 0.2 << 0.3 << -0.2 << 0.2 << 0.3 << 0.4 << 0.45;
   
   QCPBars *bars1 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
   QCPBars *bars2 = new QCPBars(customPlot->xAxis, customPlot->yAxis);
@@ -711,10 +711,10 @@ void MainWindow::genQCPBars()
   
   bars1->setAntialiased(false);
   bars2->setAntialiased(false);
-  bars2->setPen(QPen(QColor(200, 50, 50)));
-  bars2->setBrush(QColor(255, 50, 50, 25));
+  bars2->setPen(QPen(QColor(20, 120, 120)));
+  bars2->setBrush(QColor(35, 220, 220, 100));
   
-  customPlot->xAxis->setRange(-3, 3);
+  customPlot->xAxis->setRange(-4, 4);
   customPlot->yAxis->setRange(-1, 2);
   
   customPlot->savePng(dir.filePath("QCPBars.png"), 450, 200);

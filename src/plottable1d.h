@@ -562,6 +562,18 @@ void QCPAbstractPlottable1D<DataType>::getDataSegments(QList<QCPDataRange> &sele
 template <class DataType>
 void QCPAbstractPlottable1D<DataType>::drawPolyline(QCPPainter *painter, const QVector<QPointF> &lineData) const
 {
+  // if drawing lines in plot (instead of PDF), reduce 1px lines to cosmetic, because at least in
+  // Qt6 drawing of "1px" width lines is much slower even though it has same appearance apart from
+  // High-DPI. In High-DPI cases people must set a pen width slightly larger than 1.0 to get
+  // correct DPI scaling of width, but of course with performance penalty.
+  if (!painter->modes().testFlag(QCPPainter::pmVectorized) &&
+      qFuzzyCompare(painter->pen().widthF(), 1.0))
+  {
+    QPen newPen = painter->pen();
+    newPen.setWidth(0);
+    painter->setPen(newPen);
+  }
+
   // if drawing solid line and not in PDF, use much faster line drawing instead of polyline:
   if (mParentPlot->plottingHints().testFlag(QCP::phFastPolylines) &&
       painter->pen().style() == Qt::SolidLine &&

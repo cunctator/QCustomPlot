@@ -15,4 +15,10 @@ Running the application:
     terminal: "export LD_LIBRARY_PATH=." before launching the application from the same terminal session). This is useful
     for testing if it works. The other option is to install the library files to one of the default locations for shared
     objects: /usr/local/lib or /usr/lib for example.
+  - On MS Windows, copy any additional needed Qt shared libraries:
+    The deployment tool windeployqt.exe (e.g in C:\Qt\6.0.2\mingw81_64\bin\) will help with copying those files, when called
+    with the "sharedlib-usage.exe" as parameter.
+    In addition, the libraries Qt6PrintSupport.dll, libgcc_s_seh-1.dll, libstdc++-6.dll, and libwinpthread-1.dll are usually
+    needed, and can be found in your Qt bin directory, e.g. C:\Qt\6.0.2\mingw81_64\bin\.
+    More details can be found here: https://doc.qt.io/qt-6/windows-deployment.html
   - Launch the application.

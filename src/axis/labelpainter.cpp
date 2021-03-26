@@ -226,7 +226,7 @@ QByteArray QCPLabelPainterPrivate::generateLabelParameterHash() const
   result.append(QByteArray::number(mRotation));
   //result.append(QByteArray::number((int)tickLabelSide)); TODO: check whether this is really a cache-invalidating property
   result.append(QByteArray::number((int)mSubstituteExponent));
-  result.append(QString(mMultiplicationSymbol));
+  result.append(QString(mMultiplicationSymbol).toUtf8());
   result.append(mColor.name().toLatin1()+QByteArray::number(mColor.alpha(), 16));
   result.append(mFont.toString().toLatin1());
   return result;

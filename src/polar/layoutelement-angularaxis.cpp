@@ -1665,11 +1665,22 @@ void QCPPolarAxisAngular::wheelEvent(QWheelEvent *event)
   // Mouse range zooming interaction:
   if (mParentPlot->interactions().testFlag(QCP::iRangeZoom))
   {
-    double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    const double delta = event->delta();
+#else
+    const double delta = event->angleDelta().y();
+#endif
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+    const QPointF pos = event->pos();
+#else
+    const QPointF pos = event->position();
+#endif
+    const double wheelSteps = delta/120.0; // a single step delta is +/-120 usually
     if (mRangeZoom)
     {
       double angleCoord, radiusCoord;
-      pixelToCoord(event->pos(), angleCoord, radiusCoord);
+      pixelToCoord(pos, angleCoord, radiusCoord);
       scaleRange(qPow(mRangeZoomFactor, wheelSteps), angleCoord);
     }
 
@@ -1680,7 +1691,7 @@ void QCPPolarAxisAngular::wheelEvent(QWheelEvent *event)
         continue;
       doReplot = true;
       double angleCoord, radiusCoord;
-      ax->pixelToCoord(event->pos(), angleCoord, radiusCoord);
+      ax->pixelToCoord(pos, angleCoord, radiusCoord);
       ax->scaleRange(qPow(ax->rangeZoomFactor(), wheelSteps), radiusCoord);
     }
   }

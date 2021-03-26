@@ -554,7 +554,7 @@ QCPLabelPainterPrivate::CachedLabel *QCPLabelPainterPrivate::createCachedLabel(c
 
 QByteArray QCPLabelPainterPrivate::cacheKey(const QString &text, const QColor &color, double rotation, AnchorSide side) const
 {
-  return text.toLatin1()+
+  return text.toUtf8()+
       QByteArray::number(color.red()+256*color.green()+65536*color.blue(), 36)+
       QByteArray::number(color.alpha()+256*(int)side, 36)+
       QByteArray::number((int)(rotation*100)%36000, 36);

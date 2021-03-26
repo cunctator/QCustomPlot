@@ -33,7 +33,12 @@
 //////////////////// QCPPolarLegendItem
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*! \class QCPPolarLegendItem
+  \brief A legend item for polar plots
 
+  \warning In this QCustomPlot version, polar plots are a tech preview. Expect documentation and
+  functionality to be incomplete, as well as changing public interfaces in the future.
+*/
 QCPPolarLegendItem::QCPPolarLegendItem(QCPLegend *parent, QCPPolarGraph *graph) :
   QCPAbstractLegendItem(parent),
   mPolarGraph(graph)
@@ -102,7 +107,32 @@ QFont QCPPolarLegendItem::getFont() const
 //////////////////// QCPPolarGraph
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*! \class QCPPolarGraph
+  \brief A radial graph used to display data in polar plots
 
+  \warning In this QCustomPlot version, polar plots are a tech preview. Expect documentation and
+  functionality to be incomplete, as well as changing public interfaces in the future.
+*/
+
+/* start of documentation of inline functions */
+
+// TODO
+
+/* end of documentation of inline functions */
+
+/*!
+  Constructs a graph which uses \a keyAxis as its angular and \a valueAxis as its radial axis. \a
+  keyAxis and \a valueAxis must reside in the same QCustomPlot, and the radial axis must be
+  associated with the angular axis. If either of these restrictions is violated, a corresponding
+  message is printed to the debug output (qDebug), the construction is not aborted, though.
+
+  The created QCPPolarGraph is automatically registered with the QCustomPlot instance inferred from
+  \a keyAxis. This QCustomPlot instance takes ownership of the QCPPolarGraph, so do not delete it
+  manually but use QCPPolarAxisAngular::removeGraph() instead.
+
+  To directly create a QCPPolarGraph inside a plot, you shoud use the QCPPolarAxisAngular::addGraph
+  method.
+*/
 QCPPolarGraph::QCPPolarGraph(QCPPolarAxisAngular *keyAxis, QCPPolarAxisRadial *valueAxis) :
   QCPLayerable(keyAxis->parentPlot(), QString(), keyAxis),
   mDataContainer(new QCPGraphDataContainer),

@@ -35,8 +35,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPolarGrid
-  \brief 
-  
+  \brief The grid in both angular and radial dimensions for polar plots
+
+  \warning In this QCustomPlot version, polar plots are a tech preview. Expect documentation and
+  functionality to be incomplete, as well as changing public interfaces in the future.
 */
 
 /*!

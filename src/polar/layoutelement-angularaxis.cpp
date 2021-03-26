@@ -40,11 +40,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPolarAxisAngular
-  \brief 
-  
-  
-  \image html polar-axis-overview.png
-  <center></center>
+  \brief The main container for polar plots, representing the angular axis as a circle
+
+  \warning In this QCustomPlot version, polar plots are a tech preview. Expect documentation and
+  functionality to be incomplete, as well as changing public interfaces in the future.
 */
 
 /* start documentation of inline functions */

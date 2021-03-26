@@ -37,11 +37,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*! \class QCPPolarAxisRadial
-  \brief
+  \brief The radial axis inside a radial plot
   
-  
-  \image html AxisRectSpacingOverview.png
-  <center></center>
+  \warning In this QCustomPlot version, polar plots are a tech preview. Expect documentation and
+  functionality to be incomplete, as well as changing public interfaces in the future.
   
   Each axis holds an instance of QCPAxisTicker which is used to generate the tick coordinates and
   tick labels. You can access the currently installed \ref ticker or set a new one (possibly one of

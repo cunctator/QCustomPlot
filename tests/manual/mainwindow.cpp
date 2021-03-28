@@ -48,8 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
   //setupErrorBarTest(mCustomPlot);
   //setupScatterSkipTest(mCustomPlot);
   //setupTimeZoneTest(mCustomPlot);
-  //setupPolarAxisTest(mCustomPlot);
-  setupTestbed(mCustomPlot);
+  setupPolarAxisTest(mCustomPlot);
+  //setupTestbed(mCustomPlot);
 }
 
 MainWindow::~MainWindow()
@@ -1283,7 +1283,11 @@ void MainWindow::setupPolarAxisTest(QCustomPlot *customPlot)
   customPlot->plotLayout()->clear();
   QCPPolarAxisAngular *polarAxis = new QCPPolarAxisAngular(customPlot);
   customPlot->plotLayout()->addElement(0, 0, polarAxis);
-  
+  QSharedPointer<QCPAxisTickerPi> ticker(new QCPAxisTickerPi);
+  ticker->setPiValue(180);
+  ticker->setTickCount(8);
+  polarAxis->setTicker(ticker);
+  polarAxis->setRangeDrag(true);
   polarAxis->setTickLabelMode(QCPPolarAxisAngular::lmUpright);
   
   polarAxis->radialAxis()->setTickLabelMode(QCPPolarAxisRadial::lmUpright);

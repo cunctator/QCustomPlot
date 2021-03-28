@@ -79,6 +79,7 @@ public:
   void setupAdvancedAxesDemo(QCustomPlot *customPlot);
   void setupColorMapDemo(QCustomPlot *customPlot);
   void setupFinancialDemo(QCustomPlot *customPlot);
+  void setupPolarPlotDemo(QCustomPlot *customPlot);
   
   void setupPlayground(QCustomPlot *customPlot);
   

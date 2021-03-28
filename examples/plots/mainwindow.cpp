@@ -78,7 +78,8 @@ MainWindow::MainWindow(QWidget *parent) :
   // 17: setupAdvancedAxesDemo(ui->customPlot);
   // 18: setupColorMapDemo(ui->customPlot);
   // 19: setupFinancialDemo(ui->customPlot);
-  
+  // 20: setupPolarPlotDemo(ui->customPlot);
+    
   // for making screenshots of the current demo or all demos (for website screenshots):
   //QTimer::singleShot(1500, this, SLOT(allScreenShots()));
   //QTimer::singleShot(4000, this, SLOT(screenShot()));
@@ -108,6 +109,7 @@ void MainWindow::setupDemo(int demoIndex)
     case 17: setupAdvancedAxesDemo(ui->customPlot); break;
     case 18: setupColorMapDemo(ui->customPlot); break;
     case 19: setupFinancialDemo(ui->customPlot); break;
+    case 20: setupPolarPlotDemo(ui->customPlot); break;
   }
   setWindowTitle("QCustomPlot: "+demoName);
   statusBar()->clearMessage();
@@ -1379,6 +1381,44 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   QCPMarginGroup *group = new QCPMarginGroup(customPlot);
   customPlot->axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
   volumeAxisRect->setMarginGroup(QCP::msLeft|QCP::msRight, group);
+}
+
+void MainWindow::setupPolarPlotDemo(QCustomPlot *customPlot)
+{
+  // Warning: Polar plots are a still a tech preview
+  
+  customPlot->plotLayout()->clear();
+  QCPPolarAxisAngular *angularAxis = new QCPPolarAxisAngular(customPlot);
+  customPlot->plotLayout()->addElement(0, 0, angularAxis);
+  /* This is how we could set the angular axis to show pi symbols instead of degree numbers:
+  QSharedPointer<QCPAxisTickerPi> ticker(new QCPAxisTickerPi);
+  ticker->setPiValue(180);
+  ticker->setTickCount(8);
+  polarAxis->setTicker(ticker);
+  */
+  customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+  angularAxis->setRangeDrag(false);
+  angularAxis->setTickLabelMode(QCPPolarAxisAngular::lmUpright);
+  
+  angularAxis->radialAxis()->setTickLabelMode(QCPPolarAxisRadial::lmUpright);
+  angularAxis->radialAxis()->setTickLabelRotation(0);
+  angularAxis->radialAxis()->setAngle(45);
+  
+  angularAxis->grid()->setAngularPen(QPen(QColor(200, 200, 200), 0, Qt::SolidLine));
+  angularAxis->grid()->setSubGridType(QCPPolarGrid::gtAll);
+  
+  QCPPolarGraph *g1 = new QCPPolarGraph(angularAxis, angularAxis->radialAxis());
+  QCPPolarGraph *g2 = new QCPPolarGraph(angularAxis, angularAxis->radialAxis());
+  g2->setPen(QPen(QColor(255, 150, 20)));
+  g2->setBrush(QColor(255, 150, 20, 50));
+  g1->setScatterStyle(QCPScatterStyle::ssDisc);
+  for (int i=0; i<100; ++i)
+  {
+    g1->addData(i/100.0*360.0, qSin(i/100.0*M_PI*8)*8+1);
+    g2->addData(i/100.0*360.0, qSin(i/100.0*M_PI*6)*2);
+  }
+  angularAxis->setRange(0, 360);
+  angularAxis->radialAxis()->setRange(-10, 10);
 }
 
 void MainWindow::realtimeDataSlot()

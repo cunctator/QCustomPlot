@@ -26,7 +26,7 @@ QMAKE_CXXFLAGS += -Wold-style-cast -Wlogical-op -Wduplicated-branches -Wduplicat
 
 #DEFINES += QCUSTOMPLOT_USE_OPENGL
 
-VERSION = 2.0.1
+VERSION = 2.1.0
 TARGET = qcustomplot
 CONFIG(debug, debug|release) {
   TARGET = $$join(TARGET,,,d) # if compiling in debug mode, append a "d" to the library name

@@ -1299,7 +1299,7 @@ void MainWindow::setupFinancialDemo(QCustomPlot *customPlot)
   // generate two sets of random walk data (one for candlestick and one for ohlc chart):
   int n = 500;
   QVector<double> time(n), value1(n), value2(n);
-  QDateTime start = QDate(2014, 6, 11).startOfDay();
+  QDateTime start(QDate(2014, 6, 11), QTime(0, 0));
   start.setTimeSpec(Qt::UTC);
   double startTime = start.toMSecsSinceEpoch()/1000.0;
   double binSize = 3600*24; // bin data in 1 day intervals

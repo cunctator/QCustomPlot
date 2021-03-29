@@ -13,7 +13,7 @@ argparser.add_argument("-s", "--short", action="store_true",
 argparser.add_argument("-i", "--interactive", action="store_true",
                        help="Keep tests open for user interaction and continue test only after user quits them.")
 argparser.add_argument("-nr", "--noqcpobjectreuse", action="store_true",
-                       help="Normally the the qcustomplot.o file is compiled only once per Qt version tested, and reused for all test projects. With this flag set, the object is compied for each test project separately.")
+                       help="Normally the qcustomplot.o file is compiled only once per Qt version tested, and reused for all test projects. With this flag set, the object is compied for each test project separately.")
 config = argparser.parse_args()
 
 execTestSuffix = "& sleep 1; kill $!"  # appended to test execution command line. Starts test executable in background and quits it after one second (if executable fails, kill will fail and thus propagate !=0 return value)

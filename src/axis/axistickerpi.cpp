@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axistickerpi.h"
@@ -113,7 +113,7 @@ void QCPAxisTickerPi::setFractionStyle(QCPAxisTickerPi::FractionStyle style)
 */
 double QCPAxisTickerPi::getTickStep(const QCPRange &range)
 {
-  mPiTickStep = range.size()/mPiValue/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  mPiTickStep = range.size()/mPiValue/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   mPiTickStep = cleanMantissa(mPiTickStep);
   return mPiTickStep*mPiValue;
 }
@@ -211,7 +211,7 @@ QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
   if (mFractionStyle == fsFloatingPoint) // should never be the case when calling this function
   {
     qDebug() << Q_FUNC_INFO << "shouldn't be called with fraction style fsDecimal";
-    return QString::number(numerator/(double)denominator); // failsafe
+    return QString::number(numerator/double(denominator)); // failsafe
   }
   int sign = numerator*denominator < 0 ? -1 : 1;
   numerator = qAbs(numerator);
@@ -233,7 +233,7 @@ QString QCPAxisTickerPi::fractionToString(int numerator, int denominator) const
       {
         return QString(QLatin1String("%1%2%3/%4"))
             .arg(sign == -1 ? QLatin1String("-") : QLatin1String(""))
-            .arg(integerPart > 0 ? QString::number(integerPart)+QLatin1String(" ") : QLatin1String(""))
+            .arg(integerPart > 0 ? QString::number(integerPart)+QLatin1String(" ") : QString(QLatin1String("")))
             .arg(remainder)
             .arg(denominator);
       } else if (mFractionStyle == fsUnicodeFractions)

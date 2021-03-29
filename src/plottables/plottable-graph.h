@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_GRAPH_H
@@ -93,7 +93,7 @@ public:
   Q_ENUMS(LineStyle)
   
   explicit QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPGraph();
+  virtual ~QCPGraph() Q_DECL_OVERRIDE;
   
   // getters:
   QSharedPointer<QCPGraphDataContainer> data() const { return mDataContainer; }
@@ -117,7 +117,7 @@ public:
   void addData(double key, double value);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE;
   virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const Q_DECL_OVERRIDE;
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const Q_DECL_OVERRIDE;
   
@@ -156,7 +156,7 @@ protected:
   bool segmentsIntersect(double aLower, double aUpper, double bLower, double bUpper, int &bPrecedence) const;
   QPointF getFillBasePoint(QPointF matchingDataPoint) const;
   const QPolygonF getFillPolygon(const QVector<QPointF> *lineData, QCPDataRange segment) const;
-  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *lineData, QCPDataRange thisSegment, const QVector<QPointF> *otherData, QCPDataRange otherSegment) const;
+  const QPolygonF getChannelFillPolygon(const QVector<QPointF> *thisData, QCPDataRange thisSegment, const QVector<QPointF> *otherData, QCPDataRange otherSegment) const;
   int findIndexBelowX(const QVector<QPointF> *data, double x) const;
   int findIndexAboveX(const QVector<QPointF> *data, double x) const;
   int findIndexBelowY(const QVector<QPointF> *data, double y) const;

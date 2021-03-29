@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "plottable-curve.h"
@@ -186,7 +186,9 @@ QCPCurveData::QCPCurveData(double t, double key, double value) :
   but use QCustomPlot::removePlottable() instead.
 */
 QCPCurve::QCPCurve(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis)
+  QCPAbstractPlottable1D<QCPCurveData>(keyAxis, valueAxis),
+  mScatterSkip{},
+  mLineStyle{}
 {
   // modify inherited properties from abstract plottable:
   setPen(QPen(Qt::blue, 0));
@@ -409,13 +411,13 @@ double QCPCurve::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     QCPCurveDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
     double result = pointDistance(pos, closestDataPoint);
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int( closestDataPoint-mDataContainer->constBegin() );
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return result;
@@ -565,9 +567,9 @@ void QCPCurve::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &poin
   // draw scatter point symbols:
   applyScattersAntialiasingHint(painter);
   style.applyTo(painter, mPen);
-  for (int i=0; i<points.size(); ++i)
-    if (!qIsNaN(points.at(i).x()) && !qIsNaN(points.at(i).y()))
-      style.drawShape(painter,  points.at(i));
+  foreach (const QPointF &point, points)
+    if (!qIsNaN(point.x()) && !qIsNaN(point.y()))
+      style.drawShape(painter,  point);
 }
 
 /*! \internal
@@ -716,7 +718,7 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
     return;
   const int scatterModulo = mScatterSkip+1;
   const bool doScatterSkip = mScatterSkip > 0;
-  int endIndex = end-mDataContainer->constBegin();
+  int endIndex = int( end-mDataContainer->constBegin() );
   
   QCPRange keyRange = keyAxis->range();
   QCPRange valueRange = valueAxis->range();
@@ -727,7 +729,7 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
   valueRange.upper = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueRange.upper)+scatterWidth*valueAxis->pixelOrientation());
   
   QCPCurveDataContainer::const_iterator it = begin;
-  int itIndex = begin-mDataContainer->constBegin();
+  int itIndex = int( begin-mDataContainer->constBegin() );
   while (doScatterSkip && it != end && itIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
   {
     ++itIndex;
@@ -936,9 +938,9 @@ QPointF QCPCurve::getOptimizedPoint(int otherRegion, double otherKey, double oth
     }
   }
   if (mKeyAxis->orientation() == Qt::Horizontal)
-    return QPointF(intersectKeyPx, intersectValuePx);
+    return {intersectKeyPx, intersectValuePx};
   else
-    return QPointF(intersectValuePx, intersectKeyPx);
+    return {intersectValuePx, intersectKeyPx};
 }
 
 /*! \internal
@@ -1242,12 +1244,12 @@ bool QCPCurve::getTraverse(double prevKey, double prevValue, double key, double 
   const double valuePx = mValueAxis->coordToPixel(value);
   const double prevKeyPx = mKeyAxis->coordToPixel(prevKey);
   const double prevValuePx = mValueAxis->coordToPixel(prevValue);
-  if (qFuzzyIsNull(key-prevKey)) // line is parallel to value axis
+  if (qFuzzyIsNull(keyPx-prevKeyPx)) // line is parallel to value axis
   {
     // due to region filter in mayTraverse(), if line is parallel to value or key axis, region 5 is traversed here
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyPx, valueMinPx) : QPointF(valueMinPx, keyPx)); // direction will be taken care of at end of method
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyPx, valueMaxPx) : QPointF(valueMaxPx, keyPx));
-  } else if (qFuzzyIsNull(value-prevValue)) // line is parallel to key axis
+  } else if (qFuzzyIsNull(valuePx-prevValuePx)) // line is parallel to key axis
   {
     // due to region filter in mayTraverse(), if line is parallel to value or key axis, region 5 is traversed here
     intersections.append(mKeyAxis->orientation() == Qt::Horizontal ? QPointF(keyMinPx, valuePx) : QPointF(valuePx, keyMinPx)); // direction will be taken care of at end of method

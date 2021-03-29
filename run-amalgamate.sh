@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$( dirname "$0" )"
 
-./amalgamate src/*.skeleton
+../Amalgamate/release/amalgamate src/*.skeleton
 
 cd src
 mv qcustomplot.h ../qcustomplot.h

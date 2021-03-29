@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axistickerdatetime.h"
@@ -42,7 +42,8 @@
   millisecond on all Qt versions.
   
   The format of the date/time display in the tick labels is controlled with \ref setDateTimeFormat.
-  If a different time spec (time zone) shall be used, see \ref setDateTimeSpec.
+  If a different time spec or time zone shall be used for the tick label appearance, see \ref
+  setDateTimeSpec or \ref setTimeZone, respectively.
   
   This ticker produces unequal tick spacing in order to provide intuitive date and time-of-day
   ticks. For example, if the axis range spans a few years such that there is one tick per year,
@@ -80,9 +81,38 @@ QCPAxisTickerDateTime::QCPAxisTickerDateTime() :
   Sets the format in which dates and times are displayed as tick labels. For details about the \a
   format string, see the documentation of QDateTime::toString().
   
-  Newlines can be inserted with "\n".
+  Typical expressions are
+  <table>
+    <tr><td>\c d</td><td>The day as a number without a leading zero (1 to 31)</td></tr>
+    <tr><td>\c dd</td><td>The day as a number with a leading zero (01 to 31)</td></tr>
+    <tr><td>\c ddd</td><td>The abbreviated localized day name (e.g. 'Mon' to 'Sun'). Uses the system locale to localize the name, i.e. QLocale::system().</td></tr>
+    <tr><td>\c dddd</td><td>The long localized day name (e.g. 'Monday' to 'Sunday'). Uses the system locale to localize the name, i.e. QLocale::system().</td></tr>
+    <tr><td>\c M</td><td>The month as a number without a leading zero (1 to 12)</td></tr>
+    <tr><td>\c MM</td><td>The month as a number with a leading zero (01 to 12)</td></tr>
+    <tr><td>\c MMM</td><td>The abbreviated localized month name (e.g. 'Jan' to 'Dec'). Uses the system locale to localize the name, i.e. QLocale::system().</td></tr>
+    <tr><td>\c MMMM</td><td>The long localized month name (e.g. 'January' to 'December'). Uses the system locale to localize the name, i.e. QLocale::system().</td></tr>
+    <tr><td>\c yy</td><td>The year as a two digit number (00 to 99)</td></tr>
+    <tr><td>\c yyyy</td><td>The year as a four digit number. If the year is negative, a minus sign is prepended, making five characters.</td></tr>
+    <tr><td>\c h</td><td>The hour without a leading zero (0 to 23 or 1 to 12 if AM/PM display)</td></tr>
+    <tr><td>\c hh</td><td>The hour with a leading zero (00 to 23 or 01 to 12 if AM/PM display)</td></tr>
+    <tr><td>\c H</td><td>The hour without a leading zero (0 to 23, even with AM/PM display)</td></tr>
+    <tr><td>\c HH</td><td>The hour with a leading zero (00 to 23, even with AM/PM display)</td></tr>
+    <tr><td>\c m</td><td>The minute without a leading zero (0 to 59)</td></tr>
+    <tr><td>\c mm</td><td>The minute with a leading zero (00 to 59)</td></tr>
+    <tr><td>\c s</td><td>The whole second, without any leading zero (0 to 59)</td></tr>
+    <tr><td>\c ss</td><td>The whole second, with a leading zero where applicable (00 to 59)</td></tr>
+    <tr><td>\c z</td><td>The fractional part of the second, to go after a decimal point, without trailing zeroes (0 to 999). Thus "s.z" reports the seconds to full available (millisecond) precision without trailing zeroes.</td></tr>
+    <tr><td>\c zzz</td><td>The fractional part of the second, to millisecond precision, including trailing zeroes where applicable (000 to 999).</td></tr>
+    <tr><td>\c AP or \c A</td><td>Use AM/PM display. A/AP will be replaced by an upper-case version of either QLocale::amText() or QLocale::pmText().</td></tr>
+    <tr><td>\c ap or \c a</td><td>Use am/pm display. a/ap will be replaced by a lower-case version of either QLocale::amText() or QLocale::pmText().</td></tr>
+    <tr><td>\c t</td><td>The timezone (for example "CEST")</td></tr>
+  </table>
   
-  \see setDateTimeSpec
+  Newlines can be inserted with \c "\n", literal strings (even when containing above expressions)
+  by encapsulating them using single-quotes. A literal single quote can be generated by using two
+  consecutive single quotes in the format.
+  
+  \see setDateTimeSpec, setTimeZone
 */
 void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format)
 {
@@ -93,16 +123,33 @@ void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format)
   Sets the time spec that is used for creating the tick labels from corresponding dates/times.
 
   The default value of QDateTime objects (and also QCPAxisTickerDateTime) is
-  <tt>Qt::LocalTime</tt>. However, if the date time values passed to QCustomPlot (e.g. in the form
-  of axis ranges or keys of a plottable) are given in the UTC spec, set \a spec to <tt>Qt::UTC</tt>
-  to get the correct axis labels.
+  <tt>Qt::LocalTime</tt>. However, if the displayed tick labels shall be given in UTC, set \a spec
+  to <tt>Qt::UTC</tt>.
   
-  \see setDateTimeFormat
+  Tick labels corresponding to other time zones can be achieved with \ref setTimeZone (which sets
+  \a spec to \c Qt::TimeZone internally). Note that if \a spec is afterwards set to not be \c
+  Qt::TimeZone again, the \ref setTimeZone setting will be ignored accordingly.
+  
+  \see setDateTimeFormat, setTimeZone
 */
 void QCPAxisTickerDateTime::setDateTimeSpec(Qt::TimeSpec spec)
 {
   mDateTimeSpec = spec;
 }
+
+# if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+/*!
+  Sets the time zone that is used for creating the tick labels from corresponding dates/times. The
+  time spec (\ref setDateTimeSpec) is set to \c Qt::TimeZone.
+  
+  \see setDateTimeFormat, setTimeZone
+*/
+void QCPAxisTickerDateTime::setTimeZone(const QTimeZone &zone)
+{
+  mTimeZone = zone;
+  mDateTimeSpec = Qt::TimeZone;
+}
+#endif
 
 /*!
   Sets the tick origin (see \ref QCPAxisTicker::setTickOrigin) in seconds since Epoch (1. Jan 1970,
@@ -145,9 +192,9 @@ void QCPAxisTickerDateTime::setTickOrigin(const QDateTime &origin)
 */
 double QCPAxisTickerDateTime::getTickStep(const QCPRange &range)
 {
-  double result = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  double result = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   
-  mDateStrategy = dsNone;
+  mDateStrategy = dsNone; // leaving it at dsNone means tick coordinates will not be tuned in any special way in createTickVector
   if (result < 1) // ideal tick step is below 1 second -> use normal clean mantissa algorithm in units of seconds
   {
     result = cleanMantissa(result);
@@ -196,11 +243,11 @@ int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
     case 86400*5: result = 4; break;
     case 86400*7: result = 6; break;
     case 86400*14: result = 1; break;
-    case (int)(86400*30.4375+0.5): result = 3; break;
-    case (int)(86400*30.4375*2+0.5): result = 1; break;
-    case (int)(86400*30.4375*3+0.5): result = 2; break;
-    case (int)(86400*30.4375*6+0.5): result = 5; break;
-    case (int)(86400*30.4375*12+0.5): result = 3; break;
+    case int(86400*30.4375+0.5): result = 3; break;
+    case int(86400*30.4375*2+0.5): result = 1; break;
+    case int(86400*30.4375*3+0.5): result = 2; break;
+    case int(86400*30.4375*6+0.5): result = 5; break;
+    case int(86400*30.4375*12+0.5): result = 3; break;
   }
   return result;
 }
@@ -208,7 +255,8 @@ int QCPAxisTickerDateTime::getSubTickCount(double tickStep)
 /*! \internal
   
   Generates a date/time tick label for tick coordinate \a tick, based on the currently set format
-  (\ref setDateTimeFormat) and time spec (\ref setDateTimeSpec).
+  (\ref setDateTimeFormat), time spec (\ref setDateTimeSpec), and possibly time zone (\ref
+  setTimeZone).
   
   \seebaseclassmethod
 */
@@ -216,7 +264,14 @@ QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale, 
 {
   Q_UNUSED(precision)
   Q_UNUSED(formatChar)
+# if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+  if (mDateTimeSpec == Qt::TimeZone)
+    return locale.toString(keyToDateTime(tick).toTimeZone(mTimeZone), mDateTimeFormat);
+  else
+    return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
+# else
   return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec), mDateTimeFormat);
+# endif
 }
 
 /*! \internal
@@ -276,7 +331,7 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime::fromTime_t(key).addMSecs((key-(qint64)key)*1000);
 # else
-  return QDateTime::fromMSecsSinceEpoch(key*1000.0);
+  return QDateTime::fromMSecsSinceEpoch(qint64(key*1000.0));
 # endif
 }
 
@@ -291,7 +346,7 @@ QDateTime QCPAxisTickerDateTime::keyToDateTime(double key)
   
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
+double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime &dateTime)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return dateTime.toTime_t()+dateTime.time().msec()/1000.0;
@@ -302,17 +357,22 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime dateTime)
 
 /*! \overload
   
-  A convenience method which turns a QDate object into a double value that corresponds to
-  seconds since Epoch (1. Jan 1970, 00:00 UTC). This is the format used as axis coordinates by
-  QCPAxisTickerDateTime.
+  A convenience method which turns a QDate object into a double value that corresponds to seconds
+  since Epoch (1. Jan 1970, 00:00 UTC). This is the format used
+  as axis coordinates by QCPAxisTickerDateTime.
+  
+  The returned value will be the start of the passed day of \a date, interpreted in the given \a
+  timeSpec.
   
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDate date)
+double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date, Qt::TimeSpec timeSpec)
 {
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  return QDateTime(date).toTime_t();
+  return QDateTime(date, QTime(0, 0), timeSpec).toTime_t();
+# elif QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  return QDateTime(date, QTime(0, 0), timeSpec).toMSecsSinceEpoch()/1000.0;
 # else
-  return QDateTime(date).toMSecsSinceEpoch()/1000.0;
+  return date.startOfDay(timeSpec).toMSecsSinceEpoch()/1000.0;
 # endif
 }

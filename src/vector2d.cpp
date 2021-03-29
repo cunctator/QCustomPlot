@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "vector2d.h"
@@ -66,6 +66,13 @@
   calculation of a square root.
   
   \see length
+*/
+
+/*! \fn double QCPVector2D::angle() const
+  
+  Returns the angle of the vector in radians. The angle is measured between the positive x line and
+  the vector, counter-clockwise in a mathematical coordinate system (y axis upwards positive). In
+  screen/widget coordinates where the y axis is inverted, the angle appears clockwise.
 */
 
 /*! \fn QPoint QCPVector2D::toPoint() const
@@ -143,25 +150,30 @@ QCPVector2D::QCPVector2D(const QPointF &point) :
 /*!
   Normalizes this vector. After this operation, the length of the vector is equal to 1.
   
+  If the vector has both entries set to zero, this method does nothing.
+  
   \see normalized, length, lengthSquared
 */
 void QCPVector2D::normalize()
 {
-  double len = length();
-  mX /= len;
-  mY /= len;
+  if (mX == 0.0 && mY == 0.0) return;
+  const double lenInv = 1.0/length();
+  mX *= lenInv;
+  mY *= lenInv;
 }
 
 /*!
   Returns a normalized version of this vector. The length of the returned vector is equal to 1.
   
+  If the vector has both entries set to zero, this method returns the vector unmodified.
+  
   \see normalize, length, lengthSquared
 */
 QCPVector2D QCPVector2D::normalized() const
 {
-  QCPVector2D result(mX, mY);
-  result.normalize();
-  return result;
+  if (mX == 0.0 && mY == 0.0) return *this;
+  const double lenInv = 1.0/length();
+  return QCPVector2D(mX*lenInv, mY*lenInv);
 }
 
 /*! \overload
@@ -173,11 +185,11 @@ QCPVector2D QCPVector2D::normalized() const
 */
 double QCPVector2D::distanceSquaredToLine(const QCPVector2D &start, const QCPVector2D &end) const
 {
-  QCPVector2D v(end-start);
-  double vLengthSqr = v.lengthSquared();
+  const QCPVector2D v(end-start);
+  const double vLengthSqr = v.lengthSquared();
   if (!qFuzzyIsNull(vLengthSqr))
   {
-    double mu = v.dot(*this-start)/vLengthSqr;
+    const double mu = v.dot(*this-start)/vLengthSqr;
     if (mu < 0)
       return (*this-start).lengthSquared();
     else if (mu > 1)

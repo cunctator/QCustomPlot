@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "selectionrect.h"
@@ -85,8 +85,8 @@
 
 /*! \fn void QCPSelectionRect::canceled(const QRect &rect, QInputEvent *event);
   
-  This signal is emitted when the selection interaction was cancelled. Note that \a event is 0 if
-  the selection interaction was cancelled programmatically, by a call to \ref cancel.
+  This signal is emitted when the selection interaction was cancelled. Note that \a event is \c
+  nullptr if the selection interaction was cancelled programmatically, by a call to \ref cancel.
   
   The user may cancel the selection interaction by pressing the escape key. In this case, \a event
   holds the respective input event.
@@ -133,13 +133,13 @@ QCPRange QCPSelectionRect::range(const QCPAxis *axis) const
   if (axis)
   {
     if (axis->orientation() == Qt::Horizontal)
-      return QCPRange(axis->pixelToCoord(mRect.left()), axis->pixelToCoord(mRect.left()+mRect.width()));
+      return {axis->pixelToCoord(mRect.left()), axis->pixelToCoord(mRect.left()+mRect.width())};
     else
-      return QCPRange(axis->pixelToCoord(mRect.top()+mRect.height()), axis->pixelToCoord(mRect.top()));
+      return {axis->pixelToCoord(mRect.top()+mRect.height()), axis->pixelToCoord(mRect.top())};
   } else
   {
     qDebug() << Q_FUNC_INFO << "called with axis zero";
-    return QCPRange();
+    return {};
   }
 }
 
@@ -173,7 +173,7 @@ void QCPSelectionRect::cancel()
   if (mActive)
   {
     mActive = false;
-    emit canceled(mRect, 0);
+    emit canceled(mRect, nullptr);
   }
 }
 

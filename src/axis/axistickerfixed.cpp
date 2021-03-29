@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axistickerfixed.h"
@@ -107,16 +107,16 @@ double QCPAxisTickerFixed::getTickStep(const QCPRange &range)
     }
     case ssMultiples:
     {
-      double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+      double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
       if (exactStep < mTickStep)
         return mTickStep;
       else
-        return (qint64)(cleanMantissa(exactStep/mTickStep)+0.5)*mTickStep;
+        return qint64(cleanMantissa(exactStep/mTickStep)+0.5)*mTickStep;
     }
     case ssPowers:
     {
-      double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
-      return qPow(mTickStep, (int)(qLn(exactStep)/qLn(mTickStep)+0.5));
+      double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+      return qPow(mTickStep, int(qLn(exactStep)/qLn(mTickStep)+0.5));
     }
   }
   return mTickStep;

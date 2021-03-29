@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_PLOTTABLE_H
@@ -29,8 +29,8 @@
 #include "global.h"
 #include "vector2d.h"
 #include "axis/range.h"
-#include "layer.h"
 #include "axis/axis.h"
+#include "layer.h"
 #include "selection.h"
 #include "scatterstyle.h"
 
@@ -103,7 +103,7 @@ class QCP_LIB_DECL QCPAbstractPlottable : public QCPLayerable
   /// \endcond
 public:
   QCPAbstractPlottable(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPAbstractPlottable();
+  virtual ~QCPAbstractPlottable() Q_DECL_OVERRIDE;
   
   // getters:
   QString name() const { return mName; }
@@ -131,8 +131,8 @@ public:
   void setSelectionDecorator(QCPSelectionDecorator *decorator);
 
   // introduced virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE = 0; // actually introduced in QCPLayerable as non-pure, but we want to force reimplementation for plottables
-  virtual QCPPlottableInterface1D *interface1D() { return 0; }
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE = 0; // actually introduced in QCPLayerable as non-pure, but we want to force reimplementation for plottables
+  virtual QCPPlottableInterface1D *interface1D() { return nullptr; }
   virtual QCPRange getKeyRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth) const = 0;
   virtual QCPRange getValueRange(bool &foundRange, QCP::SignDomain inSignDomain=QCP::sdBoth, const QCPRange &inKeyRange=QCPRange()) const = 0;
   

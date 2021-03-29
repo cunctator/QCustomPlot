@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "layout.h"
@@ -118,7 +118,7 @@ void QCPMarginGroup::clear()
     it.next();
     const QList<QCPLayoutElement*> elements = it.value();
     for (int i=elements.size()-1; i>=0; --i)
-      elements.at(i)->setMarginGroup(it.key(), 0); // removes itself from mChildren via removeChild
+      elements.at(i)->setMarginGroup(it.key(), nullptr); // removes itself from mChildren via removeChild
   }
 }
 
@@ -136,12 +136,11 @@ int QCPMarginGroup::commonMargin(QCP::MarginSide side) const
 {
   // query all automatic margins of the layout elements in this margin group side and find maximum:
   int result = 0;
-  const QList<QCPLayoutElement*> elements = mChildren.value(side);
-  for (int i=0; i<elements.size(); ++i)
+  foreach (QCPLayoutElement *el, mChildren.value(side))
   {
-    if (!elements.at(i)->autoMargins().testFlag(side))
+    if (!el->autoMargins().testFlag(side))
       continue;
-    int m = qMax(elements.at(i)->calculateAutoMargin(side), QCP::getMarginValue(elements.at(i)->minimumMargins(), side));
+    int m = qMax(el->calculateAutoMargin(side), QCP::getMarginValue(el->minimumMargins(), side));
     if (m > result)
       result = m;
   }
@@ -243,7 +242,7 @@ void QCPMarginGroup::removeChild(QCP::MarginSide side, QCPLayoutElement *element
 */
 QCPLayoutElement::QCPLayoutElement(QCustomPlot *parentPlot) :
   QCPLayerable(parentPlot), // parenthood is changed as soon as layout element gets inserted into a layout (except for top level layout)
-  mParentLayout(0),
+  mParentLayout(nullptr),
   mMinimumSize(),
   mMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX),
   mSizeConstraintRect(scrInnerRect),
@@ -257,7 +256,7 @@ QCPLayoutElement::QCPLayoutElement(QCustomPlot *parentPlot) :
 
 QCPLayoutElement::~QCPLayoutElement()
 {
-  setMarginGroup(QCP::msAll, 0); // unregister at margin groups, if there are any
+  setMarginGroup(QCP::msAll, nullptr); // unregister at margin groups, if there are any
   // unregister at layout:
   if (qobject_cast<QCPLayout*>(mParentLayout)) // the qobject_cast is just a safeguard in case the layout forgets to call clear() in its dtor and this dtor is called by QObject dtor
     mParentLayout->take(this);
@@ -423,7 +422,7 @@ void QCPLayoutElement::setSizeConstraintRect(SizeConstraintRect constraintRect)
   Margin groups allow synchronizing specified margins across layout elements, see the documentation
   of \ref QCPMarginGroup.
   
-  To unset the margin group of \a sides, set \a group to 0.
+  To unset the margin group of \a sides, set \a group to \c nullptr.
   
   Note that margin groups only work for margin sides that are set to automatic (\ref
   setAutoMargins).
@@ -438,9 +437,8 @@ void QCPLayoutElement::setMarginGroup(QCP::MarginSides sides, QCPMarginGroup *gr
   if (sides.testFlag(QCP::msTop)) sideVector.append(QCP::msTop);
   if (sides.testFlag(QCP::msBottom)) sideVector.append(QCP::msBottom);
   
-  for (int i=0; i<sideVector.size(); ++i)
+  foreach (QCP::MarginSide side, sideVector)
   {
-    QCP::MarginSide side = sideVector.at(i);
     if (marginGroup(side) != group)
     {
       QCPMarginGroup *oldGroup = marginGroup(side);
@@ -479,7 +477,7 @@ void QCPLayoutElement::update(UpdatePhase phase)
     {
       // set the margins of this layout element according to automatic margin calculation, either directly or via a margin group:
       QMargins newMargins = mMargins;
-      QList<QCP::MarginSide> allMarginSides = QList<QCP::MarginSide>() << QCP::msLeft << QCP::msRight << QCP::msTop << QCP::msBottom;
+      const QList<QCP::MarginSide> allMarginSides = QList<QCP::MarginSide>() << QCP::msLeft << QCP::msRight << QCP::msTop << QCP::msBottom;
       foreach (QCP::MarginSide side, allMarginSides)
       {
         if (mAutoMargins.testFlag(side)) // this side's margin shall be calculated automatically
@@ -514,7 +512,7 @@ void QCPLayoutElement::update(UpdatePhase phase)
 */
 QSize QCPLayoutElement::minimumOuterSizeHint() const
 {
-  return QSize(mMargins.left()+mMargins.right(), mMargins.top()+mMargins.bottom());
+  return {mMargins.left()+mMargins.right(), mMargins.top()+mMargins.bottom()};
 }
 
 /*!
@@ -533,15 +531,15 @@ QSize QCPLayoutElement::minimumOuterSizeHint() const
 */
 QSize QCPLayoutElement::maximumOuterSizeHint() const
 {
-  return QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+  return {QWIDGETSIZE_MAX, QWIDGETSIZE_MAX};
 }
 
 /*!
   Returns a list of all child elements in this layout element. If \a recursive is true, all
   sub-child elements are included in the list, too.
   
-  \warning There may be entries with value 0 in the returned list. (For example, QCPLayoutGrid may have
-  empty cells which yield 0 at the respective index.)
+  \warning There may be \c nullptr entries in the returned list. For example, QCPLayoutGrid may
+  have empty cells which yield \c nullptr at the respective index.
 */
 QList<QCPLayoutElement*> QCPLayoutElement::elements(bool recursive) const
 {
@@ -587,7 +585,7 @@ double QCPLayoutElement::selectTest(const QPointF &pos, bool onlySelectable, QVa
 */
 void QCPLayoutElement::parentPlotInitialized(QCustomPlot *parentPlot)
 {
-  foreach (QCPLayoutElement* el, elements(false))
+  foreach (QCPLayoutElement *el, elements(false))
   {
     if (!el->parentPlot())
       el->initializeParentPlot(parentPlot);
@@ -661,11 +659,12 @@ void QCPLayoutElement::layoutChanged()
 
 /*! \fn virtual QCPLayoutElement* QCPLayout::elementAt(int index) const = 0
   
-  Returns the element in the cell with the given \a index. If \a index is invalid, returns 0.
+  Returns the element in the cell with the given \a index. If \a index is invalid, returns \c
+  nullptr.
   
   Note that even if \a index is valid, the respective cell may be empty in some layouts (e.g.
-  QCPLayoutGrid), so this function may return 0 in those cases. You may use this function to check
-  whether a cell is empty or not.
+  QCPLayoutGrid), so this function may return \c nullptr in those cases. You may use this function
+  to check whether a cell is empty or not.
   
   \see elements, elementCount, takeAt
 */
@@ -674,7 +673,7 @@ void QCPLayoutElement::layoutChanged()
   
   Removes the element with the given \a index from the layout and returns it.
   
-  If the \a index is invalid or the cell with that index is empty, returns 0.
+  If the \a index is invalid or the cell with that index is empty, returns \c nullptr.
   
   Note that some layouts don't remove the respective cell right away but leave an empty cell after
   successful removal of the layout element. To collapse empty cells, use \ref simplify.
@@ -893,8 +892,8 @@ void QCPLayout::releaseElement(QCPLayoutElement *el)
 {
   if (el)
   {
-    el->mParentLayout = 0;
-    el->setParentLayerable(0);
+    el->mParentLayout = nullptr;
+    el->setParentLayerable(nullptr);
     el->setParent(mParentPlot);
     // Note: Don't initializeParentPlot(0) here, because layout element will stay in same parent plot
   } else
@@ -972,9 +971,8 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
       // find section that hits its maximum next:
       int nextId = -1;
       double nextMax = 1e12;
-      for (int i=0; i<unfinishedSections.size(); ++i)
+      foreach (int secId, unfinishedSections)
       {
-        int secId = unfinishedSections.at(i);
         double hitsMaxAt = (maxSizes.at(secId)-sectionSizes.at(secId))/stretchFactors.at(secId);
         if (hitsMaxAt < nextMax)
         {
@@ -985,21 +983,21 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
       // check if that maximum is actually within the bounds of the total size (i.e. can we stretch all remaining sections so far that the found section
       // actually hits its maximum, without exceeding the total size when we add up all sections)
       double stretchFactorSum = 0;
-      for (int i=0; i<unfinishedSections.size(); ++i)
-        stretchFactorSum += stretchFactors.at(unfinishedSections.at(i));
+      foreach (int secId, unfinishedSections)
+        stretchFactorSum += stretchFactors.at(secId);
       double nextMaxLimit = freeSize/stretchFactorSum;
       if (nextMax < nextMaxLimit) // next maximum is actually hit, move forward to that point and fix the size of that section
       {
-        for (int i=0; i<unfinishedSections.size(); ++i)
+        foreach (int secId, unfinishedSections)
         {
-          sectionSizes[unfinishedSections.at(i)] += nextMax*stretchFactors.at(unfinishedSections.at(i)); // increment all sections
-          freeSize -= nextMax*stretchFactors.at(unfinishedSections.at(i));
+          sectionSizes[secId] += nextMax*stretchFactors.at(secId); // increment all sections
+          freeSize -= nextMax*stretchFactors.at(secId);
         }
         unfinishedSections.removeOne(nextId); // exclude the section that is now at maximum from further changes
       } else // next maximum isn't hit, just distribute rest of free space on remaining sections
       {
-        for (int i=0; i<unfinishedSections.size(); ++i)
-          sectionSizes[unfinishedSections.at(i)] += nextMaxLimit*stretchFactors.at(unfinishedSections.at(i)); // increment all sections
+        foreach (int secId, unfinishedSections)
+          sectionSizes[secId] += nextMaxLimit*stretchFactors.at(secId); // increment all sections
         unfinishedSections.clear();
       }
     }
@@ -1030,8 +1028,8 @@ QVector<int> QCPLayout::getSectionSizes(QVector<int> maxSizes, QVector<int> minS
           freeSize -= sectionSizes.at(i); // remove size of minimum locked sections from available space in next round
       }
       // reset all section sizes to zero that are in unfinished sections (all others have been set to their minimum):
-      for (int i=0; i<unfinishedSections.size(); ++i)
-        sectionSizes[unfinishedSections.at(i)] = 0;
+      foreach (int secId, unfinishedSections)
+        sectionSizes[secId] = 0;
     }
   }
   if (outerIterations == sectionCount*2)
@@ -1064,8 +1062,8 @@ QSize QCPLayout::getFinalMinimumOuterSize(const QCPLayoutElement *el)
   if (minOuter.height() > 0 && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
     minOuter.rheight() += el->margins().top() + el->margins().bottom();
   
-  return QSize(minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
-               minOuter.height() > 0 ? minOuter.height() : minOuterHint.height());;
+  return {minOuter.width() > 0 ? minOuter.width() : minOuterHint.width(),
+               minOuter.height() > 0 ? minOuter.height() : minOuterHint.height()};
 }
 
 /*! \internal
@@ -1089,8 +1087,8 @@ QSize QCPLayout::getFinalMaximumOuterSize(const QCPLayoutElement *el)
   if (maxOuter.height() < QWIDGETSIZE_MAX && el->sizeConstraintRect() == QCPLayoutElement::scrInnerRect)
     maxOuter.rheight() += el->margins().top() + el->margins().bottom();
   
-  return QSize(maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
-               maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height());
+  return {maxOuter.width() < QWIDGETSIZE_MAX ? maxOuter.width() : maxOuterHint.width(),
+               maxOuter.height() < QWIDGETSIZE_MAX ? maxOuter.height() : maxOuterHint.height()};
 }
 
 
@@ -1157,8 +1155,8 @@ QCPLayoutGrid::~QCPLayoutGrid()
 /*!
   Returns the element in the cell in \a row and \a column.
   
-  Returns 0 if either the row/column is invalid or if the cell is empty. In those cases, a qDebug
-  message is printed. To check whether a cell exists and isn't empty, use \ref hasElement.
+  Returns \c nullptr if either the row/column is invalid or if the cell is empty. In those cases, a
+  qDebug message is printed. To check whether a cell exists and isn't empty, use \ref hasElement.
   
   \see addElement, hasElement
 */
@@ -1176,7 +1174,7 @@ QCPLayoutElement *QCPLayoutGrid::element(int row, int column) const
       qDebug() << Q_FUNC_INFO << "Invalid column. Row:" << row << "Column:" << column;
   } else
     qDebug() << Q_FUNC_INFO << "Invalid row. Row:" << row << "Column:" << column;
-  return 0;
+  return nullptr;
 }
 
 
@@ -1457,8 +1455,8 @@ void QCPLayoutGrid::setFillOrder(FillOrder order, bool rearrange)
   // if rearranging, re-insert via linear index according to new fill order:
   if (rearrange)
   {
-    for (int i=0; i<tempElements.size(); ++i)
-      addElement(tempElements.at(i));
+    foreach (QCPLayoutElement *tempElement, tempElements)
+      addElement(tempElement);
   }
 }
 
@@ -1489,7 +1487,7 @@ void QCPLayoutGrid::expandTo(int newRowCount, int newColumnCount)
   for (int i=0; i<rowCount(); ++i)
   {
     while (mElements.at(i).size() < newColCount)
-      mElements[i].append(0);
+      mElements[i].append(nullptr);
   }
   while (mColumnStretchFactors.size() < newColCount)
     mColumnStretchFactors.append(1);
@@ -1517,7 +1515,7 @@ void QCPLayoutGrid::insertRow(int newIndex)
   mRowStretchFactors.insert(newIndex, 1);
   QList<QCPLayoutElement*> newRow;
   for (int col=0; col<columnCount(); ++col)
-    newRow.append((QCPLayoutElement*)0);
+    newRow.append(nullptr);
   mElements.insert(newIndex, newRow);
 }
 
@@ -1543,7 +1541,7 @@ void QCPLayoutGrid::insertColumn(int newIndex)
   
   mColumnStretchFactors.insert(newIndex, 1);
   for (int row=0; row<rowCount(); ++row)
-    mElements[row].insert(newIndex, (QCPLayoutElement*)0);
+    mElements[row].insert(newIndex, nullptr);
 }
 
 /*!
@@ -1668,7 +1666,7 @@ QCPLayoutElement *QCPLayoutGrid::elementAt(int index) const
     indexToRowCol(index, row, col);
     return mElements.at(row).at(col);
   } else
-    return 0;
+    return nullptr;
 }
 
 /*!
@@ -1686,12 +1684,12 @@ QCPLayoutElement *QCPLayoutGrid::takeAt(int index)
     releaseElement(el);
     int row, col;
     indexToRowCol(index, row, col);
-    mElements[row][col] = 0;
+    mElements[row][col] = nullptr;
     return el;
   } else
   {
     qDebug() << Q_FUNC_INFO << "Attempt to take invalid index:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -1710,7 +1708,7 @@ bool QCPLayoutGrid::take(QCPLayoutElement *element)
     }
     qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
   } else
-    qDebug() << Q_FUNC_INFO << "Can't take null element";
+    qDebug() << Q_FUNC_INFO << "Can't take nullptr element";
   return false;
 }
 
@@ -1788,10 +1786,10 @@ QSize QCPLayoutGrid::minimumOuterSizeHint() const
   QVector<int> minColWidths, minRowHeights;
   getMinimumRowColSizes(&minColWidths, &minRowHeights);
   QSize result(0, 0);
-  for (int i=0; i<minColWidths.size(); ++i)
-    result.rwidth() += minColWidths.at(i);
-  for (int i=0; i<minRowHeights.size(); ++i)
-    result.rheight() += minRowHeights.at(i);
+  foreach (int w, minColWidths)
+    result.rwidth() += w;
+  foreach (int h, minRowHeights)
+    result.rheight() += h;
   result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
   result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
   result.rwidth() += mMargins.left()+mMargins.right();
@@ -1806,10 +1804,10 @@ QSize QCPLayoutGrid::maximumOuterSizeHint() const
   getMaximumRowColSizes(&maxColWidths, &maxRowHeights);
   
   QSize result(0, 0);
-  for (int i=0; i<maxColWidths.size(); ++i)
-    result.setWidth(qMin(result.width()+maxColWidths.at(i), QWIDGETSIZE_MAX));
-  for (int i=0; i<maxRowHeights.size(); ++i)
-    result.setHeight(qMin(result.height()+maxRowHeights.at(i), QWIDGETSIZE_MAX));
+  foreach (int w, maxColWidths)
+    result.setWidth(qMin(result.width()+w, QWIDGETSIZE_MAX));
+  foreach (int h, maxRowHeights)
+    result.setHeight(qMin(result.height()+h, QWIDGETSIZE_MAX));
   result.rwidth() += qMax(0, columnCount()-1) * mColumnSpacing;
   result.rheight() += qMax(0, rowCount()-1) * mRowSpacing;
   result.rwidth() += mMargins.left()+mMargins.right();
@@ -1958,7 +1956,11 @@ Qt::Alignment QCPLayoutInset::insetAlignment(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
-    return 0;
+#if QT_VERSION < QT_VERSION_CHECK(5, 2, 0)
+    return nullptr;
+#else
+    return {};
+#endif
   }
 }
 
@@ -1973,7 +1975,7 @@ QRectF QCPLayoutInset::insetRect(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
-    return QRectF();
+    return {};
   }
 }
 
@@ -2036,10 +2038,10 @@ void QCPLayoutInset::updateLayout()
     QSize finalMaxSize = getFinalMaximumOuterSize(el);
     if (mInsetPlacement.at(i) == ipFree)
     {
-      insetRect = QRect(rect().x()+rect().width()*mInsetRect.at(i).x(),
-                        rect().y()+rect().height()*mInsetRect.at(i).y(),
-                        rect().width()*mInsetRect.at(i).width(),
-                        rect().height()*mInsetRect.at(i).height());
+      insetRect = QRect(int( rect().x()+rect().width()*mInsetRect.at(i).x() ),
+                        int( rect().y()+rect().height()*mInsetRect.at(i).y() ),
+                        int( rect().width()*mInsetRect.at(i).width() ),
+                        int( rect().height()*mInsetRect.at(i).height() ));
       if (insetRect.size().width() < finalMinSize.width())
         insetRect.setWidth(finalMinSize.width());
       if (insetRect.size().height() < finalMinSize.height())
@@ -2054,10 +2056,10 @@ void QCPLayoutInset::updateLayout()
       Qt::Alignment al = mInsetAlignment.at(i);
       if (al.testFlag(Qt::AlignLeft)) insetRect.moveLeft(rect().x());
       else if (al.testFlag(Qt::AlignRight)) insetRect.moveRight(rect().x()+rect().width());
-      else insetRect.moveLeft(rect().x()+rect().width()*0.5-finalMinSize.width()*0.5); // default to Qt::AlignHCenter
+      else insetRect.moveLeft(int( rect().x()+rect().width()*0.5-finalMinSize.width()*0.5 )); // default to Qt::AlignHCenter
       if (al.testFlag(Qt::AlignTop)) insetRect.moveTop(rect().y());
       else if (al.testFlag(Qt::AlignBottom)) insetRect.moveBottom(rect().y()+rect().height());
-      else insetRect.moveTop(rect().y()+rect().height()*0.5-finalMinSize.height()*0.5); // default to Qt::AlignVCenter
+      else insetRect.moveTop(int( rect().y()+rect().height()*0.5-finalMinSize.height()*0.5 )); // default to Qt::AlignVCenter
     }
     mElements.at(i)->setOuterRect(insetRect);
   }
@@ -2075,7 +2077,7 @@ QCPLayoutElement *QCPLayoutInset::elementAt(int index) const
   if (index >= 0 && index < mElements.size())
     return mElements.at(index);
   else
-    return 0;
+    return nullptr;
 }
 
 /* inherits documentation from base class */
@@ -2092,7 +2094,7 @@ QCPLayoutElement *QCPLayoutInset::takeAt(int index)
   } else
   {
     qDebug() << Q_FUNC_INFO << "Attempt to take invalid index:" << index;
-    return 0;
+    return nullptr;
   }
 }
 
@@ -2111,7 +2113,7 @@ bool QCPLayoutInset::take(QCPLayoutElement *element)
     }
     qDebug() << Q_FUNC_INFO << "Element not in this layout, couldn't take";
   } else
-    qDebug() << Q_FUNC_INFO << "Can't take null element";
+    qDebug() << Q_FUNC_INFO << "Can't take nullptr element";
   return false;
 }
 
@@ -2130,11 +2132,11 @@ double QCPLayoutInset::selectTest(const QPointF &pos, bool onlySelectable, QVari
   if (onlySelectable)
     return -1;
   
-  for (int i=0; i<mElements.size(); ++i)
+  foreach (QCPLayoutElement *el, mElements)
   {
     // inset layout shall only return positive selectTest, if actually an inset object is at pos
     // else it would block the entire underlying QCPAxisRect with its surface.
-    if (mElements.at(i)->realVisibility() && mElements.at(i)->selectTest(pos, onlySelectable) >= 0)
+    if (el->realVisibility() && el->selectTest(pos, onlySelectable) >= 0)
       return mParentPlot->selectionTolerance()*0.99;
   }
   return -1;
@@ -2163,7 +2165,7 @@ void QCPLayoutInset::addElement(QCPLayoutElement *element, Qt::Alignment alignme
     mInsetRect.append(QRectF(0.6, 0.6, 0.4, 0.4));
     adoptElement(element);
   } else
-    qDebug() << Q_FUNC_INFO << "Can't add null element";
+    qDebug() << Q_FUNC_INFO << "Can't add nullptr element";
 }
 
 /*!
@@ -2189,5 +2191,5 @@ void QCPLayoutInset::addElement(QCPLayoutElement *element, const QRectF &rect)
     mInsetRect.append(rect);
     adoptElement(element);
   } else
-    qDebug() << Q_FUNC_INFO << "Can't add null element";
+    qDebug() << Q_FUNC_INFO << "Can't add nullptr element";
 }

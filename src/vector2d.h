@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCPVECTOR2D_H
@@ -49,7 +49,8 @@ public:
   // non-virtual methods:
   double length() const { return qSqrt(mX*mX+mY*mY); }
   double lengthSquared() const { return mX*mX+mY*mY; }
-  QPoint toPoint() const { return QPoint(mX, mY); }
+  double angle() const { return qAtan2(mY, mX); }
+  QPoint toPoint() const { return QPoint(int(mX), int(mY)); }
   QPointF toPointF() const { return QPointF(mX, mY); }
   
   bool isNull() const { return qIsNull(mX) && qIsNull(mY); }

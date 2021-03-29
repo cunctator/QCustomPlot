@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "lineending.h"
@@ -295,17 +295,12 @@ void QCPLineEnding::draw(QCPPainter *painter, const QCPVector2D &pos, const QCPV
     }
     case esSkewedBar:
     {
-      if (qFuzzyIsNull(painter->pen().widthF()) && !painter->modes().testFlag(QCPPainter::pmNonCosmetic))
-      {
-        // if drawing with cosmetic pen (perfectly thin stroke, happens only in vector exports), draw bar exactly on tip of line
-        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)).toPointF(),
-                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)).toPointF());
-      } else
-      {
-        // if drawing with thick (non-cosmetic) pen, shift bar a little in line direction to prevent line from sticking through bar slightly
-        painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF(),
-                          (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+dir.normalized()*qMax(1.0f, (float)painter->pen().widthF())*0.5f).toPointF());
-      }
+      QCPVector2D shift;
+      if (!qFuzzyIsNull(painter->pen().widthF()) || painter->modes().testFlag(QCPPainter::pmNonCosmetic))
+        shift = dir.normalized()*qMax(qreal(1.0), painter->pen().widthF())*qreal(0.5);
+      // if drawing with thick (non-cosmetic) pen, shift bar a little in line direction to prevent line from sticking through bar slightly
+      painter->drawLine((pos+widthVec+lengthVec*0.2*(mInverted?-1:1)+shift).toPointF(),
+                        (pos-widthVec-lengthVec*0.2*(mInverted?-1:1)+shift).toPointF());
       break;
     }
   }

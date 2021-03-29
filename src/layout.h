@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_LAYOUT_H
@@ -101,8 +101,8 @@ public:
                           };
   Q_ENUMS(SizeConstraintRect)
 
-  explicit QCPLayoutElement(QCustomPlot *parentPlot=0);
-  virtual ~QCPLayoutElement();
+  explicit QCPLayoutElement(QCustomPlot *parentPlot=nullptr);
+  virtual ~QCPLayoutElement() Q_DECL_OVERRIDE;
   
   // getters:
   QCPLayout *layout() const { return mParentLayout; }
@@ -114,7 +114,7 @@ public:
   QSize minimumSize() const { return mMinimumSize; }
   QSize maximumSize() const { return mMaximumSize; }
   SizeConstraintRect sizeConstraintRect() const { return mSizeConstraintRect; }
-  QCPMarginGroup *marginGroup(QCP::MarginSide side) const { return mMarginGroups.value(side, (QCPMarginGroup*)0); }
+  QCPMarginGroup *marginGroup(QCP::MarginSide side) const { return mMarginGroups.value(side, nullptr); }
   QHash<QCP::MarginSide, QCPMarginGroup*> marginGroups() const { return mMarginGroups; }
   
   // setters:
@@ -136,7 +136,7 @@ public:
   virtual QList<QCPLayoutElement*> elements(bool recursive) const;
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE;
   
 protected:
   // property members:
@@ -235,7 +235,7 @@ public:
   Q_ENUMS(FillOrder)
   
   explicit QCPLayoutGrid();
-  virtual ~QCPLayoutGrid();
+  virtual ~QCPLayoutGrid() Q_DECL_OVERRIDE;
   
   // getters:
   int rowCount() const { return mElements.size(); }
@@ -311,7 +311,7 @@ public:
   Q_ENUMS(InsetPlacement)
   
   explicit QCPLayoutInset();
-  virtual ~QCPLayoutInset();
+  virtual ~QCPLayoutInset() Q_DECL_OVERRIDE;
   
   // getters:
   InsetPlacement insetPlacement(int index) const;
@@ -330,7 +330,7 @@ public:
   virtual QCPLayoutElement* takeAt(int index) Q_DECL_OVERRIDE;
   virtual bool take(QCPLayoutElement* element) Q_DECL_OVERRIDE;
   virtual void simplify() Q_DECL_OVERRIDE {}
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE;
   
   // non-virtual methods:
   void addElement(QCPLayoutElement *element, Qt::Alignment alignment);

@@ -8,6 +8,8 @@ private slots:
   void init();
   void cleanup();
   
+  void interface_plottables();
+  void interface_items();
   void rescaleAxes_GraphVisibility();
   void rescaleAxes_FlatGraph();
   void rescaleAxes_MultipleFlatGraphs();

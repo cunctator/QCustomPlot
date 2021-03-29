@@ -9,15 +9,24 @@
 # (note that qmake understands "*.h" if you choose the latter option.)
 #
 
-QT += core gui opengl
+QT += core gui# opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+
+greaterThan(QT_MAJOR_VERSION, 4): CONFIG += c++11
+lessThan(QT_MAJOR_VERSION, 5): QMAKE_CXXFLAGS += -std=c++11
 
 TEMPLATE = lib
 CONFIG += qt staticlib debug_and_release build_all
+DESTDIR = $$PWD
 
-DEFINES += QCUSTOMPLOT_USE_OPENGL
+QMAKE_CXXFLAGS += -Wall -Wextra
+QMAKE_CXXFLAGS += -Wold-style-cast -Wlogical-op -Wduplicated-branches -Wduplicated-cond
+#QMAKE_CXXFLAGS += -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Woverloaded-virtual -Wredundant-decls -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
+#QMAKE_CXXFLAGS += -Werror
 
-VERSION = 2.0.1
+#DEFINES += QCUSTOMPLOT_USE_OPENGL
+
+VERSION = 2.1.0
 TARGET = qcustomplot
 CONFIG(debug, debug|release) {
   TARGET = $$join(TARGET,,,d) # if compiling in debug mode, append a "d" to the library name
@@ -34,6 +43,7 @@ HEADERS += \
     paintbuffer.h \
     layer.h \
     axis/range.h \
+    axis/labelpainter.h \
     axis/axis.h \
     axis/axisticker.h \
     plottable.h \
@@ -74,13 +84,18 @@ HEADERS += \
     selectionrect.h \
     plottable1d.h \
     scatterstyle.h \
-    selectiondecorator-bracket.h
+    selectiondecorator-bracket.h \
+    polar/radialaxis.h \
+    polar/layoutelement-angularaxis.h \
+    polar/polargrid.h \
+    polar/polargraph.h
 
 SOURCES += \
     painter.cpp \
     paintbuffer.cpp \
     layer.cpp \
     axis/range.cpp \
+    axis/labelpainter.cpp \
     axis/axis.cpp \
     axis/axisticker.cpp \
     plottable.cpp \
@@ -116,12 +131,14 @@ SOURCES += \
     axis/axistickertext.cpp \
     axis/axistickerpi.cpp \
     axis/axistickerlog.cpp \
-    datacontainer.cpp \
     selection.cpp \
     selectionrect.cpp \
-    plottable1d.cpp \
     scatterstyle.cpp \
-    selectiondecorator-bracket.cpp
+    selectiondecorator-bracket.cpp \
+    polar/radialaxis.cpp \
+    polar/layoutelement-angularaxis.cpp \
+    polar/polargrid.cpp \
+    polar/polargraph.cpp
 
 OTHER_FILES += \
     ../changelog.txt \

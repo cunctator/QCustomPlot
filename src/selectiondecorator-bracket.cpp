@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "selectiondecorator-bracket.h"
@@ -167,12 +167,12 @@ void QCPSelectionDecoratorBracket::drawBracket(QCPPainter *painter, int directio
     }
     case bsHalfEllipse:
     {
-      painter->drawArc(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight, -90*16, -180*16*direction);
+      painter->drawArc(QRectF(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight), -90*16, -180*16*direction);
       break;
     }
     case bsEllipse:
     {
-      painter->drawEllipse(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight);
+      painter->drawEllipse(QRectF(-mBracketWidth*0.5, -mBracketHeight*0.5, mBracketWidth, mBracketHeight));
       break;
     }
     case bsPlus:
@@ -272,7 +272,7 @@ double QCPSelectionDecoratorBracket::getTangentAngle(const QCPPlottableInterface
     pointsAverage += points[i];
     currentIndex += direction;
   }
-  pointsAverage /= (double)averageCount;
+  pointsAverage /= double(averageCount);
   
   // calculate slope of linear regression through points:
   double numSum = 0;
@@ -300,12 +300,12 @@ QPointF QCPSelectionDecoratorBracket::getPixelCoordinates(const QCPPlottableInte
 {
   QCPAxis *keyAxis = mPlottable->keyAxis();
   QCPAxis *valueAxis = mPlottable->valueAxis();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(0, 0); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {0, 0}; }
   
   if (keyAxis->orientation() == Qt::Horizontal)
-    return QPointF(keyAxis->coordToPixel(interface1d->dataMainKey(dataIndex)), valueAxis->coordToPixel(interface1d->dataMainValue(dataIndex)));
+    return {keyAxis->coordToPixel(interface1d->dataMainKey(dataIndex)), valueAxis->coordToPixel(interface1d->dataMainValue(dataIndex))};
   else
-    return QPointF(valueAxis->coordToPixel(interface1d->dataMainValue(dataIndex)), keyAxis->coordToPixel(interface1d->dataMainKey(dataIndex)));
+    return {valueAxis->coordToPixel(interface1d->dataMainValue(dataIndex)), keyAxis->coordToPixel(interface1d->dataMainKey(dataIndex))};
 }
 
 

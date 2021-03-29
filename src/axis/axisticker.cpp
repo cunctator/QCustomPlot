@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axisticker.h"
@@ -144,9 +144,9 @@ void QCPAxisTicker::setTickOrigin(double origin)
   even irrelevant) for certain QCPAxisTicker subclasses.
   
   The output parameter \a ticks is filled with the generated tick positions in axis coordinates.
-  The output parameters \a subTicks and \a tickLabels are optional (set them to 0 if not needed)
-  and are respectively filled with sub tick coordinates, and tick label strings belonging to \a
-  ticks by index.
+  The output parameters \a subTicks and \a tickLabels are optional (set them to \c nullptr if not
+  needed) and are respectively filled with sub tick coordinates, and tick label strings belonging
+  to \a ticks by index.
 */
 void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar formatChar, int precision, QVector<double> &ticks, QVector<double> *subTicks, QVector<QString> *tickLabels)
 {
@@ -158,7 +158,7 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
   // generate sub ticks between major ticks:
   if (subTicks)
   {
-    if (ticks.size() > 0)
+    if (!ticks.isEmpty())
     {
       *subTicks = createSubTickVector(getSubTickCount(tickStep), ticks);
       trimTicks(range, *subTicks, false);
@@ -185,7 +185,7 @@ void QCPAxisTicker::generate(const QCPRange &range, const QLocale &locale, QChar
 */
 double QCPAxisTicker::getTickStep(const QCPRange &range)
 {
-  double exactStep = range.size()/(double)(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
+  double exactStep = range.size()/double(mTickCount+1e-10); // mTickCount ticks on average, the small addition is to prevent jitter on exact integers
   return cleanMantissa(exactStep);
 }
 
@@ -205,7 +205,7 @@ int QCPAxisTicker::getSubTickCount(double tickStep)
   double intPartf;
   int intPart;
   double fracPart = modf(getMantissa(tickStep), &intPartf);
-  intPart = intPartf;
+  intPart = int(intPartf);
   
   // handle cases with (almost) integer mantissa:
   if (fracPart < epsilon || 1.0-fracPart < epsilon)
@@ -282,7 +282,7 @@ QVector<double> QCPAxisTicker::createSubTickVector(int subTickCount, const QVect
   result.reserve((ticks.size()-1)*subTickCount);
   for (int i=1; i<ticks.size(); ++i)
   {
-    double subTickStep = (ticks.at(i)-ticks.at(i-1))/(double)(subTickCount+1);
+    double subTickStep = (ticks.at(i)-ticks.at(i-1))/double(subTickCount+1);
     for (int k=1; k<=subTickCount; ++k)
       result.append(ticks.at(i-1) + k*subTickStep);
   }
@@ -308,9 +308,9 @@ QVector<double> QCPAxisTicker::createTickVector(double tickStep, const QCPRange 
 {
   QVector<double> result;
   // Generate tick positions according to tickStep:
-  qint64 firstStep = floor((range.lower-mTickOrigin)/tickStep); // do not use qFloor here, or we'll lose 64 bit precision
-  qint64 lastStep = ceil((range.upper-mTickOrigin)/tickStep); // do not use qCeil here, or we'll lose 64 bit precision
-  int tickcount = lastStep-firstStep+1;
+  qint64 firstStep = qint64(floor((range.lower-mTickOrigin)/tickStep)); // do not use qFloor here, or we'll lose 64 bit precision
+  qint64 lastStep = qint64(ceil((range.upper-mTickOrigin)/tickStep)); // do not use qCeil here, or we'll lose 64 bit precision
+  int tickcount = int(lastStep-firstStep+1);
   if (tickcount < 0) tickcount = 0;
   result.resize(tickcount);
   for (int i=0; i<tickcount; ++i)
@@ -331,8 +331,8 @@ QVector<QString> QCPAxisTicker::createLabelVector(const QVector<double> &ticks, 
 {
   QVector<QString> result;
   result.reserve(ticks.size());
-  for (int i=0; i<ticks.size(); ++i)
-    result.append(getTickLabel(ticks.at(i), locale, formatChar, precision));
+  foreach (double tickCoord, ticks)
+    result.append(getTickLabel(tickCoord, locale, formatChar, precision));
   return result;
 }
 
@@ -432,9 +432,9 @@ double QCPAxisTicker::cleanMantissa(double input) const
     {
       // this gives effectively a mantissa of 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0
       if (mantissa <= 5.0)
-        return (int)(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
+        return int(mantissa*2)/2.0*magnitude; // round digit after decimal point to 0.5
       else
-        return (int)(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
+        return int(mantissa/2.0)*2.0*magnitude; // round to first digit in multiples of 2
     }
   }
   return input;

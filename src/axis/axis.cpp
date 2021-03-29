@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axis.h"
@@ -57,6 +57,9 @@
 */
 QCPGrid::QCPGrid(QCPAxis *parentAxis) :
   QCPLayerable(parentAxis->parentPlot(), QString(), parentAxis),
+  mSubGridVisible{},
+  mAntialiasedSubGrid{},
+  mAntialiasedZeroLine{},
   mParentAxis(parentAxis)
 {
   // warning: this is called in QCPAxis constructor, so parentAxis members should not be accessed/called
@@ -243,16 +246,16 @@ void QCPGrid::drawSubGridLines(QCPPainter *painter) const
   painter->setPen(mSubGridPen);
   if (mParentAxis->orientation() == Qt::Horizontal)
   {
-    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    foreach (double tickCoord, mParentAxis->mSubTickVector)
     {
-      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // x
+      t = mParentAxis->coordToPixel(tickCoord); // x
       painter->drawLine(QLineF(t, mParentAxis->mAxisRect->bottom(), t, mParentAxis->mAxisRect->top()));
     }
   } else
   {
-    for (int i=0; i<mParentAxis->mSubTickVector.size(); ++i)
+    foreach (double tickCoord, mParentAxis->mSubTickVector)
     {
-      t = mParentAxis->coordToPixel(mParentAxis->mSubTickVector.at(i)); // y
+      t = mParentAxis->coordToPixel(tickCoord); // y
       painter->drawLine(QLineF(mParentAxis->mAxisRect->left(), t, mParentAxis->mAxisRect->right(), t));
     }
   }
@@ -435,7 +438,8 @@ QCPAxis::QCPAxis(QCPAxisRect *parent, AxisType type) :
   mAxisPainter(new QCPAxisPainterPrivate(parent->parentPlot())),
   mTicker(new QCPAxisTicker),
   mCachedMarginValid(false),
-  mCachedMargin(0)
+  mCachedMargin(0),
+  mDragging(false)
 {
   setParent(parent);
   mGrid->setVisible(false);
@@ -768,7 +772,7 @@ void QCPAxis::setTicker(QSharedPointer<QCPAxisTicker> ticker)
   if (ticker)
     mTicker = ticker;
   else
-    qDebug() << Q_FUNC_INFO << "can not set 0 as axis ticker";
+    qDebug() << Q_FUNC_INFO << "can not set nullptr as axis ticker";
   // no need to invalidate margin cache here because produced tick labels are checked for changes in setupTickVector
 }
 
@@ -876,11 +880,16 @@ void QCPAxis::setTickLabelSide(LabelSide side)
   of the format code used e.g. by QString::number() and QLocale::toString(). For reference about
   that, see the "Argument Formats" section in the detailed description of the QString class.
   
-  \a formatCode is a string of one, two or three characters. The first character is identical to
+  \a formatCode is a string of one, two or three characters.
+
+  <b>The first character</b> is identical to
   the normal format code used by Qt. In short, this means: 'e'/'E' scientific format, 'f' fixed
-  format, 'g'/'G' scientific or fixed, whichever is shorter.
-  
-  The second and third characters are optional and specific to QCustomPlot:\n
+  format, 'g'/'G' scientific or fixed, whichever is shorter. For the 'e', 'E', and 'f' formats,
+  the precision set by \ref setNumberPrecision represents the number of digits after the decimal
+  point. For the 'g' and 'G' formats, the precision represents the maximum number of significant
+  digits, trailing zeroes are omitted.
+
+  <b>The second and third characters</b> are optional and specific to QCustomPlot:\n
   If the first char was 'e' or 'g', numbers are/might be displayed in the scientific format, e.g.
   "5.5e9", which is ugly in a plot. So when the second char of \a formatCode is set to 'b' (for
   "beautiful"), those exponential numbers are formatted in a more natural way, i.e. "5.5
@@ -1394,7 +1403,7 @@ void QCPAxis::setScaleRatio(const QCPAxis *otherAxis, double ratio)
   else
     ownPixelSize = axisRect()->height();
   
-  double newRangeSize = ratio*otherAxis->range().size()*ownPixelSize/(double)otherPixelSize;
+  double newRangeSize = ratio*otherAxis->range().size()*ownPixelSize/double(otherPixelSize);
   setRange(range().center(), newRangeSize, Qt::AlignCenter);
 }
 
@@ -1406,22 +1415,21 @@ void QCPAxis::setScaleRatio(const QCPAxis *otherAxis, double ratio)
 */
 void QCPAxis::rescale(bool onlyVisiblePlottables)
 {
-  QList<QCPAbstractPlottable*> p = plottables();
   QCPRange newRange;
   bool haveRange = false;
-  for (int i=0; i<p.size(); ++i)
+  foreach (QCPAbstractPlottable *plottable, plottables())
   {
-    if (!p.at(i)->realVisibility() && onlyVisiblePlottables)
+    if (!plottable->realVisibility() && onlyVisiblePlottables)
       continue;
     QCPRange plottableRange;
     bool currentFoundRange;
     QCP::SignDomain signDomain = QCP::sdBoth;
     if (mScaleType == stLogarithmic)
       signDomain = (mRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-    if (p.at(i)->keyAxis() == this)
-      plottableRange = p.at(i)->getKeyRange(currentFoundRange, signDomain);
+    if (plottable->keyAxis() == this)
+      plottableRange = plottable->getKeyRange(currentFoundRange, signDomain);
     else
-      plottableRange = p.at(i)->getValueRange(currentFoundRange, signDomain);
+      plottableRange = plottable->getValueRange(currentFoundRange, signDomain);
     if (currentFoundRange)
     {
       if (!haveRange)
@@ -1460,30 +1468,30 @@ double QCPAxis::pixelToCoord(double value) const
     if (mScaleType == stLinear)
     {
       if (!mRangeReversed)
-        return (value-mAxisRect->left())/(double)mAxisRect->width()*mRange.size()+mRange.lower;
+        return (value-mAxisRect->left())/double(mAxisRect->width())*mRange.size()+mRange.lower;
       else
-        return -(value-mAxisRect->left())/(double)mAxisRect->width()*mRange.size()+mRange.upper;
+        return -(value-mAxisRect->left())/double(mAxisRect->width())*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
       if (!mRangeReversed)
-        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->left())/(double)mAxisRect->width())*mRange.lower;
+        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->left())/double(mAxisRect->width()))*mRange.lower;
       else
-        return qPow(mRange.upper/mRange.lower, (mAxisRect->left()-value)/(double)mAxisRect->width())*mRange.upper;
+        return qPow(mRange.upper/mRange.lower, (mAxisRect->left()-value)/double(mAxisRect->width()))*mRange.upper;
     }
   } else // orientation() == Qt::Vertical
   {
     if (mScaleType == stLinear)
     {
       if (!mRangeReversed)
-        return (mAxisRect->bottom()-value)/(double)mAxisRect->height()*mRange.size()+mRange.lower;
+        return (mAxisRect->bottom()-value)/double(mAxisRect->height())*mRange.size()+mRange.lower;
       else
-        return -(mAxisRect->bottom()-value)/(double)mAxisRect->height()*mRange.size()+mRange.upper;
+        return -(mAxisRect->bottom()-value)/double(mAxisRect->height())*mRange.size()+mRange.upper;
     } else // mScaleType == stLogarithmic
     {
       if (!mRangeReversed)
-        return qPow(mRange.upper/mRange.lower, (mAxisRect->bottom()-value)/(double)mAxisRect->height())*mRange.lower;
+        return qPow(mRange.upper/mRange.lower, (mAxisRect->bottom()-value)/double(mAxisRect->height()))*mRange.lower;
       else
-        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->bottom())/(double)mAxisRect->height())*mRange.upper;
+        return qPow(mRange.upper/mRange.lower, (value-mAxisRect->bottom())/double(mAxisRect->height()))*mRange.upper;
     }
   }
 }
@@ -1589,10 +1597,10 @@ QList<QCPAbstractPlottable*> QCPAxis::plottables() const
   QList<QCPAbstractPlottable*> result;
   if (!mParentPlot) return result;
   
-  for (int i=0; i<mParentPlot->mPlottables.size(); ++i)
+  foreach (QCPAbstractPlottable *plottable, mParentPlot->mPlottables)
   {
-    if (mParentPlot->mPlottables.at(i)->keyAxis() == this ||mParentPlot->mPlottables.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mPlottables.at(i));
+    if (plottable->keyAxis() == this || plottable->valueAxis() == this)
+      result.append(plottable);
   }
   return result;
 }
@@ -1607,10 +1615,10 @@ QList<QCPGraph*> QCPAxis::graphs() const
   QList<QCPGraph*> result;
   if (!mParentPlot) return result;
   
-  for (int i=0; i<mParentPlot->mGraphs.size(); ++i)
+  foreach (QCPGraph *graph, mParentPlot->mGraphs)
   {
-    if (mParentPlot->mGraphs.at(i)->keyAxis() == this || mParentPlot->mGraphs.at(i)->valueAxis() == this)
-      result.append(mParentPlot->mGraphs.at(i));
+    if (graph->keyAxis() == this || graph->valueAxis() == this)
+      result.append(graph);
   }
   return result;
 }
@@ -1626,14 +1634,13 @@ QList<QCPAbstractItem*> QCPAxis::items() const
   QList<QCPAbstractItem*> result;
   if (!mParentPlot) return result;
   
-  for (int itemId=0; itemId<mParentPlot->mItems.size(); ++itemId)
+  foreach (QCPAbstractItem *item, mParentPlot->mItems)
   {
-    QList<QCPItemPosition*> positions = mParentPlot->mItems.at(itemId)->positions();
-    for (int posId=0; posId<positions.size(); ++posId)
+    foreach (QCPItemPosition *position, item->positions())
     {
-      if (positions.at(posId)->keyAxis() == this || positions.at(posId)->valueAxis() == this)
+      if (position->keyAxis() == this || position->valueAxis() == this)
       {
-        result.append(mParentPlot->mItems.at(itemId));
+        result.append(item);
         break;
       }
     }
@@ -1655,7 +1662,7 @@ QCPAxis::AxisType QCPAxis::marginSideToAxisType(QCP::MarginSide side)
     case QCP::msBottom: return atBottom;
     default: break;
   }
-  qDebug() << Q_FUNC_INFO << "Invalid margin side passed:" << (int)side;
+  qDebug() << Q_FUNC_INFO << "Invalid margin side passed:" << static_cast<int>(side);
   return atLeft;
 }
 
@@ -1666,12 +1673,13 @@ QCPAxis::AxisType QCPAxis::opposite(QCPAxis::AxisType type)
 {
   switch (type)
   {
-    case atLeft: return atRight; break;
-    case atRight: return atLeft; break;
-    case atBottom: return atTop; break;
-    case atTop: return atBottom; break;
-    default: qDebug() << Q_FUNC_INFO << "invalid axis type"; return atLeft; break;
+    case atLeft: return atRight;
+    case atRight: return atLeft;
+    case atBottom: return atTop;
+    case atTop: return atBottom;
   }
+  qDebug() << Q_FUNC_INFO << "invalid axis type";
+  return atLeft;
 }
 
 /* inherits documentation from base class */
@@ -1822,9 +1830,21 @@ void QCPAxis::wheelEvent(QWheelEvent *event)
     return;
   }
   
-  const double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  const double delta = event->delta();
+#else
+  const double delta = event->angleDelta().y();
+#endif
+  
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  const QPointF pos = event->pos();
+#else
+  const QPointF pos = event->position();
+#endif
+  
+  const double wheelSteps = delta/120.0; // a single step delta is +/-120 usually
   const double factor = qPow(mAxisRect->rangeZoomFactor(orientation()), wheelSteps);
-  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
+  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? pos.x() : pos.y()));
   mParentPlot->replot();
 }
 
@@ -1916,7 +1936,7 @@ void QCPAxis::setupTickVectors()
   if ((!mTicks && !mTickLabels && !mGrid->visible()) || mRange.size() <= 0) return;
   
   QVector<QString> oldLabels = mTickVectorLabels;
-  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : 0, mTickLabels ? &mTickVectorLabels : 0);
+  mTicker->generate(mRange, mParentPlot->locale(), mNumberFormatChar, mNumberPrecision, mTickVector, mSubTicks ? &mSubTickVector : nullptr, mTickLabels ? &mTickVectorLabels : nullptr);
   mCachedMarginValid &= mTickVectorLabels == oldLabels; // if labels have changed, margin might have changed, too
 }
 
@@ -2154,12 +2174,12 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
     int tickDir = (type == QCPAxis::atBottom || type == QCPAxis::atRight) ? -1 : 1; // direction of ticks ("inward" is right for left axis and left for right axis)
     if (QCPAxis::orientation(type) == Qt::Horizontal)
     {
-      for (int i=0; i<tickPositions.size(); ++i)
-        painter->drawLine(QLineF(tickPositions.at(i)+xCor, origin.y()-tickLengthOut*tickDir+yCor, tickPositions.at(i)+xCor, origin.y()+tickLengthIn*tickDir+yCor));
+      foreach (double tickPos, tickPositions)
+        painter->drawLine(QLineF(tickPos+xCor, origin.y()-tickLengthOut*tickDir+yCor, tickPos+xCor, origin.y()+tickLengthIn*tickDir+yCor));
     } else
     {
-      for (int i=0; i<tickPositions.size(); ++i)
-        painter->drawLine(QLineF(origin.x()-tickLengthOut*tickDir+xCor, tickPositions.at(i)+yCor, origin.x()+tickLengthIn*tickDir+xCor, tickPositions.at(i)+yCor));
+      foreach (double tickPos, tickPositions)
+        painter->drawLine(QLineF(origin.x()-tickLengthOut*tickDir+xCor, tickPos+yCor, origin.x()+tickLengthIn*tickDir+xCor, tickPos+yCor));
     }
   }
   
@@ -2171,12 +2191,12 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
     int tickDir = (type == QCPAxis::atBottom || type == QCPAxis::atRight) ? -1 : 1;
     if (QCPAxis::orientation(type) == Qt::Horizontal)
     {
-      for (int i=0; i<subTickPositions.size(); ++i)
-        painter->drawLine(QLineF(subTickPositions.at(i)+xCor, origin.y()-subTickLengthOut*tickDir+yCor, subTickPositions.at(i)+xCor, origin.y()+subTickLengthIn*tickDir+yCor));
+      foreach (double subTickPos, subTickPositions)
+        painter->drawLine(QLineF(subTickPos+xCor, origin.y()-subTickLengthOut*tickDir+yCor, subTickPos+xCor, origin.y()+subTickLengthIn*tickDir+yCor));
     } else
     {
-      for (int i=0; i<subTickPositions.size(); ++i)
-        painter->drawLine(QLineF(origin.x()-subTickLengthOut*tickDir+xCor, subTickPositions.at(i)+yCor, origin.x()+subTickLengthIn*tickDir+xCor, subTickPositions.at(i)+yCor));
+      foreach (double subTickPos, subTickPositions)
+        painter->drawLine(QLineF(origin.x()-subTickLengthOut*tickDir+xCor, subTickPos+yCor, origin.x()+subTickLengthIn*tickDir+xCor, subTickPos+yCor));
     }
   }
   margin += qMax(0, qMax(tickLengthOut, subTickLengthOut));
@@ -2303,9 +2323,16 @@ void QCPAxisPainterPrivate::draw(QCPPainter *painter)
   Returns the size ("margin" in QCPAxisRect context, so measured perpendicular to the axis backbone
   direction) needed to fit the axis.
 */
-int QCPAxisPainterPrivate::size() const
+int QCPAxisPainterPrivate::size()
 {
   int result = 0;
+
+  QByteArray newHash = generateLabelParameterHash();
+  if (newHash != mLabelParameterHash)
+  {
+    mLabelCache.clear();
+    mLabelParameterHash = newHash;
+  }
   
   // get length of tick marks pointing outwards:
   if (!tickPositions.isEmpty())
@@ -2317,8 +2344,8 @@ int QCPAxisPainterPrivate::size() const
     QSize tickLabelsSize(0, 0);
     if (!tickLabels.isEmpty())
     {
-      for (int i=0; i<tickLabels.size(); ++i)
-        getMaxTickLabelSize(tickLabelFont, tickLabels.at(i), &tickLabelsSize);
+      foreach (const QString &tickLabel, tickLabels)
+        getMaxTickLabelSize(tickLabelFont, tickLabel, &tickLabelsSize);
       result += QCPAxis::orientation(type) == Qt::Horizontal ? tickLabelsSize.height() : tickLabelsSize.width();
     result += tickLabelPadding;
     }
@@ -2332,7 +2359,7 @@ int QCPAxisPainterPrivate::size() const
     bounds = fontMetrics.boundingRect(0, 0, 0, 0, Qt::TextDontClip | Qt::AlignHCenter | Qt::AlignVCenter, label);
     result += bounds.height() + labelPadding;
   }
-  
+
   return result;
 }
 
@@ -2359,9 +2386,9 @@ QByteArray QCPAxisPainterPrivate::generateLabelParameterHash() const
   QByteArray result;
   result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(tickLabelRotation));
-  result.append(QByteArray::number((int)tickLabelSide));
-  result.append(QByteArray::number((int)substituteExponent));
-  result.append(QByteArray::number((int)numberMultiplyCross));
+  result.append(QByteArray::number(int(tickLabelSide)));
+  result.append(QByteArray::number(int(substituteExponent)));
+  result.append(QByteArray::number(int(numberMultiplyCross)));
   result.append(tickLabelColor.name().toLatin1()+QByteArray::number(tickLabelColor.alpha(), 16));
   result.append(tickLabelFont.toString().toLatin1());
   return result;
@@ -2558,9 +2585,9 @@ QCPAxisPainterPrivate::TickLabelData QCPAxisPainterPrivate::getTickLabelData(con
     // prepare smaller font for exponent:
     result.expFont = font;
     if (result.expFont.pointSize() > 0)
-      result.expFont.setPointSize(result.expFont.pointSize()*0.75);
+      result.expFont.setPointSize(int(result.expFont.pointSize()*0.75));
     else
-      result.expFont.setPixelSize(result.expFont.pixelSize()*0.75);
+      result.expFont.setPixelSize(int(result.expFont.pixelSize()*0.75));
     // calculate bounding rects of base part(s), exponent part and total one:
     result.baseBounds = QFontMetrics(result.baseFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.basePart);
     result.expBounds = QFontMetrics(result.expFont).boundingRect(0, 0, 0, 0, Qt::TextDontClip, result.expPart);
@@ -2611,7 +2638,8 @@ QPointF QCPAxisPainterPrivate::getTickLabelDrawOffset(const TickLabelData &label
   bool doRotation = !qFuzzyIsNull(tickLabelRotation);
   bool flip = qFuzzyCompare(qAbs(tickLabelRotation), 90.0); // perfect +/-90 degree flip. Indicates vertical label centering on vertical axes.
   double radians = tickLabelRotation/180.0*M_PI;
-  int x=0, y=0;
+  double x = 0;
+  double y = 0;
   if ((type == QCPAxis::atLeft && tickLabelSide == QCPAxis::lsOutside) || (type == QCPAxis::atRight && tickLabelSide == QCPAxis::lsInside)) // Anchor at right side of tick label
   {
     if (doRotation)
@@ -2686,7 +2714,7 @@ QPointF QCPAxisPainterPrivate::getTickLabelDrawOffset(const TickLabelData &label
     }
   }
   
-  return QPointF(x, y);
+  return {x, y};
 }
 
 /*! \internal

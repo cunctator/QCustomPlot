@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_ITEM_H
@@ -59,7 +59,7 @@ protected:
   QSet<QCPItemPosition*> mChildrenX, mChildrenY;
   
   // introduced virtual methods:
-  virtual QCPItemPosition *toQCPItemPosition() { return 0; }
+  virtual QCPItemPosition *toQCPItemPosition() { return nullptr; }
   
   // non-virtual methods:
   void addChildX(QCPItemPosition* pos); // called from pos when this anchor is set as parent
@@ -97,7 +97,7 @@ public:
   Q_ENUMS(PositionType)
   
   QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *parentItem, const QString &name);
-  virtual ~QCPItemPosition();
+  virtual ~QCPItemPosition() Q_DECL_OVERRIDE;
   
   // getters:
   PositionType type() const { return typeX(); }
@@ -122,7 +122,7 @@ public:
   bool setParentAnchorX(QCPItemAnchor *parentAnchor, bool keepPixelPosition=false);
   bool setParentAnchorY(QCPItemAnchor *parentAnchor, bool keepPixelPosition=false);
   void setCoords(double key, double value);
-  void setCoords(const QPointF &coords);
+  void setCoords(const QPointF &pos);
   void setAxes(QCPAxis* keyAxis, QCPAxis* valueAxis);
   void setAxisRect(QCPAxisRect *axisRect);
   void setPixelPosition(const QPointF &pixelPosition);
@@ -156,7 +156,7 @@ class QCP_LIB_DECL QCPAbstractItem : public QCPLayerable
   /// \endcond
 public:
   explicit QCPAbstractItem(QCustomPlot *parentPlot);
-  virtual ~QCPAbstractItem();
+  virtual ~QCPAbstractItem() Q_DECL_OVERRIDE;
   
   // getters:
   bool clipToAxisRect() const { return mClipToAxisRect; }
@@ -171,7 +171,7 @@ public:
   Q_SLOT void setSelected(bool selected);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE = 0;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE = 0;
   
   // non-virtual methods:
   QList<QCPItemPosition*> positions() const { return mPositions; }

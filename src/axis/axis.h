@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,14 +19,17 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_AXIS_H
 #define QCP_AXIS_H
 
 #include "../global.h"
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  Q_MOC_INCLUDE("layoutelements/layoutelement-axisrect.h") // Qt6 needs this if using forward declared types in Q_PROPERTY; path is relative to .pro
+#endif
 #include "range.h"
 #include "../vector2d.h"
 #include "../layer.h"
@@ -186,7 +189,7 @@ public:
   Q_DECLARE_FLAGS(SelectableParts, SelectablePart)
   
   explicit QCPAxis(QCPAxisRect *parent, AxisType type);
-  virtual ~QCPAxis();
+  virtual ~QCPAxis() Q_DECL_OVERRIDE;
   
   // getters:
   AxisType axisType() const { return mAxisType; }
@@ -280,7 +283,7 @@ public:
   void setUpperEnding(const QCPLineEnding &ending);
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE;
   
   // non-property methods:
   Qt::Orientation orientation() const { return mOrientation; }
@@ -298,7 +301,7 @@ public:
   QList<QCPAbstractItem*> items() const;
   
   static AxisType marginSideToAxisType(QCP::MarginSide side);
-  static Qt::Orientation orientation(AxisType type) { return type==atBottom||type==atTop ? Qt::Horizontal : Qt::Vertical; }
+  static Qt::Orientation orientation(AxisType type) { return type==atBottom || type==atTop ? Qt::Horizontal : Qt::Vertical; }
   static AxisType opposite(AxisType type);
   
 signals:
@@ -406,7 +409,7 @@ public:
   virtual ~QCPAxisPainterPrivate();
   
   virtual void draw(QCPPainter *painter);
-  virtual int size() const;
+  virtual int size();
   void clearCache();
   
   QRect axisSelectionBox() const { return mAxisSelectionBox; }
@@ -431,7 +434,7 @@ public:
   QFont tickLabelFont;
   QColor tickLabelColor;
   QRect axisRect, viewportRect;
-  double offset; // directly accessed by QCPAxis setters/getters
+  int offset; // directly accessed by QCPAxis setters/getters
   bool abbreviateDecimalPowers;
   bool reversedEndings;
   

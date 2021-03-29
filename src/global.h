@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_GLOBAL_H
@@ -53,6 +53,7 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QWheelEvent>
@@ -71,7 +72,12 @@
 #include <algorithm>
 #ifdef QCP_OPENGL_FBO
 #  include <QtGui/QOpenGLContext>
-#  include <QtGui/QOpenGLFramebufferObject>
+#  if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#    include <QtGui/QOpenGLFramebufferObject>
+#  else
+#    include <QOpenGLFramebufferObject>
+#    include <QOpenGLPaintDevice>
+#  endif
 #  ifdef QCP_OPENGL_OFFSCREENSURFACE
 #    include <QtGui/QOffscreenSurface>
 #  else
@@ -91,10 +97,16 @@
 #  include <QtWidgets/QWidget>
 #  include <QtPrintSupport/QtPrintSupport>
 #endif
+#if QT_VERSION >= QT_VERSION_CHECK(4, 8, 0)
+#  include <QtCore/QElapsedTimer>
+#endif
+# if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+#  include <QtCore/QTimeZone>
+#endif
 // amalgamation: include end
 
-#define QCUSTOMPLOT_VERSION_STR "2.0.1"
-#define QCUSTOMPLOT_VERSION 0x020001
+#define QCUSTOMPLOT_VERSION_STR "2.1.0"
+#define QCUSTOMPLOT_VERSION 0x020100
 
 // decl definitions for shared library compilation/usage:
 #if defined(QT_STATIC_BUILD)
@@ -231,7 +243,8 @@ Q_DECLARE_FLAGS(PlottingHints, PlottingHint)
   
   \see QCustomPlot::setInteractions
 */
-enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges are draggable (see \ref QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeDragAxes)
+enum Interaction { iNone              = 0x000 ///< <tt>0x000</tt> None of the interactions are possible
+                   ,iRangeDrag        = 0x001 ///< <tt>0x001</tt> Axis ranges are draggable (see \ref QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeDragAxes)
                    ,iRangeZoom        = 0x002 ///< <tt>0x002</tt> Axis ranges are zoomable with the mouse wheel (see \ref QCPAxisRect::setRangeZoom, \ref QCPAxisRect::setRangeZoomAxes)
                    ,iMultiSelect      = 0x004 ///< <tt>0x004</tt> The user can select multiple objects by holding the modifier set by \ref QCustomPlot::setMultiSelectModifier while clicking
                    ,iSelectPlottables = 0x008 ///< <tt>0x008</tt> Plottables are selectable (e.g. graphs, curves, bars,... see QCPAbstractPlottable)
@@ -239,6 +252,7 @@ enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges ar
                    ,iSelectLegend     = 0x020 ///< <tt>0x020</tt> Legends are selectable (or their child items, see QCPLegend::setSelectableParts)
                    ,iSelectItems      = 0x040 ///< <tt>0x040</tt> Items are selectable (Rectangles, Arrows, Textitems, etc. see \ref QCPAbstractItem)
                    ,iSelectOther      = 0x080 ///< <tt>0x080</tt> All other objects are selectable (e.g. your own derived layerables, other layout elements,...)
+                   ,iSelectPlottablesBeyondAxisRect = 0x100 ///< <tt>0x100</tt> When performing plottable selection/hit tests, this flag extends the sensitive area beyond the axis rect
                  };
 Q_DECLARE_FLAGS(Interactions, Interaction)
 

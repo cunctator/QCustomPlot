@@ -4,7 +4,7 @@ void TestQCPLayout::init()
 {
   mPlot = new QCustomPlot(0);
   mPlot->show();
-  QTest::qWait(150);
+  //QTest::qWait(150);
 }
 
 

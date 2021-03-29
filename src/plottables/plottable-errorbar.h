@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_PLOTTABLE_ERRORBAR_H
@@ -87,7 +87,7 @@ public:
   Q_ENUMS(ErrorType)
   
   explicit QCPErrorBars(QCPAxis *keyAxis, QCPAxis *valueAxis);
-  virtual ~QCPErrorBars();
+  virtual ~QCPErrorBars() Q_DECL_OVERRIDE;
   // getters:
   QSharedPointer<QCPErrorBarsDataContainer> data() const { return mDataContainer; }
   QCPAbstractPlottable *dataPlottable() const { return mDataPlottable.data(); }
@@ -123,7 +123,7 @@ public:
   virtual int findEnd(double sortKey, bool expandedRange=true) const Q_DECL_OVERRIDE;
   
   // reimplemented virtual methods:
-  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=0) const Q_DECL_OVERRIDE;
+  virtual double selectTest(const QPointF &pos, bool onlySelectable, QVariant *details=nullptr) const Q_DECL_OVERRIDE;
   virtual QCPPlottableInterface1D *interface1D() Q_DECL_OVERRIDE { return this; }
   
 protected:

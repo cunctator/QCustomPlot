@@ -1,4 +1,4 @@
-/*! \mainpage %QCustomPlot 2.0.1 Documentation
+/*! \mainpage %QCustomPlot 2.1.0 Documentation
 
   \image html qcp-doc-logo.png
 
@@ -31,7 +31,8 @@
   Plottables (including graphs) can be retrieved via \ref QCustomPlot::plottable. Since the return
   type of that function is the abstract base class of all plottables, QCPAbstractPlottable, you
   will probably want to <tt>qobject_cast</tt> the returned pointer to the respective plottable
-  subclass. As usual, the cast returns zero if the plottable wasn't of that specific subclass.
+  subclass. As usual, the cast returns \c nullptr if the plottable wasn't of that specific
+  subclass.
 
   All further interfacing with plottables (e.g how to set data) is specific to the plottable type.
   See the documentations of the subclasses: QCPGraph, QCPCurve, QCPBars, QCPStatisticalBox,

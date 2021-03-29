@@ -7,14 +7,11 @@
 
 from __future__ import print_function
 import os, sys, re
+sys.path.insert(1, os.path.join(sys.path[0], '..')) # include parent dir in search path for module import
+from utilities import *
 
 baseDir = sys.path[0]
 os.chdir(baseDir)  # change current working dir to script dir
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
 
 def performReplacement(filename):
     print("html postprocessing '"+filename+"'...")
@@ -46,7 +43,7 @@ def performReplacement(filename):
 replacementFiles = ('html/pages.html', 'html/annotated.html', 'html/hierarchy.html', 'html/inherits.html', 'html/classoverview.html');
 for filename in replacementFiles:
     if not os.path.isfile(filename):
-        eprint("file '"+filename+"' not found")
+        printerror("file '"+filename+"' not found")
         sys.exit(-1)
     performReplacement(filename);
 

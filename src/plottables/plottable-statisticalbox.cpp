@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "plottable-statisticalbox.h"
@@ -425,7 +425,7 @@ QCPDataSelection QCPStatisticalBox::selectTestRect(const QRectF &rect, bool only
   for (QCPStatisticalBoxDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
     if (rect.intersects(getQuartileBox(it)))
-      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+      result.addDataRange(QCPDataRange(int(it-mDataContainer->constBegin()), int(it-mDataContainer->constBegin()+1)), false);
   }
   result.simplify();
   return result;
@@ -447,7 +447,7 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     // get visible data range:
     QCPStatisticalBoxDataContainer::const_iterator visibleBegin, visibleEnd;
@@ -466,10 +466,11 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
         }
       } else // whiskers
       {
-        const QVector<QLineF> whiskerBackbones(getWhiskerBackboneLines(it));
-        for (int i=0; i<whiskerBackbones.size(); ++i)
+        const QVector<QLineF> whiskerBackbones = getWhiskerBackboneLines(it);
+        const QCPVector2D posVec(pos);
+        foreach (const QLineF &backbone, whiskerBackbones)
         {
-          double currentDistSqr = QCPVector2D(pos).distanceSquaredToLine(whiskerBackbones.at(i));
+          double currentDistSqr = posVec.distanceSquaredToLine(backbone);
           if (currentDistSqr < minDistSqr)
           {
             minDistSqr = currentDistSqr;
@@ -480,7 +481,7 @@ double QCPStatisticalBox::selectTest(const QPointF &pos, bool onlySelectable, QV
     }
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int(closestDataPoint-mDataContainer->constBegin());
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return qSqrt(minDistSqr);

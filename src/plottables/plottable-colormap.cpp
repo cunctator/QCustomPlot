@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "plottable-colormap.h"
@@ -89,8 +89,8 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
   mKeyRange(keyRange),
   mValueRange(valueRange),
   mIsEmpty(true),
-  mData(0),
-  mAlpha(0),
+  mData(nullptr),
+  mAlpha(nullptr),
   mDataModified(true)
 {
   setSize(keySize, valueSize);
@@ -99,10 +99,8 @@ QCPColorMapData::QCPColorMapData(int keySize, int valueSize, const QCPRange &key
 
 QCPColorMapData::~QCPColorMapData()
 {
-  if (mData)
-    delete[] mData;
-  if (mAlpha)
-    delete[] mAlpha;
+  delete[] mData;
+  delete[] mAlpha;
 }
 
 /*!
@@ -112,8 +110,8 @@ QCPColorMapData::QCPColorMapData(const QCPColorMapData &other) :
   mKeySize(0),
   mValueSize(0),
   mIsEmpty(true),
-  mData(0),
-  mAlpha(0),
+  mData(nullptr),
+  mAlpha(nullptr),
   mDataModified(true)
 {
   *this = other;
@@ -137,9 +135,9 @@ QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
     setRange(other.keyRange(), other.valueRange());
     if (!isEmpty())
     {
-      memcpy(mData, other.mData, sizeof(mData[0])*keySize*valueSize);
+      memcpy(mData, other.mData, sizeof(mData[0])*size_t(keySize*valueSize));
       if (mAlpha)
-        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*keySize*valueSize);
+        memcpy(mAlpha, other.mAlpha, sizeof(mAlpha[0])*size_t(keySize*valueSize));
     }
     mDataBounds = other.mDataBounds;
     mDataModified = true;
@@ -150,8 +148,8 @@ QCPColorMapData &QCPColorMapData::operator=(const QCPColorMapData &other)
 /* undocumented getter */
 double QCPColorMapData::data(double key, double value)
 {
-  int keyCell = (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5;
-  int valueCell = (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5;
+  int keyCell = int( (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5 );
+  int valueCell = int( (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5 );
   if (keyCell >= 0 && keyCell < mKeySize && valueCell >= 0 && valueCell < mValueSize)
     return mData[valueCell*mKeySize + keyCell];
   else
@@ -201,24 +199,23 @@ void QCPColorMapData::setSize(int keySize, int valueSize)
   {
     mKeySize = keySize;
     mValueSize = valueSize;
-    if (mData)
-      delete[] mData;
+    delete[] mData;
     mIsEmpty = mKeySize == 0 || mValueSize == 0;
     if (!mIsEmpty)
     {
 #ifdef __EXCEPTIONS
       try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
 #endif
-      mData = new double[mKeySize*mValueSize];
+      mData = new double[size_t(mKeySize*mValueSize)];
 #ifdef __EXCEPTIONS
-      } catch (...) { mData = 0; }
+      } catch (...) { mData = nullptr; }
 #endif
       if (mData)
         fill(0);
       else
         qDebug() << Q_FUNC_INFO << "out of memory for data dimensions "<< mKeySize << "*" << mValueSize;
     } else
-      mData = 0;
+      mData = nullptr;
     
     if (mAlpha) // if we had an alpha map, recreate it with new size
       createAlpha();
@@ -317,8 +314,8 @@ void QCPColorMapData::setValueRange(const QCPRange &valueRange)
 */
 void QCPColorMapData::setData(double key, double value, double z)
 {
-  int keyCell = (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5;
-  int valueCell = (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5;
+  int keyCell = int( (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5 );
+  int valueCell = int( (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5 );
   if (keyCell >= 0 && keyCell < mKeySize && valueCell >= 0 && valueCell < mValueSize)
   {
     mData[valueCell*mKeySize + keyCell] = z;
@@ -433,7 +430,7 @@ void QCPColorMapData::clearAlpha()
   if (mAlpha)
   {
     delete[] mAlpha;
-    mAlpha = 0;
+    mAlpha = nullptr;
     mDataModified = true;
   }
 }
@@ -477,8 +474,8 @@ void QCPColorMapData::fillAlpha(unsigned char alpha)
   
   The retrieved key/value cell indices can then be used for example with \ref setCell.
   
-  If you are only interested in a key or value index, you may pass 0 as \a valueIndex or \a
-  keyIndex.
+  If you are only interested in a key or value index, you may pass \c nullptr as \a valueIndex or
+  \a keyIndex.
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
   value axis is set to a logarithmic scaling. If you want to use QCPColorMap with logarithmic axes,
@@ -490,9 +487,9 @@ void QCPColorMapData::fillAlpha(unsigned char alpha)
 void QCPColorMapData::coordToCell(double key, double value, int *keyIndex, int *valueIndex) const
 {
   if (keyIndex)
-    *keyIndex = (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5;
+    *keyIndex = int( (key-mKeyRange.lower)/(mKeyRange.upper-mKeyRange.lower)*(mKeySize-1)+0.5 );
   if (valueIndex)
-    *valueIndex = (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5;
+    *valueIndex = int( (value-mValueRange.lower)/(mValueRange.upper-mValueRange.lower)*(mValueSize-1)+0.5 );
 }
 
 /*!
@@ -500,7 +497,7 @@ void QCPColorMapData::coordToCell(double key, double value, int *keyIndex, int *
   instance. The resulting coordinates are returned via the output parameters \a key and \a
   value.
   
-  If you are only interested in a key or value coordinate, you may pass 0 as \a key or \a
+  If you are only interested in a key or value coordinate, you may pass \c nullptr as \a key or \a
   value.
   
   \note The QCPColorMap always displays the data at equal key/value intervals, even if the key or
@@ -513,9 +510,9 @@ void QCPColorMapData::coordToCell(double key, double value, int *keyIndex, int *
 void QCPColorMapData::cellToCoord(int keyIndex, int valueIndex, double *key, double *value) const
 {
   if (key)
-    *key = keyIndex/(double)(mKeySize-1)*(mKeyRange.upper-mKeyRange.lower)+mKeyRange.lower;
+    *key = keyIndex/double(mKeySize-1)*(mKeyRange.upper-mKeyRange.lower)+mKeyRange.lower;
   if (value)
-    *value = valueIndex/(double)(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
+    *value = valueIndex/double(mValueSize-1)*(mValueRange.upper-mValueRange.lower)+mValueRange.lower;
 }
 
 /*! \internal
@@ -540,9 +537,9 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
 #ifdef __EXCEPTIONS
   try { // 2D arrays get memory intensive fast. So if the allocation fails, at least output debug message
 #endif
-    mAlpha = new unsigned char[mKeySize*mValueSize];
+    mAlpha = new unsigned char[size_t(mKeySize*mValueSize)];
 #ifdef __EXCEPTIONS
-  } catch (...) { mAlpha = 0; }
+  } catch (...) { mAlpha = nullptr; }
 #endif
   if (mAlpha)
   {
@@ -593,13 +590,14 @@ bool QCPColorMapData::createAlpha(bool initializeOpaque)
   
   \section qcpcolormap-appearance Changing the appearance
   
-  The central part of the appearance is the color gradient, which can be specified via \ref
+  Most important to the appearance is the color gradient, which can be specified via \ref
   setGradient. See the documentation of \ref QCPColorGradient for details on configuring a color
   gradient.
   
   The \a data range that is mapped to the colors of the gradient can be specified with \ref
   setDataRange. To make the data range encompass the whole data set minimum to maximum, call \ref
-  rescaleDataRange.
+  rescaleDataRange. If your data may contain NaN values, use \ref QCPColorGradient::setNanHandling
+  to define how they are displayed.
   
   \section qcpcolormap-transparency Transparency
   
@@ -821,7 +819,7 @@ void QCPColorMap::setTightBoundary(bool enabled)
   type of \a colorScale. After this call, you may change these properties at either the color map
   or the color scale, and the setting will be applied to both.
   
-  Pass 0 as \a colorScale to disconnect the color scale from this color map again.
+  Pass \c nullptr as \a colorScale to disconnect the color scale from this color map again.
 */
 void QCPColorMap::setColorScale(QCPColorScale *colorScale)
 {
@@ -912,7 +910,7 @@ double QCPColorMap::selectTest(const QPointF &pos, bool onlySelectable, QVariant
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     double posKey, posValue;
     pixelsToCoords(pos, posKey, posValue);
@@ -956,7 +954,7 @@ QCPRange QCPColorMap::getValueRange(bool &foundRange, QCP::SignDomain inSignDoma
     if (mMapData->keyRange().upper < inKeyRange.lower || mMapData->keyRange().lower > inKeyRange.upper)
     {
       foundRange = false;
-      return QCPRange();
+      return {};
     }
   }
   
@@ -1002,8 +1000,8 @@ void QCPColorMap::updateMapImage()
   const QImage::Format format = QImage::Format_ARGB32_Premultiplied;
   const int keySize = mMapData->keySize();
   const int valueSize = mMapData->valueSize();
-  int keyOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)keySize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
-  int valueOversamplingFactor = mInterpolate ? 1 : (int)(1.0+100.0/(double)valueSize); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
+  int keyOversamplingFactor = mInterpolate ? 1 : int(1.0+100.0/double(keySize)); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
+  int valueOversamplingFactor = mInterpolate ? 1 : int(1.0+100.0/double(valueSize)); // make mMapImage have at least size 100, factor becomes 1 if size > 200 or interpolation is on
   
   // resize mMapImage to correct dimensions including possible oversampling factors, according to key/value axes orientation:
   if (keyAxis->orientation() == Qt::Horizontal && (mMapImage.width() != keySize*keyOversamplingFactor || mMapImage.height() != valueSize*valueOversamplingFactor))
@@ -1104,15 +1102,15 @@ void QCPColorMap::draw(QCPPainter *painter)
   if (keyAxis()->orientation() == Qt::Horizontal)
   {
     if (mMapData->keySize() > 1)
-      halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->keySize()-1);
+      halfCellWidth = 0.5*imageRect.width()/double(mMapData->keySize()-1);
     if (mMapData->valueSize() > 1)
-      halfCellHeight = 0.5*imageRect.height()/(double)(mMapData->valueSize()-1);
+      halfCellHeight = 0.5*imageRect.height()/double(mMapData->valueSize()-1);
   } else // keyAxis orientation is Qt::Vertical
   {
     if (mMapData->keySize() > 1)
-      halfCellHeight = 0.5*imageRect.height()/(double)(mMapData->keySize()-1);
+      halfCellHeight = 0.5*imageRect.height()/double(mMapData->keySize()-1);
     if (mMapData->valueSize() > 1)
-      halfCellWidth = 0.5*imageRect.width()/(double)(mMapData->valueSize()-1);
+      halfCellWidth = 0.5*imageRect.width()/double(mMapData->valueSize()-1);
   }
   imageRect.adjust(-halfCellWidth, -halfCellHeight, halfCellWidth, halfCellHeight);
   const bool mirrorX = (keyAxis()->orientation() == Qt::Horizontal ? keyAxis() : valueAxis())->rangeReversed();

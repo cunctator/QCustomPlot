@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, sys, argparse
+import re, os, sys, argparse
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from utilities import *
 
@@ -16,7 +16,24 @@ config = argparser.parse_args()
 
 
 def run_test():
-    shellcall("./autotest", error="Execution unsuccessful")
+    passed = 0
+    failed = 0
+    skipped = 0
+    ignorePattern = re.compile(r"(Start testing of|Finished testing of|Config: Using|PASS)")
+    totalsPattern = re.compile(r"Totals: (\d+) passed, (\d+) failed, (\d+) skipped")
+    for line in shellcallListen("./autotest", error="Execution unsuccessful"):
+        if not line.strip():
+            continue
+        if ignorePattern.search(line):
+            continue
+        m = totalsPattern.search(line)
+        if m:
+            passed += int(m.group(1))
+            failed += int(m.group(2))
+            skipped += int(m.group(3))
+            continue
+        printerror(line.strip()) # unexpected output -> error, skip, or other important output
+    printinfo("{} passed, {} failed, {} skipped".format(passed, failed, skipped))
     shellcall("make clean -s", error="make clean unsuccessful")
     os.remove("./Makefile")
 

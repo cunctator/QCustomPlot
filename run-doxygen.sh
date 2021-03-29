@@ -1,7 +1,11 @@
 #!/bin/bash
 cd "$( dirname "$0" )"
-rm -r documentation/html
+
+rm -rf documentation/html
 mkdir documentation/html
+
+rm -rf documentation/xml
+mkdir documentation/xml
 
 # let doxygen generate qhp index and html hierarchy from source files:
 echo Running doxygen...
@@ -17,8 +21,11 @@ echo Post-processing documentation html...
 echo Building qhc...
 qhelpgenerator documentation/html/index.qhp -o documentation/qthelp/qcustomplot.qch 1>/dev/null
 
-# cleanup html hierarchy:
-rm documentation/html/index.qhp
-rm documentation/html/*.map
-rm documentation/html/*.md5
+# generate SQL database statements for documentation links from xml:
+echo Generating SQL doclinks...
+./documentation/extract-doclinks.py 1>/dev/null
 
+# cleanup html hierarchy:
+rm -f documentation/html/index.qhp
+rm -f documentation/html/*.map
+rm -f documentation/html/*.md5

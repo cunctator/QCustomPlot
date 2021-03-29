@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "qcustomplot.h"
@@ -35,6 +35,7 @@
 //amalgamation: add selectionrect.cpp
 //amalgamation: add layout.cpp
 //amalgamation: add lineending.cpp
+//amalgamation: add axis/labelpainter.cpp
 //amalgamation: add axis/axisticker.cpp
 //amalgamation: add axis/axistickerdatetime.cpp
 //amalgamation: add axis/axistickertime.cpp
@@ -44,11 +45,9 @@
 //amalgamation: add axis/axistickerlog.cpp
 //amalgamation: add axis/axis.cpp
 //amalgamation: add scatterstyle.cpp
-//amalgamation: add datacontainer.cpp
 //amalgamation: add plottable.cpp
 //amalgamation: add item.cpp
 //amalgamation: add core.cpp
-//amalgamation: add plottable1d.cpp
 //amalgamation: add colorgradient.cpp
 //amalgamation: add selectiondecorator-bracket.cpp
 //amalgamation: add layoutelements/layoutelement-axisrect.cpp
@@ -71,4 +70,8 @@
 //amalgamation: add items/item-pixmap.cpp
 //amalgamation: add items/item-tracer.cpp
 //amalgamation: add items/item-bracket.cpp
+//amalgamation: add polar/radialaxis.cpp
+//amalgamation: add polar/layoutelement-angularaxis.cpp
+//amalgamation: add polar/polargrid.cpp
+//amalgamation: add polar/polargraph.cpp
 

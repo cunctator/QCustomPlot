@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "layoutelement-colorscale.h"
@@ -122,6 +122,7 @@ QCPColorScale::QCPColorScale(QCustomPlot *parentPlot) :
   QCPLayoutElement(parentPlot),
   mType(QCPAxis::atTop), // set to atTop such that setType(QCPAxis::atRight) below doesn't skip work because it thinks it's already atRight
   mDataScaleType(QCPAxis::stLinear),
+  mGradient(QCPColorGradient::gpCold),
   mBarWidth(20),
   mAxisRect(new QCPColorScaleAxisRectPrivate(this))
 {
@@ -196,7 +197,7 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
     QString labelTransfer;
     QSharedPointer<QCPAxisTicker> tickerTransfer;
     // transfer/revert some settings on old axis if it exists:
-    bool doTransfer = (bool)mColorAxis;
+    bool doTransfer = !mColorAxis.isNull();
     if (doTransfer)
     {
       rangeTransfer = mColorAxis.data()->range();
@@ -206,7 +207,7 @@ void QCPColorScale::setType(QCPAxis::AxisType type)
       disconnect(mColorAxis.data(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(setDataRange(QCPRange)));
       disconnect(mColorAxis.data(), SIGNAL(scaleTypeChanged(QCPAxis::ScaleType)), this, SLOT(setDataScaleType(QCPAxis::ScaleType)));
     }
-    QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atLeft << QCPAxis::atRight << QCPAxis::atBottom << QCPAxis::atTop;
+    const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atLeft << QCPAxis::atRight << QCPAxis::atBottom << QCPAxis::atTop;
     foreach (QCPAxis::AxisType atype, allAxisTypes)
     {
       mAxisRect.data()->axis(atype)->setTicks(atype == mType);
@@ -336,9 +337,16 @@ void QCPColorScale::setRangeDrag(bool enabled)
   }
   
   if (enabled)
+  {
     mAxisRect.data()->setRangeDrag(QCPAxis::orientation(mType));
-  else
-    mAxisRect.data()->setRangeDrag(0);
+  } else
+  {
+#if QT_VERSION < QT_VERSION_CHECK(5, 2, 0)
+    mAxisRect.data()->setRangeDrag(nullptr);
+#else
+    mAxisRect.data()->setRangeDrag({});
+#endif
+  }
 }
 
 /*!
@@ -356,9 +364,16 @@ void QCPColorScale::setRangeZoom(bool enabled)
   }
   
   if (enabled)
+  {
     mAxisRect.data()->setRangeZoom(QCPAxis::orientation(mType));
-  else
-    mAxisRect.data()->setRangeZoom(0);
+  } else
+  {
+#if QT_VERSION < QT_VERSION_CHECK(5, 2, 0)
+    mAxisRect.data()->setRangeDrag(nullptr);
+#else
+    mAxisRect.data()->setRangeZoom({});
+#endif
+  }
 }
 
 /*!
@@ -390,15 +405,15 @@ void QCPColorScale::rescaleDataRange(bool onlyVisibleMaps)
   QCP::SignDomain sign = QCP::sdBoth;
   if (mDataScaleType == QCPAxis::stLogarithmic)
     sign = (mDataRange.upper < 0 ? QCP::sdNegative : QCP::sdPositive);
-  for (int i=0; i<maps.size(); ++i)
+  foreach (QCPColorMap *map, maps)
   {
-    if (!maps.at(i)->realVisibility() && onlyVisibleMaps)
+    if (!map->realVisibility() && onlyVisibleMaps)
       continue;
     QCPRange mapRange;
-    if (maps.at(i)->colorScale() == this)
+    if (map->colorScale() == this)
     {
       bool currentFoundRange = true;
-      mapRange = maps.at(i)->data()->dataBounds();
+      mapRange = map->data()->dataBounds();
       if (sign == QCP::sdPositive)
       {
         if (mapRange.lower <= 0 && mapRange.upper > 0)
@@ -552,7 +567,7 @@ QCPColorScaleAxisRectPrivate::QCPColorScaleAxisRectPrivate(QCPColorScale *parent
 {
   setParentLayerable(parentColorScale);
   setMinimumMargins(QMargins(0, 0, 0, 0));
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     axis(type)->setVisible(true);
@@ -628,7 +643,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
       pixels.append(reinterpret_cast<QRgb*>(mGradientImage.scanLine(y)));
     mParentColorScale->mGradient.colorize(data.constData(), QCPRange(0, n-1), pixels.first(), n);
     for (int y=1; y<h; ++y)
-      memcpy(pixels.at(y), pixels.first(), n*sizeof(QRgb));
+      memcpy(pixels.at(y), pixels.first(), size_t(n)*sizeof(QRgb));
   } else
   {
     w = rect().width();
@@ -653,7 +668,7 @@ void QCPColorScaleAxisRectPrivate::updateGradientImage()
 void QCPColorScaleAxisRectPrivate::axisSelectionChanged(QCPAxis::SelectableParts selectedParts)
 {
   // axis bases of four axes shall always (de-)selected synchronously:
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     if (QCPAxis *senderAxis = qobject_cast<QCPAxis*>(sender()))
@@ -678,7 +693,7 @@ void QCPColorScaleAxisRectPrivate::axisSelectionChanged(QCPAxis::SelectableParts
 void QCPColorScaleAxisRectPrivate::axisSelectableChanged(QCPAxis::SelectableParts selectableParts)
 {
   // synchronize axis base selectability:
-  QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
+  const QList<QCPAxis::AxisType> allAxisTypes = QList<QCPAxis::AxisType>() << QCPAxis::atBottom << QCPAxis::atTop << QCPAxis::atLeft << QCPAxis::atRight;
   foreach (QCPAxis::AxisType type, allAxisTypes)
   {
     if (QCPAxis *senderAxis = qobject_cast<QCPAxis*>(sender()))

@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #ifndef QCP_COLORGRADIENT_H
@@ -42,6 +42,19 @@ public:
                             ,ciHSV ///< Color channels hue, saturation and value are linearly interpolated (The hue is interpolated over the shortest angle distance)
                           };
   Q_ENUMS(ColorInterpolation)
+  
+  /*!
+    Defines how NaN data points shall appear in the plot.
+    
+    \see setNanHandling, setNanColor
+  */
+  enum NanHandling { nhNone ///< NaN data points are not explicitly handled and shouldn't occur in the data (this gives slight performance improvement)
+                     ,nhLowestColor  ///< NaN data points appear as the lowest color defined in this QCPColorGradient
+                     ,nhHighestColor ///< NaN data points appear as the highest color defined in this QCPColorGradient
+                     ,nhTransparent ///< NaN data points appear transparent
+                     ,nhNanColor ///< NaN data points appear as the color defined with \ref setNanColor
+                   };
+  Q_ENUMS(NanHandling)
   
   /*!
     Defines the available presets that can be loaded with \ref loadPreset. See the documentation
@@ -71,6 +84,8 @@ public:
   int levelCount() const { return mLevelCount; }
   QMap<double, QColor> colorStops() const { return mColorStops; }
   ColorInterpolation colorInterpolation() const { return mColorInterpolation; }
+  NanHandling nanHandling() const { return mNanHandling; }
+  QColor nanColor() const { return mNanColor; }
   bool periodic() const { return mPeriodic; }
   
   // setters:
@@ -78,6 +93,8 @@ public:
   void setColorStops(const QMap<double, QColor> &colorStops);
   void setColorStopAt(double position, const QColor &color);
   void setColorInterpolation(ColorInterpolation interpolation);
+  void setNanHandling(NanHandling handling);
+  void setNanColor(const QColor &color);
   void setPeriodic(bool enabled);
   
   // non-property methods:
@@ -93,6 +110,8 @@ protected:
   int mLevelCount;
   QMap<double, QColor> mColorStops;
   ColorInterpolation mColorInterpolation;
+  NanHandling mNanHandling;
+  QColor mNanColor;
   bool mPeriodic;
   
   // non-property members:
@@ -104,6 +123,7 @@ protected:
   void updateColorBuffer();
 };
 Q_DECLARE_METATYPE(QCPColorGradient::ColorInterpolation)
+Q_DECLARE_METATYPE(QCPColorGradient::NanHandling)
 Q_DECLARE_METATYPE(QCPColorGradient::GradientPreset)
 
 #endif // QCP_COLORGRADIENT_H

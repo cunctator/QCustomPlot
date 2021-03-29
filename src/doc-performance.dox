@@ -3,7 +3,8 @@
   QCustomPlot employs various techniques like adaptive sampling and text object caching in order to
   cut down the time required to replot. However, some features like complex translucent fills and
   thick lines can still cause a significant slow down. If you notice this in your application, here
-  are some hints on how to increase replot performance.
+  are some hints on how to increase replot performance (to benchmark performance, see \ref
+  QCustomPlot::replotTime).
 
   By far the most time is spent in the drawing functions, specifically the drawing of high density
   graphs and other plottables. For maximum performance, consider the following points:

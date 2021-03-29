@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
   
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
   
   // tests:
@@ -52,6 +52,8 @@ public:
   void setupErrorBarTest(QCustomPlot *customPlot);
   void setupDataSelectTest(QCustomPlot *customPlot);
   void setupScatterSkipTest(QCustomPlot *customPlot);
+  void setupTimeZoneTest(QCustomPlot *customPlot);
+  void setupPolarAxisTest(QCustomPlot *customPlot);
   // testbed:
   void setupTestbed(QCustomPlot *customPlot);
   
@@ -59,7 +61,7 @@ public:
   void presetInteractive(QCustomPlot *customPlot);
   
   // helpers:
-  void labelItemAnchors(QCPAbstractItem *item, double fontSize=8, bool circle=true, bool labelBelow=true);
+  void labelItemAnchors(QCPAbstractItem *item, int fontSize=8, bool circle=true, bool labelBelow=true);
   void showSelectTestColorMap(QCustomPlot *customPlot);
   
   // special use cases test:
@@ -70,6 +72,7 @@ public slots:
   void tracerTestMouseMove(QMouseEvent *event);
   void selectTestColorMapRefresh();
   void mouseMoveRotateTickLabels(QMouseEvent *event);
+  void mouseMoveRotateAngularTickLabels(QMouseEvent *event);
   void tickLabelTestTimerSlot();
   void setupMultiAxisRectInteractionsMouseMove(QMouseEvent *event);
   void daqPerformanceDataSlot();
@@ -78,12 +81,16 @@ public slots:
   
   void testbedMouseClick(QMouseEvent *event);
   
+private slots:
+  void showReplotTime();
+  
 private:
   Ui::MainWindow *ui;
   QCustomPlot *mCustomPlot;
   QCPItemTracer *tracerTestTracer;
   QTimer mReplotTimer;
   QTimer mDataTimer;
+  QLabel *mStatusBarLabel;
 };
 
 #endif // MAINWINDOW_H

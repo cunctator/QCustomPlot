@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "item.h"
@@ -59,8 +59,8 @@
 
 /*! \fn virtual QCPItemPosition *QCPItemAnchor::toQCPItemPosition()
   
-  Returns 0 if this instance is merely a QCPItemAnchor, and a valid pointer of type QCPItemPosition* if
-  it actually is a QCPItemPosition (which is a subclass of QCPItemAnchor).
+  Returns \c nullptr if this instance is merely a QCPItemAnchor, and a valid pointer of type
+  QCPItemPosition* if it actually is a QCPItemPosition (which is a subclass of QCPItemAnchor).
   
   This safe downcast functionality could also be achieved with a dynamic_cast. However, QCustomPlot avoids
   dynamic_cast to work with projects that don't have RTTI support enabled (e.g. -fno-rtti flag with
@@ -85,15 +85,15 @@ QCPItemAnchor::QCPItemAnchor(QCustomPlot *parentPlot, QCPAbstractItem *parentIte
 QCPItemAnchor::~QCPItemAnchor()
 {
   // unregister as parent at children:
-  foreach (QCPItemPosition *child, mChildrenX.toList())
+  foreach (QCPItemPosition *child, mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
-  foreach (QCPItemPosition *child, mChildrenY.toList())
+  foreach (QCPItemPosition *child, mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
 }
 
@@ -113,12 +113,12 @@ QPointF QCPItemAnchor::pixelPosition() const
     } else
     {
       qDebug() << Q_FUNC_INFO << "no valid anchor id set:" << mAnchorId;
-      return QPointF();
+      return {};
     }
   } else
   {
     qDebug() << Q_FUNC_INFO << "no parent item set";
-    return QPointF();
+    return {};
   }
 }
 
@@ -192,10 +192,11 @@ void QCPItemAnchor::removeChildY(QCPItemPosition *pos)
 
   QCPItemPosition has a type (\ref PositionType) that can be set with \ref setType. This type
   defines how coordinates passed to \ref setCoords are to be interpreted, e.g. as absolute pixel
-  coordinates, as plot coordinates of certain axes, etc. For more advanced plots it is also
+  coordinates, as plot coordinates of certain axes (\ref QCPItemPosition::setAxes), as fractions of
+  the axis rect (\ref QCPItemPosition::setAxisRect), etc. For more advanced plots it is also
   possible to assign different types per X/Y coordinate of the position (see \ref setTypeX, \ref
-  setTypeY). This way an item could be positioned at a fixed pixel distance from the top in the Y
-  direction, while following a plot coordinate in the X direction.
+  setTypeY). This way an item could be positioned for example at a fixed pixel distance from the
+  top in the Y direction, while following a plot coordinate in the X direction.
 
   A QCPItemPosition may have a parent QCPItemAnchor, see \ref setParentAnchor. This way you can tie
   multiple items together. If the QCPItemPosition has a parent, its coordinates (\ref setCoords)
@@ -253,8 +254,8 @@ QCPItemPosition::QCPItemPosition(QCustomPlot *parentPlot, QCPAbstractItem *paren
   mPositionTypeY(ptAbsolute),
   mKey(0),
   mValue(0),
-  mParentAnchorX(0),
-  mParentAnchorY(0)
+  mParentAnchorX(nullptr),
+  mParentAnchorY(nullptr)
 {
 }
 
@@ -263,15 +264,15 @@ QCPItemPosition::~QCPItemPosition()
   // unregister as parent at children:
   // Note: this is done in ~QCPItemAnchor again, but it's important QCPItemPosition does it itself, because only then
   //       the setParentAnchor(0) call the correct QCPItemPosition::pixelPosition function instead of QCPItemAnchor::pixelPosition
-  foreach (QCPItemPosition *child, mChildrenX.toList())
+  foreach (QCPItemPosition *child, mChildrenX.values())
   {
     if (child->parentAnchorX() == this)
-      child->setParentAnchorX(0); // this acts back on this anchor and child removes itself from mChildrenX
+      child->setParentAnchorX(nullptr); // this acts back on this anchor and child removes itself from mChildrenX
   }
-  foreach (QCPItemPosition *child, mChildrenY.toList())
+  foreach (QCPItemPosition *child, mChildrenY.values())
   {
     if (child->parentAnchorY() == this)
-      child->setParentAnchorY(0); // this acts back on this anchor and child removes itself from mChildrenY
+      child->setParentAnchorY(nullptr); // this acts back on this anchor and child removes itself from mChildrenY
   }
   // unregister as child in parent:
   if (mParentAnchorX)
@@ -387,7 +388,7 @@ void QCPItemPosition::setTypeY(QCPItemPosition::PositionType type)
   during reparenting. If it's set to false, the coordinates are set to (0, 0), i.e. the position
   will be exactly on top of the parent anchor.
   
-  To remove this QCPItemPosition from any parent anchor, set \a parentAnchor to 0.
+  To remove this QCPItemPosition from any parent anchor, set \a parentAnchor to \c nullptr.
   
   If the QCPItemPosition previously had no parent and the type is \ref ptPlotCoords, the type is
   set to \ref ptAbsolute, to keep the position in a valid state.
@@ -716,7 +717,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
         x -= mParentAnchorX->pixelPosition().x();
       else
         x -= mParentPlot->viewport().left();
-      x /= (double)mParentPlot->viewport().width();
+      x /= double(mParentPlot->viewport().width());
       break;
     }
     case ptAxisRectRatio:
@@ -727,7 +728,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
           x -= mParentAnchorX->pixelPosition().x();
         else
           x -= mAxisRect.data()->left();
-        x /= (double)mAxisRect.data()->width();
+        x /= double(mAxisRect.data()->width());
       } else
         qDebug() << Q_FUNC_INFO << "Item position type x is ptAxisRectRatio, but no axis rect was defined";
       break;
@@ -758,7 +759,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
         y -= mParentAnchorY->pixelPosition().y();
       else
         y -= mParentPlot->viewport().top();
-      y /= (double)mParentPlot->viewport().height();
+      y /= double(mParentPlot->viewport().height());
       break;
     }
     case ptAxisRectRatio:
@@ -769,7 +770,7 @@ void QCPItemPosition::setPixelPosition(const QPointF &pixelPosition)
           y -= mParentAnchorY->pixelPosition().y();
         else
           y -= mAxisRect.data()->top();
-        y /= (double)mAxisRect.data()->height();
+        y /= double(mAxisRect.data()->height());
       } else
         qDebug() << Q_FUNC_INFO << "Item position type y is ptAxisRectRatio, but no axis rect was defined";
       break;
@@ -971,7 +972,7 @@ QCPAbstractItem::QCPAbstractItem(QCustomPlot *parentPlot) :
   parentPlot->registerItem(this);
   
   QList<QCPAxisRect*> rects = parentPlot->axisRects();
-  if (rects.size() > 0)
+  if (!rects.isEmpty())
   {
     setClipToAxisRect(true);
     setClipAxisRect(rects.first());
@@ -1059,7 +1060,7 @@ void QCPAbstractItem::setSelected(bool selected)
 
 /*!
   Returns the QCPItemPosition with the specified \a name. If this item doesn't have a position by
-  that name, returns 0.
+  that name, returns \c nullptr.
   
   This function provides an alternative way to access item positions. Normally, you access
   positions direcly by their member pointers (which typically have the same variable name as \a
@@ -1069,18 +1070,18 @@ void QCPAbstractItem::setSelected(bool selected)
 */
 QCPItemPosition *QCPAbstractItem::position(const QString &name) const
 {
-  for (int i=0; i<mPositions.size(); ++i)
+  foreach (QCPItemPosition *position, mPositions)
   {
-    if (mPositions.at(i)->name() == name)
-      return mPositions.at(i);
+    if (position->name() == name)
+      return position;
   }
   qDebug() << Q_FUNC_INFO << "position with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!
   Returns the QCPItemAnchor with the specified \a name. If this item doesn't have an anchor by
-  that name, returns 0.
+  that name, returns \c nullptr.
   
   This function provides an alternative way to access item anchors. Normally, you access
   anchors direcly by their member pointers (which typically have the same variable name as \a
@@ -1090,13 +1091,13 @@ QCPItemPosition *QCPAbstractItem::position(const QString &name) const
 */
 QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
 {
-  for (int i=0; i<mAnchors.size(); ++i)
+  foreach (QCPItemAnchor *anchor, mAnchors)
   {
-    if (mAnchors.at(i)->name() == name)
-      return mAnchors.at(i);
+    if (anchor->name() == name)
+      return anchor;
   }
   qDebug() << Q_FUNC_INFO << "anchor with name not found:" << name;
-  return 0;
+  return nullptr;
 }
 
 /*!
@@ -1109,9 +1110,9 @@ QCPItemAnchor *QCPAbstractItem::anchor(const QString &name) const
 */
 bool QCPAbstractItem::hasAnchor(const QString &name) const
 {
-  for (int i=0; i<mAnchors.size(); ++i)
+  foreach (QCPItemAnchor *anchor, mAnchors)
   {
-    if (mAnchors.at(i)->name() == name)
+    if (anchor->name() == name)
       return true;
   }
   return false;
@@ -1170,13 +1171,13 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
   double result = -1;
 
   // distance to border:
-  QList<QLineF> lines;
-  lines << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
-        << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
+  const QList<QLineF> lines = QList<QLineF>() << QLineF(rect.topLeft(), rect.topRight()) << QLineF(rect.bottomLeft(), rect.bottomRight())
+                                              << QLineF(rect.topLeft(), rect.bottomLeft()) << QLineF(rect.topRight(), rect.bottomRight());
+  const QCPVector2D posVec(pos);
   double minDistSqr = (std::numeric_limits<double>::max)();
-  for (int i=0; i<lines.size(); ++i)
+  foreach (const QLineF &line, lines)
   {
-    double distSqr = QCPVector2D(pos).distanceSquaredToLine(lines.at(i).p1(), lines.at(i).p2());
+    double distSqr = posVec.distanceSquaredToLine(line.p1(), line.p2());
     if (distSqr < minDistSqr)
       minDistSqr = distSqr;
   }
@@ -1204,7 +1205,7 @@ double QCPAbstractItem::rectDistance(const QRectF &rect, const QPointF &pos, boo
 QPointF QCPAbstractItem::anchorPixelPosition(int anchorId) const
 {
   qDebug() << Q_FUNC_INFO << "called on item which shouldn't have any anchors (this method not reimplemented). anchorId" << anchorId;
-  return QPointF();
+  return {};
 }
 
 /*! \internal

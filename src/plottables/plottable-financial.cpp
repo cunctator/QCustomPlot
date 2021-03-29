@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "plottable-financial.h"
@@ -427,7 +427,7 @@ QCPDataSelection QCPFinancial::selectTestRect(const QRectF &rect, bool onlySelec
   for (QCPFinancialDataContainer::const_iterator it=visibleBegin; it!=visibleEnd; ++it)
   {
     if (rect.intersects(selectionHitBox(it)))
-      result.addDataRange(QCPDataRange(it-mDataContainer->constBegin(), it-mDataContainer->constBegin()+1), false);
+      result.addDataRange(QCPDataRange(int(it-mDataContainer->constBegin()), int(it-mDataContainer->constBegin()+1)), false);
   }
   result.simplify();
   return result;
@@ -449,7 +449,7 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     // get visible data range:
     QCPFinancialDataContainer::const_iterator visibleBegin, visibleEnd;
@@ -466,7 +466,7 @@ double QCPFinancial::selectTest(const QPointF &pos, bool onlySelectable, QVarian
     }
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int(closestDataPoint-mDataContainer->constBegin());
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return result;
@@ -975,7 +975,7 @@ QRectF QCPFinancial::selectionHitBox(QCPFinancialDataContainer::const_iterator i
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QRectF(); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {}; }
   
   double keyPixel = keyAxis->coordToPixel(it->key);
   double highPixel = valueAxis->coordToPixel(it->high);

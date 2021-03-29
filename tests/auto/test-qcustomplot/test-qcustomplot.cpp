@@ -4,12 +4,96 @@ void TestQCustomPlot::init()
 {
   mPlot = new QCustomPlot(0);
   mPlot->show();
-  QTest::qWait(150);
+  //QTest::qWait(150);
 }
 
 void TestQCustomPlot::cleanup()
 {
   delete mPlot;
+}
+
+void TestQCustomPlot::interface_plottables()
+{
+  mPlot->setGeometry(50, 50, 500, 500);
+  mPlot->axisRect()->setAutoMargins(QCP::msNone);
+  mPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
+  // set axes so plot coordinates equate pixel coordinates:
+  mPlot->xAxis->setRange(mPlot->axisRect()->left(), mPlot->axisRect()->left()+mPlot->axisRect()->width());
+  mPlot->yAxis->setRange(mPlot->axisRect()->top(), mPlot->axisRect()->top()+mPlot->axisRect()->height());
+  mPlot->yAxis->setRangeReversed(true);
+  
+  QCPGraph *g1 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
+  QCPGraph *g2 = new QCPGraph(mPlot->xAxis, mPlot->yAxis);
+  g1->setData(QVector<double>() << 200 << 300, QVector<double>() << 100 << 120);
+  g2->setData(QVector<double>() << 200 << 300, QVector<double>() << 106 << 126);
+
+  QCPBars *b1 = new QCPBars(mPlot->xAxis, mPlot->yAxis);
+  b1->setWidth(50);
+  b1->setData(QVector<double>() << 250, QVector<double>() << 150);
+
+  // test selectivity of template parameter:
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 110), false, nullptr), g1);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 113), false, nullptr), g2);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(250, 130), false, nullptr), static_cast<QCPGraph*>(nullptr));
+
+  QCOMPARE(mPlot->plottableAt<QCPBars>(QPointF(250, 110), false, nullptr), b1);
+  QCOMPARE(mPlot->plottableAt<QCPBars>(QPointF(250, 170), false, nullptr), static_cast<QCPBars*>(nullptr));
+
+  // test returned datapoint:
+  int index = -1;
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(180, 100), false, &index), static_cast<QCPGraph*>(nullptr));
+  QCOMPARE(index, -1);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(200, 100), false, &index), g1);
+  QCOMPARE(index, 0);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(249, 110), false, &index), g1);
+  QCOMPARE(index, 0);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(251, 110), false, &index), g1);
+  QCOMPARE(index, 1);
+  QCOMPARE(mPlot->plottableAt<QCPGraph>(QPointF(300, 120), false, &index), g1);
+  QCOMPARE(index, 1);
+
+  /*
+  mPlot->replot(QCustomPlot::rpImmediateRefresh);
+  QApplication::processEvents();
+  QTest::qWait(2000);
+  */
+}
+
+void TestQCustomPlot::interface_items()
+{
+  mPlot->setGeometry(50, 50, 500, 500);
+  mPlot->axisRect()->setAutoMargins(QCP::msNone);
+  mPlot->axisRect()->setMargins(QMargins(0, 0, 0, 0));
+  // set axes so plot coordinates equate pixel coordinates:
+  mPlot->xAxis->setRange(mPlot->axisRect()->left(), mPlot->axisRect()->left()+mPlot->axisRect()->width());
+  mPlot->yAxis->setRange(mPlot->axisRect()->top(), mPlot->axisRect()->top()+mPlot->axisRect()->height());
+  mPlot->yAxis->setRangeReversed(true);
+  
+  QCPItemLine *l1 = new QCPItemLine(mPlot);
+  l1->start->setCoords(200, 100);
+  l1->end->setCoords(300, 120);
+  QCPItemLine *l2 = new QCPItemLine(mPlot);
+  l2->start->setCoords(200, 106);
+  l2->end->setCoords(300, 126);
+
+  QCPItemTracer *t1 = new QCPItemTracer(mPlot);
+  t1->position->setCoords(250, 110);
+  t1->setStyle(QCPItemTracer::tsPlus);
+  t1->setSize(10);
+
+  // test selectivity of template parameter:
+  QCOMPARE(mPlot->itemAt<QCPItemLine>(QPointF(250, 110), false), l1);
+  QCOMPARE(mPlot->itemAt<QCPItemLine>(QPointF(250, 113), false), l2);
+  QCOMPARE(mPlot->itemAt<QCPItemLine>(QPointF(250, 130), false), static_cast<QCPItemLine*>(nullptr));
+  
+  QCOMPARE(mPlot->itemAt<QCPItemTracer>(QPointF(250, 110), false), t1);
+  QCOMPARE(mPlot->itemAt<QCPItemTracer>(QPointF(250, 130), false), static_cast<QCPItemTracer*>(nullptr));
+
+  /*
+  mPlot->replot(QCustomPlot::rpImmediateRefresh);
+  QApplication::processEvents();
+  QTest::qWait(2000);
+  */
 }
 
 void TestQCustomPlot::rescaleAxes_GraphVisibility()

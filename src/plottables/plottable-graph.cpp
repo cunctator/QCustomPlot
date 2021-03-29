@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "plottable-graph.h"
@@ -186,7 +186,10 @@ QCPGraphData::QCPGraphData(double key, double value) :
   To directly create a graph inside a plot, you can also use the simpler QCustomPlot::addGraph function.
 */
 QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
-  QCPAbstractPlottable1D<QCPGraphData>(keyAxis, valueAxis)
+  QCPAbstractPlottable1D<QCPGraphData>(keyAxis, valueAxis),
+  mLineStyle{},
+  mScatterSkip{},
+  mAdaptiveSampling{}
 {
   // special handling for QCPGraphs to maintain the simple graph interface:
   mParentPlot->registerGraph(this);
@@ -196,7 +199,7 @@ QCPGraph::QCPGraph(QCPAxis *keyAxis, QCPAxis *valueAxis) :
   
   setLineStyle(lsLine);
   setScatterSkip(0);
-  setChannelFillGraph(0);
+  setChannelFillGraph(nullptr);
   setAdaptiveSampling(true);
 }
 
@@ -294,14 +297,14 @@ void QCPGraph::setChannelFillGraph(QCPGraph *targetGraph)
   if (targetGraph == this)
   {
     qDebug() << Q_FUNC_INFO << "targetGraph is this graph itself";
-    mChannelFillGraph = 0;
+    mChannelFillGraph = nullptr;
     return;
   }
   // prevent setting channel target to a graph not in the plot:
   if (targetGraph && targetGraph->mParentPlot != mParentPlot)
   {
     qDebug() << Q_FUNC_INFO << "targetGraph not in same plot";
-    mChannelFillGraph = 0;
+    mChannelFillGraph = nullptr;
     return;
   }
   
@@ -402,13 +405,13 @@ double QCPGraph::selectTest(const QPointF &pos, bool onlySelectable, QVariant *d
   if (!mKeyAxis || !mValueAxis)
     return -1;
   
-  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()))
+  if (mKeyAxis.data()->axisRect()->rect().contains(pos.toPoint()) || mParentPlot->interactions().testFlag(QCP::iSelectPlottablesBeyondAxisRect))
   {
     QCPGraphDataContainer::const_iterator closestDataPoint = mDataContainer->constEnd();
     double result = pointDistance(pos, closestDataPoint);
     if (details)
     {
-      int pointIndex = closestDataPoint-mDataContainer->constBegin();
+      int pointIndex = int(closestDataPoint-mDataContainer->constBegin());
       details->setValue(QCPDataSelection(QCPDataRange(pointIndex, pointIndex+1)));
     }
     return result;
@@ -533,7 +536,7 @@ void QCPGraph::drawLegendIcon(QCPPainter *painter, const QRectF &rect) const
 
 /*! \internal
 
-  This method retrieves an optimized set of data points via \ref getOptimizedLineData, an branches
+  This method retrieves an optimized set of data points via \ref getOptimizedLineData, and branches
   out to the line style specific functions such as \ref dataToLines, \ref dataToStepLeftLines, etc.
   according to the line style of the graph.
 
@@ -898,12 +901,12 @@ void QCPGraph::drawFill(QCPPainter *painter, QVector<QPointF> *lines) const
   if (painter->brush().style() == Qt::NoBrush || painter->brush().color().alpha() == 0) return;
   
   applyFillAntialiasingHint(painter);
-  QVector<QCPDataRange> segments = getNonNanSegments(lines, keyAxis()->orientation());
+  const QVector<QCPDataRange> segments = getNonNanSegments(lines, keyAxis()->orientation());
   if (!mChannelFillGraph)
   {
     // draw base fill under graph, fill goes all the way to the zero-value-line:
-    for (int i=0; i<segments.size(); ++i)
-      painter->drawPolygon(getFillPolygon(lines, segments.at(i)));
+    foreach (QCPDataRange segment, segments)
+      painter->drawPolygon(getFillPolygon(lines, segment));
   } else
   {
     // draw fill between this graph and mChannelFillGraph:
@@ -930,8 +933,8 @@ void QCPGraph::drawScatterPlot(QCPPainter *painter, const QVector<QPointF> &scat
 {
   applyScattersAntialiasingHint(painter);
   style.applyTo(painter, mPen);
-  for (int i=0; i<scatters.size(); ++i)
-    style.drawShape(painter, scatters.at(i).x(), scatters.at(i).y());
+  foreach (const QPointF &scatter, scatters)
+    style.drawShape(painter, scatter.x(), scatter.y());
 }
 
 /*!  \internal
@@ -991,13 +994,13 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
   if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return; }
   if (begin == end) return;
   
-  int dataCount = end-begin;
+  int dataCount = int(end-begin);
   int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
     double keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
     if (2*keyPixelSpan+2 < static_cast<double>((std::numeric_limits<int>::max)()))
-      maxCount = 2*keyPixelSpan+2;
+      maxCount = int(2*keyPixelSpan+2);
   }
   
   if (mAdaptiveSampling && dataCount >= maxCount) // use adaptive sampling only if there are at least two points per pixel on average
@@ -1008,7 +1011,7 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
     QCPGraphDataContainer::const_iterator currentIntervalFirstPoint = it;
     int reversedFactor = keyAxis->pixelOrientation(); // is used to calculate keyEpsilon pixel into the correct direction
     int reversedRound = reversedFactor==-1 ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-    double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(begin->key)+reversedRound));
+    double currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(begin->key)+reversedRound));
     double lastIntervalEndKey = currentIntervalStartKey;
     double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
     bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
@@ -1039,7 +1042,7 @@ void QCPGraph::getOptimizedLineData(QVector<QCPGraphData> *lineData, const QCPGr
         minValue = it->value;
         maxValue = it->value;
         currentIntervalFirstPoint = it;
-        currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
+        currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(it->key)+reversedRound));
         if (keyEpsilonVariable)
           keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
         intervalDataCount = 1;
@@ -1084,19 +1087,19 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
   
   const int scatterModulo = mScatterSkip+1;
   const bool doScatterSkip = mScatterSkip > 0;
-  int beginIndex = begin-mDataContainer->constBegin();
-  int endIndex = end-mDataContainer->constBegin();
+  int beginIndex = int(begin-mDataContainer->constBegin());
+  int endIndex = int(end-mDataContainer->constBegin());
   while (doScatterSkip && begin != end && beginIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
   {
     ++beginIndex;
     ++begin;
   }
   if (begin == end) return;
-  int dataCount = end-begin;
+  int dataCount = int(end-begin);
   int maxCount = (std::numeric_limits<int>::max)();
   if (mAdaptiveSampling)
   {
-    int keyPixelSpan = qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key));
+    int keyPixelSpan = int(qAbs(keyAxis->coordToPixel(begin->key)-keyAxis->coordToPixel((end-1)->key)));
     maxCount = 2*keyPixelSpan+2;
   }
   
@@ -1105,7 +1108,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
     double valueMaxRange = valueAxis->range().upper;
     double valueMinRange = valueAxis->range().lower;
     QCPGraphDataContainer::const_iterator it = begin;
-    int itIndex = beginIndex;
+    int itIndex = int(beginIndex);
     double minValue = it->value;
     double maxValue = it->value;
     QCPGraphDataContainer::const_iterator minValueIt = it;
@@ -1113,7 +1116,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
     QCPGraphDataContainer::const_iterator currentIntervalStart = it;
     int reversedFactor = keyAxis->pixelOrientation(); // is used to calculate keyEpsilon pixel into the correct direction
     int reversedRound = reversedFactor==-1 ? 1 : 0; // is used to switch between floor (normal) and ceil (reversed) rounding of currentIntervalStartKey
-    double currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(begin->key)+reversedRound));
+    double currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(begin->key)+reversedRound));
     double keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor)); // interval of one pixel on screen when mapped to plot key coordinates
     bool keyEpsilonVariable = keyAxis->scaleType() == QCPAxis::stLogarithmic; // indicates whether keyEpsilon needs to be updated after every interval (for log axes)
     int intervalDataCount = 1;
@@ -1170,7 +1173,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
         minValue = it->value;
         maxValue = it->value;
         currentIntervalStart = it;
-        currentIntervalStartKey = keyAxis->pixelToCoord((int)(keyAxis->coordToPixel(it->key)+reversedRound));
+        currentIntervalStartKey = keyAxis->pixelToCoord(int(keyAxis->coordToPixel(it->key)+reversedRound));
         if (keyEpsilonVariable)
           keyEpsilon = qAbs(currentIntervalStartKey-keyAxis->pixelToCoord(keyAxis->coordToPixel(currentIntervalStartKey)+1.0*reversedFactor));
         intervalDataCount = 1;
@@ -1197,7 +1200,7 @@ void QCPGraph::getOptimizedScatterData(QVector<QCPGraphData> *scatterData, QCPGr
       double valuePixelSpan = qAbs(valueAxis->coordToPixel(minValue)-valueAxis->coordToPixel(maxValue));
       int dataModulo = qMax(1, qRound(intervalDataCount/(valuePixelSpan/4.0))); // approximately every 4 value pixels one data point on average
       QCPGraphDataContainer::const_iterator intervalIt = currentIntervalStart;
-      int intervalItIndex = intervalIt-mDataContainer->constBegin();
+      int intervalItIndex = int(intervalIt-mDataContainer->constBegin());
       int c = 0;
       while (intervalIt != it)
       {
@@ -1444,7 +1447,7 @@ QPointF QCPGraph::getFillBasePoint(QPointF matchingDataPoint) const
 {
   QCPAxis *keyAxis = mKeyAxis.data();
   QCPAxis *valueAxis = mValueAxis.data();
-  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return QPointF(); }
+  if (!keyAxis || !valueAxis) { qDebug() << Q_FUNC_INFO << "invalid key or value axis"; return {}; }
   
   QPointF result;
   if (valueAxis->scaleType() == QCPAxis::stLinear)
@@ -1743,7 +1746,7 @@ double QCPGraph::pointDistance(const QPointF &pixelPoint, QCPGraphDataContainer:
   {
     // line displayed, calculate distance to line segments:
     QVector<QPointF> lineData;
-    getLines(&lineData, QCPDataRange(0, dataCount()));
+    getLines(&lineData, QCPDataRange(0, dataCount())); // don't limit data range further since with sharp data spikes, line segments may be closer to test point than segments with closer key coordinate
     QCPVector2D p(pixelPoint);
     const int step = mLineStyle==lsImpulse ? 2 : 1; // impulse plot differs from other line styles in that the lineData points are only pairwise connected
     for (int i=0; i<lineData.size()-1; i+=step)

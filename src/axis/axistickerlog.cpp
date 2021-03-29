@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2018 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -19,8 +19,8 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 25.06.18                                             **
-**          Version: 2.0.1                                                **
+**             Date: 29.03.21                                             **
+**          Version: 2.1.0                                                **
 ****************************************************************************/
 
 #include "axistickerlog.h"
@@ -46,6 +46,12 @@
 
   The ticker can be created and assigned to an axis like this:
   \snippet documentation/doc-image-generator/mainwindow.cpp axistickerlog-creation
+  
+  Note that the nature of logarithmic ticks imply that there exists a smallest possible tick step,
+  corresponding to one multiplication by the log base. If the user zooms in further than that, no
+  new ticks would appear, leading to very sparse or even no axis ticks on the axis. To prevent this
+  situation, this ticker falls back to regular tick generation if the axis range would be covered
+  by too few logarithmically placed ticks.
 */
 
 /*!
@@ -93,20 +99,6 @@ void QCPAxisTickerLog::setSubTickCount(int subTicks)
 
 /*! \internal
   
-  Since logarithmic tick steps are necessarily different for each tick interval, this method does
-  nothing in the case of QCPAxisTickerLog
-  
-  \seebaseclassmethod
-*/
-double QCPAxisTickerLog::getTickStep(const QCPRange &range)
-{
-  // Logarithmic axis ticker has unequal tick spacing, so doesn't need this method
-  Q_UNUSED(range)
-  return 1.0;
-}
-
-/*! \internal
-  
   Returns the sub tick count specified in \ref setSubTickCount. For QCPAxisTickerLog, there is no
   automatic sub tick count calculation necessary.
   
@@ -122,19 +114,24 @@ int QCPAxisTickerLog::getSubTickCount(double tickStep)
   
   Creates ticks with a spacing given by the logarithm base and an increasing integer power in the
   provided \a range. The step in which the power increases tick by tick is chosen in order to keep
-  the total number of ticks as close as possible to the tick count (\ref setTickCount). The
-  parameter \a tickStep is ignored for QCPAxisTickerLog
+  the total number of ticks as close as possible to the tick count (\ref setTickCount).
+
+  The parameter \a tickStep is ignored for the normal logarithmic ticker generation. Only when
+  zoomed in very far such that not enough logarithmically placed ticks would be visible, this
+  function falls back to the regular QCPAxisTicker::createTickVector, which then uses \a tickStep.
   
   \seebaseclassmethod
 */
 QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRange &range)
 {
-  Q_UNUSED(tickStep)
   QVector<double> result;
   if (range.lower > 0 && range.upper > 0) // positive range
   {
-    double exactPowerStep =  qLn(range.upper/range.lower)*mLogBaseLnInv/(double)(mTickCount+1e-10);
-    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    const double baseTickCount = qLn(range.upper/range.lower)*mLogBaseLnInv;
+    if (baseTickCount < 1.6) // if too few log ticks would be visible in axis range, fall back to regular tick vector generation
+      return QCPAxisTicker::createTickVector(tickStep, range);
+    const double exactPowerStep =  baseTickCount/double(mTickCount+1e-10);
+    const double newLogBase = qPow(mLogBase, qMax(int(cleanMantissa(exactPowerStep)), 1));
     double currentTick = qPow(newLogBase, qFloor(qLn(range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick > 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case
@@ -144,8 +141,11 @@ QVector<double> QCPAxisTickerLog::createTickVector(double tickStep, const QCPRan
     }
   } else if (range.lower < 0 && range.upper < 0) // negative range
   {
-    double exactPowerStep =  qLn(range.lower/range.upper)*mLogBaseLnInv/(double)(mTickCount+1e-10);
-    double newLogBase = qPow(mLogBase, qMax((int)cleanMantissa(exactPowerStep), 1));
+    const double baseTickCount = qLn(range.lower/range.upper)*mLogBaseLnInv;
+    if (baseTickCount < 1.6) // if too few log ticks would be visible in axis range, fall back to regular tick vector generation
+      return QCPAxisTicker::createTickVector(tickStep, range);
+    const double exactPowerStep =  baseTickCount/double(mTickCount+1e-10);
+    const double newLogBase = qPow(mLogBase, qMax(int(cleanMantissa(exactPowerStep)), 1));
     double currentTick = -qPow(newLogBase, qCeil(qLn(-range.lower)/qLn(newLogBase)));
     result.append(currentTick);
     while (currentTick < range.upper && currentTick < 0) // currentMag might be zero for ranges ~1e-300, just cancel in that case

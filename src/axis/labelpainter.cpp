@@ -260,7 +260,7 @@ void QCPLabelPainterPrivate::drawLabelMaybeCached(QCPPainter *painter, const QFo
   if (mParentPlot->plottingHints().testFlag(QCP::phCacheLabels) && !painter->modes().testFlag(QCPPainter::pmNoCaching)) // label caching enabled
   {
     QByteArray key = cacheKey(text, color, rotation, side);
-    CachedLabel *cachedLabel = mLabelCache.take(key); // attempt to take label from cache (don't use object() because we want ownership/prevent deletion during our operations, we re-insert it afterwards)
+    CachedLabel *cachedLabel = mLabelCache.take(QString::fromUtf8(key)); // attempt to take label from cache (don't use object() because we want ownership/prevent deletion during our operations, we re-insert it afterwards)
     if (!cachedLabel)  // no cached label existed, create it
     {
       LabelData labelData = getTickLabelData(font, color, rotation, side, text);
@@ -282,7 +282,7 @@ void QCPLabelPainterPrivate::drawLabelMaybeCached(QCPPainter *painter, const QFo
       painter->drawPixmap(pos+cachedLabel->offset, cachedLabel->pixmap);
       finalSize = cachedLabel->pixmap.size()/mParentPlot->bufferDevicePixelRatio(); // TODO: collect this in a member rect list?
     }
-    mLabelCache.insert(key, cachedLabel);
+    mLabelCache.insert(QString::fromUtf8(key), cachedLabel);
   } else // label caching disabled, draw text directly on surface:
   {
     LabelData labelData = getTickLabelData(font, color, rotation, side, text);
@@ -618,7 +618,7 @@ QCPLabelPainterPrivate::AnchorSide QCPLabelPainterPrivate::rotationCorrectedSide
 void QCPLabelPainterPrivate::analyzeFontMetrics()
 {
   const QFontMetrics fm(mFont);
-  mLetterCapHeight = fm.tightBoundingRect("8").height(); // this method is slow, that's why we query it only upon font change
+  mLetterCapHeight = fm.tightBoundingRect(QLatin1String("8")).height(); // this method is slow, that's why we query it only upon font change
   mLetterDescent = fm.descent();
 }
 

@@ -1597,8 +1597,9 @@ QList<QCPAbstractPlottable*> QCPAxis::plottables() const
   QList<QCPAbstractPlottable*> result;
   if (!mParentPlot) return result;
   
-  foreach (QCPAbstractPlottable *plottable, mParentPlot->mPlottables)
+  for (auto iter = mParentPlot->mPlottables.cbegin(); iter != mParentPlot->mPlottables.cend(); iter++)
   {
+    QCPAbstractPlottable *plottable = *iter;
     if (plottable->keyAxis() == this || plottable->valueAxis() == this)
       result.append(plottable);
   }
@@ -1614,9 +1615,10 @@ QList<QCPGraph*> QCPAxis::graphs() const
 {
   QList<QCPGraph*> result;
   if (!mParentPlot) return result;
-  
-  foreach (QCPGraph *graph, mParentPlot->mGraphs)
+
+  for (auto iter = mParentPlot->mGraphs.cbegin(); iter != mParentPlot->mGraphs.cend(); iter++)
   {
+    QCPGraph *graph = *iter;
     if (graph->keyAxis() == this || graph->valueAxis() == this)
       result.append(graph);
   }

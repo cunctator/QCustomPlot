@@ -1091,8 +1091,17 @@ bool QCustomPlot::removePlottable(int index)
 int QCustomPlot::clearPlottables()
 {
   int c = mPlottables.size();
-  for (int i=c-1; i >= 0; --i)
-    removePlottable(mPlottables[i]);
+  auto iter = mPlottables.rbegin();
+  while (iter != mPlottables.rend())
+  {
+    QCPAbstractPlottable* plottable = *iter;
+    /*
+     * NB: We must advance the iterator before removing the graph, otherwise the iterator will become
+     * invalid, because removePlottable() will remove it from mPlottables
+     */
+    iter++;
+    removePlottable(plottable);
+  }
   return c;
 }
 
@@ -1116,8 +1125,9 @@ int QCustomPlot::plottableCount() const
 QList<QCPAbstractPlottable*> QCustomPlot::selectedPlottables() const
 {
   QList<QCPAbstractPlottable*> result;
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  for (auto iter = mPlottables.cbegin(); iter != mPlottables.cend(); iter++)
   {
+    QCPAbstractPlottable *plottable = *iter;
     if (plottable->selected())
       result.append(plottable);
   }
@@ -1165,6 +1175,7 @@ QCPGraph *QCustomPlot::graph(int index) const
     return nullptr;
   }
 }
+
 
 /*! \overload
   
@@ -1252,8 +1263,17 @@ bool QCustomPlot::removeGraph(int index)
 int QCustomPlot::clearGraphs()
 {
   int c = mGraphs.size();
-  for (int i=c-1; i >= 0; --i)
-    removeGraph(mGraphs[i]);
+  auto iter = mGraphs.rbegin();
+  while (iter != mGraphs.rend())
+  {
+    QCPGraph *graph = *iter;
+    /*
+     * NB: We must advance the iterator before removing the graph, otherwise the iterator will become
+     * invalid, because removeGraph() will remove it from mGraphs
+     */
+    iter++;
+    removeGraph(graph);
+  }
   return c;
 }
 
@@ -1278,8 +1298,9 @@ int QCustomPlot::graphCount() const
 QList<QCPGraph*> QCustomPlot::selectedGraphs() const
 {
   QList<QCPGraph*> result;
-  foreach (QCPGraph *graph, mGraphs)
+  for (auto iter = mGraphs.cbegin(); iter != mGraphs.cend(); iter++)
   {
+    QCPGraph *graph = *iter;
     if (graph->selected())
       result.append(graph);
   }

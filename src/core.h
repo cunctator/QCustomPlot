@@ -127,10 +127,10 @@ public:
   
   // non-property methods:
   // plottable interface:
-  QCPAbstractPlottable *plottable(int index);
+  QCPAbstractPlottable *plottable(int index) __attribute__ ((deprecated("This function now has bad performance if there are many plottables in the plot!")));
   QCPAbstractPlottable *plottable();
   bool removePlottable(QCPAbstractPlottable *plottable);
-  bool removePlottable(int index);
+  bool removePlottable(int index) __attribute__ ((deprecated("This function now has bad performance if there are many plottables in the plot!")));
   int clearPlottables();
   int plottableCount() const;
   QList<QCPAbstractPlottable*> selectedPlottables() const;
@@ -140,11 +140,11 @@ public:
   bool hasPlottable(QCPAbstractPlottable *plottable) const;
  
   // specialized interface for QCPGraph:
-  QCPGraph *graph(int index) const;
+  QCPGraph *graph(int index) const __attribute__ ((deprecated("This function now has bad performance if there are many graphs in the plot!")));
   QCPGraph *graph() const;
   QCPGraph *addGraph(QCPAxis *keyAxis=nullptr, QCPAxis *valueAxis=nullptr);
   bool removeGraph(QCPGraph *graph);
-  bool removeGraph(int index);
+  bool removeGraph(int index) __attribute__ ((deprecated("This function now has bad performance if there are many items in the plot!")));
   int clearGraphs();
   int graphCount() const;
   QList<QCPGraph*> selectedGraphs() const;
@@ -225,8 +225,8 @@ protected:
   double mBufferDevicePixelRatio;
   QCPLayoutGrid *mPlotLayout;
   bool mAutoAddPlottableToLegend;
-  QList<QCPAbstractPlottable*> mPlottables;
-  QList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
+  QCPList<QCPAbstractPlottable*> mPlottables;
+  QCPList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
   QCPList<QCPAbstractItem*> mItems;
   QList<QCPLayer*> mLayers;
   QCP::AntialiasedElements mAntialiasedElements, mNotAntialiasedElements;
@@ -306,6 +306,7 @@ protected:
   friend class QCPAbstractPlottable;
   friend class QCPGraph;
   friend class QCPAbstractItem;
+  friend class QCPColorScale;
 };
 Q_DECLARE_METATYPE(QCustomPlot::LayerInsertMode)
 Q_DECLARE_METATYPE(QCustomPlot::RefreshPriority)
@@ -338,8 +339,9 @@ PlottableType *QCustomPlot::plottableAt(const QPointF &pos, bool onlySelectable,
   QVariant resultDetails;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
   
-  foreach (QCPAbstractPlottable *plottable, mPlottables)
+  for (auto iter = mPlottables.cbegin(); iter != mPlottables.cend(); iter++)
   {
+    QCPAbstractPlottable *plottable = *iter;
     PlottableType *currentPlottable = qobject_cast<PlottableType*>(plottable);
     if (!currentPlottable || (onlySelectable && !currentPlottable->selectable())) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractPlottable::selectable
       continue;

@@ -32,6 +32,7 @@
 #include "paintbuffer.h"
 #include "plottable.h"
 #include "qcplist.h"
+#include "qcppointer.h"
 
 class QCPPainter;
 class QCPLayer;
@@ -249,8 +250,8 @@ protected:
   QList<QSharedPointer<QCPAbstractPaintBuffer> > mPaintBuffers;
   QPoint mMousePressPos;
   bool mMouseHasMoved;
-  QPointer<QCPLayerable> mMouseEventLayerable;
-  QPointer<QCPLayerable> mMouseSignalLayerable;
+  QCPPointer<QCPLayerable> mMouseEventLayerable;
+  QCPPointer<QCPLayerable> mMouseSignalLayerable;
   QVariant mMouseEventLayerableDetails;
   QVariant mMouseSignalLayerableDetails;
   bool mReplotting;

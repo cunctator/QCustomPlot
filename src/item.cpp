@@ -281,7 +281,7 @@ QCPItemPosition::~QCPItemPosition()
     mParentAnchorY->removeChildY(this);
 }
 
-/* can't make this a header inline function, because QPointer breaks with forward declared types, see QTBUG-29588 */
+/* can't make this a header inline function, because QCPPointer breaks with forward declared types, see QTBUG-29588 */
 QCPAxisRect *QCPItemPosition::axisRect() const
 {
   return mAxisRect.data();
@@ -985,7 +985,7 @@ QCPAbstractItem::~QCPAbstractItem()
   qDeleteAll(mAnchors);
 }
 
-/* can't make this a header inline function, because QPointer breaks with forward declared types, see QTBUG-29588 */
+/* can't make this a header inline function, because QCPPointer breaks with forward declared types, see QTBUG-29588 */
 QCPAxisRect *QCPAbstractItem::clipAxisRect() const
 {
   return mClipAxisRect.data();

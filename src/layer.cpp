@@ -192,8 +192,8 @@ void QCPLayer::setMode(QCPLayer::LayerMode mode)
 */
 void QCPLayer::draw(QCPPainter *painter)
 {
-  foreach (QCPLayerable *child, mChildren)
-  {
+  for (auto iter = mChildren.begin(); iter != mChildren.end(); iter++) {
+    QCPLayerable *child = *iter;
     if (child->realVisibility())
     {
       painter->save();

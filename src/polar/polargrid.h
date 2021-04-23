@@ -86,7 +86,7 @@ protected:
   
   // non-property members:
   QCPPolarAxisAngular *mParentAxis;
-  QPointer<QCPPolarAxisRadial> mRadialAxis;
+  QCPPointer<QCPPolarAxisRadial> mRadialAxis;
   
   // reimplemented virtual methods:
   virtual void applyDefaultAntialiasingHint(QCPPainter *painter) const Q_DECL_OVERRIDE;

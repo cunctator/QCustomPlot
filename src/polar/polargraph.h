@@ -158,8 +158,8 @@ protected:
   QPen mPen;
   QBrush mBrush;
   bool mPeriodic;
-  QPointer<QCPPolarAxisAngular> mKeyAxis;
-  QPointer<QCPPolarAxisRadial> mValueAxis;
+  QCPPointer<QCPPolarAxisAngular> mKeyAxis;
+  QCPPointer<QCPPolarAxisRadial> mValueAxis;
   QCP::SelectionType mSelectable;
   QCPDataSelection mSelection;
   //QCPSelectionDecorator *mSelectionDecorator;

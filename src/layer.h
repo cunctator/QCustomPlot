@@ -26,6 +26,7 @@
 #ifndef QCP_LAYER_H
 #define QCP_LAYER_H
 
+#include "qcplist.h"
 #include "global.h"
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   Q_MOC_INCLUDE("core.h") // Qt6 needs this if using forward declared types in Q_PROPERTY
@@ -45,7 +46,7 @@ class QCP_LIB_DECL QCPLayer : public QObject
   Q_PROPERTY(QCustomPlot* parentPlot READ parentPlot)
   Q_PROPERTY(QString name READ name)
   Q_PROPERTY(int index READ index)
-  Q_PROPERTY(QList<QCPLayerable*> children READ children)
+  Q_PROPERTY(QCPList<QCPLayerable*> children READ children)
   Q_PROPERTY(bool visible READ visible WRITE setVisible)
   Q_PROPERTY(LayerMode mode READ mode WRITE setMode)
   /// \endcond
@@ -70,7 +71,7 @@ public:
   QCustomPlot *parentPlot() const { return mParentPlot; }
   QString name() const { return mName; }
   int index() const { return mIndex; }
-  QList<QCPLayerable*> children() const { return mChildren; }
+  QCPList<QCPLayerable*> &children() { return mChildren; }
   bool visible() const { return mVisible; }
   LayerMode mode() const { return mMode; }
   
@@ -86,7 +87,7 @@ protected:
   QCustomPlot *mParentPlot;
   QString mName;
   int mIndex;
-  QList<QCPLayerable*> mChildren;
+  QCPList<QCPLayerable*> mChildren;
   bool mVisible;
   LayerMode mMode;
   

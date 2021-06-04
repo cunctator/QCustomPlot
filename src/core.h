@@ -31,6 +31,7 @@
 #include "axis/axis.h"
 #include "paintbuffer.h"
 #include "plottable.h"
+#include "qcplist.h"
 
 class QCPPainter;
 class QCPLayer;
@@ -149,10 +150,10 @@ public:
   QList<QCPGraph*> selectedGraphs() const;
 
   // item interface:
-  QCPAbstractItem *item(int index) const;
+  QCPAbstractItem *item(int index) const __attribute__ ((deprecated("This function now has bad performance if there are many items in the plot!")));
   QCPAbstractItem *item() const;
   bool removeItem(QCPAbstractItem *item);
-  bool removeItem(int index);
+  bool removeItem(int index) __attribute__ ((deprecated("This function now has bad performance if there are many items in the plot!")));
   int clearItems();
   int itemCount() const;
   QList<QCPAbstractItem*> selectedItems() const;
@@ -226,7 +227,7 @@ protected:
   bool mAutoAddPlottableToLegend;
   QList<QCPAbstractPlottable*> mPlottables;
   QList<QCPGraph*> mGraphs; // extra list of plottables also in mPlottables that are of type QCPGraph
-  QList<QCPAbstractItem*> mItems;
+  QCPList<QCPAbstractItem*> mItems;
   QList<QCPLayer*> mLayers;
   QCP::AntialiasedElements mAntialiasedElements, mNotAntialiasedElements;
   QCP::Interactions mInteractions;
@@ -382,9 +383,10 @@ ItemType *QCustomPlot::itemAt(const QPointF &pos, bool onlySelectable) const
 {
   ItemType *resultItem = 0;
   double resultDistance = mSelectionTolerance; // only regard clicks with distances smaller than mSelectionTolerance as selections, so initialize with that value
-  
-  foreach (QCPAbstractItem *item, mItems)
+
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     ItemType *currentItem = qobject_cast<ItemType*>(item);
     if (!currentItem || (onlySelectable && !currentItem->selectable())) // we could have also passed onlySelectable to the selectTest function, but checking here is faster, because we have access to QCPAbstractItem::selectable
       continue;

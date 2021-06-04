@@ -1633,9 +1633,10 @@ QList<QCPAbstractItem*> QCPAxis::items() const
 {
   QList<QCPAbstractItem*> result;
   if (!mParentPlot) return result;
-  
-  foreach (QCPAbstractItem *item, mParentPlot->mItems)
+
+  for (auto iter = mParentPlot->mItems.begin(); iter != mParentPlot->mItems.end(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     foreach (QCPItemPosition *position, item->positions())
     {
       if (position->keyAxis() == this || position->valueAxis() == this)

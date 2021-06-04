@@ -1368,8 +1368,9 @@ bool QCustomPlot::removeItem(int index)
 int QCustomPlot::clearItems()
 {
   int c = mItems.size();
-  for (int i=c-1; i >= 0; --i)
-    removeItem(mItems[i]);
+  for (auto iter = mItems.rbegin(); iter != mItems.rend(); iter++)
+    delete *iter;
+  mItems.clear();
   return c;
 }
 
@@ -1391,8 +1392,9 @@ int QCustomPlot::itemCount() const
 QList<QCPAbstractItem*> QCustomPlot::selectedItems() const
 {
   QList<QCPAbstractItem*> result;
-  foreach (QCPAbstractItem *item, mItems)
+  for (auto iter = mItems.cbegin(); iter != mItems.cend(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (item->selected())
       result.append(item);
   }

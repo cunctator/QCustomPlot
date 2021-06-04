@@ -568,8 +568,9 @@ QList<QCPAbstractItem *> QCPAxisRect::items() const
   // Note: don't just append all QCPAxis::items() into a list, because we might get duplicate entries
   //       and miss those items that have this axis rect as clipAxisRect.
   QList<QCPAbstractItem*> result;
-  foreach (QCPAbstractItem *item, mParentPlot->mItems)
+  for (auto iter = mParentPlot->mItems.begin(); iter != mParentPlot->mItems.end(); iter++)
   {
+    QCPAbstractItem *item = *iter;
     if (item->clipAxisRect() == this)
     {
       result.append(item);

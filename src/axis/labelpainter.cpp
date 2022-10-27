@@ -224,8 +224,8 @@ QByteArray QCPLabelPainterPrivate::generateLabelParameterHash() const
   QByteArray result;
   result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(mRotation));
-  //result.append(QByteArray::number((int)tickLabelSide)); TODO: check whether this is really a cache-invalidating property
-  result.append(QByteArray::number((int)mSubstituteExponent));
+  //result.append(QByteArray::number(int(tickLabelSide))); TODO: check whether this is really a cache-invalidating property
+  result.append(QByteArray::number(int(mSubstituteExponent)));
   result.append(QString(mMultiplicationSymbol).toUtf8());
   result.append(mColor.name().toLatin1()+QByteArray::number(mColor.alpha(), 16));
   result.append(mFont.toString().toLatin1());
@@ -556,8 +556,8 @@ QByteArray QCPLabelPainterPrivate::cacheKey(const QString &text, const QColor &c
 {
   return text.toUtf8()+
       QByteArray::number(color.red()+256*color.green()+65536*color.blue(), 36)+
-      QByteArray::number(color.alpha()+256*(int)side, 36)+
-      QByteArray::number((int)(rotation*100)%36000, 36);
+      QByteArray::number(color.alpha()+256*int(side), 36)+
+      QByteArray::number(int(rotation*100), 36);
 }
 
 QCPLabelPainterPrivate::AnchorSide QCPLabelPainterPrivate::skewedAnchorSide(const QPointF &tickPos, double sideExpandHorz, double sideExpandVert) const

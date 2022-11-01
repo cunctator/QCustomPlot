@@ -1335,7 +1335,7 @@ void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
     if (std::rand()%(n/25) == 0)
       y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + 5*qSin(x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(0.001+std::rand()/double(RAND_MAX))) + 5*qSin(x[i]);
   }
   x << 0.5;
   y << 2;
@@ -1345,7 +1345,7 @@ void MainWindow::setupAdaptiveSamplingTest(QCustomPlot *customPlot)
     if (std::rand()%(n/25) == 0)
       y << std::rand()/double(RAND_MAX)*7; // generate outliers (must be preserved in adaptive-sampling-algorithm)
     else
-      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(std::rand()/double(RAND_MAX))) + qSin(5*x[i]);
+      y << qCos(std::rand()/double(RAND_MAX)*2*M_PI)*qSqrt(-2*qLn(0.001+std::rand()/double(RAND_MAX))) + qSin(5*x[i]);
   }
   x << 6;
   y << -1;

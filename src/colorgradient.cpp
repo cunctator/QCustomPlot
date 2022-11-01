@@ -256,7 +256,7 @@ void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb 
       qint64 index = qint64((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
       if (!mPeriodic)
       {
-        index = qBound(0, index, qint64(mLevelCount-1));
+        index = qBound(qint64(0), index, qint64(mLevelCount-1));
       } else
       {
         index %= mLevelCount;
@@ -317,7 +317,7 @@ void QCPColorGradient::colorize(const double *data, const unsigned char *alpha, 
       qint64 index = qint64((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
       if (!mPeriodic)
       {
-        index = qBound(0, index, qint64(mLevelCount-1));
+        index = qBound(qint64(0), index, qint64(mLevelCount-1));
       } else
       {
         index %= mLevelCount;

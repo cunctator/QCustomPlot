@@ -371,7 +371,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(nullptr),
   yAxis2(nullptr),
   legend(nullptr),
-  mBufferDevicePixelRatio(1.0), // will be adapted to primary screen below
+  mBufferDevicePixelRatio(1.0), // will be adapted to true value below
   mPlotLayout(nullptr),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -2240,6 +2240,22 @@ QSize QCustomPlot::sizeHint() const
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED(event)
+  
+  // detect if the device pixel ratio has changed (e.g. moving window between different DPI screens), and adapt buffers if necessary:
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+#  ifdef QCP_DEVICEPIXELRATIO_FLOAT
+  double newDpr = devicePixelRatioF();
+#  else
+  double newDpr = devicePixelRatio();
+#  endif
+  if (!qFuzzyCompare(mBufferDevicePixelRatio, newDpr))
+  {
+    setBufferDevicePixelRatio(newDpr);
+    replot(QCustomPlot::rpQueuedRefresh);
+    return;
+  }
+#endif
+  
   QCPPainter painter(this);
   if (painter.isActive())
   {

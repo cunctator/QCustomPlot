@@ -400,7 +400,6 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mOpenGlCacheLabelsBackup(true)
 {
   setAttribute(Qt::WA_NoMousePropagation);
-  setAttribute(Qt::WA_OpaquePaintEvent);
   setFocusPolicy(Qt::ClickFocus);
   setMouseTracking(true);
   QLocale currentLocale = locale();

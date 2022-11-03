@@ -132,9 +132,13 @@
 */
 
 // Qt version < 6.2.0: to get metatypes Q_GADGET/Q_ENUMS/Q_FLAGS in namespace we have to make it look like a class during moc-run
-#if !defined(Q_MOC_RUN) || QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+#if QT_VERSION >= 0x060200 // don't use QT_VERSION_CHECK here, some moc versions don't understand it
 namespace QCP {
-#else
+  Q_NAMESPACE // this is how to add the staticMetaObject to namespaces in newer Qt versions
+#else // Qt version older than 6.2.0
+#  ifndef Q_MOC_RUN
+namespace QCP {
+#  else // not in moc run
 class QCP {
   Q_GADGET
   Q_ENUMS(ExportPen)
@@ -152,13 +156,9 @@ class QCP {
   Q_FLAGS(MarginSides)
   Q_FLAGS(Interactions)
 public:
+#  endif
 #endif
-  
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-Q_NAMESPACE // this is how to add the staticMetaObject to namespaces in newer Qt versions
-#else
-extern const QMetaObject staticMetaObject; // in moc-run a static meta object for fake "QCP" class is created. This line is the link to it via QCP::staticMetaObject in normal operation as namespace
-#endif
+
 
 /*!
   Defines the different units in which the image resolution can be specified in the export
@@ -364,7 +364,7 @@ inline int getMarginValue(const QMargins &margins, QCP::MarginSide side)
 // for newer Qt versions we have to declare the enums/flags as metatypes inside the namespace using Q_ENUM_NS/Q_FLAG_NS:
 // if you change anything here, don't forget to change it for older Qt versions below, too,
 // and at the start of the namespace in the fake moc-run class
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+#if QT_VERSION >= 0x060200
 Q_ENUM_NS(ExportPen)
 Q_ENUM_NS(ResolutionUnit)
 Q_ENUM_NS(SignDomain)
@@ -379,6 +379,8 @@ Q_FLAG_NS(AntialiasedElements)
 Q_FLAG_NS(PlottingHints)
 Q_FLAG_NS(MarginSides)
 Q_FLAG_NS(Interactions)
+#else
+extern const QMetaObject staticMetaObject;
 #endif
 
 } // end of namespace QCP

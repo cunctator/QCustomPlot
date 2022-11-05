@@ -18,7 +18,7 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
+**  Website/Contact: https://www.qcustomplot.com/                         **
 **             Date: 02.11.22                                             **
 **          Version: 2.1.1                                                **
 ****************************************************************************/
@@ -47,7 +47,7 @@
   interacts with the user.
   
   For tutorials on how to use QCustomPlot, see the website\n
-  http://www.qcustomplot.com/
+  https://www.qcustomplot.com/
 */
 
 /* start of documentation of inline functions */

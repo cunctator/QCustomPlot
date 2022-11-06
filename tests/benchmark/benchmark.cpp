@@ -360,7 +360,7 @@ void Benchmark::QCPGraph_AddDataAtEndUnsorted()
   {
     x1[i] = i/(double)n;
     y1[i] = qSin(x1[i]*10*M_PI);
-    x2[i] = (i+n+0.1*(qrand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    x2[i] = (i+n+0.1*(std::rand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
     y2[i] = qSin(x2[i]*10*M_PI);
   }
 
@@ -380,7 +380,7 @@ void Benchmark::QCPGraph_AddDataAtBeginUnsorted()
   {
     x1[i] = (i+n)/(double)n;
     y1[i] = qSin(x1[i]*10*M_PI);
-    x2[i] = (i-0.1*(qrand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    x2[i] = (i-0.1*(std::rand()%500))/(double)n; // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
     y2[i] = qSin(x2[i]*10*M_PI);
   }
 
@@ -400,7 +400,7 @@ void Benchmark::QCPGraph_AddDataMixedUnsorted()
   {
     x1[i] = i/(double)n;
     y1[i] = qSin(x1[i]*10*M_PI);
-    x2[i] = (i+0.1*(qrand()%500))/(double)(3*n); // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
+    x2[i] = (i+0.1*(std::rand()%500))/(double)(3*n); // not completely randomized, but local disorder, global ascending order (typical use-case for data acquisition)
     y2[i] = qSin(x2[i]*10*M_PI);
   }
 
@@ -510,7 +510,7 @@ void Benchmark::QCPGraph_AddDataSingleRandom()
   QVector<double> x2(n2), y2(n2);
   for (int i=0; i<n2; ++i)
   {
-    x2[i] = (qrand()%n+0.5)/(double)n; // randomly in range of existing data, that's why mod n
+    x2[i] = (std::rand()%n+0.5)/(double)n; // randomly in range of existing data, that's why mod n
     y2[i] = qSin(x2[i]*10*M_PI);
   }
 
@@ -536,12 +536,12 @@ void Benchmark::QCPColorMap_Standard()
   const int n = 200;
   map->data()->setSize(n, n);
   map->data()->setRange(QCPRange(0, 5), QCPRange(0, 5));
-  qsrand(0);
+  std::srand(0);
   for (int x=0; x<map->data()->keySize(); ++x)
   {
     for (int y=0; y<map->data()->valueSize(); ++y)
     {
-      map->data()->setCell(x, y, qrand()/double(RAND_MAX));
+      map->data()->setCell(x, y, std::rand()/double(RAND_MAX));
     }
   }
   
@@ -567,12 +567,12 @@ void Benchmark::QCPColorMap_ColorizeMap()
   const int n = 200;
   map->data()->setSize(n, n);
   map->data()->setRange(QCPRange(0, 5), QCPRange(0, 5));
-  qsrand(0);
+  std::srand(0);
   for (int x=0; x<map->data()->keySize(); ++x)
   {
     for (int y=0; y<map->data()->valueSize(); ++y)
     {
-      map->data()->setCell(x, y, qrand()/double(RAND_MAX));
+      map->data()->setCell(x, y, std::rand()/double(RAND_MAX));
     }
   }
   

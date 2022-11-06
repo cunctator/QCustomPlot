@@ -19,7 +19,7 @@ current_dir = pathlib.Path(__file__).parent.absolute()
 
 def replace_in_file(filepath: pathlib.Path, frompattern: str, topattern: str, regex_flags=0):
     regex = re.compile(frompattern, regex_flags)
-    with open(filepath, 'r+') as file:
+    with open(filepath, 'r+', newline='\n') as file:
         file_lines = file.readlines()
         for i in range(len(file_lines)):
             result_line = regex.sub(topattern, file_lines[i])

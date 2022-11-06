@@ -8,7 +8,7 @@ os.chdir(baseDir)  # change current working dir to script dir
 tarcommand = "GZIP=\"-9\" tar -caf"  # -a means determine compressor by archive suffix
 tarsuffix = ".tar.gz"
 
-if raw_input("\033[1;31m"+"This will completely reset the current working directory.\n(Call 'git clean -dxn -e \".idea/\"' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
+if input("\033[1;31m"+"This will completely reset the current working directory.\n(Call 'git clean -dxn -e \".idea/\"' to see what will be deleted.)\nContinue? (y/n): "+"\033[1;m").lower() != 'y':
     printinfo("Aborted.")
     sys.exit(1)
 

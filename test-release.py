@@ -100,7 +100,7 @@ for qmakecommand in qmakeVersions:
             printinfo("Press any key to finish release test.")
         else:
             printinfo("Enter 'q' and hit return to stop release test, enter nothing to continue with next qt version...")
-        answer = raw_input()
+        answer = input()
     os.chdir(baseDir)
     shutil.rmtree("./temp")
     printinfo("cleaned up")

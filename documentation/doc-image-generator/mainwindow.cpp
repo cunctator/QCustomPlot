@@ -1050,13 +1050,14 @@ void MainWindow::genQCPBarsGroup()
 
 void MainWindow::genQCPSelectionType()
 {
-  resetPlot(true);
+  resetPlot(true, true); // need to actually show window, otherwise QMouseEvent coordinates are wrong
   const int imageWidth = 180;
   const int imageHeight = 110;
   customPlot->setSelectionRectMode(QCP::srmSelect);
   customPlot->setInteractions(QCP::iSelectPlottables);
-  customPlot->setGeometry(0, 0, imageWidth, imageHeight);
-  customPlot->xAxis->setRange(-0.05, 2.005);
+  QPoint currentTopLeft = customPlot->geometry().topLeft();
+  customPlot->setGeometry(currentTopLeft.x(), currentTopLeft.y(), imageWidth, imageHeight);
+  customPlot->xAxis->setRange(0, 2);
   customPlot->yAxis->setRange(0, 2.0);
   
   std::srand(1);
@@ -1074,10 +1075,14 @@ void MainWindow::genQCPSelectionType()
   rectItem->setPen(customPlot->selectionRect()->pen());
   rectItem->setBrush(customPlot->selectionRect()->brush());
   rectItem->setAntialiased(false);
-  QRect rect(rectItem->topLeft->pixelPosition().toPoint(), rectItem->bottomRight->pixelPosition().toPoint());
-  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
-  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  
+  QRect rect(rectItem->topLeft->pixelPosition().toPoint(),
+             rectItem->bottomRight->pixelPosition().toPoint());
+  QRect globalRect(customPlot->mapToGlobal(rect.topLeft()), customPlot->mapToGlobal(rect.bottomRight()));
+
+  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), globalRect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), globalRect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), globalRect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   
   g->setSelectable(QCP::stNone);
   QApplication::sendEvent(customPlot, &pressEvent);
@@ -1511,7 +1516,7 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
   }
 }
 
-void MainWindow::resetPlot(bool clearAxes)
+void MainWindow::resetPlot(bool clearAxes, bool show)
 {
   if (customPlot)
   {
@@ -1520,8 +1525,11 @@ void MainWindow::resetPlot(bool clearAxes)
   }
   customPlot = new QCustomPlot(0);
   customPlot->setLocale(QLocale::c());
-  //customPlot->show();
-  //qApp->processEvents();
+  if (show)
+  {
+    customPlot->show();
+    qApp->processEvents();
+  }
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);

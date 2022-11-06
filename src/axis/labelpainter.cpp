@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 #include "labelpainter.h"
@@ -224,8 +224,8 @@ QByteArray QCPLabelPainterPrivate::generateLabelParameterHash() const
   QByteArray result;
   result.append(QByteArray::number(mParentPlot->bufferDevicePixelRatio()));
   result.append(QByteArray::number(mRotation));
-  //result.append(QByteArray::number((int)tickLabelSide)); TODO: check whether this is really a cache-invalidating property
-  result.append(QByteArray::number((int)mSubstituteExponent));
+  //result.append(QByteArray::number(int(tickLabelSide))); TODO: check whether this is really a cache-invalidating property
+  result.append(QByteArray::number(int(mSubstituteExponent)));
   result.append(QString(mMultiplicationSymbol).toUtf8());
   result.append(mColor.name().toLatin1()+QByteArray::number(mColor.alpha(), 16));
   result.append(mFont.toString().toLatin1());
@@ -328,9 +328,12 @@ QPointF QCPLabelPainterPrivate::getAnchorPos(const QPointF &tickPos)
         case asTopRight:    return tickPos+QPointF(-mPadding*M_SQRT1_2, mPadding*M_SQRT1_2);
         case asBottomRight: return tickPos+QPointF(-mPadding*M_SQRT1_2, -mPadding*M_SQRT1_2);
         case asBottomLeft:  return tickPos+QPointF(mPadding*M_SQRT1_2, -mPadding*M_SQRT1_2);
+        default: qDebug() << Q_FUNC_INFO << "invalid mode for anchor side: " << mAnchorSide; break;
       }
+      break;
     }
     case amSkewedUpright:
+      // fall through
     case amSkewedRotated:
     {
       QCPVector2D anchorNormal(tickPos-mAnchorReference);
@@ -339,6 +342,7 @@ QPointF QCPLabelPainterPrivate::getAnchorPos(const QPointF &tickPos)
       anchorNormal.normalize();
       return tickPos+(anchorNormal*mPadding).toPointF();
     }
+    default: qDebug() << Q_FUNC_INFO << "invalid mode for anchor mode: " << mAnchorMode; break;
   }
   return tickPos;
 }
@@ -556,8 +560,8 @@ QByteArray QCPLabelPainterPrivate::cacheKey(const QString &text, const QColor &c
 {
   return text.toUtf8()+
       QByteArray::number(color.red()+256*color.green()+65536*color.blue(), 36)+
-      QByteArray::number(color.alpha()+256*(int)side, 36)+
-      QByteArray::number((int)(rotation*100)%36000, 36);
+      QByteArray::number(color.alpha()+256*int(side), 36)+
+      QByteArray::number(int(rotation*100), 36);
 }
 
 QCPLabelPainterPrivate::AnchorSide QCPLabelPainterPrivate::skewedAnchorSide(const QPointF &tickPos, double sideExpandHorz, double sideExpandVert) const

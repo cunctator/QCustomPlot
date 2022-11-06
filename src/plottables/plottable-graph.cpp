@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 #include "plottable-graph.h"
@@ -858,21 +858,37 @@ QVector<QPointF> QCPGraph::dataToImpulseLines(const QVector<QCPGraphData> &data)
   {
     for (int i=0; i<data.size(); ++i)
     {
-      const double key = keyAxis->coordToPixel(data.at(i).key);
-      result[i*2+0].setX(valueAxis->coordToPixel(0));
-      result[i*2+0].setY(key);
-      result[i*2+1].setX(valueAxis->coordToPixel(data.at(i).value));
-      result[i*2+1].setY(key);
+      const QCPGraphData &current = data.at(i);
+      if (!qIsNaN(current.value))
+      {
+        const double key = keyAxis->coordToPixel(current.key);
+        result[i*2+0].setX(valueAxis->coordToPixel(0));
+        result[i*2+0].setY(key);
+        result[i*2+1].setX(valueAxis->coordToPixel(current.value));
+        result[i*2+1].setY(key);
+      } else
+      {
+        result[i*2+0] = QPointF(0, 0);
+        result[i*2+1] = QPointF(0, 0);
+      }
     }
   } else // key axis is horizontal
   {
     for (int i=0; i<data.size(); ++i)
     {
-      const double key = keyAxis->coordToPixel(data.at(i).key);
-      result[i*2+0].setX(key);
-      result[i*2+0].setY(valueAxis->coordToPixel(0));
-      result[i*2+1].setX(key);
-      result[i*2+1].setY(valueAxis->coordToPixel(data.at(i).value));
+      const QCPGraphData &current = data.at(i);
+      if (!qIsNaN(current.value))
+      {
+        const double key = keyAxis->coordToPixel(data.at(i).key);
+        result[i*2+0].setX(key);
+        result[i*2+0].setY(valueAxis->coordToPixel(0));
+        result[i*2+1].setX(key);
+        result[i*2+1].setY(valueAxis->coordToPixel(data.at(i).value));
+      } else
+      {
+        result[i*2+0] = QPointF(0, 0);
+        result[i*2+1] = QPointF(0, 0);
+      }
     }
   }
   return result;

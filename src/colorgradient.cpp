@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 #include "colorgradient.h"
@@ -253,10 +253,10 @@ void QCPColorGradient::colorize(const double *data, const QCPRange &range, QRgb 
     const double value = data[dataIndexFactor*i];
     if (skipNanCheck || !std::isnan(value))
     {
-      int index = int((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
+      qint64 index = qint64((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
       if (!mPeriodic)
       {
-        index = qBound(0, index, mLevelCount-1);
+        index = qBound(qint64(0), index, qint64(mLevelCount-1));
       } else
       {
         index %= mLevelCount;
@@ -314,10 +314,10 @@ void QCPColorGradient::colorize(const double *data, const unsigned char *alpha, 
     const double value = data[dataIndexFactor*i];
     if (skipNanCheck || !std::isnan(value))
     {
-      int index = int((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
+      qint64 index = qint64((!logarithmic ? value-range.lower : qLn(value/range.lower)) * posToIndexFactor);
       if (!mPeriodic)
       {
-        index = qBound(0, index, mLevelCount-1);
+        index = qBound(qint64(0), index, qint64(mLevelCount-1));
       } else
       {
         index %= mLevelCount;
@@ -560,7 +560,7 @@ void QCPColorGradient::updateColorBuffer()
     for (int i=0; i<mLevelCount; ++i)
     {
       double position = i*indexToPosFactor;
-      QMap<double, QColor>::const_iterator it = mColorStops.lowerBound(position);
+      QMap<double, QColor>::const_iterator it = const_cast<const QMap<double, QColor>*>(&mColorStops)->lowerBound(position); // force using the const lowerBound method
       if (it == mColorStops.constEnd()) // position is on or after last stop, use color of last stop
       {
         if (useAlpha)

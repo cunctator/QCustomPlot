@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 #include "axisticker.h"
@@ -407,7 +407,7 @@ double QCPAxisTicker::pickClosest(double target, const QVector<double> &candidat
 */
 double QCPAxisTicker::getMantissa(double input, double *magnitude) const
 {
-  const double mag = qPow(10.0, qFloor(qLn(input)/qLn(10.0)));
+  const double mag = std::pow(10.0, std::floor(std::log10(input)));
   if (magnitude) *magnitude = mag;
   return input/mag;
 }

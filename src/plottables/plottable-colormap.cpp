@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 #include "plottable-colormap.h"
@@ -397,8 +397,8 @@ void QCPColorMapData::recalculateDataBounds()
 {
   if (mKeySize > 0 && mValueSize > 0)
   {
-    double minHeight = mData[0];
-    double maxHeight = mData[0];
+    double minHeight = std::numeric_limits<double>::max();
+    double maxHeight = -std::numeric_limits<double>::max();
     const int dataCount = mValueSize*mKeySize;
     for (int i=0; i<dataCount; ++i)
     {
@@ -441,8 +441,7 @@ void QCPColorMapData::clearAlpha()
 void QCPColorMapData::fill(double z)
 {
   const int dataCount = mValueSize*mKeySize;
-  for (int i=0; i<dataCount; ++i)
-    mData[i] = z;
+  memset(mData, z, dataCount*sizeof(*mData));
   mDataBounds = QCPRange(z, z);
   mDataModified = true;
 }
@@ -461,8 +460,7 @@ void QCPColorMapData::fillAlpha(unsigned char alpha)
   if (mAlpha || createAlpha(false))
   {
     const int dataCount = mValueSize*mKeySize;
-    for (int i=0; i<dataCount; ++i)
-      mAlpha[i] = alpha;
+    memset(mAlpha, alpha, dataCount*sizeof(*mAlpha));
     mDataModified = true;
   }
 }

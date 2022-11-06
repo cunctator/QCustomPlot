@@ -2,8 +2,8 @@ QT += core gui testlib
 #lessThan(QT_MAJOR_VERSION, 5): QT += opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-greaterThan(QT_MAJOR_VERSION, 4): CONFIG += c++11
-lessThan(QT_MAJOR_VERSION, 5): QMAKE_CXXFLAGS += -std=c++11
+greaterThan(QT_MAJOR_VERSION, 4): CONFIG += c++17
+lessThan(QT_MAJOR_VERSION, 5): QMAKE_CXXFLAGS += -std=c++17
 
 lessThan(QT_MAJOR_VERSION, 5): QMAKE_CXXFLAGS += -w # don't spam warnings for old Qt versions
 

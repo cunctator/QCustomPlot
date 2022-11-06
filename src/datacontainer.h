@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 /*! \file */
 #ifndef QCP_DATACONTAINER_H
@@ -697,6 +697,8 @@ QCPRange QCPDataContainer<DataType>::keyRange(bool &foundRange, QCP::SignDomain 
   output parameter \a foundRange indicates whether a sensible range was found. If this is false,
   you should not use the returned QCPRange (e.g. the data container is empty or all points have the
   same value).
+  
+  Inf and -Inf data values are ignored.
 
   If \a inKeyRange has both lower and upper bound set to zero (is equal to <tt>QCPRange()</tt>),
   all data points are considered, without any restriction on the keys.
@@ -734,12 +736,12 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
       if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
         continue;
       current = it->valueRange();
-      if ((current.lower < range.lower || !haveLower) && !qIsNaN(current.lower))
+      if ((current.lower < range.lower || !haveLower) && !qIsNaN(current.lower) && std::isfinite(current.lower))
       {
         range.lower = current.lower;
         haveLower = true;
       }
-      if ((current.upper > range.upper || !haveUpper) && !qIsNaN(current.upper))
+      if ((current.upper > range.upper || !haveUpper) && !qIsNaN(current.upper) && std::isfinite(current.upper))
       {
         range.upper = current.upper;
         haveUpper = true;
@@ -752,12 +754,12 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
       if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
         continue;
       current = it->valueRange();
-      if ((current.lower < range.lower || !haveLower) && current.lower < 0 && !qIsNaN(current.lower))
+      if ((current.lower < range.lower || !haveLower) && current.lower < 0 && !qIsNaN(current.lower) && std::isfinite(current.lower))
       {
         range.lower = current.lower;
         haveLower = true;
       }
-      if ((current.upper > range.upper || !haveUpper) && current.upper < 0 && !qIsNaN(current.upper))
+      if ((current.upper > range.upper || !haveUpper) && current.upper < 0 && !qIsNaN(current.upper) && std::isfinite(current.upper))
       {
         range.upper = current.upper;
         haveUpper = true;
@@ -770,12 +772,12 @@ QCPRange QCPDataContainer<DataType>::valueRange(bool &foundRange, QCP::SignDomai
       if (restrictKeyRange && (it->mainKey() < inKeyRange.lower || it->mainKey() > inKeyRange.upper))
         continue;
       current = it->valueRange();
-      if ((current.lower < range.lower || !haveLower) && current.lower > 0 && !qIsNaN(current.lower))
+      if ((current.lower < range.lower || !haveLower) && current.lower > 0 && !qIsNaN(current.lower) && std::isfinite(current.lower))
       {
         range.lower = current.lower;
         haveLower = true;
       }
-      if ((current.upper > range.upper || !haveUpper) && current.upper > 0 && !qIsNaN(current.upper))
+      if ((current.upper > range.upper || !haveUpper) && current.upper > 0 && !qIsNaN(current.upper) && std::isfinite(current.upper))
       {
         range.upper = current.upper;
         haveUpper = true;

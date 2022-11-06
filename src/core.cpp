@@ -1,7 +1,7 @@
 /***************************************************************************
 **                                                                        **
 **  QCustomPlot, an easy to use, modern plotting widget for Qt            **
-**  Copyright (C) 2011-2021 Emanuel Eichhammer                            **
+**  Copyright (C) 2011-2022 Emanuel Eichhammer                            **
 **                                                                        **
 **  This program is free software: you can redistribute it and/or modify  **
 **  it under the terms of the GNU General Public License as published by  **
@@ -18,9 +18,9 @@
 **                                                                        **
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
-**  Website/Contact: http://www.qcustomplot.com/                          **
-**             Date: 29.03.21                                             **
-**          Version: 2.1.0                                                **
+**  Website/Contact: https://www.qcustomplot.com/                         **
+**             Date: 06.11.22                                             **
+**          Version: 2.1.1                                                **
 ****************************************************************************/
 
 /*! \file */
@@ -47,7 +47,7 @@
   interacts with the user.
   
   For tutorials on how to use QCustomPlot, see the website\n
-  http://www.qcustomplot.com/
+  https://www.qcustomplot.com/
 */
 
 /* start of documentation of inline functions */
@@ -371,7 +371,7 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   xAxis2(nullptr),
   yAxis2(nullptr),
   legend(nullptr),
-  mBufferDevicePixelRatio(1.0), // will be adapted to primary screen below
+  mBufferDevicePixelRatio(1.0), // will be adapted to true value below
   mPlotLayout(nullptr),
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
@@ -400,7 +400,6 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mOpenGlCacheLabelsBackup(true)
 {
   setAttribute(Qt::WA_NoMousePropagation);
-  setAttribute(Qt::WA_OpaquePaintEvent);
   setFocusPolicy(Qt::ClickFocus);
   setMouseTracking(true);
   QLocale currentLocale = locale();
@@ -2240,6 +2239,22 @@ QSize QCustomPlot::sizeHint() const
 void QCustomPlot::paintEvent(QPaintEvent *event)
 {
   Q_UNUSED(event)
+  
+  // detect if the device pixel ratio has changed (e.g. moving window between different DPI screens), and adapt buffers if necessary:
+#ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
+#  ifdef QCP_DEVICEPIXELRATIO_FLOAT
+  double newDpr = devicePixelRatioF();
+#  else
+  double newDpr = devicePixelRatio();
+#  endif
+  if (!qFuzzyCompare(mBufferDevicePixelRatio, newDpr))
+  {
+    setBufferDevicePixelRatio(newDpr);
+    replot(QCustomPlot::rpQueuedRefresh);
+    return;
+  }
+#endif
+  
   QCPPainter painter(this);
   if (painter.isActive())
   {

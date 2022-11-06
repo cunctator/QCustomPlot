@@ -810,19 +810,19 @@ void MainWindow::genQCPFinancial()
   // generate two sets of random walk data (one for candlestick and one for ohlc chart):
   int n = 500;
   QVector<double> time(n), value1(n), value2(n);
-  QDateTime start = QDateTime(QDate(2014, 6, 11));
+  QDateTime start = QDateTime(QDate(2022, 6, 11), QTime());
   start.setTimeSpec(Qt::UTC);
-  double startTime = start.toTime_t();
+  double startTime = start.toMSecsSinceEpoch()/1000.0;
   double binSize = 3600*24;
   time[0] = startTime;
   value1[0] = 60;
   value2[0] = 60-75;
-  qsrand(9);
+  std::srand(9);
   for (int i=1; i<n; ++i)
   {
     time[i] = startTime + 3600*i;
-    value1[i] = value1[i-1] + (qrand()/(double)RAND_MAX-0.5)*10;
-    qrand();
+    value1[i] = value1[i-1] + (std::rand()/(double)RAND_MAX-0.5)*10;
+    std::rand();
     value2[i] = value1[i]-75;
   }
   
@@ -869,7 +869,7 @@ void MainWindow::genQCPErrorBars()
   customPlot->xAxis->ticker()->setTickCount(6);
   customPlot->yAxis->ticker()->setTickCount(6);
 
-  qsrand(4);
+  std::srand(4);
   int n = 5;
   int n2 = 12;
   QVector<double> x(n), y(n), errX(n), errY(n);
@@ -877,15 +877,15 @@ void MainWindow::genQCPErrorBars()
   for (int i=0; i<n; ++i)
   {
     x[i] = i/(double)(n-1)*5;
-    y[i] = 0.7+qrand()/(double)RAND_MAX;
-    errX[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
-    errY[i] = 0.15+qrand()/(double)RAND_MAX*0.2;
+    y[i] = 0.7+std::rand()/(double)RAND_MAX;
+    errX[i] = 0.15+std::rand()/(double)RAND_MAX*0.2;
+    errY[i] = 0.15+std::rand()/(double)RAND_MAX*0.2;
   }
   for (int i=0; i<n2; ++i)
   {
     x2[i] = i/(double)(n2-1)*5;
-    y2[i] = qrand()/(double)RAND_MAX*0.5+0.15;
-    errY2[i] = 0.02+qrand()/(double)RAND_MAX*0.2;
+    y2[i] = std::rand()/(double)RAND_MAX*0.5+0.15;
+    errY2[i] = 0.02+std::rand()/(double)RAND_MAX*0.2;
   }
   
   QCPGraph *graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
@@ -1050,23 +1050,24 @@ void MainWindow::genQCPBarsGroup()
 
 void MainWindow::genQCPSelectionType()
 {
-  resetPlot(true);
+  resetPlot(true, true); // need to actually show window, otherwise QMouseEvent coordinates are wrong
   const int imageWidth = 180;
   const int imageHeight = 110;
   customPlot->setSelectionRectMode(QCP::srmSelect);
   customPlot->setInteractions(QCP::iSelectPlottables);
-  customPlot->setGeometry(0, 0, imageWidth, imageHeight);
-  customPlot->xAxis->setRange(-0.05, 2.005);
+  QPoint currentTopLeft = customPlot->geometry().topLeft();
+  customPlot->setGeometry(currentTopLeft.x(), currentTopLeft.y(), imageWidth, imageHeight);
+  customPlot->xAxis->setRange(0, 2);
   customPlot->yAxis->setRange(0, 2.0);
   
-  qsrand(1);
+  std::srand(1);
   QCPGraph *g = customPlot->addGraph();
   g->setPen(QPen(QColor(160, 160, 160)));
   g->setScatterStyle(QCPScatterStyle::ssDisc);
   g->selectionDecorator()->setPen(QPen(QColor(255, 0, 160)));
   g->selectionDecorator()->setUsedScatterProperties(QCPScatterStyle::spNone);
   for (int i=0; i<50; ++i)
-    g->addData(i/25.0, 0.6+qSin(i/15.0*M_PI)*0.6+qrand()/(double)RAND_MAX*0.4);
+    g->addData(i/25.0, 0.6+qSin(i/15.0*M_PI)*0.6+std::rand()/(double)RAND_MAX*0.4);
   
   QCPItemRect *rectItem = new QCPItemRect(customPlot);
   rectItem->topLeft->setCoords(0.33, 1.8);
@@ -1074,10 +1075,14 @@ void MainWindow::genQCPSelectionType()
   rectItem->setPen(customPlot->selectionRect()->pen());
   rectItem->setBrush(customPlot->selectionRect()->brush());
   rectItem->setAntialiased(false);
-  QRect rect(rectItem->topLeft->pixelPosition().toPoint(), rectItem->bottomRight->pixelPosition().toPoint());
-  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
-  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  
+  QRect rect(rectItem->topLeft->pixelPosition().toPoint(),
+             rectItem->bottomRight->pixelPosition().toPoint());
+  QRect globalRect(customPlot->mapToGlobal(rect.topLeft()), customPlot->mapToGlobal(rect.bottomRight()));
+
+  QMouseEvent pressEvent(QEvent::MouseButtonPress, rect.topLeft(), globalRect.topLeft(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent dragEvent(QEvent::MouseMove, rect.bottomRight(), globalRect.bottomRight(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+  QMouseEvent releaseEvent(QEvent::MouseButtonRelease, rect.bottomRight(), globalRect.bottomRight(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
   
   g->setSelectable(QCP::stNone);
   QApplication::sendEvent(customPlot, &pressEvent);
@@ -1511,7 +1516,7 @@ void MainWindow::addGridLayoutOutline(QCPLayoutGrid *layout)
   }
 }
 
-void MainWindow::resetPlot(bool clearAxes)
+void MainWindow::resetPlot(bool clearAxes, bool show)
 {
   if (customPlot)
   {
@@ -1520,8 +1525,11 @@ void MainWindow::resetPlot(bool clearAxes)
   }
   customPlot = new QCustomPlot(0);
   customPlot->setLocale(QLocale::c());
-  //customPlot->show();
-  //qApp->processEvents();
+  if (show)
+  {
+    customPlot->show();
+    qApp->processEvents();
+  }
   if (clearAxes)
   {
     customPlot->xAxis->setRange(-0.4, 1.4);

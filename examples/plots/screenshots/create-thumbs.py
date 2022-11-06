@@ -8,7 +8,7 @@ os.chdir(sys.path[0])  # change current working dir to script dir
 if not os.path.isdir("./thumbs"):
     os.mkdir("./thumbs")
 elif len(os.listdir("./thumbs")) > 0:
-    if raw_input("Warning: ./thumbs not empty! Continue anyway? (y/n): ") != "y":
+    if input("Warning: ./thumbs not empty! Continue anyway? (y/n): ") != "y":
         sys.exit()
 
 # sizes = ["264x200"]

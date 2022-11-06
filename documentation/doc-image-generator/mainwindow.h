@@ -68,7 +68,7 @@ private:
   void addBracket(QPointF left, QPointF right, QString text, QPointF textOffset, int rotation, Qt::Alignment textAlign, QCPItemBracket::BracketStyle style=QCPItemBracket::bsRound);
   void addArrow(QPointF target, QPointF textPosition, QString text, Qt::Alignment textAlign=Qt::AlignCenter);
   void addGridLayoutOutline(QCPLayoutGrid *layout);
-  void resetPlot(bool clearAxes=true);
+  void resetPlot(bool clearAxes=true, bool show=false);
   
   Ui::MainWindow *ui;
   QCustomPlot *customPlot;

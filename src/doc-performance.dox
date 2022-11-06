@@ -46,6 +46,10 @@
   QCustomPlot::setNoAntialiasingOnDrag to true. This is only relevant if using the default software
   renderer. (OpenGL antialiasing can't be toggled on-the-fly and would require an expensive
   reallocation of the sample buffer.)
+  
+  \li Consider using setAttribute(Qt::WA_OpaquePaintEvent) on the QCustomPlot widget. This allows
+  to save one fill at every paint event. Note though that on embedded systems, this may prevent
+  Qt from graying out the widget together with the rest of the UI, when a modal dialog is shown.
 
   \li Qt4 only: On X11 (GNU/Linux), avoid the slow native drawing system, use \a raster by
   supplying "-graphicssystem raster" as command line argument or calling

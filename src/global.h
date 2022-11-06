@@ -19,7 +19,7 @@
 ****************************************************************************
 **           Author: Emanuel Eichhammer                                   **
 **  Website/Contact: https://www.qcustomplot.com/                         **
-**             Date: 02.11.22                                             **
+**             Date: 06.11.22                                             **
 **          Version: 2.1.1                                                **
 ****************************************************************************/
 /*! \file */
@@ -106,7 +106,7 @@
 // amalgamation: include end
 
 #define QCUSTOMPLOT_VERSION_STR "2.1.1"
-#define QCUSTOMPLOT_VERSION 0x020100
+#define QCUSTOMPLOT_VERSION 0x020101
 
 // decl definitions for shared library compilation/usage:
 #if defined(QT_STATIC_BUILD)
